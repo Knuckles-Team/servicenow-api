@@ -115,7 +115,7 @@ class Api(object):
         if result_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_cicd/app/batch/results/{result_id}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
+                                     verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
         except ValueError or AttributeError:
@@ -131,6 +131,7 @@ class Api(object):
             return response.json()
         except ValueError or AttributeError:
             return response
+
     @require_auth
     def progress(self, progress_id=None):
         if progress_id is None:
@@ -177,7 +178,7 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_install(self, app_sys_id=None, auto_upgrade_base_app=None, base_app_version=None, scope=None,
+    def app_repo_install(self, app_sys_id=None, scope=None, auto_upgrade_base_app=None, base_app_version=None,
                          version=None):
         if app_sys_id is None and scope is None:
             raise MissingParameterError
@@ -202,10 +203,18 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_publish(self, app_sys_id=None):
-        if app_sys_id is None:
+    def app_repo_publish(self, app_sys_id=None, scope=None, dev_notes=None, version=None):
+        if app_sys_id is None and scope is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish?sys_id={app_sys_id}', headers=self.headers,
+        if app_sys_id:
+            parameters = f'?sys_id={app_sys_id}'
+        else:
+            parameters = f'?scope={scope}'
+        if dev_notes:
+            parameters = f'{parameters}&dev_notes={dev_notes}'
+        if version:
+            parameters = f'{parameters}&version={version}'
+        response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish{parameters}', headers=self.headers,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -213,10 +222,16 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_rollback(self, sys_id=None, version=None):
-        if sys_id is None:
+    def app_repo_rollback(self, app_sys_id=None, scope=None, version=None):
+        if app_sys_id is None and scope is None or version is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/rollback?sys_id={sys_id}&version={version}',
+        if app_sys_id:
+            parameters = f'?sys_id={app_sys_id}'
+        else:
+            parameters = f'?scope={scope}'
+        if version:
+            parameters = f'{parameters}&version={version}'
+        response = self._session.post(f'{self.url}/sn_cicd/app_repo/rollback{parameters}',
                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -224,7 +239,7 @@ class Api(object):
             return response
 
     @require_auth
-    def full_instance_scan(self):
+    def full_scan(self):
         response = self._session.post(f'{self.url}/sn_cicd/instance_scan/full_scan', headers=self.headers,
                                       verify=self.verify, proxies=self.proxies)
         try:
@@ -233,47 +248,111 @@ class Api(object):
             return response
 
     @require_auth
-    def suite_instance_scan(self, suite_sys_id=None, data=None):
-        if suite_sys_id is None or data is None:
+    def point_scan(self, target_sys_id=None, target_table=None):
+        if target_sys_id is None or target_table is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/{suite_sys_id}/scoped_apps',
-                                      data=data, headers=self.headers, verify=self.verify, proxies=self.proxies)
+        parameters = f"?target_table={target_table}&target_sys_id={target_sys_id}"
+        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/point_scan{parameters}',
+                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
         except ValueError or AttributeError:
             return response
 
     @require_auth
-    def source_control_apply_remote_changes(self, sys_id=None, scope=None, branch_name=None, auto_upgrade=False):
-        if sys_id is None or scope is None:
+    def combo_suite_scan(self, combo_sys_id=None):
+        if combo_sys_id is None:
             raise MissingParameterError
-        if auto_upgrade:
-            auto_upgrade = 'true'
+        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{combo_sys_id}',
+                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def suite_scan(self, suite_sys_id=None, sys_ids=None, scan_type="scoped_apps"):
+        if suite_sys_id is None or sys_ids is None:
+            raise MissingParameterError
+        try:
+            data = json.dumps(sys_ids, indent=4)
+        except ValueError:
+            raise ParameterError
+        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/{suite_sys_id}/{scan_type}',
+                                      headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def activate_plugin(self, plugin_id=None):
+        if plugin_id is None:
+            raise MissingParameterError
+        response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/activate',
+                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def rollback_plugin(self, plugin_id=None):
+        if plugin_id is None:
+            raise MissingParameterError
+        response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/rollback',
+                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def apply_remote_source_control_changes(self, app_sys_id=None, scope=None, branch_name=None,
+                                            auto_upgrade_base_app=None):
+        if app_sys_id is None and scope is None:
+            raise MissingParameterError
+        if app_sys_id:
+            parameters = f'?sys_id={app_sys_id}'
         else:
-            auto_upgrade = 'false'
-        if sys_id:
-            response = self._session.post(f'{self.url}/sn_cicd/sc/'
-                                          f'apply_changes?app_sys_id={sys_id}'
-                                          f'&branch_name={branch_name}'
-                                          f'&auto_upgrade_base_app=false',
-                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
-            try:
-                return response.json()
-            except ValueError or AttributeError:
-                return response
-        elif scope:
-            response = self._session.post(f'{self.url}/sn_cicd/sc/apply_changes?app_scope={scope}'
-                                          f'&branch_name={branch_name}'
-                                          f'&auto_upgrade_base_app={auto_upgrade}',
-                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
-            try:
-                return response.json()
-            except ValueError or AttributeError:
-                return response
+            parameters = f'?scope={scope}'
+        if auto_upgrade_base_app:
+            if isinstance(auto_upgrade_base_app, bool):
+                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
+            else:
+                raise ParameterError
+        if branch_name:
+            parameters = f'{parameters}&branch_name={branch_name}'
+        response = self._session.post(f'{self.url}/sn_cicd/sc/apply_changes{parameters}', headers=self.headers,
+                                      verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def import_repository(self, credential_sys_id=None, mid_server_sys_id=None, repo_url=None, branch_name=None,
+                          auto_upgrade_base_app=None):
+        if repo_url is None:
+            raise MissingParameterError
+        parameters = f'?repo_url={repo_url}'
+        if auto_upgrade_base_app:
+            if isinstance(auto_upgrade_base_app, bool):
+                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
+            else:
+                raise ParameterError
+        if branch_name:
+            parameters = f'{parameters}&branch_name={branch_name}'
+        if credential_sys_id:
+            parameters = f'{parameters}&credential_sys_id={credential_sys_id}'
+        if mid_server_sys_id:
+            parameters = f'{parameters}&mid_server_sys_id={mid_server_sys_id}'
+        response = self._session.post(f'{self.url}/sn_cicd/sc/import{parameters}', headers=self.headers,
+                                      verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
 
     ####################################################################################################################
     #                                        Change Management API                                                     #
