@@ -3,15 +3,13 @@
 
 import json
 import requests
+import urllib3
 from base64 import b64encode
 from decorators import require_auth
 from exceptions import (AuthError,
                         UnauthorizedError,
                         ParameterError,
                         MissingParameterError)
-import urllib3
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Api(object):
