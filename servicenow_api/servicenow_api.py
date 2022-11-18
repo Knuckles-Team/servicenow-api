@@ -166,10 +166,10 @@ class Api(object):
             return response
 
     @require_auth
-    def batch_rollback(self, sys_id=None):
-        if sys_id is None:
+    def batch_rollback(self, rollback_id=None):
+        if rollback_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_cicd/app/batch/rollback/{sys_id}', headers=self.headers,
+        response = self._session.get(f'{self.url}/sn_cicd/app/batch/rollback/{rollback_id}', headers=self.headers,
                                      verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -177,10 +177,24 @@ class Api(object):
             return response
 
     @require_auth
-    def apprepo_publish(self, sys_id=None):
-        if sys_id is None:
+    def app_repo_install(self, app_sys_id=None, auto_upgrade_base_app=None, base_app_version=None, scope=None,
+                         version=None):
+        if app_sys_id is None and scope is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish?sys_id={sys_id}', headers=self.headers,
+        if app_sys_id:
+            parameters = f'?sys_id={app_sys_id}'
+        else:
+            parameters = f'?scope={scope}'
+        if auto_upgrade_base_app:
+            if isinstance(auto_upgrade_base_app, bool):
+                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
+            else:
+                raise ParameterError
+        if base_app_version:
+            parameters = f'{parameters}&base_app_version={base_app_version}'
+        if version:
+            parameters = f'{parameters}&version={version}'
+        response = self._session.post(f'{self.url}/sn_cicd/app_repo/install{parameters}', headers=self.headers,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -188,10 +202,10 @@ class Api(object):
             return response
 
     @require_auth
-    def apprepo_install(self, sys_id=None):
-        if sys_id is None:
+    def app_repo_publish(self, app_sys_id=None):
+        if app_sys_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/install?sys_id={sys_id}', headers=self.headers,
+        response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish?sys_id={app_sys_id}', headers=self.headers,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -199,7 +213,7 @@ class Api(object):
             return response
 
     @require_auth
-    def apprepo_rollback(self, sys_id=None, version=None):
+    def app_repo_rollback(self, sys_id=None, version=None):
         if sys_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}/sn_cicd/app_repo/rollback?sys_id={sys_id}&version={version}',
@@ -238,9 +252,9 @@ class Api(object):
         if sys_id is None or scope is None:
             raise MissingParameterError
         if auto_upgrade:
-            auto_upgrade = "true"
+            auto_upgrade = 'true'
         else:
-            auto_upgrade = "false"
+            auto_upgrade = 'false'
         if sys_id:
             response = self._session.post(f'{self.url}/sn_cicd/sc/'
                                           f'apply_changes?app_sys_id={sys_id}'
@@ -271,38 +285,38 @@ class Api(object):
         page = 0
         if name_value_pairs:
             if parameters:
-                parameters = f"{parameters}&{name_value_pairs}"
+                parameters = f'{parameters}&{name_value_pairs}'
             else:
-                parameters = f"?{name_value_pairs}"
+                parameters = f'?{name_value_pairs}'
         if sysparm_query:
             if order:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
             else:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}"
+                    parameters = f'?sysparm_query={sysparm_query}'
         elif order:
             if parameters:
-                parameters = f"{parameters}&sysparm_query=ORDERBY{order}"
+                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
             else:
-                parameters = f"?sysparm_query=ORDERBY{order}"
+                parameters = f'?sysparm_query=ORDERBY{order}'
         if text_search:
-            parameters = f"{parameters}&textSearch={text_search}"
+            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
         response_length = 10
-        if change_type and isinstance(change_type, str) and change_type.lower() in ["emergency", "normal", "standard",
-                                                                                    "model"]:
-            change_type = f"/{change_type.lower()}"
+        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
+                                                                                    'model']:
+            change_type = f'/{change_type.lower()}'
         elif change_type is None:
-            change_type = ""
+            change_type = ''
         else:
             raise ParameterError
         while response_length > 1:
-            offset = f"&sysparm_offset={page}"
+            offset = f'&sysparm_offset={page}'
             if responses:
                 response = self._session.get(f'{self.url}/sn_chg_rest/change{change_type}{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
@@ -357,31 +371,31 @@ class Api(object):
         page = 0
         if name_value_pairs:
             if parameters:
-                parameters = f"{parameters}&{name_value_pairs}"
+                parameters = f'{parameters}&{name_value_pairs}'
             else:
-                parameters = f"?{name_value_pairs}"
+                parameters = f'?{name_value_pairs}'
         if sysparm_query:
             if order:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
             else:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}"
+                    parameters = f'?sysparm_query={sysparm_query}'
         elif order:
             if parameters:
-                parameters = f"{parameters}&sysparm_query=ORDERBY{order}"
+                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
             else:
-                parameters = f"?sysparm_query=ORDERBY{order}"
+                parameters = f'?sysparm_query=ORDERBY{order}'
         if text_search:
-            parameters = f"{parameters}&textSearch={text_search}"
+            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
         response_length = 10
         while response_length > 1:
-            offset = f"&sysparm_offset={page}"
+            offset = f'&sysparm_offset={page}'
             if responses:
                 response = self._session.get(f'{self.url}/sn_chg_rest/change/task{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
@@ -411,13 +425,13 @@ class Api(object):
     def get_change_request(self, change_request_sys_id=None, change_type=None):
         if change_request_sys_id is None:
             raise MissingParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() == "emergency":
+        if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
             response = self._session.get(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == "normal":
+        elif change_type and isinstance(change_type, str) and change_type.lower() == 'normal':
             response = self._session.get(f'{self.url}/sn_chg_rest/change/normal/{change_request_sys_id}',
                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == "standard":
+        elif change_type and isinstance(change_type, str) and change_type.lower() == 'standard':
             response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}',
                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
         else:
@@ -457,31 +471,31 @@ class Api(object):
         page = 0
         if name_value_pairs:
             if parameters:
-                parameters = f"{parameters}&{name_value_pairs}"
+                parameters = f'{parameters}&{name_value_pairs}'
             else:
-                parameters = f"?{name_value_pairs}"
+                parameters = f'?{name_value_pairs}'
         if sysparm_query:
             if order:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}ORDERBY{order}"
+                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
             else:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query={sysparm_query}"
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
                 else:
-                    parameters = f"?sysparm_query={sysparm_query}"
+                    parameters = f'?sysparm_query={sysparm_query}'
         elif order:
             if parameters:
-                parameters = f"{parameters}&sysparm_query=ORDERBY{order}"
+                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
             else:
-                parameters = f"?sysparm_query=ORDERBY{order}"
+                parameters = f'?sysparm_query=ORDERBY{order}'
         if text_search:
-            parameters = f"{parameters}&textSearch={text_search}"
+            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
         response_length = 10
         while response_length > 1:
-            offset = f"&sysparm_offset={page}"
+            offset = f'&sysparm_offset={page}'
             if responses:
                 response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
@@ -537,11 +551,11 @@ class Api(object):
             data = json.dumps(name_value_pairs, indent=4)
         except ValueError or AttributeError:
             raise ParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() in ["emergency", "normal", "standard",
-                                                                                    "model"]:
-            change_type = f"/{change_type.lower()}"
+        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
+                                                                                    'model']:
+            change_type = f'/{change_type.lower()}'
         elif change_type is None:
-            change_type = ""
+            change_type = ''
         else:
             raise ParameterError
         response = self._session.patch(f'{self.url}/sn_chg_rest/change{change_type}/{change_request_sys_id}',
@@ -561,11 +575,11 @@ class Api(object):
         except ValueError or AttributeError:
             raise ParameterError
         if standard_change_template_id:
-            standard_change_template_id = f"/{standard_change_template_id}"
+            standard_change_template_id = f'/{standard_change_template_id}'
         else:
-            standard_change_template_id = ""
-        if change_type and isinstance(change_type, str) and change_type.lower() in ["emergency", "normal", "standard"]:
-            change_type = f"/{change_type.lower()}"
+            standard_change_template_id = ''
+        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard']:
+            change_type = f'/{change_type.lower()}'
         else:
             raise ParameterError
         response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
@@ -685,13 +699,13 @@ class Api(object):
 
     @require_auth
     def delete_change_request(self, change_request_sys_id=None, change_type=None):
-        if change_type and isinstance(change_type, str) and change_type.lower() == "emergency":
+        if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
             response = self._session.delete(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == "normal":
+        elif change_type and isinstance(change_type, str) and change_type.lower() == 'normal':
             response = self._session.delete(f'{self.url}/sn_chg_rest/change/normal/{change_request_sys_id}',
                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == "standard":
+        elif change_type and isinstance(change_type, str) and change_type.lower() == 'standard':
             response = self._session.delete(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}',
                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
         else:
@@ -792,94 +806,94 @@ class Api(object):
         parameters = None
         if name_value_pairs:
             if parameters:
-                parameters = f"{parameters}&{name_value_pairs}"
+                parameters = f'{parameters}&{name_value_pairs}'
             else:
-                parameters = f"?{name_value_pairs}"
+                parameters = f'?{name_value_pairs}'
         if sysparm_display_value:
-            if sysparm_display_value in [True, False, "all"]:
+            if sysparm_display_value in [True, False, 'all']:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_display_value={sysparm_display_value}"
+                    parameters = f'{parameters}&sysparm_display_value={sysparm_display_value}'
                 else:
-                    parameters = f"?sysparm_display_value={sysparm_display_value}"
+                    parameters = f'?sysparm_display_value={sysparm_display_value}'
             else:
                 raise ParameterError
         if sysparm_exclude_reference_link:
             if isinstance(sysparm_exclude_reference_link, bool):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_exclude_reference_link={str(sysparm_display_value).lower()}"
+                    parameters = f'{parameters}&sysparm_exclude_reference_link={str(sysparm_display_value).lower()}'
                 else:
-                    parameters = f"?sysparm_exclude_reference_link={str(sysparm_display_value).lower()}"
+                    parameters = f'?sysparm_exclude_reference_link={str(sysparm_display_value).lower()}'
             else:
                 raise ParameterError
         if sysparm_fields:
             if isinstance(sysparm_fields, str):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_fields={sysparm_fields}"
+                    parameters = f'{parameters}&sysparm_fields={sysparm_fields}'
                 else:
-                    parameters = f"?sysparm_fields={sysparm_fields}"
+                    parameters = f'?sysparm_fields={sysparm_fields}'
             else:
                 raise ParameterError
         if sysparm_limit:
             if isinstance(sysparm_limit, int):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_limit={sysparm_limit}"
+                    parameters = f'{parameters}&sysparm_limit={sysparm_limit}'
                 else:
-                    parameters = f"?sysparm_limit={sysparm_limit}"
+                    parameters = f'?sysparm_limit={sysparm_limit}'
             else:
                 raise ParameterError
         if sysparm_no_count:
             if isinstance(sysparm_no_count, bool):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_no_count={str(sysparm_no_count).lower()}"
+                    parameters = f'{parameters}&sysparm_no_count={str(sysparm_no_count).lower()}'
                 else:
-                    parameters = f"?sysparm_no_count={str(sysparm_no_count).lower()}"
+                    parameters = f'?sysparm_no_count={str(sysparm_no_count).lower()}'
             else:
                 raise ParameterError
         if sysparm_offset:
             if isinstance(sysparm_offset, int):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_offset={sysparm_offset}"
+                    parameters = f'{parameters}&sysparm_offset={sysparm_offset}'
                 else:
-                    parameters = f"?sysparm_offset={sysparm_offset}"
+                    parameters = f'?sysparm_offset={sysparm_offset}'
             else:
                 raise ParameterError
         if sysparm_query:
             if parameters:
-                parameters = f"{parameters}&sysparm_query={sysparm_query}"
+                parameters = f'{parameters}&sysparm_query={sysparm_query}'
             else:
-                parameters = f"?sysparm_query={sysparm_query}"
+                parameters = f'?sysparm_query={sysparm_query}'
         if sysparm_query_category:
             if isinstance(sysparm_query_category, str):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query_category={sysparm_query_category}"
+                    parameters = f'{parameters}&sysparm_query_category={sysparm_query_category}'
                 else:
-                    parameters = f"?sysparm_query_category={sysparm_query_category}"
+                    parameters = f'?sysparm_query_category={sysparm_query_category}'
             else:
                 raise ParameterError
         if sysparm_query_no_domain:
             if isinstance(sysparm_query_no_domain, bool):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}"
+                    parameters = f'{parameters}&sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
                 else:
-                    parameters = f"?sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}"
+                    parameters = f'?sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
             else:
                 raise ParameterError
         if sysparm_suppress_pagination_header:
             if isinstance(sysparm_suppress_pagination_header, bool):
                 if parameters:
-                    parameters = f"{parameters}&sysparm_suppress_pagination_header=" \
-                                 f"{str(sysparm_suppress_pagination_header).lower()}"
+                    parameters = f'{parameters}&sysparm_suppress_pagination_header=' \
+                                 f'{str(sysparm_suppress_pagination_header).lower()}'
                 else:
-                    parameters = f"?sysparm_suppress_pagination_header=" \
-                                 f"{str(sysparm_suppress_pagination_header).lower()}"
+                    parameters = f'?sysparm_suppress_pagination_header=' \
+                                 f'{str(sysparm_suppress_pagination_header).lower()}'
             else:
                 raise ParameterError
         if sysparm_view:
             if isinstance(sysparm_view, str) and sysparm_view in ['desktop', 'mobile', 'both']:
                 if parameters:
-                    parameters = f"{parameters}&sysparm_view={sysparm_view}"
+                    parameters = f'{parameters}&sysparm_view={sysparm_view}'
                 else:
-                    parameters = f"?sysparm_view={sysparm_view}"
+                    parameters = f'?sysparm_view={sysparm_view}'
             else:
                 raise ParameterError
         response = self._session.get(f'{self.url}/now/table/{parameters}', headers=self.headers,
