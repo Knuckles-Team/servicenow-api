@@ -5,11 +5,15 @@ import json
 import requests
 import urllib3
 from base64 import b64encode
-from decorators import require_auth
-from exceptions import (AuthError,
-                        UnauthorizedError,
-                        ParameterError,
-                        MissingParameterError)
+
+try:
+    from servicenow_api.decorators import require_auth
+except ModuleNotFoundError:
+    from decorators import require_auth
+try:
+    from servicenow_api.exceptions import (AuthError, UnauthorizedError, ParameterError, MissingParameterError)
+except ModuleNotFoundError:
+    from exceptions import (AuthError, UnauthorizedError, ParameterError, MissingParameterError)
 
 
 class Api(object):
