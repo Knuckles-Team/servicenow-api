@@ -354,6 +354,33 @@ class Api(object):
         except ValueError or AttributeError:
             return response
 
+    @require_auth
+    def run_test_suite(self, test_suite_sys_id=None, test_suite_name=None, browser_name=None, browser_version=None,
+                       os_name=None, os_version=None):
+        if test_suite_sys_id is None and test_suite_name is None:
+            raise MissingParameterError
+        if test_suite_sys_id:
+            parameters = f'?test_suite_sys_id={test_suite_sys_id}'
+        else:
+            parameters = f'?test_suite_name={test_suite_name}'
+        if browser_name:
+            if isinstance(browser_name, str) and browser_name in ['any', 'chrome', 'firefox', 'edge', 'ie', 'safari']:
+                parameters = f'{parameters}&browser_name={browser_name}'
+            else:
+                raise ParameterError
+        if browser_version:
+            parameters = f'{parameters}&browser_version={browser_version}'
+        if os_name:
+            parameters = f'{parameters}&os_name={os_name}'
+        if os_version:
+            parameters = f'{parameters}&os_version={os_version}'
+        response = self._session.post(f'{self.url}/sn_cicd/sc/import{parameters}', headers=self.headers,
+                                      verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
     ####################################################################################################################
     #                                        Change Management API                                                     #
     ####################################################################################################################
