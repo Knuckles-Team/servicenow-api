@@ -1,5 +1,5 @@
 # ServiceNow API
-*Version: 0.0.1*
+*Version: 0.0.2*
 
 ServiceNow API Python Wrapper
 
