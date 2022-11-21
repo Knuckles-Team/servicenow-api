@@ -276,8 +276,9 @@ class Api(object):
     def suite_scan(self, suite_sys_id=None, sys_ids=None, scan_type="scoped_apps"):
         if suite_sys_id is None or sys_ids is None:
             raise MissingParameterError
+        data = {"app_scope_sys_ids": sys_ids}
         try:
-            data = json.dumps(sys_ids, indent=4)
+            data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
         response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/{suite_sys_id}/{scan_type}',
