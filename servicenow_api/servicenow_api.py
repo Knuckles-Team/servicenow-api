@@ -1023,14 +1023,14 @@ class Api(object):
             return response
 
     @require_auth
-    def patch_table_record(self, table_name=None, table_record_sys_id=None, data=None):
-        if table_name is None or table_record_sys_id is None or data is None:
+    def patch_table_record(self, table=None, table_record_sys_id=None, data=None):
+        if table is None or table_record_sys_id is None or data is None:
             raise MissingParameterError
         try:
             data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
-        response = self._session.patch(f'{self.url}/now/table/{table_name}/{table_record_sys_id}', data=data,
+        response = self._session.patch(f'{self.url}/now/table/{table}/{table_record_sys_id}', data=data,
                                        headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -1038,14 +1038,14 @@ class Api(object):
             return response
 
     @require_auth
-    def update_table_record(self, table_name=None, table_record_sys_id=None, data=None):
-        if table_name is None or table_record_sys_id is None or data is None:
+    def update_table_record(self, table=None, table_record_sys_id=None, data=None):
+        if table is None or table_record_sys_id is None or data is None:
             raise MissingParameterError
         try:
             data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
-        response = self._session.put(f'{self.url}/now/table/{table_name}/{table_record_sys_id}', data=data,
+        response = self._session.put(f'{self.url}/now/table/{table}/{table_record_sys_id}', data=data,
                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -1053,14 +1053,14 @@ class Api(object):
             return response
 
     @require_auth
-    def add_table_record(self, table_name=None, data=None):
-        if table_name is None or data is None:
+    def add_table_record(self, table=None, data=None):
+        if table is None or data is None:
             raise MissingParameterError
         try:
             data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
-        response = self._session.post(f'{self.url}/now/table/{table_name}', data=data,
+        response = self._session.post(f'{self.url}/now/table/{table}', data=data,
                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
