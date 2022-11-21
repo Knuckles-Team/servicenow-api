@@ -675,9 +675,8 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request(self, change_request_sys_id=None, name_value_pairs=None, change_type=None,
-                              standard_change_template_id=None):
-        if change_request_sys_id is None or name_value_pairs is None:
+    def create_change_request(self, name_value_pairs=None, change_type=None, standard_change_template_id=None):
+        if name_value_pairs is None and change_type is None:
             raise MissingParameterError
         try:
             data = json.dumps(name_value_pairs, indent=4)
