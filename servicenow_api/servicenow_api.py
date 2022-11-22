@@ -897,7 +897,7 @@ class Api(object):
     def delete_table_record(self, table=None, record_sys_id=None):
         if table is None or record_sys_id is None:
             raise MissingParameterError
-        response = self._session.delete(f'{self.url}/table/{table}/{record_sys_id}',
+        response = self._session.delete(f'{self.url}/now/table/{table}/{record_sys_id}',
                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -1004,7 +1004,7 @@ class Api(object):
                     parameters = f'?sysparm_view={sysparm_view}'
             else:
                 raise ParameterError
-        response = self._session.get(f'{self.url}/table/{table}{parameters}', headers=self.headers,
+        response = self._session.get(f'{self.url}/now/table/{table}{parameters}', headers=self.headers,
                                      verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -1015,7 +1015,7 @@ class Api(object):
     def get_table_record(self, table=None, table_record_sys_id=None):
         if table is None or table_record_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/table/{table}/{table_record_sys_id}', headers=self.headers,
+        response = self._session.get(f'{self.url}/now/table/{table}/{table_record_sys_id}', headers=self.headers,
                                      verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
