@@ -853,7 +853,7 @@ class Api(object):
     def get_import_set(self, table=None, import_set_sys_id=None):
         if import_set_sys_id is None or table is None:
             raise ParameterError
-        response = self._session.get(f'{self.url}/import/{table}/{import_set_sys_id}', headers=self.headers,
+        response = self._session.get(f'{self.url}/now/import/{table}/{import_set_sys_id}', headers=self.headers,
                                      verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -868,7 +868,7 @@ class Api(object):
             data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
-        response = self._session.post(f'{self.url}/import/{table}', headers=self.headers, data=data,
+        response = self._session.post(f'{self.url}/now/import/{table}', headers=self.headers, data=data,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
@@ -883,7 +883,7 @@ class Api(object):
             data = json.dumps(data, indent=4)
         except ValueError:
             raise ParameterError
-        response = self._session.post(f'{self.url}/import/{table}/insertMultiple', headers=self.headers, data=data,
+        response = self._session.post(f'{self.url}/now/import/{table}/insertMultiple', headers=self.headers, data=data,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
