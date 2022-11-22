@@ -1004,7 +1004,7 @@ class Api(object):
                     parameters = f'?sysparm_view={sysparm_view}'
             else:
                 raise ParameterError
-        response = self._session.get(f'{self.url}/table/{parameters}', headers=self.headers,
+        response = self._session.get(f'{self.url}/table/{table}{parameters}', headers=self.headers,
                                      verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
