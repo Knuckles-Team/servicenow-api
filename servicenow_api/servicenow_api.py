@@ -316,7 +316,7 @@ class Api(object):
         if app_sys_id is None and scope is None:
             raise MissingParameterError
         if app_sys_id:
-            parameters = f'?sys_id={app_sys_id}'
+            parameters = f'?app_sys_id={app_sys_id}'
         else:
             parameters = f'?scope={scope}'
         if auto_upgrade_base_app:
