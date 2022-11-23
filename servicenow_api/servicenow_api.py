@@ -474,8 +474,10 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_tasks(self, order=None, name_value_pairs=None, max_pages=0, per_page=500, sysparm_query=None,
-                                 text_search=None):
+    def get_change_request_tasks(self, change_request_sys_id=None, order=None, name_value_pairs=None, max_pages=0,
+                                 per_page=500, sysparm_query=None, text_search=None):
+        if change_request_sys_id is None:
+            raise MissingParameterError
         parameters = None
         page = 0
         if name_value_pairs:
@@ -506,7 +508,8 @@ class Api(object):
         while response_length > 1:
             offset = f'&sysparm_offset={page}'
             if responses:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/task{parameters}{offset}',
+                response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
+                                             f'task{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
                 try:
                     verified_response = response.json()
