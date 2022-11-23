@@ -676,7 +676,7 @@ class Api(object):
 
     @require_auth
     def create_change_request(self, name_value_pairs=None, change_type=None, standard_change_template_id=None):
-        if name_value_pairs is None and change_type is None:
+        if name_value_pairs is None:
             raise MissingParameterError
         try:
             data = json.dumps(name_value_pairs, indent=4)
@@ -684,12 +684,8 @@ class Api(object):
             raise ParameterError
         if standard_change_template_id:
             standard_change_template_id = f'/{standard_change_template_id}'
-        else:
-            standard_change_template_id = ''
         if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard']:
             change_type = f'/{change_type.lower()}'
-        else:
-            raise ParameterError
         response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
