@@ -797,12 +797,17 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request_task(self, change_request_sys_id=None, change_request_task_sys_id=None):
-        if change_request_sys_id is None or change_request_task_sys_id is None:
+    def update_change_request_task(self, change_request_sys_id=None, change_request_task_sys_id=None,
+                                   name_value_pairs=None):
+        if change_request_sys_id is None or change_request_task_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
+        try:
+            data = json.dumps(name_value_pairs, indent=4)
+        except ValueError or AttributeError:
+            raise ParameterError
         response = self._session.patch(f'{self.url}'
                                        f'/sn_chg_rest/change/{change_request_sys_id}/task/{change_request_task_sys_id}',
-                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
+                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
         except ValueError or AttributeError:
