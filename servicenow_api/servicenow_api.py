@@ -425,7 +425,11 @@ class Api(object):
         else:
             raise ParameterError
         while response_length > 1:
-            offset = f'&sysparm_offset={page}'
+            if not parameters:
+                parameters = ''
+                offset = f'?sysparm_offset={page}'
+            else:
+                offset = f'&sysparm_offset={page}'
             if responses:
                 response = self._session.get(f'{self.url}/sn_chg_rest/change{change_type}{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
@@ -503,24 +507,35 @@ class Api(object):
                 parameters = f'?sysparm_query=ORDERBY{order}'
         if text_search:
             parameters = f'{parameters}&textSearch={text_search}'
+
         responses = None
         response_length = 10
         while response_length > 1:
-            offset = f'&sysparm_offset={page}'
+            if not parameters:
+                parameters = ''
+                offset = f'?sysparm_offset={page}'
+            else:
+                offset = f'&sysparm_offset={page}'
             if responses:
+                print(f"URI 2: f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/task{parameters}{offset}'")
                 response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
                                              f'task{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
                 try:
                     verified_response = response.json()
-                    response_length = len(verified_response['result'])
-                    if response_length != 1 and page < max_pages \
-                            or response_length != 1 and max_pages == 0:
-                        responses['result'].append(verified_response['result'])
+                    if 'result' in verified_response:
+                        response_length = len(verified_response['result'])
+                        if response_length != 1 and page < max_pages \
+                                or response_length != 1 and max_pages == 0:
+                            responses['result'].append(verified_response['result'])
+                    else:
+                        print(f"VERIFIED RESPONSE RESULT: {verified_response}")
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change{parameters}{offset}',
+                print(f"URI 1: f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/task{parameters}{offset}'")
+                responses = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
+                                              f'task{parameters}{offset}',
                                               headers=self.headers, verify=self.verify, proxies=self.proxies)
                 try:
                     responses = responses.json()
@@ -607,7 +622,11 @@ class Api(object):
         responses = None
         response_length = 10
         while response_length > 1:
-            offset = f'&sysparm_offset={page}'
+            if not parameters:
+                parameters = ''
+                offset = f'?sysparm_offset={page}'
+            else:
+                offset = f'&sysparm_offset={page}'
             if responses:
                 response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
