@@ -474,8 +474,8 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_task(self, order=None, name_value_pairs=None, max_pages=0, per_page=500, sysparm_query=None,
-                                text_search=None):
+    def get_change_request_tasks(self, order=None, name_value_pairs=None, max_pages=0, per_page=500, sysparm_query=None,
+                                 text_search=None):
         parameters = None
         page = 0
         if name_value_pairs:
@@ -684,8 +684,12 @@ class Api(object):
             raise ParameterError
         if standard_change_template_id:
             standard_change_template_id = f'/{standard_change_template_id}'
+        else:
+            standard_change_template_id = ''
         if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard']:
             change_type = f'/{change_type.lower()}'
+        else:
+            change_type = ''
         response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
