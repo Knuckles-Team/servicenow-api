@@ -449,10 +449,6 @@ class Api(object):
                 except ValueError or AttributeError:
                     raise ParameterError
             page = page + per_page
-        try:
-            responses = json.dumps(responses, indent=4)
-        except ValueError or AttributeError:
-            responses = responses
         return responses
 
     @require_auth
@@ -537,10 +533,6 @@ class Api(object):
                 except ValueError or AttributeError:
                     raise ParameterError
             page = page + per_page
-        try:
-            responses = json.dumps(responses, indent=4)
-        except ValueError or AttributeError:
-            responses = responses
         return responses
 
     @require_auth
@@ -641,10 +633,6 @@ class Api(object):
                 except ValueError or AttributeError:
                     raise ParameterError
             page = page + per_page
-        try:
-            responses = json.dumps(responses, indent=4)
-        except ValueError or AttributeError:
-            responses = responses
         return responses
 
     @require_auth
