@@ -7,6 +7,6 @@ on:
 
 jobs:
   publish:
-    uses: Knuckles-Team/pipelines/.github/workflows/python_pipeline.yml@v1.0.0
+    uses: Knuckles-Team/pipelines/.github/workflows/python_pipeline.yml@latest
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
