@@ -904,10 +904,10 @@ class Api(object):
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, table=None, record_sys_id=None):
-        if table is None or record_sys_id is None:
+    def delete_table_record(self, table=None, table_record_sys_id=None):
+        if table is None or table_record_sys_id is None:
             raise MissingParameterError
-        response = self._session.delete(f'{self.url}/now/table/{table}/{record_sys_id}',
+        response = self._session.delete(f'{self.url}/now/table/{table}/{table_record_sys_id}',
                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
