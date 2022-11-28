@@ -20,7 +20,7 @@ setup(
     description=description,
     long_description=f'{readme}',
     long_description_content_type='text/markdown',
-    url='https://github.com/Knucklessg1/servicenow-api',
+    url='https://github.com/Knuckles-Team/servicenow-api',
     author=__author__,
     author_email='knucklessg1@gmail.com',
     license='Unlicense',
