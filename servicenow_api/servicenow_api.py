@@ -861,20 +861,6 @@ class Api(object):
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def import_data(self, table=None, data=None):
-        if data is None or table is None:
-            raise ParameterError
-        try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/import/{table}', headers=self.headers, data=data,
-                                      verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-    @require_auth
     def get_import_set(self, table=None, import_set_sys_id=None):
         if import_set_sys_id is None or table is None:
             raise ParameterError
