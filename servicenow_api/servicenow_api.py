@@ -658,28 +658,6 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request(self, change_request_sys_id=None, name_value_pairs=None, change_type=None):
-        if change_request_sys_id is None or name_value_pairs is None:
-            raise MissingParameterError
-        try:
-            data = json.dumps(name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']:
-            change_type = f'/{change_type.lower()}'
-        elif change_type is None:
-            change_type = ''
-        else:
-            raise ParameterError
-        response = self._session.patch(f'{self.url}/sn_chg_rest/change{change_type}/{change_request_sys_id}',
-                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-
-    @require_auth
     def create_change_request(self, name_value_pairs=None, change_type=None, standard_change_template_id=None):
         if name_value_pairs is None:
             raise MissingParameterError
@@ -695,6 +673,7 @@ class Api(object):
             change_type = f'/{change_type.lower()}'
         else:
             change_type = ''
+        print(f"URI: {self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}")
         response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
@@ -787,6 +766,28 @@ class Api(object):
             return response
 
     @require_auth
+    def update_change_request(self, change_request_sys_id=None, name_value_pairs=None, change_type=None):
+        if change_request_sys_id is None or name_value_pairs is None:
+            raise MissingParameterError
+        try:
+            data = json.dumps(name_value_pairs, indent=4)
+        except ValueError or AttributeError:
+            raise ParameterError
+        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
+                                                                                    'model']:
+            change_type = f'/{change_type.lower()}'
+        elif change_type is None:
+            change_type = ''
+        else:
+            raise ParameterError
+        response = self._session.patch(f'{self.url}/sn_chg_rest/change{change_type}/{change_request_sys_id}',
+                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
     def update_change_request_first_available(self, change_request_sys_id=None):
         if change_request_sys_id is None:
             raise MissingParameterError
@@ -859,6 +860,20 @@ class Api(object):
     ####################################################################################################################
     #                                             Import Set API                                                       #
     ####################################################################################################################
+    @require_auth
+    def import_data(self, table=None, data=None):
+        if data is None or table is None:
+            raise ParameterError
+        try:
+            data = json.dumps(data, indent=4)
+        except ValueError:
+            raise ParameterError
+        response = self._session.post(f'{self.url}/import/{table}', headers=self.headers, data=data,
+                                      verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
     @require_auth
     def get_import_set(self, table=None, import_set_sys_id=None):
         if import_set_sys_id is None or table is None:
