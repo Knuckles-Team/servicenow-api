@@ -636,6 +636,74 @@ class Api(object):
         return responses
 
     @require_auth
+    def get_change_request_models(self, order=None, name_value_pairs=None, max_pages=0, per_page=500,
+                                  sysparm_query=None, text_search=None):
+        parameters = None
+        page = 0
+        if name_value_pairs:
+            if parameters:
+                parameters = f'{parameters}&{name_value_pairs}'
+            else:
+                parameters = f'?{name_value_pairs}'
+        if sysparm_query:
+            if order:
+                if parameters:
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
+                else:
+                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
+            else:
+                if parameters:
+                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
+                else:
+                    parameters = f'?sysparm_query={sysparm_query}'
+        elif order:
+            if parameters:
+                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
+            else:
+                parameters = f'?sysparm_query=ORDERBY{order}'
+        if text_search:
+            parameters = f'{parameters}&textSearch={text_search}'
+        responses = None
+        response_length = 10
+        while response_length > 1:
+            if not parameters:
+                parameters = ''
+                offset = f'?sysparm_offset={page}'
+            else:
+                offset = f'&sysparm_offset={page}'
+            if responses:
+                response = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
+                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    verified_response = response.json()
+                    response_length = len(verified_response['result'])
+                    if response_length > 1 and page < max_pages \
+                            or response_length > 1 and max_pages == 0:
+                        responses['result'] = responses['result'] + verified_response['result']
+                except ValueError or AttributeError:
+                    raise ParameterError
+            else:
+                responses = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
+                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    responses = responses.json()
+                except ValueError or AttributeError:
+                    raise ParameterError
+            page = page + per_page
+        return responses
+
+    @require_auth
+    def get_standard_change_request_model(self, model_sys_id=None):
+        if model_sys_id is None:
+            raise MissingParameterError
+        response = self._session.get(f'{self.url}/sn_chg_rest/change/model/{model_sys_id}',
+                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
     def get_standard_change_request_template(self, template_sys_id=None):
         if template_sys_id is None:
             raise MissingParameterError
