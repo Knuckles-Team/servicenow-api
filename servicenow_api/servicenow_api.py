@@ -18,7 +18,8 @@ except ModuleNotFoundError:
 
 class Api(object):
 
-    def __init__(self, url=None, username=None, password=None, proxies=None, verify=True):
+    def __init__(self, url: str = None, username: str = None, password: str = None, proxies: dict = None,
+                 verify: bool = True):
         if url is None:
             raise MissingParameterError
 
@@ -55,7 +56,7 @@ class Api(object):
     #                                               Incident API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_incident(self, incident_id=None):
+    def get_incident(self, incident_id: str = None):
         if incident_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/now/table/incident/{incident_id}', headers=self.headers,
@@ -66,7 +67,7 @@ class Api(object):
             return response
 
     @require_auth
-    def create_incident(self, data=None):
+    def create_incident(self, data: dict = None):
         if data:
             try:
                 data = json.dumps(data, indent=4)
@@ -85,7 +86,7 @@ class Api(object):
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
-    def get_application(self, application_id=None):
+    def get_application(self, application_id: str = None):
         if application_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/cmdb/app_service/{application_id}/getContent?mode=full',
@@ -99,7 +100,7 @@ class Api(object):
     #                                                   CMDB API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_cmdb(self, cmdb_id=None):
+    def get_cmdb(self, cmdb_id: str = None):
         if cmdb_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/cmdb/meta/{cmdb_id}', headers=self.headers, verify=self.verify,
@@ -113,7 +114,7 @@ class Api(object):
     #                                                  CI/CD API                                                       #
     ####################################################################################################################
     @require_auth
-    def batch_install_result(self, result_id=None):
+    def batch_install_result(self, result_id: str = None):
         if result_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_cicd/app/batch/results/{result_id}', headers=self.headers,
@@ -124,7 +125,7 @@ class Api(object):
             return response
 
     @require_auth
-    def instance_scan_progress(self, progress_id=None):
+    def instance_scan_progress(self, progress_id: str = None):
         if progress_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_cicd/instance_scan/result/{progress_id}', headers=self.headers,
@@ -135,7 +136,7 @@ class Api(object):
             return response
 
     @require_auth
-    def progress(self, progress_id=None):
+    def progress(self, progress_id: str = None):
         if progress_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_cicd/progress/{progress_id}', headers=self.headers,
@@ -146,7 +147,7 @@ class Api(object):
             return response
 
     @require_auth
-    def batch_install(self, name=None, notes=None, packages=None):
+    def batch_install(self, name: str = None, notes: str = None, packages: str = None):
         if name is None or packages is None:
             raise MissingParameterError
         data = {}
@@ -169,7 +170,7 @@ class Api(object):
             return response
 
     @require_auth
-    def batch_rollback(self, rollback_id=None):
+    def batch_rollback(self, rollback_id: str = None):
         if rollback_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_cicd/app/batch/rollback/{rollback_id}', headers=self.headers,
@@ -180,8 +181,8 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_install(self, app_sys_id=None, scope=None, auto_upgrade_base_app=None, base_app_version=None,
-                         version=None):
+    def app_repo_install(self, app_sys_id: str = None, scope: str = None, auto_upgrade_base_app: bool = None,
+                         base_app_version: str = None, version: str = None):
         if app_sys_id is None and scope is None:
             raise MissingParameterError
         if app_sys_id:
@@ -205,7 +206,7 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_publish(self, app_sys_id=None, scope=None, dev_notes=None, version=None):
+    def app_repo_publish(self, app_sys_id: str = None, scope: str = None, dev_notes: str = None, version: str = None):
         if app_sys_id is None and scope is None:
             raise MissingParameterError
         if app_sys_id:
@@ -224,7 +225,7 @@ class Api(object):
             return response
 
     @require_auth
-    def app_repo_rollback(self, app_sys_id=None, scope=None, version=None):
+    def app_repo_rollback(self, app_sys_id: str = None, scope: str = None, version: str = None):
         if app_sys_id is None and scope is None or version is None:
             raise MissingParameterError
         if app_sys_id:
@@ -250,7 +251,7 @@ class Api(object):
             return response
 
     @require_auth
-    def point_scan(self, target_sys_id=None, target_table=None):
+    def point_scan(self, target_sys_id: str = None, target_table: str = None):
         if target_sys_id is None or target_table is None:
             raise MissingParameterError
         parameters = f"?target_table={target_table}&target_sys_id={target_sys_id}"
@@ -262,7 +263,7 @@ class Api(object):
             return response
 
     @require_auth
-    def combo_suite_scan(self, combo_sys_id=None):
+    def combo_suite_scan(self, combo_sys_id: str = None):
         if combo_sys_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{combo_sys_id}',
@@ -273,7 +274,7 @@ class Api(object):
             return response
 
     @require_auth
-    def suite_scan(self, suite_sys_id=None, sys_ids=None, scan_type="scoped_apps"):
+    def suite_scan(self, suite_sys_id: str = None, sys_ids: str = None, scan_type: str = "scoped_apps"):
         if suite_sys_id is None or sys_ids is None:
             raise MissingParameterError
         data = {"app_scope_sys_ids": sys_ids}
@@ -289,7 +290,7 @@ class Api(object):
             return response
 
     @require_auth
-    def activate_plugin(self, plugin_id=None):
+    def activate_plugin(self, plugin_id: str = None):
         if plugin_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/activate',
@@ -300,7 +301,7 @@ class Api(object):
             return response
 
     @require_auth
-    def rollback_plugin(self, plugin_id=None):
+    def rollback_plugin(self, plugin_id: str = None):
         if plugin_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/rollback',
@@ -311,8 +312,8 @@ class Api(object):
             return response
 
     @require_auth
-    def apply_remote_source_control_changes(self, app_sys_id=None, scope=None, branch_name=None,
-                                            auto_upgrade_base_app=None):
+    def apply_remote_source_control_changes(self, app_sys_id: str = None, scope: str = None, branch_name: str = None,
+                                            auto_upgrade_base_app: bool = None):
         if app_sys_id is None and scope is None:
             raise MissingParameterError
         if app_sys_id:
@@ -334,8 +335,8 @@ class Api(object):
             return response
 
     @require_auth
-    def import_repository(self, credential_sys_id=None, mid_server_sys_id=None, repo_url=None, branch_name=None,
-                          auto_upgrade_base_app=None):
+    def import_repository(self, credential_sys_id: str = None, mid_server_sys_id: str = None, repo_url: str = None,
+                          branch_name: str = None, auto_upgrade_base_app: bool = None):
         if repo_url is None:
             raise MissingParameterError
         parameters = f'?repo_url={repo_url}'
@@ -358,8 +359,8 @@ class Api(object):
             return response
 
     @require_auth
-    def run_test_suite(self, test_suite_sys_id=None, test_suite_name=None, browser_name=None, browser_version=None,
-                       os_name=None, os_version=None):
+    def run_test_suite(self, test_suite_sys_id: str = None, test_suite_name: str = None, browser_name: str = None,
+                       browser_version: str = None, os_name: str = None, os_version: str = None):
         if test_suite_sys_id is None and test_suite_name is None:
             raise MissingParameterError
         if test_suite_sys_id:
@@ -388,8 +389,9 @@ class Api(object):
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, order=None, name_value_pairs=None, max_pages=0, per_page=500, sysparm_query=None,
-                            text_search=None, change_type=None):
+    def get_change_requests(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+                            per_page: int = 500, sysparm_query: str = None, text_search: str = None,
+                            change_type: str = None):
         parameters = None
         page = 0
         if name_value_pairs:
@@ -452,7 +454,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_nextstate(self, change_request_sys_id=None):
+    def get_change_request_nextstate(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/nextstate',
@@ -463,7 +465,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_schedule(self, cmdb_ci_sys_id=None):
+    def get_change_request_schedule(self, cmdb_ci_sys_id: str = None):
         if cmdb_ci_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/ci/{cmdb_ci_sys_id}/schedule',
@@ -474,8 +476,9 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_tasks(self, change_request_sys_id=None, order=None, name_value_pairs=None, max_pages=0,
-                                 per_page=500, sysparm_query=None, text_search=None):
+    def get_change_request_tasks(self, change_request_sys_id: str = None, order: str = None,
+                                 name_value_pairs: str = None, max_pages: int = 0, per_page: int = 500,
+                                 sysparm_query: str = None, text_search: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         parameters = None
@@ -536,7 +539,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request(self, change_request_sys_id=None, change_type=None):
+    def get_change_request(self, change_request_sys_id: str = None, change_type: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
@@ -557,7 +560,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_ci(self, change_request_sys_id=None):
+    def get_change_request_ci(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/ci',
@@ -568,7 +571,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_ci(self, change_request_sys_id=None):
+    def get_change_request_ci(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
@@ -579,8 +582,8 @@ class Api(object):
             return response
 
     @require_auth
-    def get_standard_change_request_templates(self, order=None, name_value_pairs=None, max_pages=0, per_page=500,
-                                              sysparm_query=None, text_search=None):
+    def get_standard_change_request_templates(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+                                              per_page: int = 500, sysparm_query: str = None, text_search: str = None):
         parameters = None
         page = 0
         if name_value_pairs:
@@ -636,8 +639,8 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_models(self, order=None, name_value_pairs=None, max_pages=0, per_page=500,
-                                  sysparm_query=None, text_search=None):
+    def get_change_request_models(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+                                  per_page: int = 500, sysparm_query: str = None, text_search: str = None):
         parameters = None
         page = 0
         if name_value_pairs:
@@ -693,7 +696,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_standard_change_request_model(self, model_sys_id=None):
+    def get_standard_change_request_model(self, model_sys_id: str = None):
         if model_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/model/{model_sys_id}',
@@ -704,7 +707,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_standard_change_request_template(self, template_sys_id=None):
+    def get_standard_change_request_template(self, template_sys_id: str = None):
         if template_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template/{template_sys_id}',
@@ -715,7 +718,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_change_request_worker(self, worker_sys_id=None):
+    def get_change_request_worker(self, worker_sys_id: str = None):
         if worker_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/sn_chg_rest/change/worker/{worker_sys_id}',
@@ -726,7 +729,7 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request(self, name_value_pairs=None, change_type=None, standard_change_template_id=None):
+    def create_change_request(self, name_value_pairs: str = None, change_type: str = None, standard_change_template_id: str = None):
         if name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -750,7 +753,7 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request_task(self, change_request_sys_id=None, name_value_pairs=None):
+    def create_change_request_task(self, change_request_sys_id: str = None, name_value_pairs: str = None):
         if change_request_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -765,8 +768,8 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request_ci_association(self, change_request_sys_id=None, cmdb_ci_sys_ids=None,
-                                             association_type=None, refresh_impacted_services=None):
+    def create_change_request_ci_association(self, change_request_sys_id: str = None, cmdb_ci_sys_ids: str = None,
+                                             association_type: str = None, refresh_impacted_services: bool = None):
         if change_request_sys_id is None or cmdb_ci_sys_ids is None or association_type is None:
             raise MissingParameterError
         data = {}
@@ -789,7 +792,7 @@ class Api(object):
             return response
 
     @require_auth
-    def calculate_standard_change_request_risk(self, change_request_sys_id=None):
+    def calculate_standard_change_request_risk(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.patch(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}/risk',
@@ -800,7 +803,7 @@ class Api(object):
             return response
 
     @require_auth
-    def check_change_request_conflict(self, change_request_sys_id=None):
+    def check_change_request_conflict(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
@@ -811,7 +814,7 @@ class Api(object):
             return response
 
     @require_auth
-    def refresh_change_request_impacted_services(self, change_request_sys_id=None):
+    def refresh_change_request_impacted_services(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.post(f'{self.url}'
@@ -823,7 +826,7 @@ class Api(object):
             return response
 
     @require_auth
-    def approve_change_request(self, change_request_sys_id=None):
+    def approve_change_request(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.patch(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/approvals',
@@ -834,7 +837,7 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request(self, change_request_sys_id=None, name_value_pairs=None, change_type=None):
+    def update_change_request(self, change_request_sys_id: str = None, name_value_pairs: str = None, change_type: str = None):
         if change_request_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -856,7 +859,7 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request_first_available(self, change_request_sys_id=None):
+    def update_change_request_first_available(self, change_request_sys_id: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
         response = self._session.patch(f'{self.url}'
@@ -868,8 +871,8 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request_task(self, change_request_sys_id=None, change_request_task_sys_id=None,
-                                   name_value_pairs=None):
+    def update_change_request_task(self, change_request_sys_id: str = None, change_request_task_sys_id: str = None,
+                                   name_value_pairs: str = None):
         if change_request_sys_id is None or change_request_task_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -885,7 +888,7 @@ class Api(object):
             return response
 
     @require_auth
-    def delete_change_request(self, change_request_sys_id=None, change_type=None):
+    def delete_change_request(self, change_request_sys_id: str = None, change_type: str = None):
         if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
             response = self._session.delete(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
@@ -904,7 +907,7 @@ class Api(object):
             return response
 
     @require_auth
-    def delete_change_request_task(self, change_request_sys_id=None, task_sys_id=None):
+    def delete_change_request_task(self, change_request_sys_id: str = None, task_sys_id: str = None):
         if change_request_sys_id is None or task_sys_id is None:
             raise MissingParameterError
         response = self._session.delete(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/task/{task_sys_id}',
@@ -915,7 +918,7 @@ class Api(object):
             return response
 
     @require_auth
-    def delete_change_request_conflict_scan(self, change_request_sys_id=None, task_sys_id=None):
+    def delete_change_request_conflict_scan(self, change_request_sys_id: str = None, task_sys_id: str = None):
         if change_request_sys_id is None or task_sys_id is None:
             raise MissingParameterError
         response = self._session.delete(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
@@ -929,7 +932,7 @@ class Api(object):
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_import_set(self, table=None, import_set_sys_id=None):
+    def get_import_set(self, table: str = None, import_set_sys_id: str = None):
         if import_set_sys_id is None or table is None:
             raise ParameterError
         response = self._session.get(f'{self.url}/now/import/{table}/{import_set_sys_id}', headers=self.headers,
@@ -940,7 +943,7 @@ class Api(object):
             return response
 
     @require_auth
-    def insert_import_set(self, table=None, data=None):
+    def insert_import_set(self, table: str = None, data: dict = None):
         if data is None or table is None:
             raise ParameterError
         try:
@@ -955,7 +958,7 @@ class Api(object):
             return response
 
     @require_auth
-    def insert_multiple_import_sets(self, table=None, data=None):
+    def insert_multiple_import_sets(self, table: str = None, data: dict = None):
         if data is None or table is None:
             raise ParameterError
         try:
@@ -973,7 +976,7 @@ class Api(object):
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, table=None, table_record_sys_id=None):
+    def delete_table_record(self, table: str = None, table_record_sys_id: str = None):
         if table is None or table_record_sys_id is None:
             raise MissingParameterError
         response = self._session.delete(f'{self.url}/now/table/{table}/{table_record_sys_id}',
@@ -984,10 +987,11 @@ class Api(object):
             return response
 
     @require_auth
-    def get_table(self, table=None, name_value_pairs=None, sysparm_display_value=None,
-                  sysparm_exclude_reference_link=None, sysparm_fields=None, sysparm_limit=None, sysparm_no_count=None,
-                  sysparm_offset=None, sysparm_query=None, sysparm_query_category=None, sysparm_query_no_domain=None,
-                  sysparm_suppress_pagination_header=None, sysparm_view=None):
+    def get_table(self, table: str = None, name_value_pairs: str = None, sysparm_display_value: str = None,
+                  sysparm_exclude_reference_link: bool = None, sysparm_fields: str = None, sysparm_limit: int = None,
+                  sysparm_no_count: bool = None, sysparm_offset: int = None, sysparm_query: str = None,
+                  sysparm_query_category: str = None, sysparm_query_no_domain: bool = None,
+                  sysparm_suppress_pagination_header: bool = None, sysparm_view: str = None):
         if table is None:
             raise MissingParameterError
         parameters = None
@@ -1091,7 +1095,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_table_record(self, table=None, table_record_sys_id=None):
+    def get_table_record(self, table: str = None, table_record_sys_id: str = None):
         if table is None or table_record_sys_id is None:
             raise MissingParameterError
         response = self._session.get(f'{self.url}/now/table/{table}/{table_record_sys_id}', headers=self.headers,
@@ -1102,7 +1106,7 @@ class Api(object):
             return response
 
     @require_auth
-    def patch_table_record(self, table=None, table_record_sys_id=None, data=None):
+    def patch_table_record(self, table: str = None, table_record_sys_id: str = None, data: dict = None):
         if table is None or table_record_sys_id is None or data is None:
             raise MissingParameterError
         try:
@@ -1117,7 +1121,7 @@ class Api(object):
             return response
 
     @require_auth
-    def update_table_record(self, table=None, table_record_sys_id=None, data=None):
+    def update_table_record(self, table: str = None, table_record_sys_id: str = None, data: dict = None):
         if table is None or table_record_sys_id is None or data is None:
             raise MissingParameterError
         try:
@@ -1132,7 +1136,7 @@ class Api(object):
             return response
 
     @require_auth
-    def add_table_record(self, table=None, data=None):
+    def add_table_record(self, table: str = None, data: dict = None):
         if table is None or data is None:
             raise MissingParameterError
         try:
