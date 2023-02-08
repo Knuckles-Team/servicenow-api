@@ -389,7 +389,7 @@ class Api(object):
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+    def get_change_requests(self, order: str = None, name_value_pairs: dict = None, max_pages: int = 0,
                             per_page: int = 500, sysparm_query: str = None, text_search: str = None,
                             change_type: str = None):
         parameters = None
@@ -477,7 +477,7 @@ class Api(object):
 
     @require_auth
     def get_change_request_tasks(self, change_request_sys_id: str = None, order: str = None,
-                                 name_value_pairs: str = None, max_pages: int = 0, per_page: int = 500,
+                                 name_value_pairs: dict = None, max_pages: int = 0, per_page: int = 500,
                                  sysparm_query: str = None, text_search: str = None):
         if change_request_sys_id is None:
             raise MissingParameterError
@@ -582,7 +582,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_standard_change_request_templates(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+    def get_standard_change_request_templates(self, order: str = None, name_value_pairs: dict = None, max_pages: int = 0,
                                               per_page: int = 500, sysparm_query: str = None, text_search: str = None):
         parameters = None
         page = 0
@@ -639,7 +639,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_models(self, order: str = None, name_value_pairs: str = None, max_pages: int = 0,
+    def get_change_request_models(self, order: str = None, name_value_pairs: dict = None, max_pages: int = 0,
                                   per_page: int = 500, sysparm_query: str = None, text_search: str = None):
         parameters = None
         page = 0
@@ -729,7 +729,7 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request(self, name_value_pairs: str = None, change_type: str = None, standard_change_template_id: str = None):
+    def create_change_request(self, name_value_pairs: dict = None, change_type: str = None, standard_change_template_id: str = None):
         if name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -753,7 +753,7 @@ class Api(object):
             return response
 
     @require_auth
-    def create_change_request_task(self, change_request_sys_id: str = None, name_value_pairs: str = None):
+    def create_change_request_task(self, change_request_sys_id: str = None, name_value_pairs: dict = None):
         if change_request_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -837,7 +837,7 @@ class Api(object):
             return response
 
     @require_auth
-    def update_change_request(self, change_request_sys_id: str = None, name_value_pairs: str = None, change_type: str = None):
+    def update_change_request(self, change_request_sys_id: str = None, name_value_pairs: dict = None, change_type: str = None):
         if change_request_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -872,7 +872,7 @@ class Api(object):
 
     @require_auth
     def update_change_request_task(self, change_request_sys_id: str = None, change_request_task_sys_id: str = None,
-                                   name_value_pairs: str = None):
+                                   name_value_pairs: dict = None):
         if change_request_sys_id is None or change_request_task_sys_id is None or name_value_pairs is None:
             raise MissingParameterError
         try:
@@ -987,7 +987,7 @@ class Api(object):
             return response
 
     @require_auth
-    def get_table(self, table: str = None, name_value_pairs: str = None, sysparm_display_value: str = None,
+    def get_table(self, table: str = None, name_value_pairs: dict = None, sysparm_display_value: str = None,
                   sysparm_exclude_reference_link: bool = None, sysparm_fields: str = None, sysparm_limit: int = None,
                   sysparm_no_count: bool = None, sysparm_offset: int = None, sysparm_query: str = None,
                   sysparm_query_category: str = None, sysparm_query_no_domain: bool = None,
