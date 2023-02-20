@@ -837,8 +837,12 @@ class Api(object):
             data['state'] = state
         else:
             raise ParameterError
+        try:
+            data = json.dumps(data, indent=4)
+        except ValueError or AttributeError:
+            raise ParameterError
         response = self._session.patch(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/approvals',
-                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
+                                       headers=self.headers, verify=self.verify, data=data, proxies=self.proxies)
         try:
             return response.json()
         except ValueError or AttributeError:
