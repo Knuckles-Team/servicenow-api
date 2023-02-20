@@ -622,7 +622,10 @@ class Api(object):
                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
                 try:
                     verified_response = response.json()
-                    response_length = len(verified_response['result'])
+                    if 'result' in verified_response:
+                        response_length = len(verified_response['result'])
+                    else: 
+                        return verified_response
                     if response_length > 1 and page < max_pages \
                             or response_length > 1 and max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
