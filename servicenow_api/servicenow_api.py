@@ -627,7 +627,7 @@ class Api(object):
                             or response_length > 1 and max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
-                    raise ParameterError
+                    return verified_response
             else:
                 responses = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
                                               headers=self.headers, verify=self.verify, proxies=self.proxies)
