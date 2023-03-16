@@ -378,7 +378,7 @@ class Api(object):
             parameters = f'{parameters}&os_name={os_name}'
         if os_version:
             parameters = f'{parameters}&os_version={os_version}'
-        response = self._session.post(f'{self.url}/sn_cicd/sc/import{parameters}', headers=self.headers,
+        response = self._session.post(f'{self.url}/sn_cicd/testsuite/run{parameters}', headers=self.headers,
                                       verify=self.verify, proxies=self.proxies)
         try:
             return response.json()
