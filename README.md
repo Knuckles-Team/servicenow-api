@@ -1,21 +1,43 @@
 # ServiceNow API
+
+![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
+![PyPI - Downloads](https://img.shields.io/pypi/dd/servicenow-api)
+![GitHub Repo stars](https://img.shields.io/github/stars/Knuckles-Team/servicenow-api)
+![GitHub forks](https://img.shields.io/github/forks/Knuckles-Team/servicenow-api)
+![GitHub contributors](https://img.shields.io/github/contributors/Knuckles-Team/servicenow-api)
+![PyPI - License](https://img.shields.io/pypi/l/servicenow-api)
+![GitHub](https://img.shields.io/github/license/Knuckles-Team/servicenow-api)
+
+![GitHub last commit (by committer)](https://img.shields.io/github/last-commit/Knuckles-Team/servicenow-api)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Knuckles-Team/servicenow-api)
+![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/Knuckles-Team/servicenow-api)
+![GitHub issues](https://img.shields.io/github/issues/Knuckles-Team/servicenow-api)
+
+![GitHub top language](https://img.shields.io/github/languages/top/Knuckles-Team/servicenow-api)
+![GitHub language count](https://img.shields.io/github/languages/count/Knuckles-Team/servicenow-api)
+![GitHub repo size](https://img.shields.io/github/repo-size/Knuckles-Team/servicenow-api)
+![GitHub repo file count (file type)](https://img.shields.io/github/directory-file-count/Knuckles-Team/servicenow-api)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
+
 *Version: 0.13.0*
 
 ServiceNow API Python Wrapper
 
 This repository is actively maintained and will continue adding more API calls
 
-### API Calls:
+This repository is actively maintained - Contributions are welcome!
+
+#### API Calls:
 - Table
 - CI/CD
 - Import Sets
-
-Coming Soon:
 - Incident
 - CMDB
 - Application Service
 
-### Usage:
+<details>
+  <summary><b>Usage:</b></summary>
 
 ```python
 #!/usr/bin/python
@@ -31,22 +53,25 @@ table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table}")
 ```
 
-#### Install Instructions
+</details>
+
+<details>
+  <summary><b>Installation Instructions:</b></summary>
+
 Install Python Package
 
 ```bash
 python -m pip install servicenow-api
 ```
 
-#### Build Instructions
-Build Python Package
+</details>
 
-```bash
-sudo chmod +x ./*.py
-pip install .
-python setup.py bdist_wheel --universal
-# Test Pypi
-twine upload --repository-url https://test.pypi.org/legacy/ dist/* --verbose -u "Username" -p "Password"
-# Prod Pypi
-twine upload dist/* --verbose -u "Username" -p "Password"
-```
+<details>
+  <summary><b>Repository Owners:</b></summary>
+
+
+<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
+
+![GitHub followers](https://img.shields.io/github/followers/Knucklessg1)
+![GitHub User's stars](https://img.shields.io/github/stars/Knucklessg1)
+</details>
