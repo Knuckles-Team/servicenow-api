@@ -49,7 +49,7 @@ class Api(object):
         else:
             raise MissingParameterError
 
-        response = self._session.get(f'{self.url}/subscribers',
+        response = self._session.get(url=f'{self.url}/subscribers',
                                      headers=self.headers,
                                      verify=self.verify,
                                      proxies=self.proxies)
@@ -68,8 +68,8 @@ class Api(object):
     def get_application(self, **kwargs):
         application = ApplicationServiceModel(**kwargs)
         try:
-            response = self._session.get(f'{self.url}/cmdb/app_service/'
-                                         f'{application.application_id}/getContent?mode=full',
+            response = self._session.get(url=f'{self.url}/cmdb/app_service/'
+                                             f'{application.application_id}/getContent?mode=full',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -84,7 +84,7 @@ class Api(object):
     def get_cmdb(self, **kwargs):
         cmdb = CMDBModel(**kwargs)
         try:
-            response = self._session.get(f'{self.url}/cmdb/meta/{cmdb.cmdb_id}',
+            response = self._session.get(url=f'{self.url}/cmdb/meta/{cmdb.cmdb_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -101,7 +101,7 @@ class Api(object):
         if cicd.result_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_cicd/app/batch/results/{cicd.result_id}',
+            response = self._session.get(url=f'{self.url}/sn_cicd/app/batch/results/{cicd.result_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -115,7 +115,7 @@ class Api(object):
         if cicd.progress_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_cicd/instance_scan/result/{cicd.progress_id}',
+            response = self._session.get(url=f'{self.url}/sn_cicd/instance_scan/result/{cicd.progress_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -129,7 +129,7 @@ class Api(object):
         if cicd.progress_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_cicd/progress/{cicd.progress_id}',
+            response = self._session.get(url=f'{self.url}/sn_cicd/progress/{cicd.progress_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -144,7 +144,7 @@ class Api(object):
             raise MissingParameterError
         data = {'name': cicd.name, 'packages': cicd.packages}
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/app/batch/install',
+            response = self._session.post(url=f'{self.url}/sn_cicd/app/batch/install',
                                           headers=self.headers,
                                           verify=self.verify,
                                           data=cicd.data,
@@ -159,7 +159,7 @@ class Api(object):
         if cicd.rollback_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_cicd/app/batch/rollback/{cicd.rollback_id}',
+            response = self._session.get(url=f'{self.url}/sn_cicd/app/batch/rollback/{cicd.rollback_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -186,7 +186,7 @@ class Api(object):
         if cicd.version:
             parameters = f'{parameters}&version={cicd.version}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/app_repo/install{parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/install{parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -208,7 +208,7 @@ class Api(object):
         if cicd.version:
             parameters = f'{parameters}&version={cicd.version}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish{cicd.api_parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/publish{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -228,7 +228,7 @@ class Api(object):
         if cicd.version:
             parameters = f'{parameters}&version={cicd.version}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/app_repo/rollback{cicd.api_parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/rollback{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -239,7 +239,7 @@ class Api(object):
     @require_auth
     def full_scan(self):
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/instance_scan/full_scan',
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/full_scan',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -254,7 +254,7 @@ class Api(object):
             raise MissingParameterError
         parameters = f"?target_table={cicd.target_table}&target_sys_id={cicd.target_sys_id}"
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/instance_scan/point_scan{parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/point_scan{parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -268,7 +268,7 @@ class Api(object):
         if cicd.combo_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{cicd.combo_sys_id}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{cicd.combo_sys_id}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -288,7 +288,7 @@ class Api(object):
             raise ParameterError
         try:
             response = self._session.post(
-                f'{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}',
+                url=f'{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}',
                 headers=self.headers,
                 data=cicd.data,
                 verify=self.verify,
@@ -303,7 +303,7 @@ class Api(object):
         if cicd.plugin_id is None:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/activate',
+            response = self._session.post(url=f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/activate',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -317,7 +317,7 @@ class Api(object):
         if cicd.plugin_id is None:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/rollback',
+            response = self._session.post(url=f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/rollback',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -342,7 +342,7 @@ class Api(object):
         if cicd.branch_name:
             parameters = f'{parameters}&branch_name={cicd.branch_name}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/sc/apply_changes{cicd.api_parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/sc/apply_changes{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -368,7 +368,7 @@ class Api(object):
         if cicd.mid_server_sys_id:
             parameters = f'{parameters}&mid_server_sys_id={cicd.mid_server_sys_id}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/sc/import{cicd.api_parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/sc/import{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -398,7 +398,7 @@ class Api(object):
         if cicd.os_version:
             parameters = f'{parameters}&os_version={cicd.os_version}'
         try:
-            response = self._session.post(f'{self.url}/sn_cicd/testsuite/run{cicd.api_parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/testsuite/run{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -414,35 +414,37 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         parameters = None
         page = 0
-        if name_value_pairs:
+        if change_request.name_value_pairs:
             if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
+                parameters = f'{change_request.api_parameters}&{change_request.name_value_pairs}'
             else:
                 parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
+        if change_request.sysparm_query:
+            if change_request.order:
                 if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
+                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
                 else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
+                    parameters = f'?sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
             else:
                 if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
+                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}'
                 else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
+                    parameters = f'?sysparm_query={change_request.sysparm_query}'
+        elif change_request.order:
             if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
+                parameters = f'{parameters}&sysparm_query=ORDERBY{change_request.order}'
             else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
+                parameters = f'?sysparm_query=ORDERBY{change_request.order}'
+        if change_request.text_search:
+            parameters = f'{parameters}&textSearch={change_request.text_search}'
         responses = None
         response_length = 10
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']:
-            change_type = f'/{change_type.lower()}'
-        elif change_type is None:
+        if (change_request.change_type
+                and isinstance(change_request.change_type, str)
+                and change_request.change_type.lower() in ['emergency', 'normal', 'standard',
+                                                                                    'model']):
+            change_type = f'/{change_request.change_type.lower()}'
+        elif change_request.change_type is None:
             change_type = ''
         else:
             raise ParameterError
@@ -454,8 +456,12 @@ class Api(object):
                 offset = f'&sysparm_offset={page}'
             if responses:
                 try:
-                    response = self._session.get(f'{self.url}/sn_chg_rest/change{change_type}{parameters}{offset}',
-                                                 headers=self.headers, verify=self.verify, proxies=self.proxies)
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change{change_request.change_type}'
+                                                     f'{change_request.api_parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -467,8 +473,9 @@ class Api(object):
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change{change_request.change_type}'
-                                              f'{change_request.api_parameters}{change_request.offset}',
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change{change_request.change_type}'
+                                                  f'{change_request.api_parameters}{offset}',
                                               headers=self.headers,
                                               verify=self.verify,
                                               proxies=self.proxies)
@@ -482,11 +489,14 @@ class Api(object):
     @require_auth
     def get_change_request_nextstate(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/nextstate',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/nextstate',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -494,11 +504,14 @@ class Api(object):
     @require_auth
     def get_change_request_schedule(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if cmdb_ci_sys_id is None:
+        if change_request.cmdb_ci_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/ci/{cmdb_ci_sys_id}/schedule',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/ci/{change_request.cmdb_ci_sys_id}/schedule',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -506,16 +519,16 @@ class Api(object):
     @require_auth
     def get_change_request_tasks(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         parameters = None
         page = 0
-        if name_value_pairs:
+        if change_request.name_value_pairs:
             if parameters:
                 parameters = f'{parameters}&{name_value_pairs}'
             else:
                 parameters = f'?{name_value_pairs}'
-        if sysparm_query:
+        if change_request.sysparm_query:
             if order:
                 if parameters:
                     parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
@@ -544,9 +557,12 @@ class Api(object):
                 offset = f'&sysparm_offset={page}'
             if responses:
                 try:
-                    response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
-                                                 f'task{parameters}{offset}',
-                                                 headers=self.headers, verify=self.verify, proxies=self.proxies)
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change/{change_request.change_request_sys_id}/'
+                                                     f'task{parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -558,9 +574,12 @@ class Api(object):
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
-                                              f'task{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change/{change_request.change_request_sys_id}/'
+                                                  f'task{parameters}{offset}',
+                                              headers=self.headers,
+                                              verify=self.verify,
+                                              proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
@@ -571,30 +590,45 @@ class Api(object):
     @require_auth
     def get_change_request(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
+        if (change_request.change_type and isinstance(change_request.change_type, str)
+                and change_request.change_type.lower() == 'emergency'):
             try:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/emergency/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'normal':
+        elif (change_request.change_type and isinstance(change_request.change_type, str)
+              and change_request.change_type.lower() == 'normal'):
             try:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/normal/{change_request_sys_id}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/normal/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'standard':
+        elif (change_request.change_type and isinstance(change_request.change_type, str)
+              and change_request.change_type.lower() == 'standard'):
             try:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/standard/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
         else:
             try:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -602,11 +636,14 @@ class Api(object):
     @require_auth
     def get_change_request_ci(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/ci',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/ci',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -614,11 +651,14 @@ class Api(object):
     @require_auth
     def get_change_request_ci(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/conflict',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -628,12 +668,12 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         parameters = None
         page = 0
-        if name_value_pairs:
+        if change_request.name_value_pairs:
             if parameters:
                 parameters = f'{parameters}&{name_value_pairs}'
             else:
                 parameters = f'?{name_value_pairs}'
-        if sysparm_query:
+        if change_request.sysparm_query:
             if order:
                 if parameters:
                     parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
@@ -661,8 +701,11 @@ class Api(object):
                 offset = f'&sysparm_offset={page}'
             if responses:
                 try:
-                    response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
-                                                 headers=self.headers, verify=self.verify, proxies=self.proxies)
+                    response = self._session.get(
+                        url=f'{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}',
+                        headers=self.headers,
+                        verify=self.verify,
+                        proxies=self.proxies)
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -671,19 +714,22 @@ class Api(object):
                         response_length = len(verified_response['result'])
                     else:
                         return verified_response
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     return verified_response
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(
+                    url=f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
@@ -691,29 +737,29 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         parameters = None
         page = 0
-        if name_value_pairs:
+        if change_request.name_value_pairs:
             if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
+                parameters = f'{parameters}&{change_request.name_value_pairs}'
             else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
+                parameters = f'?{change_request.name_value_pairs}'
+        if change_request.sysparm_query:
+            if change_request.order:
                 if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
+                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
                 else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
+                    parameters = f'?sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
             else:
                 if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
+                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}'
                 else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
+                    parameters = f'?sysparm_query={change_request.sysparm_query}'
+        elif change_request.order:
             if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
+                parameters = f'{parameters}&sysparm_query=ORDERBY{change_request.order}'
             else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
+                parameters = f'?sysparm_query=ORDERBY{change_request.order}'
+        if change_request.text_search:
+            parameters = f'{parameters}&textSearch={change_request.text_search}'
         responses = None
         response_length = 10
         while response_length > 1:
@@ -724,36 +770,42 @@ class Api(object):
                 offset = f'&sysparm_offset={page}'
             if responses:
                 try:
-                    response = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
                                                  headers=self.headers, verify=self.verify, proxies=self.proxies)
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
                     response_length = len(verified_response['result'])
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change/model{change_request.api_parameters}{offset}',
+                                              headers=self.headers,
+                                              verify=self.verify,
+                                              proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
     def get_standard_change_request_model(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if model_sys_id is None:
+        if change_request.model_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/model/{model_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/model/{change_request.model_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -761,11 +813,14 @@ class Api(object):
     @require_auth
     def get_standard_change_request_template(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if template_sys_id is None:
+        if change_request.template_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template/{template_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/standard/template/{change_request.template_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -773,11 +828,14 @@ class Api(object):
     @require_auth
     def get_change_request_worker(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if worker_sys_id is None:
+        if change_request.worker_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/worker/{worker_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/worker/{change_request.worker_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -785,24 +843,31 @@ class Api(object):
     @require_auth
     def create_change_request(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if name_value_pairs is None:
+        if change_request.name_value_pairs is None:
             raise MissingParameterError
         try:
-            data = json.dumps(name_value_pairs, indent=4)
+            data = json.dumps(change_request.name_value_pairs, indent=4)
         except ValueError or AttributeError:
             raise ParameterError
-        if standard_change_template_id:
-            standard_change_template_id = f'/{standard_change_template_id}'
+        if change_request.standard_change_template_id:
+            standard_change_template_id = f'/{change_request.standard_change_template_id}'
         else:
             standard_change_template_id = ''
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard']:
-            change_type = f'/{change_type.lower()}'
+        if change_request.change_type and isinstance(change_request.change_type,
+                                                     str) and change_request.change_type.lower() in ['emergency',
+                                                                                                     'normal',
+                                                                                                     'standard']:
+            change_type = f'/{change_request.change_type.lower()}'
         else:
             change_type = ''
         print(f"URI: {self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}")
         try:
-            response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
-                                          headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change{change_type}{standard_change_template_id}',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -810,15 +875,18 @@ class Api(object):
     @require_auth
     def create_change_request_task(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None or name_value_pairs is None:
+        if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
         try:
-            data = json.dumps(name_value_pairs, indent=4)
+            data = json.dumps(change_request.name_value_pairs, indent=4)
         except ValueError or AttributeError:
             raise ParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_chg_rest/change/task', headers=self.headers, data=data,
-                                          verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/sn_chg_rest/change/task',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -826,23 +894,31 @@ class Api(object):
     @require_auth
     def create_change_request_ci_association(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None or cmdb_ci_sys_ids is None or association_type is None:
+        if (change_request.change_request_sys_id is None
+                or change_request.cmdb_ci_sys_ids is None
+                or change_request.association_type is None):
             raise MissingParameterError
         data = {}
-        if isinstance(association_type, str) and association_type in ['affected', 'impacted', 'offering']:
-            data['association_type'] = association_type
+        if (isinstance(change_request.association_type, str)
+                and change_request.association_type in ['affected', 'impacted', 'offering']):
+            data['association_type'] = change_request.association_type
         else:
             raise ParameterError
-        if isinstance(refresh_impacted_services, bool) and association_type == 'affected':
-            data['refresh_impacted_services'] = refresh_impacted_services
-        data['cmdb_ci_sys_ids'] = cmdb_ci_sys_ids
+        if (isinstance(change_request.refresh_impacted_services, bool)
+                and change_request.association_type == 'affected'):
+            data['refresh_impacted_services'] = change_request.refresh_impacted_services
+        data['cmdb_ci_sys_ids'] = change_request.cmdb_ci_sys_ids
         try:
             data = json.dumps(data, indent=4)
         except ValueError or AttributeError:
             raise ParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/ci',
-                                          headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/ci',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -850,11 +926,14 @@ class Api(object):
     @require_auth
     def calculate_standard_change_request_risk(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.patch(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}/risk',
-                                           headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change/standard/{change_request.change_request_sys_id}/risk',
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -862,11 +941,14 @@ class Api(object):
     @require_auth
     def check_change_request_conflict(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
-                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/conflict',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -874,12 +956,14 @@ class Api(object):
     @require_auth
     def refresh_change_request_impacted_services(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None:
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}'
-                                          f'/sn_chg_rest/change/{change_request_sys_id}/refresh_impacted_services',
-                                          headers=self.headers, verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/refresh_impacted_services',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -887,11 +971,11 @@ class Api(object):
     @require_auth
     def approve_change_request(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None or state is None:
+        if change_request.change_request_sys_id is None or change_request.state is None:
             raise MissingParameterError
         data = {}
-        if isinstance(state, str) and state.lower() in ['approved', 'rejected']:
-            data['state'] = state
+        if isinstance(change_request.state, str) and change_request.state.lower() in ['approved', 'rejected']:
+            data['state'] = change_request.state
         else:
             raise ParameterError
         try:
@@ -899,8 +983,12 @@ class Api(object):
         except ValueError or AttributeError:
             raise ParameterError
         try:
-            response = self._session.patch(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/approvals',
-                                           headers=self.headers, verify=self.verify, data=data, proxies=self.proxies)
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change/{change_request.change_request_sys_id}/approvals',
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           data=change_request.data,
+                                           proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -908,22 +996,27 @@ class Api(object):
     @require_auth
     def update_change_request(self, **kwargs):
         change_request = ChangeManagementModel(**kwargs)
-        if change_request_sys_id is None or name_value_pairs is None:
+        if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
         try:
-            data = json.dumps(name_value_pairs, indent=4)
+            data = json.dumps(change_request.name_value_pairs, indent=4)
         except ValueError or AttributeError:
             raise ParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']:
-            change_type = f'/{change_type.lower()}'
-        elif change_type is None:
+        if (change_request.change_type and isinstance(change_request.change_type, str)
+                and change_request.change_type.lower() in ['emergency', 'normal', 'standard',
+                                                           'model']):
+            change_type = f'/{change_request.change_type.lower()}'
+        elif change_request.change_type is None:
             change_type = ''
         else:
             raise ParameterError
         try:
-            response = self._session.patch(f'{self.url}/sn_chg_rest/change{change_type}/{change_request_sys_id}',
-                                           headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change{change_type}/{change_request.change_request_sys_id}',
+                                           headers=self.headers,
+                                           data=change_request.data,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -934,9 +1027,9 @@ class Api(object):
         if change_request.change_request_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.patch(f'{self.url}'
-                                           f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
-                                           f'/schedule/first_available',
+            response = self._session.patch(url=f'{self.url}'
+                                               f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
+                                               f'/schedule/first_available',
                                            headers=self.headers,
                                            verify=self.verify,
                                            proxies=self.proxies)
@@ -956,9 +1049,9 @@ class Api(object):
         except ValueError or AttributeError:
             raise ParameterError
         try:
-            response = self._session.patch(f'{self.url}'
-                                           f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
-                                           f'/task/{change_request.change_request_task_sys_id}',
+            response = self._session.patch(url=f'{self.url}'
+                                               f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
+                                               f'/task/{change_request.change_request_task_sys_id}',
                                            headers=self.headers,
                                            data=change_request.data,
                                            verify=self.verify,
@@ -973,8 +1066,8 @@ class Api(object):
         if (change_request.change_type and isinstance(change_request.change_type, str)
                 and change_request.change_type.lower() == 'emergency'):
             try:
-                response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                                f'/change/emergency/{change_request.change_request_sys_id}',
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/emergency/{change_request.change_request_sys_id}',
                                                 headers=self.headers,
                                                 verify=self.verify,
                                                 proxies=self.proxies)
@@ -983,8 +1076,8 @@ class Api(object):
         elif (change_request.change_type and isinstance(change_request.change_type, str)
               and change_request.change_type.lower() == 'normal'):
             try:
-                response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                                f'/change/normal/{change_request.change_request_sys_id}',
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/normal/{change_request.change_request_sys_id}',
                                                 headers=self.headers,
                                                 verify=self.verify,
                                                 proxies=self.proxies)
@@ -993,8 +1086,8 @@ class Api(object):
         elif (change_request.change_type and isinstance(change_request.change_type, str)
               and change_request.change_type.lower() == 'standard'):
             try:
-                response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                                f'/change/standard/{change_request.change_request_sys_id}',
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/standard/{change_request.change_request_sys_id}',
                                                 headers=self.headers,
                                                 verify=self.verify,
                                                 proxies=self.proxies)
@@ -1002,8 +1095,8 @@ class Api(object):
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
         else:
             try:
-                response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                                f'/change/{change_request.change_request_sys_id}',
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/{change_request.change_request_sys_id}',
                                                 headers=self.headers,
                                                 verify=self.verify,
                                                 proxies=self.proxies)
@@ -1017,9 +1110,9 @@ class Api(object):
         if change_request.change_request_sys_id is None or change_request.task_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                            f'/change/{change_request.change_request_sys_id}'
-                                            f'/task/{change_request.task_sys_id}',
+            response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                f'/change/{change_request.change_request_sys_id}'
+                                                f'/task/{change_request.task_sys_id}',
                                             headers=self.headers,
                                             verify=self.verify,
                                             proxies=self.proxies)
@@ -1033,8 +1126,8 @@ class Api(object):
         if change_request.change_request_sys_id is None or change_request.task_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.delete(f'{self.url}/sn_chg_rest'
-                                            f'/change/{change_request.change_request_sys_id}/conflict',
+            response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                f'/change/{change_request.change_request_sys_id}/conflict',
                                             headers=self.headers,
                                             verify=self.verify,
                                             proxies=self.proxies)
@@ -1051,8 +1144,8 @@ class Api(object):
         if import_set.import_set_sys_id is None or import_set.table is None:
             raise ParameterError
         try:
-            response = self._session.get(f'{self.url}/now/import/'
-                                         f'{import_set.table}/{import_set.import_set_sys_id}',
+            response = self._session.get(url=f'{self.url}/now/import/'
+                                             f'{import_set.table}/{import_set.import_set_sys_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -1070,7 +1163,7 @@ class Api(object):
         except ValueError:
             raise ParameterError
         try:
-            response = self._session.post(f'{self.url}/now/import/{import_set.table}',
+            response = self._session.post(url=f'{self.url}/now/import/{import_set.table}',
                                           headers=self.headers,
                                           data=import_set.data,
                                           verify=self.verify,
@@ -1089,7 +1182,7 @@ class Api(object):
         except ValueError:
             raise ParameterError
         try:
-            response = self._session.post(f'{self.url}/now/import/{import_set.table}/insertMultiple',
+            response = self._session.post(url=f'{self.url}/now/import/{import_set.table}/insertMultiple',
                                           headers=self.headers,
                                           data=import_set.data,
                                           verify=self.verify,
@@ -1107,7 +1200,7 @@ class Api(object):
         if incident.incident_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/now/table/incident/{incident.incident_id}',
+            response = self._session.get(url=f'{self.url}/now/table/incident/{incident.incident_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -1126,7 +1219,7 @@ class Api(object):
         else:
             raise MissingParameterError
         try:
-            response = self._session.post(f'{self.url}/now/table/incident',
+            response = self._session.post(url=f'{self.url}/now/table/incident',
                                           headers=self.headers,
                                           verify=self.verify,
                                           data=incident.data)
@@ -1143,7 +1236,7 @@ class Api(object):
         if table.table is None or table.table_record_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.delete(f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+            response = self._session.delete(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
                                             headers=self.headers,
                                             verify=self.verify,
                                             proxies=self.proxies)
@@ -1250,7 +1343,7 @@ class Api(object):
             else:
                 raise ParameterError
         try:
-            response = self._session.get(f'{self.url}/now/table/{table.table}{table.api_parameters}',
+            response = self._session.get(url=f'{self.url}/now/table/{table.table}{table.api_parameters}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -1264,7 +1357,7 @@ class Api(object):
         if table.table is None or table.table_record_sys_id is None:
             raise MissingParameterError
         try:
-            response = self._session.get(f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+            response = self._session.get(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
                                          headers=self.headers,
                                          verify=self.verify,
                                          proxies=self.proxies)
@@ -1282,7 +1375,7 @@ class Api(object):
         except ValueError:
             raise ParameterError
         try:
-            response = self._session.patch(f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+            response = self._session.patch(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
                                            data=table.data,
                                            headers=self.headers,
                                            verify=self.verify,
@@ -1301,7 +1394,7 @@ class Api(object):
         except ValueError:
             raise ParameterError
         try:
-            response = self._session.put(f'{self.url}/now/table/{table}/{table.table_record_sys_id}',
+            response = self._session.put(url=f'{self.url}/now/table/{table}/{table.table_record_sys_id}',
                                          data=table.data,
                                          headers=self.headers,
                                          verify=self.verify,
@@ -1320,7 +1413,7 @@ class Api(object):
         except ValueError:
             raise ParameterError
         try:
-            response = self._session.post(f'{self.url}/now/table/{table}',
+            response = self._session.post(url=f'{self.url}/now/table/{table}',
                                           data=table.data,
                                           headers=self.headers,
                                           verify=self.verify,
