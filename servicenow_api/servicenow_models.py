@@ -1,6 +1,5 @@
 from typing import Union, List, Dict, Optional
 from pydantic import BaseModel, field_validator
-import re
 
 try:
     from servicenow_api.decorators import require_auth
