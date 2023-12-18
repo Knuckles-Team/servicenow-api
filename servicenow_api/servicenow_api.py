@@ -5,7 +5,14 @@ import json
 import requests
 import urllib3
 from base64 import b64encode
+from pydantic import ValidationError
 
+try:
+    from servicenow_api.servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
+                                                  IncidentModel, ImportSetModel, TableModel)
+except ModuleNotFoundError:
+    from servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
+                                   IncidentModel, ImportSetModel, TableModel)
 try:
     from servicenow_api.decorators import require_auth
 except ModuleNotFoundError:
@@ -42,7 +49,9 @@ class Api(object):
         else:
             raise MissingParameterError
 
-        response = self._session.get(f'{self.url}/subscribers', headers=self.headers, verify=self.verify,
+        response = self._session.get(url=f'{self.url}/subscribers',
+                                     headers=self.headers,
+                                     verify=self.verify,
                                      proxies=self.proxies)
 
         if response.status_code == 403:
@@ -53,1114 +62,1863 @@ class Api(object):
             raise ParameterError
 
     ####################################################################################################################
-    #                                               Incident API                                                       #
-    ####################################################################################################################
-    @require_auth
-    def get_incident(self, incident_id: str = None):
-        if incident_id is None:
-            raise MissingParameterError
-        response = self._session.get(f'{self.url}/now/table/incident/{incident_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-
-    @require_auth
-    def create_incident(self, data: dict = None):
-        if data:
-            try:
-                data = json.dumps(data, indent=4)
-            except ValueError:
-                raise ParameterError
-        else:
-            raise MissingParameterError
-        response = self._session.post(f'{self.url}/now/table/incident', headers=self.headers, verify=self.verify,
-                                      data=data)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-
-    ####################################################################################################################
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
-    def get_application(self, application_id: str = None):
-        if application_id is None:
-            raise MissingParameterError
-        response = self._session.get(f'{self.url}/cmdb/app_service/{application_id}/getContent?mode=full',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
+    def get_application(self, **kwargs):
+        """
+        Get information about an application.
+
+        :param application_id: The unique identifier of the application.
+        :type application_id: str
+
+        :return: JSON response containing information about the application.
+        :rtype: dict
+
+        :raises MissingParameterError: If the required parameter `application_id` is not provided.
+        """
+        application = ApplicationServiceModel(**kwargs)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/cmdb/app_service/'
+                                             f'{application.application_id}/getContent?mode=full',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                                   CMDB API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_cmdb(self, cmdb_id: str = None):
-        if cmdb_id is None:
-            raise MissingParameterError
-        response = self._session.get(f'{self.url}/cmdb/meta/{cmdb_id}', headers=self.headers, verify=self.verify,
-                                     proxies=self.proxies)
+    def get_cmdb(self, **kwargs):
+        """
+        Get Configuration Management Database (CMDB) information based on specified parameters.
+
+        :param cmdb_id: The unique identifier of the CMDB record
+        :type cmdb_id: str
+
+        :return: JSON response containing CMDB information.
+        :rtype: requests.models.Response
+
+        :raises ParameterError: If the provided parameters are invalid.
+        """
+        cmdb = CMDBModel(**kwargs)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/cmdb/meta/{cmdb.cmdb_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                                  CI/CD API                                                       #
     ####################################################################################################################
     @require_auth
-    def batch_install_result(self, result_id: str = None):
-        if result_id is None:
+    def batch_install_result(self, **kwargs):
+        """
+        Get the result of a batch installation based on the provided result ID.
+
+        :param result_id: The ID associated with the batch installation result.
+        :type result_id: str
+
+        :return: JSON response containing batch installation result.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If result_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.result_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_cicd/app/batch/results/{result_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_cicd/app/batch/results/{cicd.result_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def instance_scan_progress(self, progress_id: str = None):
-        if progress_id is None:
+    def instance_scan_progress(self, **kwargs):
+        """
+        Get progress information for an instance scan based on the provided progress ID.
+
+        :param progress_id: The ID associated with the instance scan progress.
+        :type progress_id: str
+
+        :return: JSON response containing instance scan progress.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If progress_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.progress_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_cicd/instance_scan/result/{progress_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_cicd/instance_scan/result/{cicd.progress_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def progress(self, progress_id: str = None):
-        if progress_id is None:
+    def progress(self, **kwargs):
+        """
+        Get progress information based on the provided progress ID.
+
+        :param progress_id: The ID associated with the progress.
+        :type progress_id: str
+
+        :return: JSON response containing progress information.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If progress_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.progress_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_cicd/progress/{progress_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_cicd/progress/{cicd.progress_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def batch_install(self, name: str = None, notes: str = None, packages: str = None):
-        if name is None or packages is None:
+    def batch_install(self, **kwargs):
+        """
+        Initiate a batch installation with the provided parameters.
+
+        :param name: The name of the batch installation.
+        :type name: str
+        :param notes: Additional notes for the batch installation.
+        :type notes: str
+        :param packages: The packages to be installed in the batch.
+        :type packages: str
+
+        :return: JSON response containing information about the batch installation.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If name or packages are not provided.
+        :raises ParameterError: If notes is not a string.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.name is None or cicd.packages is None:
             raise MissingParameterError
-        data = {}
-        data['name'] = name
-        data['packages'] = packages
-        if notes:
-            if isinstance(notes, str):
-                data['notes'] = notes
-            else:
-                raise ParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/app/batch/install', headers=self.headers, verify=self.verify,
-                                      data=data, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/app/batch/install',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          data=cicd.data,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def batch_rollback(self, rollback_id: str = None):
-        if rollback_id is None:
+    def batch_rollback(self, **kwargs):
+        """
+       Rollback a batch installation based on the provided rollback ID.
+
+       :param rollback_id: The ID associated with the batch rollback.
+       :type rollback_id: str
+
+       :return: JSON response containing information about the batch rollback.
+       :rtype: requests.models.Response
+
+       :raises MissingParameterError: If rollback_id is not provided.
+       """
+        cicd = CICDModel(**kwargs)
+        if cicd.rollback_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_cicd/app/batch/rollback/{rollback_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_cicd/app/batch/rollback/{cicd.rollback_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def app_repo_install(self, app_sys_id: str = None, scope: str = None, auto_upgrade_base_app: bool = None,
-                         base_app_version: str = None, version: str = None):
-        if app_sys_id is None and scope is None:
+    def app_repo_install(self, **kwargs):
+        """
+        Install an application from the repository based on the provided parameters.
+
+        :param app_sys_id: The sys_id of the application to be installed.
+        :type app_sys_id: str
+        :param scope: The scope of the application.
+        :type scope: str
+        :param auto_upgrade_base_app: Flag indicating whether to auto-upgrade the base app.
+        :type auto_upgrade_base_app: bool
+        :param base_app_version: The version of the base app.
+        :type base_app_version: str
+        :param version: The version of the application to be installed.
+        :type version: str
+
+        :return: JSON response containing information about the installation.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If app_sys_id or scope is not provided.
+        :raises ParameterError: If auto_upgrade_base_app is not a boolean.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if app_sys_id:
-            parameters = f'?sys_id={app_sys_id}'
-        else:
-            parameters = f'?scope={scope}'
-        if auto_upgrade_base_app:
-            if isinstance(auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if base_app_version:
-            parameters = f'{parameters}&base_app_version={base_app_version}'
-        if version:
-            parameters = f'{parameters}&version={version}'
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/install{parameters}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/install{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def app_repo_publish(self, app_sys_id: str = None, scope: str = None, dev_notes: str = None, version: str = None):
-        if app_sys_id is None and scope is None:
+    def app_repo_publish(self, **kwargs):
+        """
+        Publish an application to the repository based on the provided parameters.
+
+        :param app_sys_id: The sys_id of the application to be published.
+        :type app_sys_id: str
+        :param scope: The scope of the application.
+        :type scope: str
+        :param dev_notes: Development notes for the published version.
+        :type dev_notes: str
+        :param version: The version of the application to be published.
+        :type version: str
+
+        :return: JSON response containing information about the publication.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If app_sys_id or scope is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if app_sys_id:
-            parameters = f'?sys_id={app_sys_id}'
-        else:
-            parameters = f'?scope={scope}'
-        if dev_notes:
-            parameters = f'{parameters}&dev_notes={dev_notes}'
-        if version:
-            parameters = f'{parameters}&version={version}'
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/publish{parameters}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/publish{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def app_repo_rollback(self, app_sys_id: str = None, scope: str = None, version: str = None):
-        if app_sys_id is None and scope is None or version is None:
+    def app_repo_rollback(self, **kwargs):
+        """
+        Rollback an application in the repository based on the provided parameters.
+
+        :param app_sys_id: The sys_id of the application to be rolled back.
+        :type app_sys_id: str
+        :param scope: The scope of the application.
+        :type scope: str
+        :param version: The version of the application to be rolled back.
+        :type version: str
+
+        :return: JSON response containing information about the rollback.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If app_sys_id, scope, or version is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.app_sys_id is None and cicd.scope is None or cicd.version is None:
             raise MissingParameterError
-        if app_sys_id:
-            parameters = f'?sys_id={app_sys_id}'
-        else:
-            parameters = f'?scope={scope}'
-        if version:
-            parameters = f'{parameters}&version={version}'
-        response = self._session.post(f'{self.url}/sn_cicd/app_repo/rollback{parameters}',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/rollback{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
     def full_scan(self):
-        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/full_scan', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
+        """
+        Initiate a full instance scan.
+
+        :return: JSON response containing information about the full scan.
+        :rtype: requests.models.Response
+        """
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/full_scan',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def point_scan(self, target_sys_id: str = None, target_table: str = None):
-        if target_sys_id is None or target_table is None:
+    def point_scan(self, **kwargs):
+        """
+        Initiate a point instance scan based on the provided parameters.
+
+        :param target_sys_id: The sys_id of the target instance.
+        :type target_sys_id: str
+        :param target_table: The table of the target instance.
+        :type target_table: str
+
+        :return: JSON response containing information about the point scan.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If target_sys_id or target_table is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.target_sys_id is None or cicd.target_table is None:
             raise MissingParameterError
-        parameters = f"?target_table={target_table}&target_sys_id={target_sys_id}"
-        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/point_scan{parameters}',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/point_scan{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def combo_suite_scan(self, combo_sys_id: str = None):
-        if combo_sys_id is None:
+    def combo_suite_scan(self, **kwargs):
+        """
+        Initiate a suite scan for a combo based on the provided combo_sys_id.
+
+        :param combo_sys_id: The sys_id of the combo to be scanned.
+        :type combo_sys_id: str
+
+        :return: JSON response containing information about the combo suite scan.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If combo_sys_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.combo_sys_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{combo_sys_id}',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/suite_scan/combo/{cicd.combo_sys_id}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def suite_scan(self, suite_sys_id: str = None, sys_ids: list = None, scan_type: str = "scoped_apps"):
-        if suite_sys_id is None or sys_ids is None:
+    def suite_scan(self, **kwargs):
+        """
+        Initiate a suite scan based on the provided suite_sys_id and sys_ids.
+
+        :param suite_sys_id: The sys_id of the suite to be scanned.
+        :type suite_sys_id: str
+        :param sys_ids: List of sys_ids representing app_scope_sys_ids for the suite scan.
+        :type sys_ids: list
+        :param scan_type: Type of scan to be performed (default is "scoped_apps").
+        :type scan_type: str
+
+        :return: JSON response containing information about the suite scan.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If suite_sys_id or sys_ids is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+
+        cicd = CICDModel(**kwargs)
+        if cicd.suite_sys_id is None or cicd.sys_ids is None:
             raise MissingParameterError
-        data = {"app_scope_sys_ids": sys_ids}
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/instance_scan/suite_scan/{suite_sys_id}/{scan_type}',
-                                      headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(
+                url=f'{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}',
+                headers=self.headers,
+                data=cicd.data,
+                verify=self.verify,
+                proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def activate_plugin(self, plugin_id: str = None):
-        if plugin_id is None:
+    def activate_plugin(self, **kwargs):
+        """
+        Activate a plugin based on the provided plugin_id.
+
+        :param plugin_id: The ID of the plugin to be activated.
+        :type plugin_id: str
+
+        :return: JSON response containing information about the activation.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If plugin_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.plugin_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/activate',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/activate',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def rollback_plugin(self, plugin_id: str = None):
-        if plugin_id is None:
+    def rollback_plugin(self, **kwargs):
+        """
+        Rollback a plugin based on the provided plugin_id.
+
+        :param plugin_id: The ID of the plugin to be rolled back.
+        :type plugin_id: str
+
+        :return: JSON response containing information about the rollback.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If plugin_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.plugin_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_cicd/plugin/{plugin_id}/rollback',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/plugin/{cicd.plugin_id}/rollback',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def apply_remote_source_control_changes(self, app_sys_id: str = None, scope: str = None, branch_name: str = None,
-                                            auto_upgrade_base_app: bool = None):
-        if app_sys_id is None and scope is None:
+    def apply_remote_source_control_changes(self, **kwargs):
+        """
+        Apply remote source control changes based on the provided parameters.
+
+        :param app_sys_id: The sys_id of the application for which changes should be applied.
+        :type app_sys_id: str
+        :param scope: The scope of the changes.
+        :type scope: str
+        :param branch_name: The name of the branch containing the changes.
+        :type branch_name: str
+        :param auto_upgrade_base_app: Flag indicating whether to auto-upgrade the base app.
+        :type auto_upgrade_base_app: bool
+
+        :return: JSON response containing information about the applied changes.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If app_sys_id or scope is not provided.
+        :raises ParameterError: If auto_upgrade_base_app is not a boolean.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if app_sys_id:
-            parameters = f'?app_sys_id={app_sys_id}'
-        else:
-            parameters = f'?scope={scope}'
-        if auto_upgrade_base_app:
-            if isinstance(auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if branch_name:
-            parameters = f'{parameters}&branch_name={branch_name}'
-        response = self._session.post(f'{self.url}/sn_cicd/sc/apply_changes{parameters}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/sc/apply_changes{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def import_repository(self, credential_sys_id: str = None, mid_server_sys_id: str = None, repo_url: str = None,
-                          branch_name: str = None, auto_upgrade_base_app: bool = None):
-        if repo_url is None:
+    def import_repository(self, **kwargs):
+        """
+        Import a repository based on the provided parameters.
+
+        :param credential_sys_id: The sys_id of the credential to be used for the import.
+        :type credential_sys_id: str
+        :param mid_server_sys_id: The sys_id of the MID Server to be used for the import.
+        :type mid_server_sys_id: str
+        :param repo_url: The URL of the repository to be imported.
+        :type repo_url: str
+        :param branch_name: The name of the branch to be imported.
+        :type branch_name: str
+        :param auto_upgrade_base_app: Flag indicating whether to auto-upgrade the base app.
+        :type auto_upgrade_base_app: bool
+
+        :return: JSON response containing information about the repository import.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If repo_url is not provided.
+        :raises ParameterError: If auto_upgrade_base_app is not a boolean.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.repo_url is None:
             raise MissingParameterError
-        parameters = f'?repo_url={repo_url}'
-        if auto_upgrade_base_app:
-            if isinstance(auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if branch_name:
-            parameters = f'{parameters}&branch_name={branch_name}'
-        if credential_sys_id:
-            parameters = f'{parameters}&credential_sys_id={credential_sys_id}'
-        if mid_server_sys_id:
-            parameters = f'{parameters}&mid_server_sys_id={mid_server_sys_id}'
-        response = self._session.post(f'{self.url}/sn_cicd/sc/import{parameters}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/sc/import{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def run_test_suite(self, test_suite_sys_id: str = None, test_suite_name: str = None, browser_name: str = None,
-                       browser_version: str = None, os_name: str = None, os_version: str = None):
-        if test_suite_sys_id is None and test_suite_name is None:
+    def run_test_suite(self, **kwargs):
+        """
+        Run a test suite based on the provided parameters.
+
+        :param test_suite_sys_id: The sys_id of the test suite to be run.
+        :type test_suite_sys_id: str
+        :param test_suite_name: The name of the test suite to be run.
+        :type test_suite_name: str
+        :param browser_name: The name of the browser for the test run.
+        :type browser_name: str
+        :param browser_version: The version of the browser for the test run.
+        :type browser_version: str
+        :param os_name: The name of the operating system for the test run.
+        :type os_name: str
+        :param os_version: The version of the operating system for the test run.
+        :type os_version: str
+
+        :return: JSON response containing information about the test run.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If test_suite_sys_id or test_suite_name is not provided.
+        :raises ParameterError: If browser_name is not a valid string.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.test_suite_sys_id is None and cicd.test_suite_name is None:
             raise MissingParameterError
-        if test_suite_sys_id:
-            parameters = f'?test_suite_sys_id={test_suite_sys_id}'
-        else:
-            parameters = f'?test_suite_name={test_suite_name}'
-        if browser_name:
-            if isinstance(browser_name, str) and browser_name in ['any', 'chrome', 'firefox', 'edge', 'ie', 'safari']:
-                parameters = f'{parameters}&browser_name={browser_name}'
-            else:
-                raise ParameterError
-        if browser_version:
-            parameters = f'{parameters}&browser_version={browser_version}'
-        if os_name:
-            parameters = f'{parameters}&os_name={os_name}'
-        if os_version:
-            parameters = f'{parameters}&os_version={os_version}'
-        response = self._session.post(f'{self.url}/sn_cicd/testsuite/run{parameters}', headers=self.headers,
-                                      verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_cicd/testsuite/run{cicd.api_parameters}',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, order: str = None, name_value_pairs: dict = None, max_pages: int = 0,
-                            per_page: int = 500, sysparm_query: str = None, text_search: str = None,
-                            change_type: str = None):
-        parameters = None
+    def get_change_requests(self, **kwargs):
+        """
+        Retrieve change requests based on specified parameters.
+
+        :param order: Ordering parameter for sorting results.
+        :type order: str or None
+        :param name_value_pairs: Additional name-value pairs for filtering.
+        :type name_value_pairs: dict or None
+        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
+        :type max_pages: int
+        :param per_page: Number of results per page.
+        :type per_page: int
+        :param sysparm_query: Query parameter for filtering results.
+        :type sysparm_query: str or None
+        :param text_search: Text search parameter for searching results.
+        :type text_search: str or None
+        :param change_type: Type of change (emergency, normal, standard, model).
+        :type change_type: str or None
+
+        :return: JSON response containing information about change requests.
+        :rtype: dict
+
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If change_type is specified but not valid.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        :raises ParameterError: If unexpected response format is encountered.
+        """
+        change_request = ChangeManagementModel(**kwargs)
         page = 0
-        if name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
-        response_length = 10
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']:
-            change_type = f'/{change_type.lower()}'
-        elif change_type is None:
-            change_type = ''
-        else:
-            raise ParameterError
-        while response_length > 1:
-            if not parameters:
-                parameters = ''
+
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
             if responses:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change{change_type}{parameters}{offset}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change{change_request.change_type}'
+                                                     f'{change_request.api_parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
+                except ValidationError as e:
+                    raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
                     response_length = len(verified_response['result'])
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change{change_type}{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change{change_request.change_type}'
+                                                  f'{change_request.api_parameters}{offset}',
+                                              headers=self.headers,
+                                              verify=self.verify,
+                                              proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
-    def get_change_request_nextstate(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def get_change_request_nextstate(self, **kwargs):
+        """
+        Retrieve the next state of a specific change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the next state.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/nextstate',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/nextstate',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_change_request_schedule(self, cmdb_ci_sys_id: str = None):
-        if cmdb_ci_sys_id is None:
+    def get_change_request_schedule(self, **kwargs):
+        """
+        Retrieve the schedule of a change request based on CI sys ID.
+
+        :param cmdb_ci_sys_id: Sys ID of the CI (Configuration Item).
+        :type cmdb_ci_sys_id: str or None
+
+        :return: JSON response containing information about the change request schedule.
+        :rtype: dict
+
+        :raises MissingParameterError: If cmdb_ci_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.cmdb_ci_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/ci/{cmdb_ci_sys_id}/schedule',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/ci/{change_request.cmdb_ci_sys_id}/schedule',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_change_request_tasks(self, change_request_sys_id: str = None, order: str = None,
-                                 name_value_pairs: dict = None, max_pages: int = 0, per_page: int = 500,
-                                 sysparm_query: str = None, text_search: str = None):
-        if change_request_sys_id is None:
+    def get_change_request_tasks(self, **kwargs):
+        """
+        Retrieve tasks associated with a specific change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param order: Ordering parameter for sorting results.
+        :type order: str or None
+        :param name_value_pairs: Additional name-value pairs for filtering.
+        :type name_value_pairs: dict or None
+        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
+        :type max_pages: int
+        :param per_page: Number of results per page.
+        :type per_page: int
+        :param sysparm_query: Query parameter for filtering results.
+        :type sysparm_query: str or None
+        :param text_search: Text search parameter for searching results.
+        :type text_search: str or None
+
+        :return: JSON response containing information about change request tasks.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        parameters = None
         page = 0
-        if name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
-
         responses = None
-        response_length = 10
-        while response_length > 1:
-            if not parameters:
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
                 parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
             if responses:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
-                                             f'task{parameters}{offset}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change/{change_request.change_request_sys_id}/'
+                                                     f'task{change_request.api_parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
+                except ValidationError as e:
+                    raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
                     response_length = len(verified_response['result'])
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/'
-                                              f'task{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change/{change_request.change_request_sys_id}/'
+                                                  f'task{change_request.api_parameters}{offset}',
+                                              headers=self.headers,
+                                              verify=self.verify,
+                                              proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
-    def get_change_request(self, change_request_sys_id: str = None, change_type: str = None):
-        if change_request_sys_id is None:
+    def get_change_request(self, **kwargs):
+        """
+        Retrieve details of a specific change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param change_type: Type of change (emergency, normal, standard).
+        :type change_type: str or None
+
+        :return: JSON response containing information about the change request.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If change_type is specified but not valid.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'normal':
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/normal/{change_request_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'standard':
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
+        if (change_request.change_type and isinstance(change_request.change_type, str)
+                and change_request.change_type == 'emergency'):
+            try:
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/emergency/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        elif (change_request.change_type and isinstance(change_request.change_type, str)
+              and change_request.change_type == 'normal'):
+            try:
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/normal/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        elif (change_request.change_type and isinstance(change_request.change_type, str)
+              and change_request.change_type == 'standard'):
+            try:
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/standard/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
         else:
-            response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}',
-                                         headers=self.headers, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            try:
+                response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                 f'/change/{change_request.change_request_sys_id}',
+                                             headers=self.headers,
+                                             verify=self.verify,
+                                             proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_change_request_ci(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def get_change_request_ci(self, **kwargs):
+        """
+        Retrieve the configuration item (CI) associated with a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the associated CI.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/ci',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/ci',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_change_request_ci(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def get_change_request_ci(self, **kwargs):
+        """
+        Retrieve conflict information associated with a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the conflicts.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/{change_request.change_request_sys_id}/conflict',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_standard_change_request_templates(self, order: str = None, name_value_pairs: dict = None,
-                                              max_pages: int = 0,
-                                              per_page: int = 500, sysparm_query: str = None, text_search: str = None):
-        parameters = None
+    def get_standard_change_request_templates(self, **kwargs):
+        """
+        Retrieve standard change request templates based on specified parameters.
+
+        :param order: Ordering parameter for sorting results.
+        :type order: str or None
+        :param name_value_pairs: Additional name-value pairs for filtering.
+        :type name_value_pairs: dict or None
+        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
+        :type max_pages: int
+        :param per_page: Number of results per page.
+        :type per_page: int
+        :param sysparm_query: Query parameter for filtering results.
+        :type sysparm_query: str or None
+        :param text_search: Text search parameter for searching results.
+        :type text_search: str or None
+
+        :return: JSON response containing information about standard change request templates.
+        :rtype: dict
+
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
         page = 0
-        if name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
+        verified_response = None
         response_length = 10
         while response_length > 1:
-            if not parameters:
-                parameters = ''
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
             if responses:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    response = self._session.get(
+                        url=f'{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}',
+                        headers=self.headers,
+                        verify=self.verify,
+                        proxies=self.proxies)
+                except ValidationError as e:
+                    raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
                     if 'result' in verified_response:
                         response_length = len(verified_response['result'])
                     else:
                         return verified_response
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     return verified_response
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(
+                    url=f'{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}',
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
-    def get_change_request_models(self, order: str = None, name_value_pairs: dict = None, max_pages: int = 0,
-                                  per_page: int = 500, sysparm_query: str = None, text_search: str = None):
-        parameters = None
-        page = 0
-        if name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
+    def get_change_request_models(self, **kwargs):
+        """
+        Retrieve change request models based on specified parameters.
+
+        :param order: Ordering parameter for sorting results.
+        :type order: str or None
+        :param name_value_pairs: Additional name-value pairs for filtering.
+        :type name_value_pairs: dict or None
+        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
+        :type max_pages: int
+        :param per_page: Number of results per page.
+        :type per_page: int
+        :param sysparm_query: Query parameter for filtering results.
+        :type sysparm_query: str or None
+        :param text_search: Text search parameter for searching results.
+        :type text_search: str or None
+
+        :return: JSON response containing information about change request models.
+        :rtype: dict
+
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
         responses = None
-        response_length = 10
-        while response_length > 1:
-            if not parameters:
-                parameters = ''
+        page = 0
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
             if responses:
-                response = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
-                                             headers=self.headers, verify=self.verify, proxies=self.proxies)
+                try:
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change/model{change_request.api_parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
+                except ValidationError as e:
+                    raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
                     response_length = len(verified_response['result'])
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
-                responses = self._session.get(f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
-                                              headers=self.headers, verify=self.verify, proxies=self.proxies)
+                responses = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                  f'/change/model{change_request.api_parameters}{offset}',
+                                              headers=self.headers,
+                                              verify=self.verify,
+                                              proxies=self.proxies)
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
-    def get_standard_change_request_model(self, model_sys_id: str = None):
-        if model_sys_id is None:
+    def get_standard_change_request_model(self, **kwargs):
+        """
+        Retrieve details of a standard change request model.
+
+        :param model_sys_id: Sys ID of the standard change request model.
+        :type model_sys_id: str or None
+
+        :return: JSON response containing information about the standard change request model.
+        :rtype: dict
+
+        :raises MissingParameterError: If model_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.model_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/model/{model_sys_id}',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/model/{change_request.model_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_standard_change_request_template(self, template_sys_id: str = None):
-        if template_sys_id is None:
+    def get_standard_change_request_template(self, **kwargs):
+        """
+        Retrieve details of a standard change request template.
+
+        :param template_sys_id: Sys ID of the standard change request template.
+        :type template_sys_id: str or None
+
+        :return: JSON response containing information about the standard change request template.
+        :rtype: dict
+
+        :raises MissingParameterError: If template_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.template_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/standard/template/{template_sys_id}',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/standard/template/{change_request.template_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_change_request_worker(self, worker_sys_id: str = None):
-        if worker_sys_id is None:
+    def get_change_request_worker(self, **kwargs):
+        """
+        Retrieve details of a change request worker.
+
+        :param worker_sys_id: Sys ID of the change request worker.
+        :type worker_sys_id: str or None
+
+        :return: JSON response containing information about the change request worker.
+        :rtype: dict
+
+        :raises MissingParameterError: If worker_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.worker_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/sn_chg_rest/change/worker/{worker_sys_id}',
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                             f'/change/worker/{change_request.worker_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def create_change_request(self, name_value_pairs: dict = None, change_type: str = None,
-                              standard_change_template_id: str = None):
-        if name_value_pairs is None:
+    def create_change_request(self, **kwargs):
+        """
+        Create a new change request.
+
+        :param name_value_pairs: Name-value pairs providing details for the new change request.
+        :type name_value_pairs: dict or None
+        :param change_type: Type of change (emergency, normal, standard).
+        :type change_type: str or None
+        :param standard_change_template_id: Sys ID of the standard change request template (if applicable).
+        :type standard_change_template_id: str or None
+
+        :return: JSON response containing information about the created change request.
+        :rtype: dict
+
+        :raises MissingParameterError: If name_value_pairs is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If change_type is specified but not valid.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.name_value_pairs is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        if standard_change_template_id:
-            standard_change_template_id = f'/{standard_change_template_id}'
+        if change_request.standard_change_template_id:
+            standard_change_template_id = f'/{change_request.standard_change_template_id}'
         else:
             standard_change_template_id = ''
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard']:
-            change_type = f'/{change_type.lower()}'
+        if change_request.change_type:
+            change_type = f'/{change_request.change_type}'
         else:
             change_type = ''
         print(f"URI: {self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}")
-        response = self._session.post(f'{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}',
-                                      headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change{change_type}{standard_change_template_id}',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def create_change_request_task(self, change_request_sys_id: str = None, name_value_pairs: dict = None):
-        if change_request_sys_id is None or name_value_pairs is None:
+    def create_change_request_task(self, **kwargs):
+        """
+        Create a new task associated with a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param name_value_pairs: Name-value pairs providing details for the new task.
+        :type name_value_pairs: dict or None
+
+        :return: JSON response containing information about the created task.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id or name_value_pairs is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
         try:
-            data = json.dumps(name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/sn_chg_rest/change/task', headers=self.headers, data=data,
-                                      verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_chg_rest/change/task',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def create_change_request_ci_association(self, change_request_sys_id: str = None, cmdb_ci_sys_ids: list = None,
-                                             association_type: str = None, refresh_impacted_services: bool = None):
-        if change_request_sys_id is None or cmdb_ci_sys_ids is None or association_type is None:
+    def create_change_request_ci_association(self, **kwargs):
+        """
+        Create associations between a change request and configuration items (CIs).
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param cmdb_ci_sys_ids: List of Sys IDs of CIs to associate with the change request.
+        :type cmdb_ci_sys_ids: list or None
+        :param association_type: Type of association (affected, impacted, offering).
+        :type association_type: str or None
+        :param refresh_impacted_services: Flag to refresh impacted services (applicable for 'affected' association).
+        :type refresh_impacted_services: bool or None
+
+        :return: JSON response containing information about the created associations.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id, cmdb_ci_sys_ids, or association_type is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If association_type is not valid.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if (change_request.change_request_sys_id is None
+                or change_request.cmdb_ci_sys_ids is None
+                or change_request.association_type is None):
             raise MissingParameterError
-        data = {}
-        if isinstance(association_type, str) and association_type in ['affected', 'impacted', 'offering']:
-            data['association_type'] = association_type
-        else:
-            raise ParameterError
-        if isinstance(refresh_impacted_services, bool) and association_type == 'affected':
-            data['refresh_impacted_services'] = refresh_impacted_services
-        data['cmdb_ci_sys_ids'] = cmdb_ci_sys_ids
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/ci',
-                                      headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/ci',
+                                          headers=self.headers,
+                                          data=change_request.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def calculate_standard_change_request_risk(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def calculate_standard_change_request_risk(self, **kwargs):
+        """
+        Calculate and update the risk of a standard change request.
+
+        :param change_request_sys_id: Sys ID of the standard change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the calculated risk.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.patch(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}/risk',
-                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change/standard/{change_request.change_request_sys_id}/risk',
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def check_change_request_conflict(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def check_change_request_conflict(self, **kwargs):
+        """
+        Check for conflicts in a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about conflicts.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/conflict',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def refresh_change_request_impacted_services(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def refresh_change_request_impacted_services(self, **kwargs):
+        """
+        Refresh impacted services for a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the refreshed impacted services.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.post(f'{self.url}'
-                                      f'/sn_chg_rest/change/{change_request_sys_id}/refresh_impacted_services',
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/sn_chg_rest'
+                                              f'/change/{change_request.change_request_sys_id}/refresh_impacted_services',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def approve_change_request(self, change_request_sys_id: str = None, state: str = None):
-        if change_request_sys_id is None or state is None:
+    def approve_change_request(self, **kwargs):
+        """
+        Approve or reject a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param state: State to set the change request to (approved or rejected).
+        :type state: str or None
+
+        :return: JSON response containing information about the approval/rejection.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id or state is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If state is not valid.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None or change_request.state is None:
             raise MissingParameterError
-        data = {}
-        if isinstance(state, str) and state.lower() in ['approved', 'rejected']:
-            data['state'] = state
-        else:
-            raise ParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        response = self._session.patch(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/approvals',
-                                       headers=self.headers, verify=self.verify, data=data, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change/{change_request.change_request_sys_id}/approvals',
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           data=change_request.data,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def update_change_request(self, change_request_sys_id: str = None, name_value_pairs: dict = None,
-                              change_type: str = None):
-        if change_request_sys_id is None or name_value_pairs is None:
+    def update_change_request(self, **kwargs):
+        """
+        Update details of a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param name_value_pairs: New name-value pairs providing updated details for the change request.
+        :type name_value_pairs: dict or None
+        :param change_type: Type of change (emergency, normal, standard, model).
+        :type change_type: str or None
+
+        :return: JSON response containing information about the updated change request.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id or name_value_pairs is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If change_type is specified but not valid.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        if change_type and isinstance(change_type, str) and change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']:
-            change_type = f'/{change_type.lower()}'
-        elif change_type is None:
+        if change_request.change_type:
+            change_type = f'/{change_request.change_type}'
+        elif change_request.change_type is None:
             change_type = ''
         else:
             raise ParameterError
-        response = self._session.patch(f'{self.url}/sn_chg_rest/change{change_type}/{change_request_sys_id}',
-                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}/sn_chg_rest'
+                                               f'/change{change_type}/{change_request.change_request_sys_id}',
+                                           headers=self.headers,
+                                           data=change_request.data,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def update_change_request_first_available(self, change_request_sys_id: str = None):
-        if change_request_sys_id is None:
+    def update_change_request_first_available(self, **kwargs):
+        """
+        Update the schedule of a change request to the first available slot.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+
+        :return: JSON response containing information about the updated schedule.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        response = self._session.patch(f'{self.url}'
-                                       f'/sn_chg_rest/change/{change_request_sys_id}/schedule/first_available',
-                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}'
+                                               f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
+                                               f'/schedule/first_available',
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def update_change_request_task(self, change_request_sys_id: str = None, change_request_task_sys_id: str = None,
-                                   name_value_pairs: dict = None):
-        if change_request_sys_id is None or change_request_task_sys_id is None or name_value_pairs is None:
+    def update_change_request_task(self, **kwargs):
+        """
+        Update details of a task associated with a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param change_request_task_sys_id: Sys ID of the change request task.
+        :type change_request_task_sys_id: str or None
+        :param name_value_pairs: New name-value pairs providing updated details for the task.
+        :type name_value_pairs: dict or None
+
+        :return: JSON response containing information about the updated task.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id, change_request_task_sys_id, or name_value_pairs is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON serialization or deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if (change_request.change_request_sys_id is None
+                or change_request.change_request_task_sys_id is None
+                or change_request.name_value_pairs is None):
             raise MissingParameterError
         try:
-            data = json.dumps(name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        response = self._session.patch(f'{self.url}'
-                                       f'/sn_chg_rest/change/{change_request_sys_id}/task/{change_request_task_sys_id}',
-                                       headers=self.headers, data=data, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}'
+                                               f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
+                                               f'/task/{change_request.change_request_task_sys_id}',
+                                           headers=self.headers,
+                                           data=change_request.data,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def delete_change_request(self, change_request_sys_id: str = None, change_type: str = None):
-        if change_type and isinstance(change_type, str) and change_type.lower() == 'emergency':
-            response = self._session.delete(f'{self.url}/sn_chg_rest/change/emergency/{change_request_sys_id}',
-                                            headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'normal':
-            response = self._session.delete(f'{self.url}/sn_chg_rest/change/normal/{change_request_sys_id}',
-                                            headers=self.headers, verify=self.verify, proxies=self.proxies)
-        elif change_type and isinstance(change_type, str) and change_type.lower() == 'standard':
-            response = self._session.delete(f'{self.url}/sn_chg_rest/change/standard/{change_request_sys_id}',
-                                            headers=self.headers, verify=self.verify, proxies=self.proxies)
+    def delete_change_request(self, **kwargs):
+        """
+        Delete a change request.
+
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param change_type: Type of change (emergency, normal, standard).
+        :type change_type: str or None
+
+        :return: JSON response containing information about the deleted change request.
+        :rtype: dict
+
+        :raises MissingParameterError: If change_request_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_type:
+            try:
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/emergency/{change_request.change_request_sys_id}',
+                                                headers=self.headers,
+                                                verify=self.verify,
+                                                proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        elif (change_request.change_type
+              and change_request.change_type == 'normal'):
+            try:
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/normal/{change_request.change_request_sys_id}',
+                                                headers=self.headers,
+                                                verify=self.verify,
+                                                proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        elif (change_request.change_type
+              and change_request.change_type == 'standard'):
+            try:
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/standard/{change_request.change_request_sys_id}',
+                                                headers=self.headers,
+                                                verify=self.verify,
+                                                proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
         else:
-            response = self._session.delete(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}',
-                                            headers=self.headers, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            try:
+                response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                    f'/change/{change_request.change_request_sys_id}',
+                                                headers=self.headers,
+                                                verify=self.verify,
+                                                proxies=self.proxies)
+            except ValidationError as e:
+                raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def delete_change_request_task(self, change_request_sys_id: str = None, task_sys_id: str = None):
-        if change_request_sys_id is None or task_sys_id is None:
+    def delete_change_request_task(self, **kwargs):
+        """
+        Delete a task associated with a change request.
+
+        Args:
+            change_request_sys_id (str): The system ID of the change request.
+            task_sys_id (str): The system ID of the task associated with the change request.
+
+        Raises:
+            MissingParameterError: If either `change_request_sys_id` or `task_sys_id` is None.
+
+        Returns:
+            dict: JSON response from the deletion request.
+
+        Note:
+            This function requires authentication through the @require_auth decorator.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None or change_request.task_sys_id is None:
             raise MissingParameterError
-        response = self._session.delete(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/task/{task_sys_id}',
-                                        headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                f'/change/{change_request.change_request_sys_id}'
+                                                f'/task/{change_request.task_sys_id}',
+                                            headers=self.headers,
+                                            verify=self.verify,
+                                            proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def delete_change_request_conflict_scan(self, change_request_sys_id: str = None, task_sys_id: str = None):
-        if change_request_sys_id is None or task_sys_id is None:
+    def delete_change_request_conflict_scan(self, **kwargs):
+        """
+        Delete conflict scan information associated with a change request.
+
+        Args:
+            change_request_sys_id (str): The system ID of the change request.
+            task_sys_id (str): The system ID of the task associated with the change request.
+
+        Raises:
+            MissingParameterError: If either `change_request_sys_id` or `task_sys_id` is None.
+
+        Returns:
+            dict: JSON response from the deletion request.
+
+        Note:
+            This function requires authentication through the @require_auth decorator.
+        """
+        change_request = ChangeManagementModel(**kwargs)
+        if change_request.change_request_sys_id is None or change_request.task_sys_id is None:
             raise MissingParameterError
-        response = self._session.delete(f'{self.url}/sn_chg_rest/change/{change_request_sys_id}/conflict',
-                                        headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.delete(url=f'{self.url}/sn_chg_rest'
+                                                f'/change/{change_request.change_request_sys_id}/conflict',
+                                            headers=self.headers,
+                                            verify=self.verify,
+                                            proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_import_set(self, table: str = None, import_set_sys_id: str = None):
-        if import_set_sys_id is None or table is None:
+    def get_import_set(self, **kwargs):
+        """
+        Get details of a specific import set record.
+
+        :param table: The name of the table associated with the import set.
+        :type table: str
+        :param import_set_sys_id: The sys_id of the import set record.
+        :type import_set_sys_id: str
+
+        :return: JSON response containing information about the import set record.
+        :rtype: requests.models.Response
+
+        :raises ParameterError: If import_set_sys_id or table is not provided.
+        """
+        import_set = ImportSetModel(**kwargs)
+        if import_set.import_set_sys_id is None or import_set.table is None:
             raise ParameterError
-        response = self._session.get(f'{self.url}/now/import/{table}/{import_set_sys_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/now/import/'
+                                             f'{import_set.table}/{import_set.import_set_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def insert_import_set(self, table: str = None, data: dict = None):
-        if data is None or table is None:
+    def insert_import_set(self, **kwargs):
+        """
+        Insert a new record into the specified import set.
+
+        :param table: The name of the table associated with the import set.
+        :type table: str
+        :param data: Dictionary containing the field values for the new import set record.
+        :type data: dict
+
+        :return: JSON response containing information about the inserted import set record.
+        :rtype: requests.models.Response
+
+        :raises ParameterError: If data or table is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+        import_set = ImportSetModel(**kwargs)
+        if import_set.data is None or import_set.table is None:
             raise ParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/now/import/{table}', headers=self.headers, data=data,
-                                      verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/now/import/{import_set.table}',
+                                          headers=self.headers,
+                                          data=import_set.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def insert_multiple_import_sets(self, table: str = None, data: dict = None):
-        if data is None or table is None:
+    def insert_multiple_import_sets(self, **kwargs):
+        """
+        Insert multiple records into the specified import set.
+
+        :param table: The name of the table associated with the import set.
+        :type table: str
+        :param data: Dictionary containing the field values for multiple new import set records.
+        :type data: dict
+
+        :return: JSON response containing information about the inserted import set records.
+        :rtype: requests.models.Response
+
+        :raises ParameterError: If data or table is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+        import_set = ImportSetModel(**kwargs)
+        if import_set.data is None or import_set.table is None:
             raise ParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/now/import/{table}/insertMultiple', headers=self.headers, data=data,
-                                      verify=self.verify, proxies=self.proxies)
+            response = self._session.post(url=f'{self.url}/now/import/{import_set.table}/insertMultiple',
+                                          headers=self.headers,
+                                          data=import_set.data,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    ####################################################################################################################
+    #                                               Incident API                                                       #
+    ####################################################################################################################
+    @require_auth
+    def get_incident(self, **kwargs):
+        """
+        Retrieve details of a specific incident record.
+
+        :param kwargs: Keyword arguments to initialize an IncidentModel instance.
+        :type kwargs: dict
+
+        :return: JSON response containing information about the incident record.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If the incident_id is not provided.
+        :raises ParameterError: If validation of parameters fails.
+        """
+        incident = IncidentModel(**kwargs)
+        if incident.incident_id is None:
+            raise MissingParameterError
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/now/table/incident/{incident.incident_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    @require_auth
+    def create_incident(self, **kwargs):
+        """
+        Create a new incident record.
+
+        :param kwargs: Keyword arguments to initialize an IncidentModel instance.
+        :type kwargs: dict
+
+        :return: JSON response containing information about the created incident record.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If data for the incident is not provided.
+        :raises ParameterError: If JSON serialization of incident data fails.
+        :raises ParameterError: If validation of parameters fails.
+        """
+        incident = IncidentModel(**kwargs)
+        try:
+            response = self._session.post(url=f'{self.url}/now/table/incident',
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          data=incident.data)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, table: str = None, table_record_sys_id: str = None):
-        if table is None or table_record_sys_id is None:
+    def delete_table_record(self, **kwargs):
+        """
+        Delete a record from the specified table.
+
+        :param table: The name of the table.
+        :type table: str
+        :param table_record_sys_id: The sys_id of the record to be deleted.
+        :type table_record_sys_id: str
+
+        :return: JSON response containing information about the deletion.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table or table_record_sys_id is not provided.
+        """
+        table = TableModel(**kwargs)
+        if table.table is None or table.table_record_sys_id is None:
             raise MissingParameterError
-        response = self._session.delete(f'{self.url}/now/table/{table}/{table_record_sys_id}',
-                                        headers=self.headers, verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.delete(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+                                            headers=self.headers,
+                                            verify=self.verify,
+                                            proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_table(self, table: str = None, name_value_pairs: dict = None, sysparm_display_value: str = None,
-                  sysparm_exclude_reference_link: bool = None, sysparm_fields: str = None, sysparm_limit: int = None,
-                  sysparm_no_count: bool = None, sysparm_offset: int = None, sysparm_query: str = None,
-                  sysparm_query_category: str = None, sysparm_query_no_domain: bool = None,
-                  sysparm_suppress_pagination_header: bool = None, sysparm_view: str = None):
+    def get_table(self, **kwargs):
+        """
+        Get records from the specified table based on provided parameters.
+
+        :param table: The name of the table.
+        :type table: str
+        :param name_value_pairs: Dictionary of name-value pairs for filtering records.
+        :type name_value_pairs: dict
+        :param sysparm_display_value: Display values for reference fields ('True', 'False', or 'all').
+        :type sysparm_display_value: str
+        :param sysparm_exclude_reference_link: Exclude reference links in the response.
+        :type sysparm_exclude_reference_link: bool
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_no_count: Do not include the total number of records in the response.
+        :type sysparm_no_count: bool
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param sysparm_query: Encoded query string for filtering records.
+        :type sysparm_query: str
+        :param sysparm_query_category: Category to which the query belongs.
+        :type sysparm_query_category: str
+        :param sysparm_query_no_domain: Exclude records based on domain separation.
+        :type sysparm_query_no_domain: bool
+        :param sysparm_suppress_pagination_header: Suppress pagination headers in the response.
+        :type sysparm_suppress_pagination_header: bool
+        :param sysparm_view: Display style ('desktop', 'mobile', or 'both').
+        :type sysparm_view: str
+
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        table = TableModel(**kwargs)
         if table is None:
             raise MissingParameterError
-        parameters = None
-        if name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if sysparm_display_value:
-            if sysparm_display_value in [True, False, 'all']:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_display_value={sysparm_display_value}'
-                else:
-                    parameters = f'?sysparm_display_value={sysparm_display_value}'
-            else:
-                raise ParameterError
-        if sysparm_exclude_reference_link:
-            if isinstance(sysparm_exclude_reference_link, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_exclude_reference_link={str(sysparm_display_value).lower()}'
-                else:
-                    parameters = f'?sysparm_exclude_reference_link={str(sysparm_display_value).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_fields:
-            if isinstance(sysparm_fields, str):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_fields={sysparm_fields}'
-                else:
-                    parameters = f'?sysparm_fields={sysparm_fields}'
-            else:
-                raise ParameterError
-        if sysparm_limit:
-            if isinstance(sysparm_limit, int):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_limit={sysparm_limit}'
-                else:
-                    parameters = f'?sysparm_limit={sysparm_limit}'
-            else:
-                raise ParameterError
-        if sysparm_no_count:
-            if isinstance(sysparm_no_count, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_no_count={str(sysparm_no_count).lower()}'
-                else:
-                    parameters = f'?sysparm_no_count={str(sysparm_no_count).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_offset:
-            if isinstance(sysparm_offset, int):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_offset={sysparm_offset}'
-                else:
-                    parameters = f'?sysparm_offset={sysparm_offset}'
-            else:
-                raise ParameterError
-        if sysparm_query:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query={sysparm_query}'
-            else:
-                parameters = f'?sysparm_query={sysparm_query}'
-        if sysparm_query_category:
-            if isinstance(sysparm_query_category, str):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query_category={sysparm_query_category}'
-                else:
-                    parameters = f'?sysparm_query_category={sysparm_query_category}'
-            else:
-                raise ParameterError
-        if sysparm_query_no_domain:
-            if isinstance(sysparm_query_no_domain, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
-                else:
-                    parameters = f'?sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_suppress_pagination_header:
-            if isinstance(sysparm_suppress_pagination_header, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_suppress_pagination_header=' \
-                                 f'{str(sysparm_suppress_pagination_header).lower()}'
-                else:
-                    parameters = f'?sysparm_suppress_pagination_header=' \
-                                 f'{str(sysparm_suppress_pagination_header).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_view:
-            if isinstance(sysparm_view, str) and sysparm_view in ['desktop', 'mobile', 'both']:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_view={sysparm_view}'
-                else:
-                    parameters = f'?sysparm_view={sysparm_view}'
-            else:
-                raise ParameterError
-        response = self._session.get(f'{self.url}/now/table/{table}{parameters}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/now/table/{table.table}{table.api_parameters}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def get_table_record(self, table: str = None, table_record_sys_id: str = None):
-        if table is None or table_record_sys_id is None:
+    def get_table_record(self, **kwargs):
+        """
+        Get a specific record from the specified table.
+
+        :param table: The name of the table.
+        :type table: str
+        :param table_record_sys_id: The sys_id of the record to be retrieved.
+        :type table_record_sys_id: str
+
+        :return: JSON response containing information about the retrieved record.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table or table_record_sys_id is not provided.
+        """
+        table = TableModel(**kwargs)
+        if table.table is None or table.table_record_sys_id is None:
             raise MissingParameterError
-        response = self._session.get(f'{self.url}/now/table/{table}/{table_record_sys_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
         try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.get(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def patch_table_record(self, table: str = None, table_record_sys_id: str = None, data: dict = None):
-        if table is None or table_record_sys_id is None or data is None:
+    def patch_table_record(self, **kwargs):
+        """
+        Partially update a record in the specified table.
+
+        :param table: The name of the table.
+        :type table: str
+        :param table_record_sys_id: The sys_id of the record to be updated.
+        :type table_record_sys_id: str
+        :param data: Dictionary containing the fields to be updated.
+        :type data: dict
+
+        :return: JSON response containing information about the update.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table, table_record_sys_id, or data is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+
+        table = TableModel(**kwargs)
+        if table.table is None or table.table_record_sys_id is None or table.data is None:
             raise MissingParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.patch(f'{self.url}/now/table/{table}/{table_record_sys_id}', data=data,
-                                       headers=self.headers, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.patch(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
+                                           data=table.data,
+                                           headers=self.headers,
+                                           verify=self.verify,
+                                           proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def update_table_record(self, table: str = None, table_record_sys_id: str = None, data: dict = None):
-        if table is None or table_record_sys_id is None or data is None:
+    def update_table_record(self, **kwargs):
+        """
+        Fully update a record in the specified table.
+
+        :param table: The name of the table.
+        :type table: str
+        :param table_record_sys_id: The sys_id of the record to be updated.
+        :type table_record_sys_id: str
+        :param data: Dictionary containing the fields to be updated.
+        :type data: dict
+
+        :return: JSON response containing information about the update.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table, table_record_sys_id, or data is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+        table = TableModel(**kwargs)
+        if table.table is None or table.table_record_sys_id is None or table.data is None:
             raise MissingParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.put(f'{self.url}/now/table/{table}/{table_record_sys_id}', data=data,
-                                     headers=self.headers, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.put(url=f'{self.url}/now/table/{table}/{table.table_record_sys_id}',
+                                         data=table.data,
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     @require_auth
-    def add_table_record(self, table: str = None, data: dict = None):
-        if table is None or data is None:
+    def add_table_record(self, **kwargs):
+        """
+        Add a new record to the specified table.
+
+        :param table: The name of the table.
+        :type table: str
+        :param data: Dictionary containing the field values for the new record.
+        :type data: dict
+
+        :return: JSON response containing information about the added record.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If table or data is not provided.
+        :raises ParameterError: If JSON serialization fails.
+        """
+        table = TableModel(**kwargs)
+        if table.table is None or table.data is None:
             raise MissingParameterError
         try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
-        response = self._session.post(f'{self.url}/now/table/{table}', data=data,
-                                      headers=self.headers, verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
+            response = self._session.post(url=f'{self.url}/now/table/{table}',
+                                          data=table.data,
+                                          headers=self.headers,
+                                          verify=self.verify,
+                                          proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
