@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 0.16.0*
+*Version: 0.17.0*
 
 ServiceNow API Python Wrapper
 
