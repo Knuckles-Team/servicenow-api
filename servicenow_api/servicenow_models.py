@@ -12,51 +12,8 @@ except ModuleNotFoundError:
     from exceptions import (AuthError, UnauthorizedError, ParameterError, MissingParameterError)
 
 
-class BranchModel(BaseModel):
-    project_id: Union[int, str]
-    branch: str = None
-    reference: str = None
-
-    @field_validator('branch', 'reference')
-    def validate_required_parameters(cls, v, values):
-        if 'project_id' in values and values['project_id'] is not None and v is not None:
-            return v
-        else:
-            raise ValueError("Missing project_id field, it is required")
-
-
 class ApplicationServiceModel(BaseModel):
-    project_id: Union[int, str]
-    commit_hash: str = None
-    branch: str = None
-    dry_run: bool = None
-    message: str = None
-    state: str = None
-    reference: str = None
-    name: str = None
-    context: str = None
-    target_url: str = None
-    description: str = None
-    coverage: Union[float, str] = None
-    pipeline_id: Union[int, str] = None
-    actions: list = None
-    start_branch: str = None
-    start_sha: str = None
-    start_project: Union[int, str] = None
-    author_email: str = None
-    author_name: str = None
-    stats: bool = None
-    force: bool = None
-    line: int = None
-    line_type: str = None
-    note: str = None
-    path: str = None
-    group_ids: list = None
-    protected_branch_ids: list = None
-    report_type: str = None
-    rule_type: str = None
-    user_ids: list = None
-    data: Dict = None
+    application_id: str = None
 
     @field_validator('dry_run', 'stats', 'force')
     def validate_bool_fields(cls, v):
@@ -151,13 +108,7 @@ class ApplicationServiceModel(BaseModel):
 
 
 class CMDBModel(BaseModel):
-    project_id: Union[int, str] = None
-    group_id: Union[int, str] = None
-    token: str = None
-    name: str = None
-    expires_at: str = None
-    username: str = None
-    scopes: str = None
+    cmdb_id: str = None
 
     @field_validator('expires_at')
     def validate_expires_at(cls, v):
@@ -188,10 +139,33 @@ class CMDBModel(BaseModel):
 
 
 class CICDModel(BaseModel):
-    group_id: Union[int, str] = None
-    per_page: int = 100
-    page: int = 1
-    argument: str = 'state=opened'
+    result_id: Optional[str] = None
+    progress_id: Optional[str] = None
+    rollback_id: Optional[str] = None
+    name: Optional[str] = None
+    notes: Optional[str] = None
+    packages: Optional[str] = None
+    app_sys_id: Optional[str] = None
+    scope: Optional[str] = None
+    auto_upgrade_base_app: Optional[bool] = None
+    base_app_version: Optional[str] = None
+    version: Optional[str] = None
+    dev_notes: Optional[str] = None
+    combo_sys_id: Optional[str] = None
+    suite_sys_id: Optional[str] = None
+    sys_ids: Optional[List[str]] = None
+    scan_type: Optional[str] = None
+    plugin_id: Optional[str] = None
+    branch_name: Optional[str] = None
+    credential_sys_id: Optional[str] = None
+    mid_server_sys_id: Optional[str] = None
+    repo_url: Optional[str] = None
+    test_suite_sys_id: Optional[str] = None
+    test_suite_name: Optional[str] = None
+    browser_name: Optional[str] = None
+    browser_version: Optional[str] = None
+    os_name: Optional[str] = None
+    os_version: Optional[str] = None
     api_parameters: str = None
 
     @field_validator('per_page', 'page')
