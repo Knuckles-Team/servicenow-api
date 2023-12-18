@@ -1632,10 +1632,6 @@ class Api(object):
         if import_set.data is None or import_set.table is None:
             raise ParameterError
         try:
-            data = json.dumps(import_set.data, indent=4)
-        except ValueError:
-            raise ParameterError
-        try:
             response = self._session.post(url=f'{self.url}/now/import/{import_set.table}',
                                           headers=self.headers,
                                           data=import_set.data,
@@ -1663,10 +1659,6 @@ class Api(object):
         """
         import_set = ImportSetModel(**kwargs)
         if import_set.data is None or import_set.table is None:
-            raise ParameterError
-        try:
-            data = json.dumps(import_set.data, indent=4)
-        except ValueError:
             raise ParameterError
         try:
             response = self._session.post(url=f'{self.url}/now/import/{import_set.table}/insertMultiple',
@@ -1723,13 +1715,6 @@ class Api(object):
         :raises ParameterError: If validation of parameters fails.
         """
         incident = IncidentModel(**kwargs)
-        if incident.data:
-            try:
-                data = json.dumps(incident.data, indent=4)
-            except ValueError:
-                raise ParameterError
-        else:
-            raise MissingParameterError
         try:
             response = self._session.post(url=f'{self.url}/now/table/incident',
                                           headers=self.headers,
@@ -1810,99 +1795,6 @@ class Api(object):
         table = TableModel(**kwargs)
         if table is None:
             raise MissingParameterError
-        parameters = None
-        if table.name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{table.name_value_pairs}'
-            else:
-                parameters = f'?{table.name_value_pairs}'
-        if table.sysparm_display_value:
-            if table.sysparm_display_value in [True, False, 'all']:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_display_value={table.sysparm_display_value}'
-                else:
-                    parameters = f'?sysparm_display_value={table.sysparm_display_value}'
-            else:
-                raise ParameterError
-        if table.sysparm_exclude_reference_link:
-            if isinstance(table.sysparm_exclude_reference_link, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_exclude_reference_link={str(table.sysparm_display_value)}'
-                else:
-                    parameters = f'?sysparm_exclude_reference_link={str(table.sysparm_display_value).lower()}'
-            else:
-                raise ParameterError
-        if table.sysparm_fields:
-            if isinstance(table.sysparm_fields, str):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_fields={table.sysparm_fields}'
-                else:
-                    parameters = f'?sysparm_fields={table.sysparm_fields}'
-            else:
-                raise ParameterError
-        if table.sysparm_limit:
-            if isinstance(table.sysparm_limit, int):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_limit={table.sysparm_limit}'
-                else:
-                    parameters = f'?sysparm_limit={table.sysparm_limit}'
-            else:
-                raise ParameterError
-        if table.sysparm_no_count:
-            if isinstance(table.sysparm_no_count, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_no_count={str(sysparm_no_count).lower()}'
-                else:
-                    parameters = f'?sysparm_no_count={str(sysparm_no_count).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_offset:
-            if isinstance(sysparm_offset, int):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_offset={sysparm_offset}'
-                else:
-                    parameters = f'?sysparm_offset={sysparm_offset}'
-            else:
-                raise ParameterError
-        if sysparm_query:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query={sysparm_query}'
-            else:
-                parameters = f'?sysparm_query={sysparm_query}'
-        if sysparm_query_category:
-            if isinstance(sysparm_query_category, str):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query_category={sysparm_query_category}'
-                else:
-                    parameters = f'?sysparm_query_category={sysparm_query_category}'
-            else:
-                raise ParameterError
-        if sysparm_query_no_domain:
-            if isinstance(sysparm_query_no_domain, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
-                else:
-                    parameters = f'?sysparm_query_no_domain={str(sysparm_query_no_domain).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_suppress_pagination_header:
-            if isinstance(sysparm_suppress_pagination_header, bool):
-                if parameters:
-                    parameters = f'{parameters}&sysparm_suppress_pagination_header=' \
-                                 f'{str(sysparm_suppress_pagination_header).lower()}'
-                else:
-                    parameters = f'?sysparm_suppress_pagination_header=' \
-                                 f'{str(sysparm_suppress_pagination_header).lower()}'
-            else:
-                raise ParameterError
-        if sysparm_view:
-            if isinstance(sysparm_view, str) and sysparm_view in ['desktop', 'mobile', 'both']:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_view={sysparm_view}'
-                else:
-                    parameters = f'?sysparm_view={sysparm_view}'
-            else:
-                raise ParameterError
         try:
             response = self._session.get(url=f'{self.url}/now/table/{table.table}{table.api_parameters}',
                                          headers=self.headers,
@@ -1962,10 +1854,6 @@ class Api(object):
         if table.table is None or table.table_record_sys_id is None or table.data is None:
             raise MissingParameterError
         try:
-            data = json.dumps(table.data, indent=4)
-        except ValueError:
-            raise ParameterError
-        try:
             response = self._session.patch(url=f'{self.url}/now/table/{table.table}/{table.table_record_sys_id}',
                                            data=table.data,
                                            headers=self.headers,
@@ -1997,10 +1885,6 @@ class Api(object):
         if table.table is None or table.table_record_sys_id is None or table.data is None:
             raise MissingParameterError
         try:
-            data = json.dumps(table.data, indent=4)
-        except ValueError:
-            raise ParameterError
-        try:
             response = self._session.put(url=f'{self.url}/now/table/{table}/{table.table_record_sys_id}',
                                          data=table.data,
                                          headers=self.headers,
@@ -2029,10 +1913,6 @@ class Api(object):
         table = TableModel(**kwargs)
         if table.table is None or table.data is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(table.data, indent=4)
-        except ValueError:
-            raise ParameterError
         try:
             response = self._session.post(url=f'{self.url}/now/table/{table}',
                                           data=table.data,
