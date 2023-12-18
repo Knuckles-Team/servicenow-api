@@ -628,45 +628,12 @@ class Api(object):
         :raises ParameterError: If unexpected response format is encountered.
         """
         change_request = ChangeManagementModel(**kwargs)
-        parameters = None
         page = 0
-        if change_request.name_value_pairs:
-            if parameters:
-                parameters = f'{change_request.api_parameters}&{change_request.name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if change_request.sysparm_query:
-            if change_request.order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
-                else:
-                    parameters = f'?sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={change_request.sysparm_query}'
-        elif change_request.order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{change_request.order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{change_request.order}'
-        if change_request.text_search:
-            parameters = f'{parameters}&textSearch={change_request.text_search}'
         responses = None
-        response_length = 10
-        if (change_request.change_type
-                and isinstance(change_request.change_type, str)
-                and change_request.change_type.lower() in ['emergency', 'normal', 'standard',
-                                                                                    'model']):
-            change_type = f'/{change_request.change_type.lower()}'
-        elif change_request.change_type is None:
-            change_type = ''
-        else:
-            raise ParameterError
-        while response_length > 1:
-            if not parameters:
-                parameters = ''
+
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
@@ -788,36 +755,10 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        parameters = None
         page = 0
-        if change_request.name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if change_request.sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
-
         responses = None
-        response_length = 10
-        while response_length > 1:
-            if not parameters:
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
                 parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
@@ -826,7 +767,7 @@ class Api(object):
                 try:
                     response = self._session.get(url=f'{self.url}/sn_chg_rest'
                                                      f'/change/{change_request.change_request_sys_id}/'
-                                                     f'task{parameters}{offset}',
+                                                     f'task{change_request.api_parameters}{offset}',
                                                  headers=self.headers,
                                                  verify=self.verify,
                                                  proxies=self.proxies)
@@ -835,15 +776,15 @@ class Api(object):
                 try:
                     verified_response = response.json()
                     response_length = len(verified_response['result'])
-                    if response_length > 1 and page < max_pages \
-                            or response_length > 1 and max_pages == 0:
+                    if response_length > 1 and page < change_request.max_pages \
+                            or response_length > 1 and change_request.max_pages == 0:
                         responses['result'] = responses['result'] + verified_response['result']
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
                 responses = self._session.get(url=f'{self.url}/sn_chg_rest'
                                                   f'/change/{change_request.change_request_sys_id}/'
-                                                  f'task{parameters}{offset}',
+                                                  f'task{change_request.api_parameters}{offset}',
                                               headers=self.headers,
                                               verify=self.verify,
                                               proxies=self.proxies)
@@ -851,7 +792,7 @@ class Api(object):
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + per_page
+            page = page + change_request.per_page
         return responses
 
     @require_auth
@@ -876,7 +817,7 @@ class Api(object):
         if change_request.change_request_sys_id is None:
             raise MissingParameterError
         if (change_request.change_type and isinstance(change_request.change_type, str)
-                and change_request.change_type.lower() == 'emergency'):
+                and change_request.change_type == 'emergency'):
             try:
                 response = self._session.get(url=f'{self.url}/sn_chg_rest'
                                                  f'/change/emergency/{change_request.change_request_sys_id}',
@@ -886,7 +827,7 @@ class Api(object):
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
         elif (change_request.change_type and isinstance(change_request.change_type, str)
-              and change_request.change_type.lower() == 'normal'):
+              and change_request.change_type == 'normal'):
             try:
                 response = self._session.get(url=f'{self.url}/sn_chg_rest'
                                                  f'/change/normal/{change_request.change_request_sys_id}',
@@ -896,7 +837,7 @@ class Api(object):
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
         elif (change_request.change_type and isinstance(change_request.change_type, str)
-              and change_request.change_type.lower() == 'standard'):
+              and change_request.change_type == 'standard'):
             try:
                 response = self._session.get(url=f'{self.url}/sn_chg_rest'
                                                  f'/change/standard/{change_request.change_request_sys_id}',
@@ -997,36 +938,13 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        parameters = None
         page = 0
-        if change_request.name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{name_value_pairs}'
-            else:
-                parameters = f'?{name_value_pairs}'
-        if change_request.sysparm_query:
-            if order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}ORDERBY{order}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}ORDERBY{order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={sysparm_query}'
-        elif order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{order}'
-        if text_search:
-            parameters = f'{parameters}&textSearch={text_search}'
         responses = None
+        verified_response = None
         response_length = 10
         while response_length > 1:
-            if not parameters:
-                parameters = ''
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
@@ -1052,7 +970,7 @@ class Api(object):
                     return verified_response
             else:
                 responses = self._session.get(
-                    url=f'{self.url}/sn_chg_rest/change/standard/template{parameters}{offset}',
+                    url=f'{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}',
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies)
@@ -1088,43 +1006,21 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        parameters = None
-        page = 0
-        if change_request.name_value_pairs:
-            if parameters:
-                parameters = f'{parameters}&{change_request.name_value_pairs}'
-            else:
-                parameters = f'?{change_request.name_value_pairs}'
-        if change_request.sysparm_query:
-            if change_request.order:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
-                else:
-                    parameters = f'?sysparm_query={change_request.sysparm_query}ORDERBY{change_request.order}'
-            else:
-                if parameters:
-                    parameters = f'{parameters}&sysparm_query={change_request.sysparm_query}'
-                else:
-                    parameters = f'?sysparm_query={change_request.sysparm_query}'
-        elif change_request.order:
-            if parameters:
-                parameters = f'{parameters}&sysparm_query=ORDERBY{change_request.order}'
-            else:
-                parameters = f'?sysparm_query=ORDERBY{change_request.order}'
-        if change_request.text_search:
-            parameters = f'{parameters}&textSearch={change_request.text_search}'
         responses = None
-        response_length = 10
-        while response_length > 1:
-            if not parameters:
-                parameters = ''
+        page = 0
+        while change_request.response_length > 1:
+            if not change_request.api_parameters:
+                change_request.api_parameters = ''
                 offset = f'?sysparm_offset={page}'
             else:
                 offset = f'&sysparm_offset={page}'
             if responses:
                 try:
-                    response = self._session.get(url=f'{self.url}/sn_chg_rest/change/model{parameters}{offset}',
-                                                 headers=self.headers, verify=self.verify, proxies=self.proxies)
+                    response = self._session.get(url=f'{self.url}/sn_chg_rest'
+                                                     f'/change/model{change_request.api_parameters}{offset}',
+                                                 headers=self.headers,
+                                                 verify=self.verify,
+                                                 proxies=self.proxies)
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -1255,19 +1151,12 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if change_request.name_value_pairs is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(change_request.name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
         if change_request.standard_change_template_id:
             standard_change_template_id = f'/{change_request.standard_change_template_id}'
         else:
             standard_change_template_id = ''
-        if change_request.change_type and isinstance(change_request.change_type,
-                                                     str) and change_request.change_type.lower() in ['emergency',
-                                                                                                     'normal',
-                                                                                                     'standard']:
-            change_type = f'/{change_request.change_type.lower()}'
+        if change_request.change_type:
+            change_type = f'/{change_request.change_type}'
         else:
             change_type = ''
         print(f"URI: {self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}")
@@ -1302,10 +1191,6 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(change_request.name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
         try:
             response = self._session.post(url=f'{self.url}/sn_chg_rest/change/task',
                                           headers=self.headers,
@@ -1343,20 +1228,6 @@ class Api(object):
                 or change_request.cmdb_ci_sys_ids is None
                 or change_request.association_type is None):
             raise MissingParameterError
-        data = {}
-        if (isinstance(change_request.association_type, str)
-                and change_request.association_type in ['affected', 'impacted', 'offering']):
-            data['association_type'] = change_request.association_type
-        else:
-            raise ParameterError
-        if (isinstance(change_request.refresh_impacted_services, bool)
-                and change_request.association_type == 'affected'):
-            data['refresh_impacted_services'] = change_request.refresh_impacted_services
-        data['cmdb_ci_sys_ids'] = change_request.cmdb_ci_sys_ids
-        try:
-            data = json.dumps(data, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
         try:
             response = self._session.post(url=f'{self.url}/sn_chg_rest'
                                               f'/change/{change_request.change_request_sys_id}/ci',
@@ -1473,15 +1344,6 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if change_request.change_request_sys_id is None or change_request.state is None:
             raise MissingParameterError
-        data = {}
-        if isinstance(change_request.state, str) and change_request.state.lower() in ['approved', 'rejected']:
-            data['state'] = change_request.state
-        else:
-            raise ParameterError
-        try:
-            data = json.dumps(data, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
         try:
             response = self._session.patch(url=f'{self.url}/sn_chg_rest'
                                                f'/change/{change_request.change_request_sys_id}/approvals',
@@ -1516,14 +1378,8 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if change_request.change_request_sys_id is None or change_request.name_value_pairs is None:
             raise MissingParameterError
-        try:
-            data = json.dumps(change_request.name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        if (change_request.change_type and isinstance(change_request.change_type, str)
-                and change_request.change_type.lower() in ['emergency', 'normal', 'standard',
-                                                           'model']):
-            change_type = f'/{change_request.change_type.lower()}'
+        if change_request.change_type:
+            change_type = f'/{change_request.change_type}'
         elif change_request.change_type is None:
             change_type = ''
         else:
@@ -1593,10 +1449,6 @@ class Api(object):
                 or change_request.name_value_pairs is None):
             raise MissingParameterError
         try:
-            data = json.dumps(change_request.name_value_pairs, indent=4)
-        except ValueError or AttributeError:
-            raise ParameterError
-        try:
             response = self._session.patch(url=f'{self.url}'
                                                f'/sn_chg_rest/change/{change_request.change_request_sys_id}'
                                                f'/task/{change_request.change_request_task_sys_id}',
@@ -1626,8 +1478,7 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if (change_request.change_type and isinstance(change_request.change_type, str)
-                and change_request.change_type.lower() == 'emergency'):
+        if change_request.change_type:
             try:
                 response = self._session.delete(url=f'{self.url}/sn_chg_rest'
                                                     f'/change/emergency/{change_request.change_request_sys_id}',
@@ -1636,8 +1487,8 @@ class Api(object):
                                                 proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
-        elif (change_request.change_type and isinstance(change_request.change_type, str)
-              and change_request.change_type.lower() == 'normal'):
+        elif (change_request.change_type
+              and change_request.change_type == 'normal'):
             try:
                 response = self._session.delete(url=f'{self.url}/sn_chg_rest'
                                                     f'/change/normal/{change_request.change_request_sys_id}',
@@ -1646,8 +1497,8 @@ class Api(object):
                                                 proxies=self.proxies)
             except ValidationError as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
-        elif (change_request.change_type and isinstance(change_request.change_type, str)
-              and change_request.change_type.lower() == 'standard'):
+        elif (change_request.change_type
+              and change_request.change_type == 'standard'):
             try:
                 response = self._session.delete(url=f'{self.url}/sn_chg_rest'
                                                     f'/change/standard/{change_request.change_request_sys_id}',
@@ -1976,7 +1827,7 @@ class Api(object):
         if table.sysparm_exclude_reference_link:
             if isinstance(table.sysparm_exclude_reference_link, bool):
                 if parameters:
-                    parameters = f'{parameters}&sysparm_exclude_reference_link={str(table.sysparm_display_value).lower()}'
+                    parameters = f'{parameters}&sysparm_exclude_reference_link={str(table.sysparm_display_value)}'
                 else:
                     parameters = f'?sysparm_exclude_reference_link={str(table.sysparm_display_value).lower()}'
             else:
