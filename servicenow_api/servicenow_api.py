@@ -53,36 +53,6 @@ class Api(object):
             raise ParameterError
 
     ####################################################################################################################
-    #                                               Incident API                                                       #
-    ####################################################################################################################
-    @require_auth
-    def get_incident(self, incident_id: str = None):
-        if incident_id is None:
-            raise MissingParameterError
-        response = self._session.get(f'{self.url}/now/table/incident/{incident_id}', headers=self.headers,
-                                     verify=self.verify, proxies=self.proxies)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-
-    @require_auth
-    def create_incident(self, data: dict = None):
-        if data:
-            try:
-                data = json.dumps(data, indent=4)
-            except ValueError:
-                raise ParameterError
-        else:
-            raise MissingParameterError
-        response = self._session.post(f'{self.url}/now/table/incident', headers=self.headers, verify=self.verify,
-                                      data=data)
-        try:
-            return response.json()
-        except ValueError or AttributeError:
-            return response
-
-    ####################################################################################################################
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
@@ -982,6 +952,36 @@ class Api(object):
             raise ParameterError
         response = self._session.post(f'{self.url}/now/import/{table}/insertMultiple', headers=self.headers, data=data,
                                       verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    ####################################################################################################################
+    #                                               Incident API                                                       #
+    ####################################################################################################################
+    @require_auth
+    def get_incident(self, incident_id: str = None):
+        if incident_id is None:
+            raise MissingParameterError
+        response = self._session.get(f'{self.url}/now/table/incident/{incident_id}', headers=self.headers,
+                                     verify=self.verify, proxies=self.proxies)
+        try:
+            return response.json()
+        except ValueError or AttributeError:
+            return response
+
+    @require_auth
+    def create_incident(self, data: dict = None):
+        if data:
+            try:
+                data = json.dumps(data, indent=4)
+            except ValueError:
+                raise ParameterError
+        else:
+            raise MissingParameterError
+        response = self._session.post(f'{self.url}/now/table/incident', headers=self.headers, verify=self.verify,
+                                      data=data)
         try:
             return response.json()
         except ValueError or AttributeError:
