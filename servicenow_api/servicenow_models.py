@@ -47,7 +47,7 @@ class CICDModel(BaseModel):
     dev_notes: Optional[str] = None
     combo_sys_id: Optional[str] = None
     suite_sys_id: Optional[str] = None
-    sys_ids: Optional[List[str]] = None
+    app_scope_sys_ids: Optional[List[str]] = None
     scan_type: Optional[str] = None
     plugin_id: Optional[str] = None
     branch_name: Optional[str] = None
@@ -61,6 +61,7 @@ class CICDModel(BaseModel):
     os_name: Optional[str] = None
     os_version: Optional[str] = None
     api_parameters: str = None
+    data: Dict = None
 
     @field_validator('result_id', 'progress_id', 'rollback_id', 'name', 'notes', 'packages')
     def validate_string_parameters(cls, v):
@@ -83,7 +84,7 @@ class CICDModel(BaseModel):
         data = {
             "name": values.get("name"),
             "packages": values.get("packages"),
-            "app_scope_sys_ids": values.get("sys_ids")
+            "app_scope_sys_ids": values.get("app_scope_sys_ids")
         }
 
         # Remove None values
@@ -178,6 +179,8 @@ class ChangeManagementModel(BaseModel):
     change_type: Optional[str]
     standard_change_template_id: Optional[str]
     response_length: int = 10
+    api_parameters: str = None
+    data: Dict = None
 
     @field_validator('change_request_sys_id', 'cmdb_ci_sys_ids', 'standard_change_template_id',
                      'template_sys_id', 'worker_sys_id')
@@ -286,6 +289,7 @@ class TableModel(BaseModel):
     sysparm_query_no_domain: Optional[bool]
     sysparm_suppress_pagination_header: Optional[bool]
     sysparm_view: Optional[str]
+    api_parameters: str = None
     data: Dict = None
 
     @field_validator('table', 'table_record_sys_id')
