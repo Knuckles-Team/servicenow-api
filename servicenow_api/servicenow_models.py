@@ -14,126 +14,20 @@ except ModuleNotFoundError:
 class ApplicationServiceModel(BaseModel):
     application_id: str = None
 
-    @field_validator('dry_run', 'stats', 'force')
-    def validate_bool_fields(cls, v):
-        if v is not None and not isinstance(v, bool):
-            raise ValueError("Invalid states")
-        return v
-
-    @field_validator('project_id', 'commit_hash', 'branch', 'start_branch', 'start_sha', 'start_project',
-                     'pipeline_id', 'line')
-    def validate_optional_parameters(cls, v, values):
-        if 'project_id' in values and values['project_id'] is not None and v is not None:
-            return v
-        else:
-            raise ValueError("Invalid optional params")
-
-    @field_validator('commit_hash', 'branch', 'reference', 'name', 'context', 'note', 'path', 'line_type')
+    @field_validator('application_id')
     def validate_string_parameters(cls, v):
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
         return v
-
-    @field_validator('coverage')
-    def validate_coverage(cls, v):
-        if v is not None and not isinstance(v, (float, int)):
-            raise ValueError("Invalid states")
-        return v
-
-    @field_validator('state')
-    def validate_state(cls, v):
-        if v is not None and v not in ['pending', 'running', 'success', 'failed', 'canceled']:
-            raise ValueError("Invalid states")
-        return v
-
-    @field_validator('line_type')
-    def validate_line_type(cls, v):
-        if v is not None and v not in ['new', 'old']:
-            raise ValueError("Invalid line_type")
-        return v
-
-    @field_validator('report_type')
-    def validate_report_type(cls, v):
-        if v is not None and v not in ['license_scanning', 'code_coverage']:
-            raise ValueError("Invalid report_type")
-        return v
-
-    @field_validator('rule_type')
-    def validate_rule_type(cls, v):
-        if v is not None and v not in ['any_approver', 'regular']:
-            raise ValueError("Invalid rule_type")
-        return v
-
-    @field_validator('user_ids', 'group_ids', 'protected_branch_ids')
-    def validate_list_parameters(cls, v):
-        if v is not None and not isinstance(v, list):
-            raise ValueError("Invalid user_ids, group_ids, protected_branch_ids")
-        return v
-
-    @field_validator("data")
-    def construct_data_dict(cls, values):
-        data = {
-            "branch": values.get("branch"),
-            "commit_message": values.get("commit_message"),
-            "start_branch": values.get("start_branch"),
-            "start_sha": values.get("start_sha"),
-            "start_project": values.get("start_project"),
-            "actions": values.get("actions"),
-            "author_email": values.get("author_email"),
-            "author_name": values.get("author_name"),
-            "stats": values.get("stats"),
-            "force": values.get("force"),
-            "note": values.get("note"),
-            "path": values.get("path"),
-            "line": values.get("line"),
-            "line_type": values.get("line_type"),
-            "state": values.get("state"),
-            "ref": values.get("ref"),
-            "name": values.get("name"),
-            "context": values.get("context"),
-            "target_url": values.get("target_url"),
-            "description": values.get("description"),
-            "coverage": values.get("coverage"),
-            "pipeline_id": values.get("pipeline_id"),
-        }
-
-        # Remove None values
-        data = {k: v for k, v in data.items() if v is not None}
-
-        if not data:
-            raise ValueError("At least one key is required in the data dictionary.")
-
-        return data
 
 
 class CMDBModel(BaseModel):
     cmdb_id: str = None
 
-    @field_validator('expires_at')
-    def validate_expires_at(cls, v):
-        if v is not None and not isinstance(v, str):
-            raise ParameterError
-        return v
-
-    @field_validator('project_id', 'group_id', 'token')
-    def validate_optional_parameters(cls, v, values):
-        if ('project_id' in values or 'group_id' in values) and v is not None:
-            return v
-        else:
-            raise MissingParameterError
-
-    @field_validator('name', 'username', 'scopes')
+    @field_validator('cmdb_id')
     def validate_string_parameters(cls, v):
         if v is not None and not isinstance(v, str):
-            raise ParameterError
-        return v
-
-    @field_validator('scopes')
-    def validate_scopes(cls, v):
-        valid_scopes = ['read_repository', 'read_registry', 'write_registry', 'read_package_registry',
-                        'write_package_registry']
-        if v is not None and v not in valid_scopes:
-            raise ParameterError
+            raise ValueError("Invalid optional params")
         return v
 
 
@@ -167,33 +61,95 @@ class CICDModel(BaseModel):
     os_version: Optional[str] = None
     api_parameters: str = None
 
-    @field_validator('per_page', 'page')
-    def validate_positive_integer(cls, v):
-        if not isinstance(v, int) or v <= 0:
+    @field_validator('result_id', 'progress_id', 'rollback_id', 'name', 'notes', 'packages')
+    def validate_string_parameters(cls, v):
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator('auto_upgrade_base_app', 'browser_name')
+    def convert_to_lowercase(cls, value):
+        return value.lower()
+
+    @field_validator('browser_name')
+    def validate_scope(cls, v):
+        if v not in ['any', 'chrome', 'firefox', 'edge', 'ie', 'safari']:
             raise ParameterError
         return v
 
-    @field_validator('argument')
-    def validate_argument(cls, v):
-        if not isinstance(v, str):
-            raise ParameterError
-        return v
+    @field_validator("data")
+    def construct_data_dict(cls, values):
+        data = {
+            "name": values.get("name"),
+            "packages": values.get("packages"),
+            "app_scope_sys_ids": values.get("sys_ids")
+        }
 
-    @field_validator('group_id')
-    def validate_group_id(cls, v):
-        if v is None:
-            raise MissingParameterError
-        return v
+        # Remove None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        if not data:
+            raise ValueError("At least one key is required in the data dictionary.")
+
+        return data
 
     @field_validator("api_parameters")
     def build_api_parameters(cls, values):
         filters = []
 
-        if values.get("page") is not None:
-            filters.append(f'page={values["page"]}')
+        if values.get("sys_id") is not None:
+            filters.append(f'sys_id={values["sys_id"]}')
 
-        if values.get("per_page") is not None:
-            filters.append(f'per_page={values["per_page"]}')
+        if values.get("scope") is not None:
+            filters.append(f'scope={values["scope"]}')
+
+        if values.get("auto_upgrade_base_app") is not None:
+            filters.append(f'auto_upgrade_base_app={values["auto_upgrade_base_app"]}')
+
+        if values.get("base_app_version") is not None:
+            filters.append(f'base_app_version={values["base_app_version"]}')
+
+        if values.get("version") is not None:
+            filters.append(f'version={values["version"]}')
+
+        if values.get("dev_notes") is not None:
+            filters.append(f'dev_notes={values["dev_notes"]}')
+
+        if values.get("target_table") is not None:
+            filters.append(f'target_table={values["target_table"]}')
+
+        if values.get("target_sys_id") is not None:
+            filters.append(f'target_sys_id={values["target_sys_id"]}')
+
+        if values.get("app_sys_id") is not None:
+            filters.append(f'app_sys_id={values["app_sys_id"]}')
+
+        if values.get("branch_name") is not None:
+            filters.append(f'branch_name={values["branch_name"]}')
+
+        if values.get("credential_sys_id") is not None:
+            filters.append(f'credential_sys_id={values["credential_sys_id"]}')
+
+        if values.get("mid_server_sys_id") is not None:
+            filters.append(f'mid_server_sys_id={values["mid_server_sys_id"]}')
+
+        if values.get("test_suite_sys_id") is not None:
+            filters.append(f'test_suite_sys_id={values["test_suite_sys_id"]}')
+
+        if values.get("test_suite_name") is not None:
+            filters.append(f'test_suite_name={values["test_suite_name"]}')
+
+        if values.get("browser_name") is not None:
+            filters.append(f'browser_name={values["browser_name"]}')
+
+        if values.get("browser_version") is not None:
+            filters.append(f'browser_version={values["browser_version"]}')
+
+        if values.get("os_name") is not None:
+            filters.append(f'os_name={values["os_name"]}')
+
+        if values.get("os_version") is not None:
+            filters.append(f'os_version={values["os_version"]}')
 
         if filters:
             api_parameters = "?" + "&".join(filters)
