@@ -28,6 +28,8 @@ This repository is actively maintained and will continue adding more API calls
 
 This repository is actively maintained - Contributions are welcome!
 
+AI Skill Ready - Assimilate the following package into your agent and it can begin using this automation!
+
 #### API Calls:
 - Table
 - CI/CD
