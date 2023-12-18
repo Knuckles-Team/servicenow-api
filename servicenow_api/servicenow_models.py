@@ -1,3 +1,4 @@
+import ast
 from typing import Union, List, Dict, Optional
 from pydantic import BaseModel, field_validator
 
@@ -72,7 +73,7 @@ class CICDModel(BaseModel):
         return value.lower()
 
     @field_validator('browser_name')
-    def validate_scope(cls, v):
+    def validate_browser_name(cls, v):
         if v not in ['any', 'chrome', 'firefox', 'edge', 'ie', 'safari']:
             raise ParameterError
         return v
@@ -162,10 +163,11 @@ class ChangeManagementModel(BaseModel):
     change_request_sys_id: Optional[str]
     state: Optional[str]
     cmdb_ci_sys_ids: Optional[List[str]]
+    cmdb_ci_sys_id: Optional[str]
     association_type: Optional[str]
     refresh_impacted_services: Optional[bool]
     name_value_pairs: Optional[Dict[str, Union[str, int, bool]]]
-    order: Optional[str]
+    order: Optional[str] = "desc"
     max_pages: Optional[int]
     per_page: Optional[int]
     sysparm_query: Optional[str]
@@ -175,22 +177,70 @@ class ChangeManagementModel(BaseModel):
     worker_sys_id: Optional[str]
     change_type: Optional[str]
     standard_change_template_id: Optional[str]
+    response_length: int = 10
 
-    @field_validator('per_page', 'page')
-    def validate_positive_integer(cls, v):
-        if not isinstance(v, int) or v <= 0:
+    @field_validator('change_request_sys_id', 'cmdb_ci_sys_ids', 'standard_change_template_id',
+                     'template_sys_id', 'worker_sys_id')
+    def validate_string_parameters(cls, v):
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator('state', 'change_type')
+    def convert_to_lowercase(cls, value):
+        return value.lower()
+
+    @field_validator('change_type')
+    def validate_change_type(cls, v):
+        if v not in ['emergency', 'normal', 'standard', 'model']:
             raise ParameterError
         return v
+
+    @field_validator('association_type')
+    def validate_association_type(cls, v):
+        if v not in ['affected', 'impacted', 'offering']:
+            raise ParameterError
+        return v
+
+    @field_validator('association_type')
+    def validate_state(cls, v):
+        if v not in ['approved', 'rejected']:
+            raise ParameterError
+        return v
+
+    @field_validator("data")
+    def construct_data_dict(cls, values):
+
+        if values.get("name_value_pairs"):
+            data = ast.literal_eval(values)
+        else:
+            data = {
+                "association_type": values.get("association_type"),
+                "refresh_impacted_services": values.get("refresh_impacted_services"),
+                "cmdb_ci_sys_ids": values.get("cmdb_ci_sys_ids"),
+                "state": values.get("state"),
+            }
+
+        # Remove None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        if not data:
+            raise ValueError("At least one key is required in the data dictionary.")
+
+        return data
 
     @field_validator("api_parameters")
     def build_api_parameters(cls, values):
         filters = []
 
-        if values.get("page") is not None:
-            filters.append(f'page={values["page"]}')
+        if values.get("name_value_pairs") is not None:
+            filters.append(f'{values["name_value_pairs"]}')
 
-        if values.get("per_page") is not None:
-            filters.append(f'per_page={values["per_page"]}')
+        if values.get("sysparm_query") is not None:
+            filters.append(f'sysparm_query={values["sysparm_query"]}ORDERBY{values["order"]}')
+
+        if values.get("textSearch") is not None:
+            filters.append(f'textSearch={values["textSearch"]}')
 
         if filters:
             api_parameters = "?" + "&".join(filters)
