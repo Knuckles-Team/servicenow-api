@@ -96,8 +96,8 @@ class Api(object):
         """
         Get Configuration Management Database (CMDB) information based on specified parameters.
 
-        :param kwargs: Keyword arguments representing parameters for querying the CMDB.
-                       The parameters should be compatible with the CMDBModel Pydantic model.
+        :param cmdb_id: The unique identifier of the CMDB record
+        :type cmdb_id: str
 
         :return: JSON response containing CMDB information.
         :rtype: requests.models.Response
@@ -213,7 +213,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.name is None or cicd.packages is None:
             raise MissingParameterError
-        data = {'name': cicd.name, 'packages': cicd.packages}
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/app/batch/install',
                                           headers=self.headers,
@@ -274,21 +273,8 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if cicd.app_sys_id:
-            parameters = f'?sys_id={cicd.app_sys_id}'
-        else:
-            parameters = f'?scope={cicd.scope}'
-        if cicd.auto_upgrade_base_app:
-            if isinstance(cicd.auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(cicd.auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if cicd.base_app_version:
-            parameters = f'{parameters}&base_app_version={cicd.base_app_version}'
-        if cicd.version:
-            parameters = f'{parameters}&version={cicd.version}'
         try:
-            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/install{parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/install{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -318,14 +304,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if cicd.app_sys_id:
-            parameters = f'?sys_id={cicd.app_sys_id}'
-        else:
-            parameters = f'?scope={cicd.scope}'
-        if cicd.dev_notes:
-            parameters = f'{parameters}&dev_notes={cicd.dev_notes}'
-        if cicd.version:
-            parameters = f'{parameters}&version={cicd.version}'
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/publish{cicd.api_parameters}',
                                           headers=self.headers,
@@ -355,12 +333,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.app_sys_id is None and cicd.scope is None or cicd.version is None:
             raise MissingParameterError
-        if cicd.app_sys_id:
-            parameters = f'?sys_id={cicd.app_sys_id}'
-        else:
-            parameters = f'?scope={cicd.scope}'
-        if cicd.version:
-            parameters = f'{parameters}&version={cicd.version}'
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/app_repo/rollback{cicd.api_parameters}',
                                           headers=self.headers,
@@ -405,9 +377,8 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.target_sys_id is None or cicd.target_table is None:
             raise MissingParameterError
-        parameters = f"?target_table={cicd.target_table}&target_sys_id={cicd.target_sys_id}"
         try:
-            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/point_scan{parameters}',
+            response = self._session.post(url=f'{self.url}/sn_cicd/instance_scan/point_scan{cicd.api_parameters}',
                                           headers=self.headers,
                                           verify=self.verify,
                                           proxies=self.proxies)
@@ -462,11 +433,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.suite_sys_id is None or cicd.sys_ids is None:
             raise MissingParameterError
-        data = {"app_scope_sys_ids": cicd.sys_ids}
-        try:
-            data = json.dumps(data, indent=4)
-        except ValueError:
-            raise ParameterError
         try:
             response = self._session.post(
                 url=f'{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}',
@@ -551,17 +517,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.app_sys_id is None and cicd.scope is None:
             raise MissingParameterError
-        if cicd.app_sys_id:
-            parameters = f'?app_sys_id={cicd.app_sys_id}'
-        else:
-            parameters = f'?scope={cicd.scope}'
-        if cicd.auto_upgrade_base_app:
-            if isinstance(cicd.auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(cicd.auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if cicd.branch_name:
-            parameters = f'{parameters}&branch_name={cicd.branch_name}'
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/sc/apply_changes{cicd.api_parameters}',
                                           headers=self.headers,
@@ -596,18 +551,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.repo_url is None:
             raise MissingParameterError
-        parameters = f'?repo_url={cicd.repo_url}'
-        if cicd.auto_upgrade_base_app:
-            if isinstance(cicd.auto_upgrade_base_app, bool):
-                parameters = f'{parameters}&auto_upgrade_base_app={str(cicd.auto_upgrade_base_app).lower()}'
-            else:
-                raise ParameterError
-        if cicd.branch_name:
-            parameters = f'{parameters}&branch_name={cicd.branch_name}'
-        if cicd.credential_sys_id:
-            parameters = f'{parameters}&credential_sys_id={cicd.credential_sys_id}'
-        if cicd.mid_server_sys_id:
-            parameters = f'{parameters}&mid_server_sys_id={cicd.mid_server_sys_id}'
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/sc/import{cicd.api_parameters}',
                                           headers=self.headers,
@@ -644,22 +587,6 @@ class Api(object):
         cicd = CICDModel(**kwargs)
         if cicd.test_suite_sys_id is None and cicd.test_suite_name is None:
             raise MissingParameterError
-        if cicd.test_suite_sys_id:
-            parameters = f'?test_suite_sys_id={cicd.test_suite_sys_id}'
-        else:
-            parameters = f'?test_suite_name={cicd.test_suite_name}'
-        if cicd.browser_name:
-            if isinstance(cicd.browser_name, str) and cicd.browser_name in ['any', 'chrome', 'firefox', 'edge', 'ie',
-                                                                            'safari']:
-                parameters = f'{parameters}&browser_name={cicd.browser_name}'
-            else:
-                raise ParameterError
-        if cicd.browser_version:
-            parameters = f'{parameters}&browser_version={cicd.browser_version}'
-        if cicd.os_name:
-            parameters = f'{parameters}&os_name={cicd.os_name}'
-        if cicd.os_version:
-            parameters = f'{parameters}&os_version={cicd.os_version}'
         try:
             response = self._session.post(url=f'{self.url}/sn_cicd/testsuite/run{cicd.api_parameters}',
                                           headers=self.headers,
