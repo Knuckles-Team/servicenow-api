@@ -147,6 +147,7 @@ class CICDModel(BaseModel):
     os_version: Optional[str] = None
     api_parameters: str = None
     data: Dict = None
+    sys_ids: List = None
 
     @field_validator('result_id', 'progress_id', 'rollback_id', 'name', 'notes', 'packages')
     def validate_string_parameters(cls, v):
@@ -164,6 +165,27 @@ class CICDModel(BaseModel):
         """
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator('sys_ids')
+    def validate_string_parameters(cls, v):
+        """
+        Validate specific string parameters to ensure they are a List
+
+        Args:
+        - v: The value of the parameter.
+
+        Returns:
+        - str: The validated parameter value as a list.
+
+        Raises:
+        - ValueError: If the parameter is provided and not a List, str, or int.
+        """
+        if v is not None and not isinstance(v, List):
+            if v is isinstance(v, str) or v is isinstance(v, int):
+                return [v]
+            else:
+                raise ValueError("Invalid optional params")
         return v
 
     @field_validator('auto_upgrade_base_app', 'browser_name')
@@ -310,10 +332,10 @@ class ChangeManagementModel(BaseModel):
     - cmdb_ci_sys_id (Optional[str]): Configuration Item (CI) system identifier.
     - association_type (Optional[str]): Type of association.
     - refresh_impacted_services (Optional[bool]): Flag indicating whether to refresh impacted services.
-    - name_value_pairs (Optional[Dict[str, Union[str, int, bool]]]): Dictionary containing name-value pairs.
+    - name_value_pairs (Optional[Dict]): Dictionary containing name-value pairs.
     - order (Optional[str]): Order for sorting (default is "desc").
-    - max_pages (Optional[int]): Maximum number of pages.
-    - per_page (Optional[int]): Number of items per page.
+    - max_pages (Optional[Union[str, int]]): Maximum number of pages.
+    - per_page (Optional[Union[str, int]]): Number of items per page.
     - sysparm_query (Optional[str]): Sysparm query.
     - text_search (Optional[str]): Text search query.
     - model_sys_id (Optional[str]): Identifier for the model.
@@ -334,10 +356,10 @@ class ChangeManagementModel(BaseModel):
     cmdb_ci_sys_id: Optional[str]
     association_type: Optional[str]
     refresh_impacted_services: Optional[bool]
-    name_value_pairs: Optional[Dict[str, Union[str, int, bool]]]
+    name_value_pairs: Optional[Dict]
     order: Optional[str] = "desc"
-    max_pages: Optional[int]
-    per_page: Optional[int]
+    max_pages: Optional[Union[str, int]]
+    per_page: Optional[Union[str, int]]
     sysparm_query: Optional[str]
     text_search: Optional[str]
     model_sys_id: Optional[str]
@@ -417,7 +439,7 @@ class ChangeManagementModel(BaseModel):
             raise ParameterError
         return v
 
-    @field_validator('association_type')
+    @field_validator('state')
     def validate_state(cls, v):
         """
         Validate the 'state' parameter to ensure it is a valid state.
@@ -565,13 +587,13 @@ class TableModel(BaseModel):
     Attributes:
     - table (str): Name of the table.
     - table_record_sys_id (Optional[str]): System identifier for the table record.
-    - name_value_pairs (Optional[Dict[str, Union[str, int, bool]]]): Dictionary containing name-value pairs.
+    - name_value_pairs (Optional[Dict]]): Dictionary containing name-value pairs.
     - sysparm_display_value (Optional[str]): Sysparm display value.
     - sysparm_exclude_reference_link (Optional[bool]): Flag indicating whether to exclude reference link.
     - sysparm_fields (Optional[str]): Sysparm fields.
-    - sysparm_limit (Optional[int]): Sysparm limit.
+    - sysparm_limit (Optional[Union[str, int]]): Sysparm limit.
     - sysparm_no_count (Optional[bool]): Flag indicating whether to omit count.
-    - sysparm_offset (Optional[int]): Sysparm offset.
+    - sysparm_offset (Optional[Union[str, int]]): Sysparm offset.
     - sysparm_query (Optional[str]): Sysparm query.
     - sysparm_query_category (Optional[str]): Sysparm query category.
     - sysparm_query_no_domain (Optional[bool]): Flag indicating whether to exclude domain from the query.
@@ -585,13 +607,13 @@ class TableModel(BaseModel):
     """
     table: str
     table_record_sys_id: Optional[str]
-    name_value_pairs: Optional[Dict[str, Union[str, int, bool]]]
+    name_value_pairs: Optional[Dict]
     sysparm_display_value: Optional[str]
     sysparm_exclude_reference_link: Optional[bool]
     sysparm_fields: Optional[str]
-    sysparm_limit: Optional[int]
+    sysparm_limit: Optional[Union[str, int]]
     sysparm_no_count: Optional[bool]
-    sysparm_offset: Optional[int]
+    sysparm_offset: Optional[Union[str, int]]
     sysparm_query: Optional[str]
     sysparm_query_category: Optional[str]
     sysparm_query_no_domain: Optional[bool]
