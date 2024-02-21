@@ -26,12 +26,13 @@ ServiceNow API Python Wrapper
 
 This repository is actively maintained and will continue adding more API calls
 
-This repository is actively maintained - Contributions are welcome!
+Contributions are welcome!
 
 AI Skill Ready (**PEP8** Documented) - Assimilate the following package into your agent and begin using it!
 
 #### API Calls:
 - Table
+- Change Management
 - CI/CD
 - Import Sets
 - Incident
