@@ -9,10 +9,10 @@ from pydantic import ValidationError
 
 try:
     from servicenow_api.servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
-                                                  IncidentModel, ImportSetModel, KnowledgeBaseModel, TableModel)
+                                                  IncidentModel, ImportSetModel, KnowledgeManagementModel, TableModel)
 except ModuleNotFoundError:
     from servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
-                                   IncidentModel, ImportSetModel, KnowledgeBaseModel, TableModel)
+                                   IncidentModel, ImportSetModel, KnowledgeManagementModel, TableModel)
 try:
     from servicenow_api.decorators import require_auth
 except ModuleNotFoundError:
@@ -1763,7 +1763,7 @@ class Api(object):
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeBaseModel(**kwargs)
+        knowledge_base = KnowledgeManagementModel(**kwargs)
         if knowledge_base is None:
             raise MissingParameterError
         try:
@@ -1819,7 +1819,7 @@ class Api(object):
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeBaseModel(**kwargs)
+        knowledge_base = KnowledgeManagementModel(**kwargs)
         if knowledge_base is None:
             raise MissingParameterError
         try:
@@ -1846,7 +1846,7 @@ class Api(object):
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeBaseModel(**kwargs)
+        knowledge_base = KnowledgeManagementModel(**kwargs)
         if knowledge_base is None:
             raise MissingParameterError
         try:
@@ -1882,7 +1882,7 @@ class Api(object):
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeBaseModel(**kwargs)
+        knowledge_base = KnowledgeManagementModel(**kwargs)
         if knowledge_base is None:
             raise MissingParameterError
         try:
@@ -1918,7 +1918,7 @@ class Api(object):
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeBaseModel(**kwargs)
+        knowledge_base = KnowledgeManagementModel(**kwargs)
         if knowledge_base is None:
             raise MissingParameterError
         try:
