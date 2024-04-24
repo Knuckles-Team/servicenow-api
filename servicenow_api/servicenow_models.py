@@ -1,6 +1,6 @@
 import ast
 from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, root_validator
 
 try:
     from servicenow_api.decorators import require_auth
@@ -587,8 +587,6 @@ class KnowledgeManagementModel(BaseModel):
     Attributes:
     - article_sys_id (Optional[str]): System identifier for the article.
     - attachment_sys_id (Optional[str]): System identifier for the attachment.
-    - name_value_pairs (Optional[Dict]]): Dictionary containing name-value pairs.
-    - sysparm_display_value (Optional[str]): Sysparm display value.
     - sysparm_fields (Optional[str]): Sysparm fields.
     - sysparm_limit (Optional[Union[str, int]]): Sysparm limit.
     - sysparm_offset (Optional[Union[str, int]]): Sysparm offset.
@@ -596,17 +594,13 @@ class KnowledgeManagementModel(BaseModel):
     - sysparm_search_id (Optional[str]): Sysparm search ID.
     - sysparm_search_rank (Optional[int]): Sysparm search rank.
     - sysparm_update_view (Optional[bool]): Flag indicating whether to update the view.
-    - sysparm_view (Optional[str]): Sysparm view.
     - api_parameters (str): API parameters.
-    - data (Dict): Dictionary containing additional data.
 
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
     article_sys_id: Optional[str]
     attachment_sys_id: Optional[str]
-    name_value_pairs: Optional[Dict]
-    sysparm_display_value: Optional[str]
     sysparm_fields: Optional[str]
     sysparm_limit: Optional[Union[str, int]]
     sysparm_offset: Optional[Union[str, int]]
@@ -614,12 +608,10 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str]
     sysparm_search_rank: Optional[int]
     sysparm_update_view: Optional[bool]
-    sysparm_view: Optional[str]
     api_parameters: str = None
-    data: Dict = None
 
-    @field_validator('article_sys_id', 'attachment_sys_id')
-    def validate_string_parameters(cls, v):
+    @root_validator('article_sys_id', 'attachment_sys_id')
+    def validate_string_parameters(cls, values):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -632,58 +624,10 @@ class KnowledgeManagementModel(BaseModel):
         Raises:
         - ValueError: If the parameter is provided and not a string.
         """
-        if v is not None and not isinstance(v, str):
-            raise ValueError("Invalid optional params")
-        return v
-
-    @field_validator('sysparm_display_value')
-    def convert_to_lowercase(cls, value):
-        """
-        Convert specified parameters to lowercase.
-
-        Args:
-        - value: The value of the parameter.
-
-        Returns:
-        - str: The value converted to lowercase.
-        """
-        return value.lower()
-
-    @field_validator('sysparm_view')
-    def validate_sysparm_view(cls, v):
-        """
-        Validate the 'sysparm_view' parameter to ensure it is a valid view.
-
-        Args:
-        - v: The value of 'sysparm_view'.
-
-        Returns:
-        - str: The validated 'sysparm_view'.
-
-        Raises:
-        - ParameterError: If 'sysparm_view' is not a valid view.
-        """
-        if v not in ['desktop', 'mobile', 'both']:
-            raise ParameterError
-        return v
-
-    @field_validator('sysparm_display_value')
-    def validate_sysparm_display_value(cls, v):
-        """
-        Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
-
-        Args:
-        - v: The value of 'sysparm_display_value'.
-
-        Returns:
-        - str: The validated 'sysparm_display_value'.
-
-        Raises:
-        - ParameterError: If 'sysparm_display_value' is not a valid display value.
-        """
-        if v not in [True, False, 'all']:
-            raise ParameterError
-        return v
+        for field in ['article_sys_id', 'attachment_sys_id']:
+            if field in values and not isinstance(values[field], str):
+                raise ValueError(f"{field} must be a string if provided")
+        return values
 
     @field_validator("api_parameters")
     def build_api_parameters(cls, values):
@@ -698,40 +642,12 @@ class KnowledgeManagementModel(BaseModel):
         """
         filters = []
 
-        if values.get("name_value_pairs") is not None:
-            filters.append(f'{values["name_value_pairs"]}')
+        for field in ['sysparm_fields', 'sysparm_limit', 'sysparm_search_id', 'sysparm_search_rank',
+                      'sysparm_update_view', 'sysparm_offset', 'sysparm_query']:
+            if field in values and values[field] is not None:
+                filters.append(f'{field}={values[field]}')
 
-        if values.get("sysparm_display_value") is not None:
-            filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
-
-        if values.get("sysparm_exclude_reference_link") is not None:
-            filters.append(f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}')
-
-        if values.get("sysparm_fields") is not None:
-            filters.append(f'sysparm_fields={values["sysparm_fields"]}')
-
-        if values.get("sysparm_limit") is not None:
-            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
-
-        if values.get("sysparm_search_id") is not None:
-            filters.append(f'sysparm_search_id={values["sysparm_search_id"]}')
-
-        if values.get("sysparm_search_rank") is not None:
-            filters.append(f'sysparm_search_rank={values["sysparm_search_rank"]}')
-
-        if values.get("sysparm_update_view") is not None:
-            filters.append(f'sysparm_update_view={values["sysparm_update_view"]}')
-
-        if values.get("sysparm_offset") is not None:
-            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-
-        if values.get("sysparm_query") is not None:
-            filters.append(f'sysparm_query={values["sysparm_query"]}')
-
-        if values.get("sysparm_view") is not None:
-            filters.append(f'sysparm_view={values["sysparm_view"]}')
-
-        if filters:
+        if len(filters) > 0:
             api_parameters = "?" + "&".join(filters)
             return api_parameters
 
