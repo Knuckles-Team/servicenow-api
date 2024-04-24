@@ -580,6 +580,180 @@ class IncidentModel(BaseModel):
         return v
 
 
+class KnowledgeManagementModel(BaseModel):
+    """
+    Pydantic model representing Knowledge Management.
+
+    Attributes:
+    - table (str): Name of the table.
+    - table_record_sys_id (Optional[str]): System identifier for the table record.
+    - name_value_pairs (Optional[Dict]]): Dictionary containing name-value pairs.
+    - sysparm_display_value (Optional[str]): Sysparm display value.
+    - sysparm_exclude_reference_link (Optional[bool]): Flag indicating whether to exclude reference link.
+    - sysparm_fields (Optional[str]): Sysparm fields.
+    - sysparm_limit (Optional[Union[str, int]]): Sysparm limit.
+    - sysparm_no_count (Optional[bool]): Flag indicating whether to omit count.
+    - sysparm_offset (Optional[Union[str, int]]): Sysparm offset.
+    - sysparm_query (Optional[str]): Sysparm query.
+    - sysparm_query_category (Optional[str]): Sysparm query category.
+    - sysparm_query_no_domain (Optional[bool]): Flag indicating whether to exclude domain from the query.
+    - sysparm_suppress_pagination_header (Optional[bool]): Flag indicating whether to suppress pagination header.
+    - sysparm_view (Optional[str]): Sysparm view.
+    - api_parameters (str): API parameters.
+    - data (Dict): Dictionary containing additional data.
+
+    Note:
+    The class includes field_validator functions for specific attribute validations.
+    """
+    article_sys_id: Optional[str]
+    attachment_sys_id: Optional[str]
+    name_value_pairs: Optional[Dict]
+    sysparm_display_value: Optional[str]
+    sysparm_fields: Optional[str]
+    sysparm_limit: Optional[Union[str, int]]
+    sysparm_offset: Optional[Union[str, int]]
+    sysparm_query: Optional[str]
+    sysparm_search_id: Optional[str]
+    sysparm_search_rank: Optional[int]
+    sysparm_update_view: Optional[bool]
+    sysparm_suppress_pagination_header: Optional[bool]
+    sysparm_view: Optional[str]
+    api_parameters: str = None
+    data: Dict = None
+
+    @field_validator('table', 'table_record_sys_id')
+    def validate_string_parameters(cls, v):
+        """
+        Validate specific string parameters to ensure they are valid strings.
+
+        Args:
+        - v: The value of the parameter.
+
+        Returns:
+        - str: The validated parameter value.
+
+        Raises:
+        - ValueError: If the parameter is provided and not a string.
+        """
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator('sysparm_display_value', 'sysparm_no_count', 'sysparm_query_no_domain',
+                     'sysparm_suppress_pagination_header')
+    def convert_to_lowercase(cls, value):
+        """
+        Convert specified parameters to lowercase.
+
+        Args:
+        - value: The value of the parameter.
+
+        Returns:
+        - str: The value converted to lowercase.
+        """
+        return value.lower()
+
+    @field_validator('sysparm_view')
+    def validate_sysparm_view(cls, v):
+        """
+        Validate the 'sysparm_view' parameter to ensure it is a valid view.
+
+        Args:
+        - v: The value of 'sysparm_view'.
+
+        Returns:
+        - str: The validated 'sysparm_view'.
+
+        Raises:
+        - ParameterError: If 'sysparm_view' is not a valid view.
+        """
+        if v not in ['desktop', 'mobile', 'both']:
+            raise ParameterError
+        return v
+
+    @field_validator('sysparm_display_value')
+    def validate_sysparm_display_value(cls, v):
+        """
+        Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
+
+        Args:
+        - v: The value of 'sysparm_display_value'.
+
+        Returns:
+        - str: The validated 'sysparm_display_value'.
+
+        Raises:
+        - ParameterError: If 'sysparm_display_value' is not a valid display value.
+        """
+        if v not in [True, False, 'all']:
+            raise ParameterError
+        return v
+
+    @field_validator("api_parameters")
+    def build_api_parameters(cls, values):
+        """
+        Build API parameters from specific values.
+
+        Args:
+        - values: The values of specific parameters.
+
+        Returns:
+        - str: The constructed API parameters.
+        """
+        filters = []
+
+        if values.get("name_value_pairs") is not None:
+            filters.append(f'{values["name_value_pairs"]}')
+
+        if values.get("sysparm_display_value") is not None:
+            filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
+
+        if values.get("sysparm_exclude_reference_link") is not None:
+            filters.append(f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}')
+
+        if values.get("sysparm_fields") is not None:
+            filters.append(f'sysparm_fields={values["sysparm_fields"]}')
+
+        if values.get("sysparm_limit") is not None:
+            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
+
+        if values.get("sysparm_search_id") is not None:
+            filters.append(f'sysparm_search_id={values["sysparm_search_id"]}')
+
+        if values.get("sysparm_search_rank") is not None:
+            filters.append(f'sysparm_search_rank={values["sysparm_search_rank"]}')
+
+        if values.get("sysparm_update_view") is not None:
+            filters.append(f'sysparm_update_view={values["sysparm_update_view"]}')
+
+        if values.get("sysparm_no_count") is not None:
+            filters.append(f'sysparm_no_count={values["sysparm_no_count"]}')
+
+        if values.get("sysparm_offset") is not None:
+            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
+
+        if values.get("sysparm_query") is not None:
+            filters.append(f'sysparm_query={values["sysparm_query"]}')
+
+        if values.get("sysparm_query_category") is not None:
+            filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
+
+        if values.get("sysparm_query_no_domain") is not None:
+            filters.append(f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}')
+
+        if values.get("sysparm_suppress_pagination_header") is not None:
+            filters.append(f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}')
+
+        if values.get("sysparm_view") is not None:
+            filters.append(f'sysparm_view={values["sysparm_view"]}')
+
+        if filters:
+            api_parameters = "?" + "&".join(filters)
+            return api_parameters
+
+        return None
+
+
 class TableModel(BaseModel):
     """
     Pydantic model representing a Table.
