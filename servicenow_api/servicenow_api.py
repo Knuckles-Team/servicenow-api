@@ -9,10 +9,10 @@ from pydantic import ValidationError
 
 try:
     from servicenow_api.servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
-                                                  IncidentModel, ImportSetModel, TableModel)
+                                                  IncidentModel, ImportSetModel, KnowledgeBaseModel, TableModel)
 except ModuleNotFoundError:
     from servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
-                                   IncidentModel, ImportSetModel, TableModel)
+                                   IncidentModel, ImportSetModel, KnowledgeBaseModel, TableModel)
 try:
     from servicenow_api.decorators import require_auth
 except ModuleNotFoundError:
@@ -1723,6 +1723,213 @@ class Api(object):
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
+
+    ####################################################################################################################
+    #                                       Knowledge Management API                                                   #
+    ####################################################################################################################
+    @require_auth
+    def get_knowledge_articles(self, **kwargs):
+        """
+        Get all Knowledge Base articles.
+
+        :param filter: Encoded query to use to filter the result set.
+        :type filter: str
+            Valid values:
+            =: Exactly matches <value>.
+            !=: Does not match <value>.
+            ^: Enables you to specify more than one condition and logically AND them.
+            ^OR: Enables you to specify more than one condition and logically OR them.
+            LIKE: <attr> contains the specified string. Only works for <attr> fields whose data type is string.
+            STARTSWITH: <attr> starts with the specified string. Only works for <attr> fields whose data type is string.
+            ENDSWITH: <attr> ends with the specified string. Only works for <attr> fields whose data type is string.
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param sysparm_query: Encoded query string for filtering records.
+        :type sysparm_query: str
+        :param sysparm_query_category: Category to which the query belongs.
+        :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
+            table to restrict results to.
+        :type kb: str
+        :param language: List of comma-separated languages in two-letter ISO 639-1
+            language code format to restrict results to.
+            Alternatively type 'all' to search in all valid installed languages on an instance.
+        :type language: str
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        knowledge_base = KnowledgeBaseModel(**kwargs)
+        if knowledge_base is None:
+            raise MissingParameterError
+        try:
+            response = self._session.get(url=f'{self.url}/sn_km_api/knowledge/articles{knowledge_base.api_parameters}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    @require_auth
+    def get_knowledge_article(self, **kwargs):
+        """
+        Get Knowledge Base article.
+
+        :param filter: Encoded query to use to filter the result set.
+        :type filter: str
+            Valid values:
+            =: Exactly matches <value>.
+            !=: Does not match <value>.
+            ^: Enables you to specify more than one condition and logically AND them.
+            ^OR: Enables you to specify more than one condition and logically OR them.
+            LIKE: <attr> contains the specified string. Only works for <attr> fields whose data type is string.
+            STARTSWITH: <attr> starts with the specified string. Only works for <attr> fields whose data type is string.
+            ENDSWITH: <attr> ends with the specified string. Only works for <attr> fields whose data type is string.
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_search_id: Unique identifier of search taht returned this article
+        :type sysparm_search_id: str
+        :param sysparm_search_rank: Article search rank by click-rate that you can retrieve using one of the
+            following APIs that returns the articles.rank element
+        :type sysparm_search_rank: str
+        :param sysparm_update_view: Update view count and record an entry for the article in the
+            Knowledge Use [kb_use] table. True whether present as a standalone parameter or set to true.
+        :type sysparm_update_view: bool
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param sysparm_query: Encoded query string for filtering records.
+        :type sysparm_query: str
+        :param sysparm_query_category: Category to which the query belongs.
+        :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
+            table to restrict results to.
+        :type kb: str
+        :param language: List of comma-separated languages in two-letter ISO 639-1
+            language code format to restrict results to.
+            Alternatively type 'all' to search in all valid installed languages on an instance.
+        :type language: str
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        knowledge_base = KnowledgeBaseModel(**kwargs)
+        if knowledge_base is None:
+            raise MissingParameterError
+        try:
+            response = self._session.get(url=f'{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}'
+                                             f'{knowledge_base.api_parameters}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    @require_auth
+    def get_knowledge_article_attachment(self, **kwargs):
+        """
+        Get Knowledge Base article.
+
+        :param article_sys_id: The Article Sys ID to search attachments for
+        :type article_sys_id: str
+        :param attachment_sys_id: The Attachment Sys ID
+        :type attachment_sys_id: str
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        knowledge_base = KnowledgeBaseModel(**kwargs)
+        if knowledge_base is None:
+            raise MissingParameterError
+        try:
+            response = self._session.get(url=f'{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}'
+                                             f'/attachments/{knowledge_base.attachment_sys_id}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    @require_auth
+    def get_featured_knowledge_article(self, **kwargs):
+        """
+        Get Knowledge Base article.
+
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
+            table to restrict results to.
+        :type kb: str
+        :param language: List of comma-separated languages in two-letter ISO 639-1
+            language code format to restrict results to.
+            Alternatively type 'all' to search in all valid installed languages on an instance.
+        :type language: str
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        knowledge_base = KnowledgeBaseModel(**kwargs)
+        if knowledge_base is None:
+            raise MissingParameterError
+        try:
+            response = self._session.get(url=f'{self.url}/sn_km_api/knowledge/articles'
+                                             f'/featured{knowledge_base.api_parameters}',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
+    @require_auth
+    def get_most_viewed_knowledge_articles(self, **kwargs):
+        """
+        Get Knowledge Base article.
+
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
+            table to restrict results to.
+        :type kb: str
+        :param language: List of comma-separated languages in two-letter ISO 639-1
+            language code format to restrict results to.
+            Alternatively type 'all' to search in all valid installed languages on an instance.
+        :type language: str
+        :return: JSON response containing information about the retrieved records.
+        :rtype: requests.models.Response
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
+        """
+        knowledge_base = KnowledgeBaseModel(**kwargs)
+        if knowledge_base is None:
+            raise MissingParameterError
+        try:
+            response = self._session.get(url=f'{self.url}/sn_km_api/knowledge/articles/most_viewed',
+                                         headers=self.headers,
+                                         verify=self.verify,
+                                         proxies=self.proxies)
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
+
 
     ####################################################################################################################
     #                                                  Table API                                                       #

@@ -31,13 +31,14 @@ Contributions are welcome!
 AI Skill Ready (**PEP8** Documented) - Assimilate the following package into your agent and begin using it!
 
 #### API Calls:
-- Table
+- Application Service
 - Change Management
 - CI/CD
+- CMDB
 - Import Sets
 - Incident
-- CMDB
-- Application Service
+- Knowledge Base
+- Table
 
 <details>
   <summary><b>Usage:</b></summary>
