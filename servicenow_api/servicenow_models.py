@@ -585,19 +585,17 @@ class KnowledgeManagementModel(BaseModel):
     Pydantic model representing Knowledge Management.
 
     Attributes:
-    - table (str): Name of the table.
-    - table_record_sys_id (Optional[str]): System identifier for the table record.
+    - article_sys_id (Optional[str]): System identifier for the article.
+    - attachment_sys_id (Optional[str]): System identifier for the attachment.
     - name_value_pairs (Optional[Dict]]): Dictionary containing name-value pairs.
     - sysparm_display_value (Optional[str]): Sysparm display value.
-    - sysparm_exclude_reference_link (Optional[bool]): Flag indicating whether to exclude reference link.
     - sysparm_fields (Optional[str]): Sysparm fields.
     - sysparm_limit (Optional[Union[str, int]]): Sysparm limit.
-    - sysparm_no_count (Optional[bool]): Flag indicating whether to omit count.
     - sysparm_offset (Optional[Union[str, int]]): Sysparm offset.
     - sysparm_query (Optional[str]): Sysparm query.
-    - sysparm_query_category (Optional[str]): Sysparm query category.
-    - sysparm_query_no_domain (Optional[bool]): Flag indicating whether to exclude domain from the query.
-    - sysparm_suppress_pagination_header (Optional[bool]): Flag indicating whether to suppress pagination header.
+    - sysparm_search_id (Optional[str]): Sysparm search ID.
+    - sysparm_search_rank (Optional[int]): Sysparm search rank.
+    - sysparm_update_view (Optional[bool]): Flag indicating whether to update the view.
     - sysparm_view (Optional[str]): Sysparm view.
     - api_parameters (str): API parameters.
     - data (Dict): Dictionary containing additional data.
@@ -616,12 +614,11 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str]
     sysparm_search_rank: Optional[int]
     sysparm_update_view: Optional[bool]
-    sysparm_suppress_pagination_header: Optional[bool]
     sysparm_view: Optional[str]
     api_parameters: str = None
     data: Dict = None
 
-    @field_validator('table', 'table_record_sys_id')
+    @field_validator('article_sys_id', 'attachment_sys_id')
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -639,8 +636,7 @@ class KnowledgeManagementModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator('sysparm_display_value', 'sysparm_no_count', 'sysparm_query_no_domain',
-                     'sysparm_suppress_pagination_header')
+    @field_validator('sysparm_display_value')
     def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
@@ -726,23 +722,11 @@ class KnowledgeManagementModel(BaseModel):
         if values.get("sysparm_update_view") is not None:
             filters.append(f'sysparm_update_view={values["sysparm_update_view"]}')
 
-        if values.get("sysparm_no_count") is not None:
-            filters.append(f'sysparm_no_count={values["sysparm_no_count"]}')
-
         if values.get("sysparm_offset") is not None:
             filters.append(f'sysparm_offset={values["sysparm_offset"]}')
 
         if values.get("sysparm_query") is not None:
             filters.append(f'sysparm_query={values["sysparm_query"]}')
-
-        if values.get("sysparm_query_category") is not None:
-            filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
-
-        if values.get("sysparm_query_no_domain") is not None:
-            filters.append(f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}')
-
-        if values.get("sysparm_suppress_pagination_header") is not None:
-            filters.append(f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}')
 
         if values.get("sysparm_view") is not None:
             filters.append(f'sysparm_view={values["sysparm_view"]}')
