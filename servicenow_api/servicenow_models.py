@@ -145,8 +145,8 @@ class CICDModel(BaseModel):
     browser_version: Optional[str] = None
     os_name: Optional[str] = None
     os_version: Optional[str] = None
-    api_parameters: str = None
-    data: Dict = None
+    api_parameters: str = Optional[None]
+    data: Dict = Optional[None]
     sys_ids: List = None
 
     @field_validator('result_id', 'progress_id', 'rollback_id', 'name', 'notes', 'packages')
@@ -338,7 +338,7 @@ class ChangeManagementModel(BaseModel):
     - per_page (Optional[Union[str, int]]): Number of items per page.
     - sysparm_query (Optional[str]): Sysparm query.
     - text_search (Optional[str]): Text search query.
-    - model_sys_id (Optional[str]): Identifier for the model.
+    - change_model_sys_id (Optional[str]): Identifier for the model.
     - template_sys_id (Optional[str]): Identifier for the template.
     - worker_sys_id (Optional[str]): Identifier for the worker.
     - change_type (Optional[str]): Type of change.
@@ -362,14 +362,14 @@ class ChangeManagementModel(BaseModel):
     per_page: Optional[Union[str, int]]
     sysparm_query: Optional[str]
     text_search: Optional[str]
-    model_sys_id: Optional[str]
+    change_model_sys_id: Optional[str]
     template_sys_id: Optional[str]
     worker_sys_id: Optional[str]
     change_type: Optional[str]
     standard_change_template_id: Optional[str]
     response_length: int = 10
-    api_parameters: str = None
-    data: Dict = None
+    api_parameters: str = Optional[None]
+    data: Dict = Optional[None]
 
     @field_validator('change_request_sys_id', 'cmdb_ci_sys_ids', 'standard_change_template_id',
                      'template_sys_id', 'worker_sys_id')
@@ -529,7 +529,7 @@ class ImportSetModel(BaseModel):
     """
     table: str
     import_set_sys_id: Optional[str]
-    data: Dict = None
+    data: Dict = Optional[None]
 
     @field_validator('table', 'import_set_sys_id')
     def validate_string_parameters(cls, v):
@@ -559,7 +559,7 @@ class IncidentModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
     incident_id: Union[int, str] = None
-    data: Dict = None
+    data: Dict = Optional[None]
 
     @field_validator('incident_id')
     def validate_string_parameters(cls, v):
@@ -608,9 +608,8 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str]
     sysparm_search_rank: Optional[int]
     sysparm_update_view: Optional[bool]
-    api_parameters: str = None
+    api_parameters: str = Optional[None]
 
-    @model_validator(mode='before')
     def validate_string_parameters(cls, values):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -693,8 +692,8 @@ class TableModel(BaseModel):
     sysparm_query_no_domain: Optional[bool]
     sysparm_suppress_pagination_header: Optional[bool]
     sysparm_view: Optional[str]
-    api_parameters: str = None
-    data: Dict = None
+    api_parameters: str = Optional[None]
+    data: Dict = Optional[None]
 
     @field_validator('table', 'table_record_sys_id')
     def validate_string_parameters(cls, v):
