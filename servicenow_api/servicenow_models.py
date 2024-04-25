@@ -610,7 +610,7 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_update_view: Optional[bool]
     api_parameters: str = None
 
-    @model_validator('article_sys_id', 'attachment_sys_id')
+    @model_validator()
     def validate_string_parameters(cls, values):
         """
         Validate specific string parameters to ensure they are valid strings.
