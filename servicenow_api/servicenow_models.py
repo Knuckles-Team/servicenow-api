@@ -1,6 +1,6 @@
 import ast
 from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, field_validator, root_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 try:
     from servicenow_api.decorators import require_auth
@@ -610,7 +610,7 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_update_view: Optional[bool]
     api_parameters: str = None
 
-    @root_validator('article_sys_id', 'attachment_sys_id')
+    @model_validator('article_sys_id', 'attachment_sys_id', skip_on_failure=True)
     def validate_string_parameters(cls, values):
         """
         Validate specific string parameters to ensure they are valid strings.
