@@ -145,7 +145,7 @@ class CICDModel(BaseModel):
     browser_version: Optional[str] = None
     os_name: Optional[str] = None
     os_version: Optional[str] = None
-    api_parameters: str = Optional[None]
+    api_parameters: Optional[str] = None
     data: Dict = Optional[None]
     sys_ids: List = None
 
@@ -368,7 +368,7 @@ class ChangeManagementModel(BaseModel):
     change_type: Optional[str]
     standard_change_template_id: Optional[str]
     response_length: int = 10
-    api_parameters: str = Optional[None]
+    api_parameters: Optional[str] = None
     data: Dict = Optional[None]
 
     @field_validator('change_request_sys_id', 'cmdb_ci_sys_ids', 'standard_change_template_id',
@@ -608,25 +608,7 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str]
     sysparm_search_rank: Optional[int]
     sysparm_update_view: Optional[bool]
-    api_parameters: str = Optional[None]
-
-    def validate_string_parameters(cls, values):
-        """
-        Validate specific string parameters to ensure they are valid strings.
-
-        Args:
-        - v: The value of the parameter.
-
-        Returns:
-        - str: The validated parameter value.
-
-        Raises:
-        - ValueError: If the parameter is provided and not a string.
-        """
-        for field in ['article_sys_id', 'attachment_sys_id']:
-            if field in values and not isinstance(values[field], str):
-                raise ValueError(f"{field} must be a string if provided")
-        return values
+    api_parameters: Optional[str] = None
 
     @field_validator("api_parameters")
     def build_api_parameters(cls, values):
@@ -692,7 +674,7 @@ class TableModel(BaseModel):
     sysparm_query_no_domain: Optional[bool]
     sysparm_suppress_pagination_header: Optional[bool]
     sysparm_view: Optional[str]
-    api_parameters: str = Optional[None]
+    api_parameters: Optional[str] = None
     data: Dict = Optional[None]
 
     @field_validator('table', 'table_record_sys_id')
