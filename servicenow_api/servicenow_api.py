@@ -25,8 +25,9 @@ except ModuleNotFoundError:
 
 class Api(object):
 
-    def __init__(self, url: str = None, username: str = None, password: str = None, proxies: dict = None,
-                 verify: bool = True):
+    def __init__(self, url: str = None, username: str = None, password: str = None,
+                 client_id: str = None, client_secret: str = None, grant_type: str = "password",
+                 proxies: dict = None, verify: bool = True):
         if url is None:
             raise MissingParameterError
 
@@ -39,7 +40,26 @@ class Api(object):
         if self.verify is False:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        if username and password:
+        if username and password and client_id and client_secret:
+            auth_data = {
+                'grant_type': grant_type,
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'username': username,
+                'password': password
+            }
+            url = f'{url}/oauth_token.do'
+            try:
+                response = requests.post(url, data=auth_data)
+                response = response.json()
+            except Exception as e:
+                print(f"Error Authenticating with OAuth: \n\n{e}")
+                raise AuthError
+            self.headers = {
+                'Authorization': f'Bearer {response["access_token"]}',
+                'Content-Type': 'application/json'
+            }
+        elif username and password:
             user_pass = f'{username}:{password}'.encode()
             user_pass_encoded = b64encode(user_pass).decode()
             self.headers = {
