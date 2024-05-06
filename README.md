@@ -71,6 +71,14 @@ python -m pip install servicenow-api
 </details>
 
 <details>
+  <summary><b>Tests:</b></summary>
+
+```bash
+python ./test/test_servicenow_models.py
+```
+</details>
+
+<details>
   <summary><b>Repository Owners:</b></summary>
 
 
