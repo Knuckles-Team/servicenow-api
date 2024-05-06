@@ -43,6 +43,32 @@ AI Skill Ready (**PEP8** Documented) - Assimilate the following package into you
 <details>
   <summary><b>Usage:</b></summary>
 
+OAuth Authentication
+
+```python
+#!/usr/bin/python
+# coding: utf-8
+import servicenow_api
+
+username = "<SERVICENOW USERNAME>"
+password = "<SERVICENOW PASSWORD>"
+client_id = "<SERVICENOW CLIENT_ID>"
+client_secret = "<SERVICENOW_CLIENT_SECRET>"
+servicenow_api_url = "<SERVICENOW_URL>"
+
+client = servicenow_api.Api(url=servicenow_api_url, 
+                            username=username, 
+                            password=password, 
+                            client_id=client_id, 
+                            client_secret=client_secret)
+
+table = client.get_table(table="<TABLE NAME>")
+print(f"Table: {table}")
+```
+
+
+Basic Authentication
+
 ```python
 #!/usr/bin/python
 # coding: utf-8
@@ -51,7 +77,33 @@ import servicenow_api
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 servicenow_api_url = "<SERVICENOW_URL>"
-client = servicenow_api.Api(url=servicenow_api_url, username=username, password=password)
+
+client = servicenow_api.Api(url=servicenow_api_url, 
+                            username=username, 
+                            password=password)
+
+table = client.get_table(table="<TABLE NAME>")
+print(f"Table: {table}")
+```
+
+Proxy and SSL Verify
+
+```python
+#!/usr/bin/python
+# coding: utf-8
+import servicenow_api
+
+username = "<SERVICENOW USERNAME>"
+password = "<SERVICENOW PASSWORD>"
+servicenow_api_url = "<SERVICENOW_URL>"
+
+proxy = "https://proxy.net"
+
+client = servicenow_api.Api(url=servicenow_api_url, 
+                            username=username, 
+                            password=password,
+                            proxy=proxy,
+                            verify=False)
 
 table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table}")

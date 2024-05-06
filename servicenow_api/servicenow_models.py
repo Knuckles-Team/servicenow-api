@@ -599,15 +599,15 @@ class KnowledgeManagementModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
-    article_sys_id: Optional[str]
-    attachment_sys_id: Optional[str]
-    sysparm_fields: Optional[str]
-    sysparm_limit: Optional[Union[str, int]]
-    sysparm_offset: Optional[Union[str, int]]
-    sysparm_query: Optional[str]
-    sysparm_search_id: Optional[str]
-    sysparm_search_rank: Optional[int]
-    sysparm_update_view: Optional[bool]
+    article_sys_id: Optional[str] = None
+    attachment_sys_id: Optional[str] = None
+    sysparm_fields: Optional[str] = None
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_offset: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    sysparm_search_id: Optional[str] = None
+    sysparm_search_rank: Optional[int] = None
+    sysparm_update_view: Optional[bool] = None
     api_parameters: Optional[str] = None
 
     @field_validator("api_parameters")
@@ -660,22 +660,22 @@ class TableModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
-    table: str
-    table_record_sys_id: Optional[str]
-    name_value_pairs: Optional[Dict]
-    sysparm_display_value: Optional[str]
-    sysparm_exclude_reference_link: Optional[bool]
-    sysparm_fields: Optional[str]
-    sysparm_limit: Optional[Union[str, int]]
-    sysparm_no_count: Optional[bool]
-    sysparm_offset: Optional[Union[str, int]]
-    sysparm_query: Optional[str]
-    sysparm_query_category: Optional[str]
-    sysparm_query_no_domain: Optional[bool]
-    sysparm_suppress_pagination_header: Optional[bool]
-    sysparm_view: Optional[str]
+    table: str = None
+    table_record_sys_id: Optional[str] = None
+    name_value_pairs: Optional[Dict] = None
+    sysparm_display_value: Optional[str] = None
+    sysparm_exclude_reference_link: Optional[bool] = None
+    sysparm_fields: Optional[str] = None
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_no_count: Optional[bool] = None
+    sysparm_offset: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    sysparm_query_category: Optional[str] = None
+    sysparm_query_no_domain: Optional[bool] = None
+    sysparm_suppress_pagination_header: Optional[bool] = None
+    sysparm_view: Optional[str] = None
     api_parameters: Optional[str] = None
-    data: Dict = Optional[None]
+    data: Optional[Dict] = None
 
     @field_validator('table', 'table_record_sys_id')
     def validate_string_parameters(cls, v):
