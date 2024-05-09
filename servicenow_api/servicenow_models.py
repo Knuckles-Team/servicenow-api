@@ -154,7 +154,7 @@ class CICDModel(BaseModel):
     browser_version: Optional[str] = None
     os_name: Optional[str] = None
     os_version: Optional[str] = None
-    api_parameters: Optional[str] = None
+    api_parameters: Optional[str] = ""
     data: Dict = Optional[None]
     sys_ids: Optional[List] = None
 
@@ -347,7 +347,7 @@ class ChangeManagementModel(BaseModel):
     change_type: Optional[str]
     standard_change_template_id: Optional[str]
     response_length: int = 10
-    api_parameters: Optional[str] = None
+    api_parameters: Optional[str] = ""
     data: Dict = Optional[None]
 
     @field_validator(
@@ -580,7 +580,7 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str] = None
     sysparm_search_rank: Optional[int] = None
     sysparm_update_view: Optional[bool] = None
-    api_parameters: Optional[str] = None
+    api_parameters: Optional[str] = ""
 
     @model_validator(mode="before")
     def build_api_parameters(cls, values):
@@ -658,7 +658,7 @@ class TableModel(BaseModel):
     sysparm_query_no_domain: Optional[bool] = None
     sysparm_suppress_pagination_header: Optional[bool] = None
     sysparm_view: Optional[str] = None
-    api_parameters: Optional[str] = None
+    api_parameters: Optional[str] = ""
     data: Optional[Dict] = None
 
     @field_validator("table", "table_record_sys_id")
