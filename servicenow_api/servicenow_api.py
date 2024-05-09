@@ -75,6 +75,9 @@ class Api(object):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         if username and password and client_id and client_secret:
+            auth_headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
             auth_data = {
                 "grant_type": grant_type,
                 "client_id": client_id,
@@ -84,7 +87,7 @@ class Api(object):
             }
             url = f"{url}/oauth_token.do"
             try:
-                response = requests.post(url, data=auth_data)
+                response = requests.post(url, data=auth_data, headers=auth_headers)
                 response = response.json()
             except Exception as e:
                 print(f"Error Authenticating with OAuth: \n\n{e}")
@@ -102,6 +105,8 @@ class Api(object):
             }
         else:
             raise MissingParameterError
+
+        self.url = f"{self.url}/api"
 
         response = self._session.get(
             url=f"{self.url}/subscribers",

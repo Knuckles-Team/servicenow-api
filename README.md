@@ -54,9 +54,9 @@ username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 client_id = "<SERVICENOW CLIENT_ID>"
 client_secret = "<SERVICENOW_CLIENT_SECRET>"
-servicenow_api_url = "<SERVICENOW_URL>"
+servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_api_url,
+client = servicenow_api.Api(url=servicenow_url,
                             username=username,
                             password=password,
                             client_id=client_id,
@@ -76,9 +76,9 @@ import servicenow_api
 
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
-servicenow_api_url = "<SERVICENOW_URL>"
+servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_api_url,
+client = servicenow_api.Api(url=servicenow_url,
                             username=username,
                             password=password)
 
@@ -95,11 +95,11 @@ import servicenow_api
 
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
-servicenow_api_url = "<SERVICENOW_URL>"
+servicenow_url = "<SERVICENOW_URL>"
 
 proxy = "https://proxy.net"
 
-client = servicenow_api.Api(url=servicenow_api_url,
+client = servicenow_api.Api(url=servicenow_url,
                             username=username,
                             password=password,
                             proxy=proxy,
