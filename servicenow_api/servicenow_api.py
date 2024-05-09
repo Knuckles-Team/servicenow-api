@@ -419,7 +419,7 @@ class Api(object):
         return response
 
     @require_auth
-    def full_scan(self):
+    def full_scan(self) -> Response:
         """
         Initiate a full instance scan.
 
