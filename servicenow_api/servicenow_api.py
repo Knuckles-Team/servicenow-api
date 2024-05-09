@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import requests
+from requests import Response
 import urllib3
 from base64 import b64encode
 from pydantic import ValidationError
@@ -120,7 +121,7 @@ class Api(object):
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
-    def get_application(self, **kwargs):
+    def get_application(self, **kwargs) -> Response:
         """
         Get information about an application.
 
@@ -149,7 +150,7 @@ class Api(object):
     #                                                   CMDB API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_cmdb(self, **kwargs):
+    def get_cmdb(self, **kwargs) -> Response:
         """
         Get Configuration Management Database (CMDB) information based on specified parameters.
 
@@ -177,7 +178,7 @@ class Api(object):
     #                                                  CI/CD API                                                       #
     ####################################################################################################################
     @require_auth
-    def batch_install_result(self, **kwargs):
+    def batch_install_result(self, **kwargs) -> Response:
         """
         Get the result of a batch installation based on the provided result ID.
 
@@ -204,7 +205,7 @@ class Api(object):
         return response
 
     @require_auth
-    def instance_scan_progress(self, **kwargs):
+    def instance_scan_progress(self, **kwargs) -> Response:
         """
         Get progress information for an instance scan based on the provided progress ID.
 
@@ -231,7 +232,7 @@ class Api(object):
         return response
 
     @require_auth
-    def progress(self, **kwargs):
+    def progress(self, **kwargs) -> Response:
         """
         Get progress information based on the provided progress ID.
 
@@ -258,7 +259,7 @@ class Api(object):
         return response
 
     @require_auth
-    def batch_install(self, **kwargs):
+    def batch_install(self, **kwargs) -> Response:
         """
         Initiate a batch installation with the provided parameters.
 
@@ -291,7 +292,7 @@ class Api(object):
         return response
 
     @require_auth
-    def batch_rollback(self, **kwargs):
+    def batch_rollback(self, **kwargs) -> Response:
         """
         Rollback a batch installation based on the provided rollback ID.
 
@@ -318,7 +319,7 @@ class Api(object):
         return response
 
     @require_auth
-    def app_repo_install(self, **kwargs):
+    def app_repo_install(self, **kwargs) -> Response:
         """
         Install an application from the repository based on the provided parameters.
 
@@ -354,7 +355,7 @@ class Api(object):
         return response
 
     @require_auth
-    def app_repo_publish(self, **kwargs):
+    def app_repo_publish(self, **kwargs) -> Response:
         """
         Publish an application to the repository based on the provided parameters.
 
@@ -387,7 +388,7 @@ class Api(object):
         return response
 
     @require_auth
-    def app_repo_rollback(self, **kwargs):
+    def app_repo_rollback(self, **kwargs) -> Response:
         """
         Rollback an application in the repository based on the provided parameters.
 
@@ -437,7 +438,7 @@ class Api(object):
         return response
 
     @require_auth
-    def point_scan(self, **kwargs):
+    def point_scan(self, **kwargs) -> Response:
         """
         Initiate a point instance scan based on the provided parameters.
 
@@ -466,7 +467,7 @@ class Api(object):
         return response
 
     @require_auth
-    def combo_suite_scan(self, **kwargs):
+    def combo_suite_scan(self, **kwargs) -> Response:
         """
         Initiate a suite scan for a combo based on the provided combo_sys_id.
 
@@ -493,7 +494,7 @@ class Api(object):
         return response
 
     @require_auth
-    def suite_scan(self, **kwargs):
+    def suite_scan(self, **kwargs) -> Response:
         """
         Initiate a suite scan based on the provided suite_sys_id and sys_ids.
 
@@ -527,7 +528,7 @@ class Api(object):
         return response
 
     @require_auth
-    def activate_plugin(self, **kwargs):
+    def activate_plugin(self, **kwargs) -> Response:
         """
         Activate a plugin based on the provided plugin_id.
 
@@ -554,7 +555,7 @@ class Api(object):
         return response
 
     @require_auth
-    def rollback_plugin(self, **kwargs):
+    def rollback_plugin(self, **kwargs) -> Response:
         """
         Rollback a plugin based on the provided plugin_id.
 
@@ -581,7 +582,7 @@ class Api(object):
         return response
 
     @require_auth
-    def apply_remote_source_control_changes(self, **kwargs):
+    def apply_remote_source_control_changes(self, **kwargs) -> Response:
         """
         Apply remote source control changes based on the provided parameters.
 
@@ -615,7 +616,7 @@ class Api(object):
         return response
 
     @require_auth
-    def import_repository(self, **kwargs):
+    def import_repository(self, **kwargs) -> Response:
         """
         Import a repository based on the provided parameters.
 
@@ -651,7 +652,7 @@ class Api(object):
         return response
 
     @require_auth
-    def run_test_suite(self, **kwargs):
+    def run_test_suite(self, **kwargs) -> Response:
         """
         Run a test suite based on the provided parameters.
 
@@ -692,7 +693,7 @@ class Api(object):
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, **kwargs):
+    def get_change_requests(self, **kwargs) -> Response:
         """
         Retrieve change requests based on specified parameters.
 
@@ -772,7 +773,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_nextstate(self, **kwargs):
+    def get_change_request_nextstate(self, **kwargs) -> Response:
         """
         Retrieve the next state of a specific change request.
 
@@ -802,7 +803,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_schedule(self, **kwargs):
+    def get_change_request_schedule(self, **kwargs) -> Response:
         """
         Retrieve the schedule of a change request based on CI sys ID.
 
@@ -832,7 +833,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_tasks(self, **kwargs):
+    def get_change_request_tasks(self, **kwargs) -> Response:
         """
         Retrieve tasks associated with a specific change request.
 
@@ -912,7 +913,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request(self, **kwargs):
+    def get_change_request(self, **kwargs) -> Response:
         """
         Retrieve details of a specific change request.
 
@@ -991,7 +992,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_ci(self, **kwargs):
+    def get_change_request_ci(self, **kwargs) -> Response:
         """
         Retrieve the configuration item (CI) associated with a change request.
 
@@ -1021,7 +1022,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_ci(self, **kwargs):
+    def get_change_request_ci(self, **kwargs) -> Response:
         """
         Retrieve conflict information associated with a change request.
 
@@ -1051,7 +1052,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_standard_change_request_templates(self, **kwargs):
+    def get_standard_change_request_templates(self, **kwargs) -> Response:
         """
         Retrieve standard change request templates based on specified parameters.
 
@@ -1127,7 +1128,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_models(self, **kwargs):
+    def get_change_request_models(self, **kwargs) -> Response:
         """
         Retrieve change request models based on specified parameters.
 
@@ -1200,7 +1201,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_standard_change_request_model(self, **kwargs):
+    def get_standard_change_request_model(self, **kwargs) -> Response:
         """
         Retrieve details of a standard change request model.
 
@@ -1230,7 +1231,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_standard_change_request_template(self, **kwargs):
+    def get_standard_change_request_template(self, **kwargs) -> Response:
         """
         Retrieve details of a standard change request template.
 
@@ -1260,7 +1261,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_worker(self, **kwargs):
+    def get_change_request_worker(self, **kwargs) -> Response:
         """
         Retrieve details of a change request worker.
 
@@ -1290,7 +1291,7 @@ class Api(object):
         return response
 
     @require_auth
-    def create_change_request(self, **kwargs):
+    def create_change_request(self, **kwargs) -> Response:
         """
         Create a new change request.
 
@@ -1339,7 +1340,7 @@ class Api(object):
         return response
 
     @require_auth
-    def create_change_request_task(self, **kwargs):
+    def create_change_request_task(self, **kwargs) -> Response:
         """
         Create a new task associated with a change request.
 
@@ -1374,7 +1375,7 @@ class Api(object):
         return response
 
     @require_auth
-    def create_change_request_ci_association(self, **kwargs):
+    def create_change_request_ci_association(self, **kwargs) -> Response:
         """
         Create associations between a change request and configuration items (CIs).
 
@@ -1416,7 +1417,7 @@ class Api(object):
         return response
 
     @require_auth
-    def calculate_standard_change_request_risk(self, **kwargs):
+    def calculate_standard_change_request_risk(self, **kwargs) -> Response:
         """
         Calculate and update the risk of a standard change request.
 
@@ -1446,7 +1447,7 @@ class Api(object):
         return response
 
     @require_auth
-    def check_change_request_conflict(self, **kwargs):
+    def check_change_request_conflict(self, **kwargs) -> Response:
         """
         Check for conflicts in a change request.
 
@@ -1476,7 +1477,7 @@ class Api(object):
         return response
 
     @require_auth
-    def refresh_change_request_impacted_services(self, **kwargs):
+    def refresh_change_request_impacted_services(self, **kwargs) -> Response:
         """
         Refresh impacted services for a change request.
 
@@ -1506,7 +1507,7 @@ class Api(object):
         return response
 
     @require_auth
-    def approve_change_request(self, **kwargs):
+    def approve_change_request(self, **kwargs) -> Response:
         """
         Approve or reject a change request.
 
@@ -1540,7 +1541,7 @@ class Api(object):
         return response
 
     @require_auth
-    def update_change_request(self, **kwargs):
+    def update_change_request(self, **kwargs) -> Response:
         """
         Update details of a change request.
 
@@ -1585,7 +1586,7 @@ class Api(object):
         return response
 
     @require_auth
-    def update_change_request_first_available(self, **kwargs):
+    def update_change_request_first_available(self, **kwargs) -> Response:
         """
         Update the schedule of a change request to the first available slot.
 
@@ -1616,7 +1617,7 @@ class Api(object):
         return response
 
     @require_auth
-    def update_change_request_task(self, **kwargs):
+    def update_change_request_task(self, **kwargs) -> Response:
         """
         Update details of a task associated with a change request.
 
@@ -1656,7 +1657,7 @@ class Api(object):
         return response
 
     @require_auth
-    def delete_change_request(self, **kwargs):
+    def delete_change_request(self, **kwargs) -> Response:
         """
         Delete a change request.
 
@@ -1720,7 +1721,7 @@ class Api(object):
         return response
 
     @require_auth
-    def delete_change_request_task(self, **kwargs):
+    def delete_change_request_task(self, **kwargs) -> Response:
         """
         Delete a task associated with a change request.
 
@@ -1757,7 +1758,7 @@ class Api(object):
         return response
 
     @require_auth
-    def delete_change_request_conflict_scan(self, **kwargs):
+    def delete_change_request_conflict_scan(self, **kwargs) -> Response:
         """
         Delete conflict scan information associated with a change request.
 
@@ -1796,7 +1797,7 @@ class Api(object):
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_import_set(self, **kwargs):
+    def get_import_set(self, **kwargs) -> Response:
         """
         Get details of a specific import set record.
 
@@ -1826,7 +1827,7 @@ class Api(object):
         return response
 
     @require_auth
-    def insert_import_set(self, **kwargs):
+    def insert_import_set(self, **kwargs) -> Response:
         """
         Insert a new record into the specified import set.
 
@@ -1857,7 +1858,7 @@ class Api(object):
         return response
 
     @require_auth
-    def insert_multiple_import_sets(self, **kwargs):
+    def insert_multiple_import_sets(self, **kwargs) -> Response:
         """
         Insert multiple records into the specified import set.
 
@@ -1891,7 +1892,7 @@ class Api(object):
     #                                               Incident API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_incident(self, **kwargs):
+    def get_incident(self, **kwargs) -> Response:
         """
         Retrieve details of a specific incident record.
 
@@ -1919,7 +1920,7 @@ class Api(object):
         return response
 
     @require_auth
-    def create_incident(self, **kwargs):
+    def create_incident(self, **kwargs) -> Response:
         """
         Create a new incident record.
 
@@ -1949,7 +1950,7 @@ class Api(object):
     #                                       Knowledge Management API                                                   #
     ####################################################################################################################
     @require_auth
-    def get_knowledge_articles(self, **kwargs):
+    def get_knowledge_articles(self, **kwargs) -> Response:
         """
         Get all Knowledge Base articles.
 
@@ -1999,7 +2000,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_knowledge_article(self, **kwargs):
+    def get_knowledge_article(self, **kwargs) -> Response:
         """
         Get Knowledge Base article.
 
@@ -2058,7 +2059,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_knowledge_article_attachment(self, **kwargs):
+    def get_knowledge_article_attachment(self, **kwargs) -> Response:
         """
         Get Knowledge Base article.
 
@@ -2087,7 +2088,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_featured_knowledge_article(self, **kwargs):
+    def get_featured_knowledge_article(self, **kwargs) -> Response:
         """
         Get Knowledge Base article.
 
@@ -2125,7 +2126,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_most_viewed_knowledge_articles(self, **kwargs):
+    def get_most_viewed_knowledge_articles(self, **kwargs) -> Response:
         """
         Get Knowledge Base article.
 
@@ -2165,7 +2166,7 @@ class Api(object):
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, **kwargs):
+    def delete_table_record(self, **kwargs) -> Response:
         """
         Delete a record from the specified table.
 
@@ -2194,7 +2195,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_table(self, **kwargs):
+    def get_table(self, **kwargs) -> Response:
         """
         Get records from the specified table based on provided parameters.
 
@@ -2246,7 +2247,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_table_record(self, **kwargs):
+    def get_table_record(self, **kwargs) -> Response:
         """
         Get a specific record from the specified table.
 
@@ -2275,7 +2276,7 @@ class Api(object):
         return response
 
     @require_auth
-    def patch_table_record(self, **kwargs):
+    def patch_table_record(self, **kwargs) -> Response:
         """
         Partially update a record in the specified table.
 
@@ -2313,7 +2314,7 @@ class Api(object):
         return response
 
     @require_auth
-    def update_table_record(self, **kwargs):
+    def update_table_record(self, **kwargs) -> Response:
         """
         Fully update a record in the specified table.
 
@@ -2350,7 +2351,7 @@ class Api(object):
         return response
 
     @require_auth
-    def add_table_record(self, **kwargs):
+    def add_table_record(self, **kwargs) -> Response:
         """
         Add a new record to the specified table.
 
