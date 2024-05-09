@@ -1,15 +1,22 @@
 import ast
 from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, field_validator
 
 try:
     from servicenow_api.decorators import require_auth
 except ModuleNotFoundError:
-    from decorators import require_auth
+    pass
 try:
-    from servicenow_api.exceptions import (AuthError, UnauthorizedError, ParameterError, MissingParameterError)
+    from servicenow_api.exceptions import (
+        AuthError,
+        UnauthorizedError,
+        ParameterError,
+        MissingParameterError,
+    )
 except ModuleNotFoundError:
-    from exceptions import (AuthError, UnauthorizedError, ParameterError, MissingParameterError)
+    from exceptions import (
+        ParameterError,
+    )
 
 
 class ApplicationServiceModel(BaseModel):
@@ -25,9 +32,10 @@ class ApplicationServiceModel(BaseModel):
     Raises:
     - ValueError: If 'application_id' is provided and not a string.
     """
+
     application_id: str = None
 
-    @field_validator('application_id')
+    @field_validator("application_id")
     def validate_string_parameters(cls, v):
         """
         Validate 'application_id' to ensure it is a valid string.
@@ -59,9 +67,10 @@ class CMDBModel(BaseModel):
     Raises:
     - ValueError: If 'cmdb_id' is provided and not a string.
     """
+
     cmdb_id: str = None
 
-    @field_validator('cmdb_id')
+    @field_validator("cmdb_id")
     def validate_string_parameters(cls, v):
         """
         Validate 'cmdb_id' to ensure it is a valid string.
@@ -118,6 +127,7 @@ class CICDModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     result_id: Optional[str] = None
     progress_id: Optional[str] = None
     rollback_id: Optional[str] = None
@@ -149,7 +159,9 @@ class CICDModel(BaseModel):
     data: Dict = Optional[None]
     sys_ids: List = None
 
-    @field_validator('result_id', 'progress_id', 'rollback_id', 'name', 'notes', 'packages')
+    @field_validator(
+        "result_id", "progress_id", "rollback_id", "name", "notes", "packages"
+    )
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -167,7 +179,7 @@ class CICDModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator('sys_ids')
+    @field_validator("sys_ids")
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are a List
@@ -188,7 +200,7 @@ class CICDModel(BaseModel):
                 raise ValueError("Invalid optional params")
         return v
 
-    @field_validator('auto_upgrade_base_app', 'browser_name')
+    @field_validator("auto_upgrade_base_app", "browser_name")
     def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
@@ -201,7 +213,7 @@ class CICDModel(BaseModel):
         """
         return value.lower()
 
-    @field_validator('browser_name')
+    @field_validator("browser_name")
     def validate_browser_name(cls, v):
         """
         Validate the 'browser_name' parameter to ensure it is a valid browser name.
@@ -215,7 +227,7 @@ class CICDModel(BaseModel):
         Raises:
         - ParameterError: If 'browser_name' is not a valid browser name.
         """
-        if v not in ['any', 'chrome', 'firefox', 'edge', 'ie', 'safari']:
+        if v not in ["any", "chrome", "firefox", "edge", "ie", "safari"]:
             raise ParameterError
         return v
 
@@ -236,7 +248,7 @@ class CICDModel(BaseModel):
         data = {
             "name": values.get("name"),
             "packages": values.get("packages"),
-            "app_scope_sys_ids": values.get("app_scope_sys_ids")
+            "app_scope_sys_ids": values.get("app_scope_sys_ids"),
         }
 
         # Remove None values
@@ -350,6 +362,7 @@ class ChangeManagementModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     change_request_sys_id: Optional[str]
     state: Optional[str]
     cmdb_ci_sys_ids: Optional[List[str]]
@@ -371,8 +384,13 @@ class ChangeManagementModel(BaseModel):
     api_parameters: Optional[str] = None
     data: Dict = Optional[None]
 
-    @field_validator('change_request_sys_id', 'cmdb_ci_sys_ids', 'standard_change_template_id',
-                     'template_sys_id', 'worker_sys_id')
+    @field_validator(
+        "change_request_sys_id",
+        "cmdb_ci_sys_ids",
+        "standard_change_template_id",
+        "template_sys_id",
+        "worker_sys_id",
+    )
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -390,7 +408,7 @@ class ChangeManagementModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator('state', 'change_type')
+    @field_validator("state", "change_type")
     def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
@@ -403,7 +421,7 @@ class ChangeManagementModel(BaseModel):
         """
         return value.lower()
 
-    @field_validator('change_type')
+    @field_validator("change_type")
     def validate_change_type(cls, v):
         """
         Validate the 'change_type' parameter to ensure it is a valid change type.
@@ -417,11 +435,11 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'change_type' is not a valid change type.
         """
-        if v not in ['emergency', 'normal', 'standard', 'model']:
+        if v not in ["emergency", "normal", "standard", "model"]:
             raise ParameterError
         return v
 
-    @field_validator('association_type')
+    @field_validator("association_type")
     def validate_association_type(cls, v):
         """
         Validate the 'association_type' parameter to ensure it is a valid association type.
@@ -435,11 +453,11 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'association_type' is not a valid association type.
         """
-        if v not in ['affected', 'impacted', 'offering']:
+        if v not in ["affected", "impacted", "offering"]:
             raise ParameterError
         return v
 
-    @field_validator('state')
+    @field_validator("state")
     def validate_state(cls, v):
         """
         Validate the 'state' parameter to ensure it is a valid state.
@@ -453,7 +471,7 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'state' is not a valid state.
         """
-        if v not in ['approved', 'rejected']:
+        if v not in ["approved", "rejected"]:
             raise ParameterError
         return v
 
@@ -506,7 +524,9 @@ class ChangeManagementModel(BaseModel):
             filters.append(f'{values["name_value_pairs"]}')
 
         if values.get("sysparm_query") is not None:
-            filters.append(f'sysparm_query={values["sysparm_query"]}ORDERBY{values["order"]}')
+            filters.append(
+                f'sysparm_query={values["sysparm_query"]}ORDERBY{values["order"]}'
+            )
 
         if values.get("textSearch") is not None:
             filters.append(f'textSearch={values["textSearch"]}')
@@ -527,11 +547,12 @@ class ImportSetModel(BaseModel):
     - import_set_sys_id (Optional[str]): System identifier for the Import Set.
     - data (Dict): Dictionary containing additional data.
     """
+
     table: str
     import_set_sys_id: Optional[str]
     data: Dict = Optional[None]
 
-    @field_validator('table', 'import_set_sys_id')
+    @field_validator("table", "import_set_sys_id")
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -558,10 +579,11 @@ class IncidentModel(BaseModel):
     - incident_id (Union[int, str]): Identifier for the incident.
     - data (Dict): Dictionary containing additional data.
     """
+
     incident_id: Union[int, str] = None
     data: Dict = Optional[None]
 
-    @field_validator('incident_id')
+    @field_validator("incident_id")
     def validate_string_parameters(cls, v):
         """
         Validate the 'incident_id' parameter to ensure it is a valid string.
@@ -599,6 +621,7 @@ class KnowledgeManagementModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     article_sys_id: Optional[str] = None
     attachment_sys_id: Optional[str] = None
     sysparm_fields: Optional[str] = None
@@ -623,10 +646,17 @@ class KnowledgeManagementModel(BaseModel):
         """
         filters = []
 
-        for field in ['sysparm_fields', 'sysparm_limit', 'sysparm_search_id', 'sysparm_search_rank',
-                      'sysparm_update_view', 'sysparm_offset', 'sysparm_query']:
+        for field in [
+            "sysparm_fields",
+            "sysparm_limit",
+            "sysparm_search_id",
+            "sysparm_search_rank",
+            "sysparm_update_view",
+            "sysparm_offset",
+            "sysparm_query",
+        ]:
             if field in values and values[field] is not None:
-                filters.append(f'{field}={values[field]}')
+                filters.append(f"{field}={values[field]}")
 
         if len(filters) > 0:
             api_parameters = "?" + "&".join(filters)
@@ -660,6 +690,7 @@ class TableModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     table: str = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[Dict] = None
@@ -677,7 +708,7 @@ class TableModel(BaseModel):
     api_parameters: Optional[str] = None
     data: Optional[Dict] = None
 
-    @field_validator('table', 'table_record_sys_id')
+    @field_validator("table", "table_record_sys_id")
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
@@ -695,8 +726,12 @@ class TableModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator('sysparm_display_value', 'sysparm_no_count', 'sysparm_query_no_domain',
-                     'sysparm_suppress_pagination_header')
+    @field_validator(
+        "sysparm_display_value",
+        "sysparm_no_count",
+        "sysparm_query_no_domain",
+        "sysparm_suppress_pagination_header",
+    )
     def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
@@ -709,7 +744,7 @@ class TableModel(BaseModel):
         """
         return value.lower()
 
-    @field_validator('sysparm_view')
+    @field_validator("sysparm_view")
     def validate_sysparm_view(cls, v):
         """
         Validate the 'sysparm_view' parameter to ensure it is a valid view.
@@ -723,11 +758,11 @@ class TableModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_view' is not a valid view.
         """
-        if v not in ['desktop', 'mobile', 'both']:
+        if v not in ["desktop", "mobile", "both"]:
             raise ParameterError
         return v
 
-    @field_validator('sysparm_display_value')
+    @field_validator("sysparm_display_value")
     def validate_sysparm_display_value(cls, v):
         """
         Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
@@ -741,7 +776,7 @@ class TableModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_display_value' is not a valid display value.
         """
-        if v not in [True, False, 'all']:
+        if v not in [True, False, "all"]:
             raise ParameterError
         return v
 
@@ -765,7 +800,9 @@ class TableModel(BaseModel):
             filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
 
         if values.get("sysparm_exclude_reference_link") is not None:
-            filters.append(f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}')
+            filters.append(
+                f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}'
+            )
 
         if values.get("sysparm_fields") is not None:
             filters.append(f'sysparm_fields={values["sysparm_fields"]}')
@@ -786,10 +823,14 @@ class TableModel(BaseModel):
             filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
 
         if values.get("sysparm_query_no_domain") is not None:
-            filters.append(f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}')
+            filters.append(
+                f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}'
+            )
 
         if values.get("sysparm_suppress_pagination_header") is not None:
-            filters.append(f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}')
+            filters.append(
+                f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}'
+            )
 
         if values.get("sysparm_view") is not None:
             filters.append(f'sysparm_view={values["sysparm_view"]}')

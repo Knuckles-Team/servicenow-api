@@ -8,8 +8,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     import servicenow_api
-    from servicenow_api.servicenow_models import (ApplicationServiceModel, CMDBModel, CICDModel, ChangeManagementModel,
-                                                  IncidentModel, ImportSetModel, KnowledgeManagementModel, TableModel)
+    from servicenow_api.servicenow_models import (
+        ApplicationServiceModel,
+        CMDBModel,
+        CICDModel,
+        ChangeManagementModel,
+        IncidentModel,
+        ImportSetModel,
+        KnowledgeManagementModel,
+        TableModel,
+    )
 
 except ImportError:
     skip = True
@@ -24,7 +32,7 @@ reason = "do not run on MacOS or windows OR dependency is not installed OR " + r
 @pytest.mark.skipif(
     sys.platform in ["darwin"] or skip,
     reason=reason,
-    )
+)
 def test_servicenow_models():
     # test Project model group_id
     article_sys_id = "asdofaisudfa098098as0df9a8s"

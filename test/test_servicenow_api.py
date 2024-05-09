@@ -1,6 +1,5 @@
 import os
 import sys
-import urllib.parse
 from typing import List
 
 import pytest
@@ -22,7 +21,7 @@ reason = "do not run on MacOS or windows OR dependency is not installed OR " + r
 @pytest.mark.skipif(
     sys.platform in ["darwin", "win32"] or skip,
     reason=reason,
-    )
+)
 def test_servicenow_api():
     # gitlab url
     servicenow_url = "http://servicenow.com/api/"

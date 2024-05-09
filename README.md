@@ -56,10 +56,10 @@ client_id = "<SERVICENOW CLIENT_ID>"
 client_secret = "<SERVICENOW_CLIENT_SECRET>"
 servicenow_api_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_api_url, 
-                            username=username, 
-                            password=password, 
-                            client_id=client_id, 
+client = servicenow_api.Api(url=servicenow_api_url,
+                            username=username,
+                            password=password,
+                            client_id=client_id,
                             client_secret=client_secret)
 
 table = client.get_table(table="<TABLE NAME>")
@@ -78,8 +78,8 @@ username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 servicenow_api_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_api_url, 
-                            username=username, 
+client = servicenow_api.Api(url=servicenow_api_url,
+                            username=username,
                             password=password)
 
 table = client.get_table(table="<TABLE NAME>")
@@ -99,8 +99,8 @@ servicenow_api_url = "<SERVICENOW_URL>"
 
 proxy = "https://proxy.net"
 
-client = servicenow_api.Api(url=servicenow_api_url, 
-                            username=username, 
+client = servicenow_api.Api(url=servicenow_api_url,
+                            username=username,
                             password=password,
                             proxy=proxy,
                             verify=False)
