@@ -1,6 +1,6 @@
 import ast
 from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 try:
     from servicenow_api.decorators import require_auth
@@ -157,7 +157,7 @@ class CICDModel(BaseModel):
     os_version: Optional[str] = None
     api_parameters: Optional[str] = None
     data: Dict = Optional[None]
-    sys_ids: List = None
+    sys_ids: Optional[List] = None
 
     @field_validator(
         "result_id", "progress_id", "rollback_id", "name", "notes", "packages"
@@ -231,106 +231,73 @@ class CICDModel(BaseModel):
             raise ParameterError
         return v
 
-    @field_validator("data")
-    def construct_data_dict(cls, values):
-        """
-        Construct a data dictionary from specific parameters.
-
-        Args:
-        - values: The values of specific parameters.
-
-        Returns:
-        - Dict: The constructed data dictionary.
-
-        Raises:
-        - ValueError: If the data dictionary is empty.
-        """
-        data = {
-            "name": values.get("name"),
-            "packages": values.get("packages"),
-            "app_scope_sys_ids": values.get("app_scope_sys_ids"),
-        }
-
-        # Remove None values
-        data = {k: v for k, v in data.items() if v is not None}
-
-        if not data:
-            raise ValueError("At least one key is required in the data dictionary.")
-
-        return data
-
-    @field_validator("api_parameters")
+    @model_validator(mode="before")
     def build_api_parameters(cls, values):
         """
-        Build API parameters from specific values.
+        Build API parameters.
 
         Args:
-        - values: The values of specific parameters.
+        - values: Dictionary of values.
 
         Returns:
-        - str: The constructed API parameters.
+        - The constructed API parameters string.
+
+        Raises:
+        - None.
         """
+
         filters = []
-
-        if values.get("sys_id") is not None:
+        if "sys_id" in values:
             filters.append(f'sys_id={values["sys_id"]}')
-
-        if values.get("scope") is not None:
+        if "scope" in values:
             filters.append(f'scope={values["scope"]}')
-
-        if values.get("auto_upgrade_base_app") is not None:
+        if "auto_upgrade_base_app" in values:
             filters.append(f'auto_upgrade_base_app={values["auto_upgrade_base_app"]}')
-
-        if values.get("base_app_version") is not None:
+        if "base_app_version" in values:
             filters.append(f'base_app_version={values["base_app_version"]}')
-
-        if values.get("version") is not None:
+        if "version" in values:
             filters.append(f'version={values["version"]}')
-
-        if values.get("dev_notes") is not None:
+        if "dev_notes" in values:
             filters.append(f'dev_notes={values["dev_notes"]}')
-
-        if values.get("target_table") is not None:
+        if "target_table" in values:
             filters.append(f'target_table={values["target_table"]}')
-
-        if values.get("target_sys_id") is not None:
+        if "target_sys_id" in values:
             filters.append(f'target_sys_id={values["target_sys_id"]}')
-
-        if values.get("app_sys_id") is not None:
+        if "app_sys_id" in values:
             filters.append(f'app_sys_id={values["app_sys_id"]}')
-
-        if values.get("branch_name") is not None:
+        if "branch_name" in values:
             filters.append(f'branch_name={values["branch_name"]}')
-
-        if values.get("credential_sys_id") is not None:
+        if "credential_sys_id" in values:
             filters.append(f'credential_sys_id={values["credential_sys_id"]}')
-
-        if values.get("mid_server_sys_id") is not None:
+        if "mid_server_sys_id" in values:
             filters.append(f'mid_server_sys_id={values["mid_server_sys_id"]}')
-
-        if values.get("test_suite_sys_id") is not None:
-            filters.append(f'test_suite_sys_id={values["test_suite_sys_id"]}')
-
-        if values.get("test_suite_name") is not None:
-            filters.append(f'test_suite_name={values["test_suite_name"]}')
-
-        if values.get("browser_name") is not None:
+        if "browser_name" in values:
             filters.append(f'browser_name={values["browser_name"]}')
-
-        if values.get("browser_version") is not None:
+        if "browser_version" in values:
             filters.append(f'browser_version={values["browser_version"]}')
-
-        if values.get("os_name") is not None:
+        if "os_name" in values:
             filters.append(f'os_name={values["os_name"]}')
-
-        if values.get("os_version") is not None:
+        if "os_version" in values:
             filters.append(f'os_version={values["os_version"]}')
 
         if filters:
             api_parameters = "?" + "&".join(filters)
-            return api_parameters
+            values["api_parameters"] = api_parameters
 
-        return None
+        data = {}
+
+        if "name" in values:
+            data["name"] = values.get("name")
+        if "packages" in values:
+            data["packages"] = values.get("packages")
+        if "app_scope_sys_ids" in values:
+            data["app_scope_sys_ids"] = values.get("app_scope_sys_ids")
+
+        # Remove None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        values["data"] = data
+        return values
 
 
 class ChangeManagementModel(BaseModel):
@@ -475,67 +442,50 @@ class ChangeManagementModel(BaseModel):
             raise ParameterError
         return v
 
-    @field_validator("data")
-    def construct_data_dict(cls, values):
-        """
-        Construct a data dictionary from specific parameters.
-
-        Args:
-        - values: The values of specific parameters.
-
-        Returns:
-        - Dict: The constructed data dictionary.
-
-        Raises:
-        - ValueError: If the data dictionary is empty.
-        """
-        if values.get("name_value_pairs"):
-            data = ast.literal_eval(values)
-        else:
-            data = {
-                "association_type": values.get("association_type"),
-                "refresh_impacted_services": values.get("refresh_impacted_services"),
-                "cmdb_ci_sys_ids": values.get("cmdb_ci_sys_ids"),
-                "state": values.get("state"),
-            }
-
-        # Remove None values
-        data = {k: v for k, v in data.items() if v is not None}
-
-        if not data:
-            raise ValueError("At least one key is required in the data dictionary.")
-
-        return data
-
-    @field_validator("api_parameters")
+    @model_validator(mode="before")
     def build_api_parameters(cls, values):
         """
-        Build API parameters from specific values.
+        Build API parameters.
 
         Args:
-        - values: The values of specific parameters.
+        - values: Dictionary of values.
 
         Returns:
-        - str: The constructed API parameters.
+        - The constructed API parameters string.
+
+        Raises:
+        - None.
         """
         filters = []
-
-        if values.get("name_value_pairs") is not None:
+        if "name_value_pairs" in values:
             filters.append(f'{values["name_value_pairs"]}')
-
-        if values.get("sysparm_query") is not None:
+        if "textSearch" in values:
+            filters.append(f'textSearch={values["textSearch"]}')
+        if "sysparm_query" in values:
             filters.append(
                 f'sysparm_query={values["sysparm_query"]}ORDERBY{values["order"]}'
             )
 
-        if values.get("textSearch") is not None:
-            filters.append(f'textSearch={values["textSearch"]}')
-
         if filters:
             api_parameters = "?" + "&".join(filters)
-            return api_parameters
+            values["api_parameters"] = api_parameters
 
-        return None
+        data = {}
+
+        if "association_type" in values:
+            data["association_type"] = values.get("association_type")
+        if "refresh_impacted_services" in values:
+            data["refresh_impacted_services"] = values.get("refresh_impacted_services")
+        if "cmdb_ci_sys_ids" in values:
+            data["cmdb_ci_sys_ids"] = values.get("cmdb_ci_sys_ids")
+        if "state" in values:
+            data["state"] = values.get("state")
+
+        # Remove None values
+        data = {k: v for k, v in data.items() if v is not None}
+
+        values["data"] = data
+        return values
 
 
 class ImportSetModel(BaseModel):
@@ -550,7 +500,7 @@ class ImportSetModel(BaseModel):
 
     table: str
     import_set_sys_id: Optional[str]
-    data: Dict = Optional[None]
+    data: Optional[Dict] = None
 
     @field_validator("table", "import_set_sys_id")
     def validate_string_parameters(cls, v):
@@ -581,7 +531,7 @@ class IncidentModel(BaseModel):
     """
 
     incident_id: Union[int, str] = None
-    data: Dict = Optional[None]
+    data: Optional[Dict] = None
 
     @field_validator("incident_id")
     def validate_string_parameters(cls, v):
@@ -633,36 +583,40 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_update_view: Optional[bool] = None
     api_parameters: Optional[str] = None
 
-    @field_validator("api_parameters")
+    @model_validator(mode="before")
     def build_api_parameters(cls, values):
         """
-        Build API parameters from specific values.
+        Build API parameters.
 
         Args:
-        - values: The values of specific parameters.
+        - values: Dictionary of values.
 
         Returns:
-        - str: The constructed API parameters.
+        - The constructed API parameters string.
+
+        Raises:
+        - None.
         """
         filters = []
+        if "sysparm_fields" in values:
+            filters.append(f'sysparm_fields={values["sysparm_fields"]}')
+        if "sysparm_limit" in values:
+            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
+        if "sysparm_search_id" in values:
+            filters.append(f'sysparm_search_id={values["sysparm_search_id"]}')
+        if "sysparm_search_rank" in values:
+            filters.append(f'sysparm_search_rank={values["sysparm_search_rank"]}')
+        if "sysparm_update_view" in values:
+            filters.append(f'sysparm_update_view={values["sysparm_update_view"]}')
+        if "sysparm_offset" in values:
+            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
+        if "sysparm_query" in values:
+            filters.append(f'sysparm_query={values["sysparm_query"]}')
 
-        for field in [
-            "sysparm_fields",
-            "sysparm_limit",
-            "sysparm_search_id",
-            "sysparm_search_rank",
-            "sysparm_update_view",
-            "sysparm_offset",
-            "sysparm_query",
-        ]:
-            if field in values and values[field] is not None:
-                filters.append(f"{field}={values[field]}")
-
-        if len(filters) > 0:
+        if filters:
             api_parameters = "?" + "&".join(filters)
-            return api_parameters
-
-        return None
+            values["api_parameters"] = api_parameters
+        return values
 
 
 class TableModel(BaseModel):
@@ -780,63 +734,48 @@ class TableModel(BaseModel):
             raise ParameterError
         return v
 
-    @field_validator("api_parameters")
+    @model_validator(mode="before")
     def build_api_parameters(cls, values):
         """
-        Build API parameters from specific values.
+        Build API parameters.
 
         Args:
-        - values: The values of specific parameters.
+        - values: Dictionary of values.
 
         Returns:
-        - str: The constructed API parameters.
+        - The constructed API parameters string.
+
+        Raises:
+        - None.
         """
         filters = []
-
-        if values.get("name_value_pairs") is not None:
+        if "name_value_pairs" in values:
             filters.append(f'{values["name_value_pairs"]}')
-
-        if values.get("sysparm_display_value") is not None:
+        if "sysparm_display_value" in values:
             filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
-
-        if values.get("sysparm_exclude_reference_link") is not None:
-            filters.append(
-                f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}'
-            )
-
-        if values.get("sysparm_fields") is not None:
+        if "sysparm_exclude_reference_link" in values:
+            filters.append(f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}')
+        if "sysparm_fields" in values:
             filters.append(f'sysparm_fields={values["sysparm_fields"]}')
-
-        if values.get("sysparm_limit") is not None:
+        if "sysparm_limit" in values:
             filters.append(f'sysparm_limit={values["sysparm_limit"]}')
-
-        if values.get("sysparm_no_count") is not None:
+        if "sysparm_no_count" in values:
             filters.append(f'sysparm_no_count={values["sysparm_no_count"]}')
-
-        if values.get("sysparm_offset") is not None:
+        if "sysparm_offset" in values:
             filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-
-        if values.get("sysparm_query") is not None:
+        if "sysparm_query" in values:
             filters.append(f'sysparm_query={values["sysparm_query"]}')
-
-        if values.get("sysparm_query_category") is not None:
+        if "sysparm_query_category" in values:
             filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
-
-        if values.get("sysparm_query_no_domain") is not None:
-            filters.append(
-                f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}'
-            )
-
-        if values.get("sysparm_suppress_pagination_header") is not None:
-            filters.append(
-                f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}'
-            )
-
-        if values.get("sysparm_view") is not None:
+        if "sysparm_query_no_domain" in values:
+            filters.append(f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}')
+        if "sysparm_suppress_pagination_header" in values:
+            filters.append(f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}')
+        if "sysparm_view" in values:
             filters.append(f'sysparm_view={values["sysparm_view"]}')
 
         if filters:
             api_parameters = "?" + "&".join(filters)
-            return api_parameters
+            values["api_parameters"] = api_parameters
 
-        return None
+        return values
