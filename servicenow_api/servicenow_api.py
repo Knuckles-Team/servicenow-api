@@ -75,9 +75,7 @@ class Api(object):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         if username and password and client_id and client_secret:
-            auth_headers = {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
+            auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             auth_data = {
                 "grant_type": grant_type,
                 "client_id": client_id,
@@ -91,7 +89,7 @@ class Api(object):
                 response = response.json()
             except Exception as e:
                 print(f"Error Authenticating with OAuth: \n\n{e}")
-                raise AuthError
+                raise e
             self.headers = {
                 "Authorization": f'Bearer {response["access_token"]}',
                 "Content-Type": "application/json",
