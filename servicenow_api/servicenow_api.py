@@ -2018,7 +2018,7 @@ class Api(object):
         :type sysparm_fields: str
         :param sysparm_limit: Maximum number of records to return.
         :type sysparm_limit: int
-        :param sysparm_search_id: Unique identifier of search taht returned this article
+        :param sysparm_search_id: Unique identifier of search that returned this article
         :type sysparm_search_id: str
         :param sysparm_search_rank: Article search rank by click-rate that you can retrieve using one of the
             following APIs that returns the articles.rank element

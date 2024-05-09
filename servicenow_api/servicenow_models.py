@@ -1,4 +1,3 @@
-import ast
 from typing import Union, List, Dict, Optional
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -754,7 +753,9 @@ class TableModel(BaseModel):
         if "sysparm_display_value" in values:
             filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
         if "sysparm_exclude_reference_link" in values:
-            filters.append(f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}')
+            filters.append(
+                f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}'
+            )
         if "sysparm_fields" in values:
             filters.append(f'sysparm_fields={values["sysparm_fields"]}')
         if "sysparm_limit" in values:
@@ -768,9 +769,13 @@ class TableModel(BaseModel):
         if "sysparm_query_category" in values:
             filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
         if "sysparm_query_no_domain" in values:
-            filters.append(f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}')
+            filters.append(
+                f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}'
+            )
         if "sysparm_suppress_pagination_header" in values:
-            filters.append(f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}')
+            filters.append(
+                f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}'
+            )
         if "sysparm_view" in values:
             filters.append(f'sysparm_view={values["sysparm_view"]}')
 
