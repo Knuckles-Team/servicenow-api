@@ -66,8 +66,13 @@ class Api(object):
             raise MissingParameterError
 
         self._session = requests.Session()
-        self.url = url
+        self.base_url = url
+        self.auth_url = f"{self.base_url}/oauth_token.do"
+        self.url = ""
         self.headers = None
+        self.auth_headers = None
+        self.auth_data = None
+        self.token = None
         self.verify = verify
         self.proxies = proxies
 
@@ -75,23 +80,23 @@ class Api(object):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         if username and password and client_id and client_secret:
-            auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
-            auth_data = {
+            self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            self.auth_data = {
                 "grant_type": grant_type,
                 "client_id": client_id,
                 "client_secret": client_secret,
                 "username": username,
                 "password": password,
             }
-            url = f"{url}/oauth_token.do"
             try:
-                response = requests.post(url, data=auth_data, headers=auth_headers)
+                response = requests.post(url=self.auth_url, data=self.auth_data, headers=self.auth_headers)
                 response = response.json()
+                self.token = response["access_token"]
             except Exception as e:
                 print(f"Error Authenticating with OAuth: \n\n{e}")
                 raise e
             self.headers = {
-                "Authorization": f'Bearer {response["access_token"]}',
+                "Authorization": f'Bearer {self.token}',
                 "Content-Type": "application/json",
             }
         elif username and password:
@@ -104,7 +109,7 @@ class Api(object):
         else:
             raise MissingParameterError
 
-        self.url = f"{self.url}/api"
+        self.url = f"{self.base_url}/api"
 
         response = self._session.get(
             url=f"{self.url}/subscribers",
@@ -119,6 +124,29 @@ class Api(object):
             raise AuthError
         elif response.status_code == 404:
             raise ParameterError
+
+    @require_auth
+    def refresh_auth_token(self) -> Response:
+        """
+        Refresh the authentication token
+        :param kwargs:
+        :return:
+
+
+        """
+        refresh_data = {
+            'grant_type': "refresh_token",
+            'client_id': self.auth_data['client_id'],
+            'client_secret': self.auth_data['client_secret'],
+            'refresh_token': self.token
+        }
+        try:
+            response = requests.post(url=self.auth_url, data=refresh_data, headers=self.auth_headers)
+            response_json = response.json()
+            self.token = response_json['access_token']
+        except ValidationError as e:
+            raise ParameterError(f"Invalid parameters: {e.errors()}")
+        return response
 
     ####################################################################################################################
     #                                         Application Service API                                                  #
