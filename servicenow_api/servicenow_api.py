@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import requests
+import json
 from requests import Response
 import urllib3
 from base64 import b64encode
@@ -89,14 +90,16 @@ class Api(object):
                 "password": password,
             }
             try:
-                response = requests.post(url=self.auth_url, data=self.auth_data, headers=self.auth_headers)
+                response = requests.post(
+                    url=self.auth_url, data=self.auth_data, headers=self.auth_headers
+                )
                 response = response.json()
                 self.token = response["access_token"]
             except Exception as e:
                 print(f"Error Authenticating with OAuth: \n\n{e}")
                 raise e
             self.headers = {
-                "Authorization": f'Bearer {self.token}',
+                "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
             }
         elif username and password:
@@ -135,15 +138,17 @@ class Api(object):
 
         """
         refresh_data = {
-            'grant_type': "refresh_token",
-            'client_id': self.auth_data['client_id'],
-            'client_secret': self.auth_data['client_secret'],
-            'refresh_token': self.token
+            "grant_type": "refresh_token",
+            "client_id": self.auth_data["client_id"],
+            "client_secret": self.auth_data["client_secret"],
+            "refresh_token": self.token,
         }
         try:
-            response = requests.post(url=self.auth_url, data=refresh_data, headers=self.auth_headers)
+            response = requests.post(
+                url=self.auth_url, data=refresh_data, headers=self.auth_headers
+            )
             response_json = response.json()
-            self.token = response_json['access_token']
+            self.token = response_json["access_token"]
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -315,7 +320,7 @@ class Api(object):
                 url=f"{self.url}/sn_cicd/app/batch/install",
                 headers=self.headers,
                 verify=self.verify,
-                data=cicd.data,
+                data=json.dumps(cicd.data, indent=2),
                 proxies=self.proxies,
             )
         except ValidationError as e:
@@ -550,7 +555,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}",
                 headers=self.headers,
-                data=cicd.data,
+                data=json.dumps(cicd.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1362,7 +1367,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change{change_type}{standard_change_template_id}",
                 headers=self.headers,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1397,7 +1402,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/sn_chg_rest/change/task",
                 headers=self.headers,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1439,7 +1444,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1564,7 +1569,7 @@ class Api(object):
                 f"/change/{change_request.change_request_sys_id}/approvals",
                 headers=self.headers,
                 verify=self.verify,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 proxies=self.proxies,
             )
         except ValidationError as e:
@@ -1608,7 +1613,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change{change_type}/{change_request.change_request_sys_id}",
                 headers=self.headers,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1679,7 +1684,7 @@ class Api(object):
                 f"/sn_chg_rest/change/{change_request.change_request_sys_id}"
                 f"/task/{change_request.change_request_task_sys_id}",
                 headers=self.headers,
-                data=change_request.data,
+                data=json.dumps(change_request.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1880,7 +1885,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}",
                 headers=self.headers,
-                data=import_set.data,
+                data=json.dumps(import_set.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1911,7 +1916,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}/insertMultiple",
                 headers=self.headers,
-                data=import_set.data,
+                data=json.dumps(import_set.data, indent=2),
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1971,7 +1976,7 @@ class Api(object):
                 url=f"{self.url}/now/table/incident",
                 headers=self.headers,
                 verify=self.verify,
-                data=incident.data,
+                data=json.dumps(incident.data, indent=2),
             )
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
@@ -2335,7 +2340,7 @@ class Api(object):
         try:
             response = self._session.patch(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
-                data=table.data,
+                data=json.dumps(table.data, indent=2),
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2372,7 +2377,7 @@ class Api(object):
         try:
             response = self._session.put(
                 url=f"{self.url}/now/table/{table}/{table.table_record_sys_id}",
-                data=table.data,
+                data=json.dumps(table.data, indent=2),
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2403,7 +2408,7 @@ class Api(object):
         try:
             response = self._session.post(
                 url=f"{self.url}/now/table/{table}",
-                data=table.data,
+                data=json.dumps(table.data, indent=2),
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
