@@ -32,7 +32,7 @@ class ApplicationServiceModel(BaseModel):
     - ValueError: If 'application_id' is provided and not a string.
     """
 
-    application_id: str = None
+    application_id: Optional[str] = None
 
     @field_validator("application_id")
     def validate_string_parameters(cls, v):
@@ -67,7 +67,7 @@ class CMDBModel(BaseModel):
     - ValueError: If 'cmdb_id' is provided and not a string.
     """
 
-    cmdb_id: str = None
+    cmdb_id: Optional[str] = None
 
     @field_validator("cmdb_id")
     def validate_string_parameters(cls, v):
@@ -179,7 +179,7 @@ class CICDModel(BaseModel):
         return v
 
     @field_validator("sys_ids")
-    def validate_string_parameters(cls, v):
+    def validate_sys_ids_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are a List
 
@@ -497,7 +497,7 @@ class ImportSetModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
-    table: str = None
+    table: Optional[str] = None
     import_set_sys_id: Optional[str] = None
     data: Optional[Dict] = None
 
@@ -644,7 +644,7 @@ class TableModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
-    table: str = None
+    table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[Dict] = None
     sysparm_display_value: Optional[str] = None
