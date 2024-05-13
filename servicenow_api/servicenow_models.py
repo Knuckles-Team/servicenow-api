@@ -337,8 +337,8 @@ class ChangeManagementModel(BaseModel):
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[Dict] = None
     order: Optional[str] = "desc"
-    max_pages: Optional[int] = None
-    per_page: Optional[int] = None
+    max_pages: Optional[int] = 0
+    per_page: Optional[int] = 100
     sysparm_query: Optional[str] = None
     text_search: Optional[str] = None
     change_model_sys_id: Optional[str] = None
