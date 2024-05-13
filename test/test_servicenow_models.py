@@ -101,7 +101,7 @@ def test_servicenow_import_set():
 @pytest.mark.skipif(
     sys.platform in ["darwin"] or skip,
     reason=reason,
-    )
+)
 def test_servicenow_cmdb():
     cmdb_id = "asdofaisudfa098098as0df9a8s"
     cmdb = CMDBModel(cmdb_id=cmdb_id)
