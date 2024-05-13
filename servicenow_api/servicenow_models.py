@@ -329,26 +329,26 @@ class ChangeManagementModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
-    change_request_sys_id: Optional[str]
-    state: Optional[str]
-    cmdb_ci_sys_ids: Optional[List[str]]
-    cmdb_ci_sys_id: Optional[str]
-    association_type: Optional[str]
-    refresh_impacted_services: Optional[bool]
-    name_value_pairs: Optional[Dict]
+    change_request_sys_id: Optional[str] = None
+    state: Optional[str] = None
+    cmdb_ci_sys_ids: Optional[List[str]] = None
+    cmdb_ci_sys_id: Optional[str] = None
+    association_type: Optional[str] = None
+    refresh_impacted_services: Optional[bool] = None
+    name_value_pairs: Optional[Dict] = None
     order: Optional[str] = "desc"
-    max_pages: Optional[Union[str, int]]
-    per_page: Optional[Union[str, int]]
-    sysparm_query: Optional[str]
-    text_search: Optional[str]
-    change_model_sys_id: Optional[str]
-    template_sys_id: Optional[str]
-    worker_sys_id: Optional[str]
-    change_type: Optional[str]
-    standard_change_template_id: Optional[str]
+    max_pages: Optional[Union[str, int]] = None
+    per_page: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    text_search: Optional[str] = None
+    change_model_sys_id: Optional[str] = None
+    template_sys_id: Optional[str] = None
+    worker_sys_id: Optional[str] = None
+    change_type: Optional[str] = None
+    standard_change_template_id: Optional[str] = None
     response_length: int = 10
     api_parameters: Optional[str] = ""
-    data: Dict = Optional[None]
+    data: Optional[Dict] = None
 
     @field_validator(
         "change_request_sys_id",
@@ -497,8 +497,8 @@ class ImportSetModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
-    table: str
-    import_set_sys_id: Optional[str]
+    table: str = None
+    import_set_sys_id: Optional[str] = None
     data: Optional[Dict] = None
 
     @field_validator("table", "import_set_sys_id")
