@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
+from typing import Dict
 
 import requests
 import json
@@ -729,7 +730,7 @@ class Api(object):
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, **kwargs) -> Response:
+    def get_change_requests(self, **kwargs) -> Dict:
         """
         Retrieve change requests based on specified parameters.
 
