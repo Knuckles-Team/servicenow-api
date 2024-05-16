@@ -461,8 +461,12 @@ class ChangeManagementModel(BaseModel):
         if "textSearch" in values:
             filters.append(f'textSearch={values["textSearch"]}')
         if "sysparm_query" in values:
+            if "order" in values:
+                order = values["order"]
+            else:
+                order = "desc"
             filters.append(
-                f'sysparm_query={values["sysparm_query"]}ORDERBY{values["order"]}'
+                f'sysparm_query={values["sysparm_query"]}ORDERBY{order}'
             )
 
         if filters:
