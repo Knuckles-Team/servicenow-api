@@ -762,8 +762,7 @@ class Api(object):
         responses = None
 
         while change_request.response_length > 1:
-            if not change_request.api_parameters:
-                change_request.api_parameters = ""
+            if not change_request.api_parameters or change_request.api_parameters == "":
                 offset = f"?sysparm_offset={page}"
             else:
                 offset = f"&sysparm_offset={page}"
@@ -776,6 +775,7 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
+                    print(f"Nested URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}{offset}")
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -803,6 +803,7 @@ class Api(object):
                     verify=self.verify,
                     proxies=self.proxies,
                 )
+                print(f"URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}{offset}")
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:

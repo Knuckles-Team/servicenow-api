@@ -336,7 +336,7 @@ class ChangeManagementModel(BaseModel):
     association_type: Optional[str] = None
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[Dict] = None
-    order: Optional[str] = "desc"
+    order: Optional[str] = "ORDERBYnumber"
     max_pages: Optional[int] = 0
     per_page: Optional[int] = 100
     sysparm_query: Optional[str] = None
@@ -401,7 +401,7 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'change_type' is not a valid change type.
         """
-        if v.lower() not in ["emergency", "normal", "standard", "model"]:
+        if v is not None and v.lower() not in ["emergency", "normal", "standard", "model"]:
             raise ParameterError
         return v.lower()
 
@@ -419,7 +419,7 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'association_type' is not a valid association type.
         """
-        if v not in ["affected", "impacted", "offering"]:
+        if v is not None and v not in ["affected", "impacted", "offering"]:
             raise ParameterError
         return v
 
@@ -437,7 +437,25 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'state' is not a valid state.
         """
-        if v not in ["approved", "rejected"]:
+        if v is not None and v not in ["approved", "rejected"]:
+            raise ParameterError
+        return v
+
+    @field_validator("order")
+    def validate_order(cls, v):
+        """
+        Validate the 'state' parameter to ensure it is a valid state.
+
+        Args:
+        - v: The value of 'state'.
+
+        Returns:
+        - str: The validated 'state'.
+
+        Raises:
+        - ParameterError: If 'state' is not a valid state.
+        """
+        if v is not None and ["^ORDERBY", "^ORDERBYDESC"] not in v:
             raise ParameterError
         return v
 
@@ -464,9 +482,9 @@ class ChangeManagementModel(BaseModel):
             if "order" in values:
                 order = values["order"]
             else:
-                order = "desc"
+                order = "^ORDERBYnumber"
             filters.append(
-                f'sysparm_query={values["sysparm_query"]}ORDERBY{order}'
+                f'sysparm_query={values["sysparm_query"]}{order}'
             )
 
         if filters:
