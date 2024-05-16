@@ -780,26 +780,24 @@ class Api(object):
                 try:
                     verified_response = response.json()
                     if "result" in verified_response:
-                        response_length = len(verified_response["result"])
+                        change_request.response_length = len(verified_response["result"])
                     else:
-                        response_length = 0
+                        change_request.response_length = 0
                         print(f"No result in response: {json.dumps(verified_response, indent=2)}")
-                    if (
-                        response_length > 1
+                        return responses
+                    if (change_request.response_length > 1
                         and page < change_request.max_pages
-                        or response_length > 1
-                        and change_request.max_pages == 0
-                    ):
+                        or change_request.response_length > 1
+                        and change_request.max_pages == 0):
                         responses["result"] = (
-                            responses["result"] + verified_response["result"]
+                                responses["result"] + verified_response["result"]
                         )
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
                 responses = self._session.get(
                     url=f"{self.url}/sn_chg_rest"
-                    f"/change{change_request.change_type}"
-                    f"{change_request.api_parameters}{offset}",
+                    f"/change{change_request.api_parameters}{offset}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
