@@ -784,7 +784,7 @@ class Api(object):
                         response_length = len(verified_response["result"])
                     else:
                         response_length = 0
-                        print(f"No result in response: {json.dumps(response, indent=2)}")
+                        print(f"No result in response: {json.dumps(verified_response, indent=2)}")
                     if (
                         response_length > 1
                         and page < change_request.max_pages
