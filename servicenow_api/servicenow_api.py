@@ -780,7 +780,11 @@ class Api(object):
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
                     verified_response = response.json()
-                    response_length = len(verified_response["result"])
+                    if "result" in verified_response:
+                        response_length = len(verified_response["result"])
+                    else:
+                        response_length = 0
+                        print(f"No result in response: {json.dumps(response, indent=2)}")
                     if (
                         response_length > 1
                         and page < change_request.max_pages
