@@ -770,8 +770,7 @@ class Api(object):
                 try:
                     response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
-                        f"/change{change_request.change_type}"
-                        f"{change_request.api_parameters}{offset}",
+                        f"/change{change_request.api_parameters}{offset}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
