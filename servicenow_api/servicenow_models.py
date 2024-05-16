@@ -401,9 +401,9 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'change_type' is not a valid change type.
         """
-        if v not in ["emergency", "normal", "standard", "model"]:
+        if v.lower() not in ["emergency", "normal", "standard", "model"]:
             raise ParameterError
-        return v
+        return v.lower()
 
     @field_validator("association_type")
     def validate_association_type(cls, v):
