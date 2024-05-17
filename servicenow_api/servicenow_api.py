@@ -795,6 +795,7 @@ class Api(object):
                         responses["result"] = responses["result"] + verified_response["result"]
                 except ValueError or AttributeError:
                     raise ParameterError
+                change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         else:
             responses = self._session.get(
                 url=f"{self.url}/sn_chg_rest"
@@ -808,7 +809,6 @@ class Api(object):
                 responses = responses.json()
             except ValueError or AttributeError:
                 raise ParameterError
-        change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         return responses
 
     @require_auth
