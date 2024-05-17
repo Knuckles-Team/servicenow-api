@@ -1,5 +1,5 @@
 from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 try:
     from servicenow_api.decorators import require_auth
@@ -32,6 +32,7 @@ class ApplicationServiceModel(BaseModel):
     - ValueError: If 'application_id' is provided and not a string.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     application_id: Optional[str] = None
 
     @field_validator("application_id")
@@ -67,6 +68,7 @@ class CMDBModel(BaseModel):
     - ValueError: If 'cmdb_id' is provided and not a string.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     cmdb_id: Optional[str] = None
 
     @field_validator("cmdb_id")
@@ -127,6 +129,7 @@ class CICDModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     result_id: Optional[str] = None
     progress_id: Optional[str] = None
     rollback_id: Optional[str] = None
@@ -312,8 +315,6 @@ class ChangeManagementModel(BaseModel):
     - refresh_impacted_services (Optional[bool]): Flag indicating whether to refresh impacted services.
     - name_value_pairs (Optional[Dict]): Dictionary containing name-value pairs.
     - order (Optional[str]): Order for sorting (default is "desc").
-    - max_pages (Optional[Union[str, int]]): Maximum number of pages.
-    - per_page (Optional[Union[str, int]]): Number of items per page.
     - sysparm_query (Optional[str]): Sysparm query.
     - text_search (Optional[str]): Text search query.
     - change_model_sys_id (Optional[str]): Identifier for the model.
@@ -328,7 +329,7 @@ class ChangeManagementModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
-
+    model_config = ConfigDict(validate_assignment=True)
     change_request_sys_id: Optional[str] = None
     state: Optional[str] = None
     cmdb_ci_sys_ids: Optional[List[str]] = None
@@ -337,8 +338,8 @@ class ChangeManagementModel(BaseModel):
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[Dict] = None
     order: Optional[str] = "ORDERBYnumber"
-    max_pages: Optional[int] = 0
-    per_page: Optional[int] = 100
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_offset: Optional[Union[str, int]] = None
     sysparm_query: Optional[str] = None
     text_search: Optional[str] = None
     change_model_sys_id: Optional[str] = None
@@ -401,9 +402,9 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'change_type' is not a valid change type.
         """
-        if v is not None and v.lower() not in ["emergency", "normal", "standard", "model"]:
+        if v is not None and v not in ["emergency", "normal", "standard", "model"]:
             raise ParameterError
-        return v.lower()
+        return v
 
     @field_validator("association_type")
     def validate_association_type(cls, v):
@@ -455,7 +456,8 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - ParameterError: If 'state' is not a valid state.
         """
-        if v is not None and ["^ORDERBY", "^ORDERBYDESC"] not in v:
+        if v is not None and "^ORDERBY" not in v and "^ORDERBYDESC" not in v:
+            print(f"V IS: {v}")
             raise ParameterError
         return v
 
@@ -474,22 +476,23 @@ class ChangeManagementModel(BaseModel):
         - None.
         """
         filters = []
-        if "name_value_pairs" in values:
-            filters.append(f'{values["name_value_pairs"]}')
-        if "textSearch" in values:
+        if "name_value_pairs" in values and values["name_value_pairs"]:
+            filters.append(f'name_value_pairs={values["name_value_pairs"]}')
+        if "textSearch" in values and values["textSearch"]:
             filters.append(f'textSearch={values["textSearch"]}')
-        if "sysparm_query" in values:
-            if "order" in values:
-                order = values["order"]
-            else:
-                order = "^ORDERBYnumber"
-            filters.append(
-                f'sysparm_query={values["sysparm_query"]}{order}'
-            )
+        if "sysparm_query" in values and values["sysparm_query"]:
+            filters.append(f'sysparm_query={values["sysparm_query"]}')
+        if "sysparm_limit" in values and values["sysparm_limit"]:
+            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
+        if "sysparm_offset" in values and values["sysparm_offset"]:
+            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
+        if "order" not in values:
+            values["order"] = "^ORDERBYnumber"
 
         if filters:
-            api_parameters = "?" + "&".join(filters)
-            values["api_parameters"] = api_parameters
+            values["api_parameters"] = "?" + "&".join(filters)
+
+        values["api_parameters"] = f"{values['api_parameters']}{values['order']}"
 
         data = {}
 
@@ -519,6 +522,7 @@ class ImportSetModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     table: Optional[str] = None
     import_set_sys_id: Optional[str] = None
     data: Optional[Dict] = None
@@ -551,6 +555,7 @@ class IncidentModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     incident_id: Union[int, str] = None
     data: Optional[Dict] = None
 
@@ -593,6 +598,7 @@ class KnowledgeManagementModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     article_sys_id: Optional[str] = None
     attachment_sys_id: Optional[str] = None
     sysparm_fields: Optional[str] = None
@@ -666,6 +672,7 @@ class TableModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
+    model_config = ConfigDict(validate_assignment=True)
     table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[Dict] = None

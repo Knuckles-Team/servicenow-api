@@ -49,6 +49,8 @@ def test_servicenow_change():
     assert change.change_request_sys_id == change_request_sys_id
     assert change.sysparm_query == sysparm_query
     assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a^ORDERBYnumber"
+    change.sysparm_offset = 100
+    assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100^ORDERBYnumber"
 
 
 @pytest.mark.skipif(
