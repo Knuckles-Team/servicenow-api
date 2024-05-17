@@ -337,7 +337,7 @@ class ChangeManagementModel(BaseModel):
     association_type: Optional[str] = None
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[str] = None
-    order: Optional[str] = "ORDERBYnumber"
+    order: Optional[str] = None
     sysparm_limit: Optional[Union[str, int]] = None
     sysparm_offset: Optional[Union[str, int]] = None
     sysparm_query: Optional[str] = None
@@ -457,7 +457,6 @@ class ChangeManagementModel(BaseModel):
         - ParameterError: If 'state' is not a valid state.
         """
         if v is not None and "^ORDERBY" not in v and "^ORDERBYDESC" not in v:
-            print(f"V IS: {v}")
             raise ParameterError
         return v
 
@@ -486,13 +485,12 @@ class ChangeManagementModel(BaseModel):
             filters.append(f'sysparm_limit={values["sysparm_limit"]}')
         if "sysparm_offset" in values and values["sysparm_offset"]:
             filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-        if "order" not in values:
-            values["order"] = "^ORDERBYnumber"
 
         if filters:
             values["api_parameters"] = "?" + "&".join(filters)
 
-        values["api_parameters"] = f"{values['api_parameters']}{values['order']}"
+        if "order" in values and values['order']:
+            values["api_parameters"] = f"{values['api_parameters']}{values['order']}"
 
         data = {}
 
