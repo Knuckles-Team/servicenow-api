@@ -758,17 +758,22 @@ class Api(object):
         change_request.sysparm_offset = 0
         responses = None
 
+        if change_request.change_type:
+            change_type = f'/{change_request.change_type}'
+        else:
+            change_type = ''
+
         while change_request.response_length > 1:
             if responses:
                 try:
                     response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
-                        f"/change{change_request.api_parameters}",
+                        f"/change{change_type}{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    print(f"Nested URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}")
+                    print(f"Nested URL: {self.url}/sn_chg_rest/change{change_type}{change_request.api_parameters}")
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -786,12 +791,12 @@ class Api(object):
             else:
                 responses = self._session.get(
                     url=f"{self.url}/sn_chg_rest"
-                    f"/change{change_request.api_parameters}",
+                    f"/change{change_type}{change_request.api_parameters}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
                 )
-                print(f"URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}")
+                print(f"URL: {self.url}/sn_chg_rest/change{change_type}{change_request.api_parameters}")
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:

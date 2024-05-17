@@ -336,7 +336,7 @@ class ChangeManagementModel(BaseModel):
     cmdb_ci_sys_id: Optional[str] = None
     association_type: Optional[str] = None
     refresh_impacted_services: Optional[bool] = None
-    name_value_pairs: Optional[Dict] = None
+    name_value_pairs: Optional[str] = None
     order: Optional[str] = "ORDERBYnumber"
     sysparm_limit: Optional[Union[str, int]] = None
     sysparm_offset: Optional[Union[str, int]] = None
@@ -477,7 +477,7 @@ class ChangeManagementModel(BaseModel):
         """
         filters = []
         if "name_value_pairs" in values and values["name_value_pairs"]:
-            filters.append(f'name_value_pairs={values["name_value_pairs"]}')
+            filters.append(values["name_value_pairs"])
         if "textSearch" in values and values["textSearch"]:
             filters.append(f'textSearch={values["textSearch"]}')
         if "sysparm_query" in values and values["sysparm_query"]:
