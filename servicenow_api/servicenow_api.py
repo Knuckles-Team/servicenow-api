@@ -860,7 +860,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_tasks(self, **kwargs) -> Response:
+    def get_change_request_tasks(self, **kwargs) -> Dict:
         """
         Retrieve tasks associated with a specific change request.
 
@@ -1068,7 +1068,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_standard_change_request_templates(self, **kwargs) -> Response:
+    def get_standard_change_request_templates(self, **kwargs) -> Dict:
         """
         Retrieve standard change request templates based on specified parameters.
 
@@ -1132,7 +1132,7 @@ class Api(object):
         return responses
 
     @require_auth
-    def get_change_request_models(self, **kwargs) -> Response:
+    def get_change_request_models(self, **kwargs) -> Dict:
         """
         Retrieve change request models based on specified parameters.
 
