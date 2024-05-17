@@ -738,10 +738,6 @@ class Api(object):
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
         :type name_value_pairs: dict or None
-        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
-        :type max_pages: int
-        :param per_page: Number of results per page.
-        :type per_page: int
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -758,24 +754,21 @@ class Api(object):
         :raises ParameterError: If unexpected response format is encountered.
         """
         change_request = ChangeManagementModel(**kwargs)
-        page = 0
+        change_request.sysparm_limit = 500
+        change_request.sysparm_offset = 0
         responses = None
 
         while change_request.response_length > 1:
-            if not change_request.api_parameters or change_request.api_parameters == "":
-                offset = f"?sysparm_offset={page}"
-            else:
-                offset = f"&sysparm_offset={page}"
             if responses:
                 try:
                     response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
-                        f"/change{change_request.api_parameters}{offset}",
+                        f"/change{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    print(f"Nested URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}{offset}")
+                    print(f"Nested URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}")
                 except ValidationError as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
                 try:
@@ -786,29 +779,24 @@ class Api(object):
                         change_request.response_length = 0
                         print(f"No result in response: {json.dumps(verified_response, indent=2)}")
                         return responses
-                    if (change_request.response_length > 1
-                        and page < change_request.max_pages
-                        or change_request.response_length > 1
-                        and change_request.max_pages == 0):
-                        responses["result"] = (
-                                responses["result"] + verified_response["result"]
-                        )
+                    if (change_request.response_length > 1):
+                        responses["result"] = responses["result"] + verified_response["result"]
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
                 responses = self._session.get(
                     url=f"{self.url}/sn_chg_rest"
-                    f"/change{change_request.api_parameters}{offset}",
+                    f"/change{change_request.api_parameters}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
                 )
-                print(f"URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}{offset}")
+                print(f"URL: {self.url}/sn_chg_rest/change{change_request.api_parameters}")
                 try:
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + change_request.per_page
+            change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         return responses
 
     @require_auth
@@ -882,10 +870,6 @@ class Api(object):
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
         :type name_value_pairs: dict or None
-        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
-        :type max_pages: int
-        :param per_page: Number of results per page.
-        :type per_page: int
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -899,22 +883,18 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
+        change_request.sysparm_limit = 500
+        change_request.sysparm_offset = 0
         if change_request.change_request_sys_id is None:
             raise MissingParameterError
-        page = 0
         responses = None
         while change_request.response_length > 1:
-            if not change_request.api_parameters:
-                parameters = ""
-                offset = f"?sysparm_offset={page}"
-            else:
-                offset = f"&sysparm_offset={page}"
             if responses:
                 try:
                     response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
                         f"/change/{change_request.change_request_sys_id}/"
-                        f"task{change_request.api_parameters}{offset}",
+                        f"task{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -928,22 +908,15 @@ class Api(object):
                     else:
                         response_length = 0
                         print(f"No result in response: {json.dumps(response, indent=2)}")
-                    if (
-                        response_length > 1
-                        and page < change_request.max_pages
-                        or response_length > 1
-                        and change_request.max_pages == 0
-                    ):
-                        responses["result"] = (
-                            responses["result"] + verified_response["result"]
-                        )
+                    if response_length > 1:
+                        responses["result"] = (responses["result"] + verified_response["result"])
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
                 responses = self._session.get(
                     url=f"{self.url}/sn_chg_rest"
                     f"/change/{change_request.change_request_sys_id}/"
-                    f"task{change_request.api_parameters}{offset}",
+                    f"task{change_request.api_parameters}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
@@ -952,7 +925,7 @@ class Api(object):
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + change_request.per_page
+            change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         return responses
 
     @require_auth
@@ -1103,10 +1076,6 @@ class Api(object):
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
         :type name_value_pairs: dict or None
-        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
-        :type max_pages: int
-        :param per_page: Number of results per page.
-        :type per_page: int
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1119,20 +1088,16 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        page = 0
+        change_request.sysparm_limit = 500
+        change_request.sysparm_offset = 0
         responses = None
         verified_response = None
         response_length = 10
         while response_length > 1:
-            if not change_request.api_parameters:
-                change_request.api_parameters = ""
-                offset = f"?sysparm_offset={page}"
-            else:
-                offset = f"&sysparm_offset={page}"
             if responses:
                 try:
                     response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}",
+                        url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -1146,12 +1111,7 @@ class Api(object):
                     else:
                         response_length = 0
                         print(f"No result in response: {json.dumps(response, indent=2)}")
-                    if (
-                        response_length > 1
-                        and page < change_request.max_pages
-                        or response_length > 1
-                        and change_request.max_pages == 0
-                    ):
+                    if response_length > 1:
                         responses["result"] = (
                             responses["result"] + verified_response["result"]
                         )
@@ -1159,7 +1119,7 @@ class Api(object):
                     return verified_response
             else:
                 responses = self._session.get(
-                    url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}{offset}",
+                    url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
@@ -1168,7 +1128,7 @@ class Api(object):
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + change_request.per_page
+        change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         return responses
 
     @require_auth
@@ -1180,10 +1140,8 @@ class Api(object):
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
         :type name_value_pairs: dict or None
-        :param max_pages: Maximum number of pages to retrieve (0 for unlimited).
-        :type max_pages: int
-        :param per_page: Number of results per page.
-        :type per_page: int
+        change_request.sysparm_limit = 500
+        change_request.sysparm_offset = 0
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1196,19 +1154,15 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
+        change_request.sysparm_limit = 500
+        change_request.sysparm_offset = 0
         responses = None
-        page = 0
         while change_request.response_length > 1:
-            if not change_request.api_parameters:
-                change_request.api_parameters = ""
-                offset = f"?sysparm_offset={page}"
-            else:
-                offset = f"&sysparm_offset={page}"
             if responses:
                 try:
                     response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
-                        f"/change/model{change_request.api_parameters}{offset}",
+                        f"/change/model{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -1222,21 +1176,14 @@ class Api(object):
                     else:
                         response_length = 0
                         print(f"No result in response: {json.dumps(response, indent=2)}")
-                    if (
-                        response_length > 1
-                        and page < change_request.max_pages
-                        or response_length > 1
-                        and change_request.max_pages == 0
-                    ):
-                        responses["result"] = (
-                            responses["result"] + verified_response["result"]
-                        )
+                    if response_length > 1:
+                        responses["result"] = responses["result"] + verified_response["result"]
                 except ValueError or AttributeError:
                     raise ParameterError
             else:
                 responses = self._session.get(
                     url=f"{self.url}/sn_chg_rest"
-                    f"/change/model{change_request.api_parameters}{offset}",
+                    f"/change/model{change_request.api_parameters}",
                     headers=self.headers,
                     verify=self.verify,
                     proxies=self.proxies,
@@ -1245,7 +1192,7 @@ class Api(object):
                     responses = responses.json()
                 except ValueError or AttributeError:
                     raise ParameterError
-            page = page + change_request.per_page
+        change_request.sysparm_offset = change_request.sysparm_offset + change_request.sysparm_limit
         return responses
 
     @require_auth
