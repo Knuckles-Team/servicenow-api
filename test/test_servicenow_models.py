@@ -49,13 +49,13 @@ def test_servicenow_change():
     change = ChangeManagementModel(change_request_sys_id=change_request_sys_id, sysparm_query=sysparm_query)
     assert change.change_request_sys_id == change_request_sys_id
     assert change.sysparm_query == sysparm_query
-    assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a^ORDERBYnumber"
+    assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a"
     change.sysparm_offset = 100
-    assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100^ORDERBYnumber"
+    assert change.api_parameters == f"?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100"
     change.sysparm_query = ""
     change.name_value_pairs = name_value_pairs
     change.sysparm_offset = 500
-    assert change.api_parameters == f"?assignment_group=1234556789asdfv81238a&sysparm_offset=500^ORDERBYnumber"
+    assert change.api_parameters == f"?assignment_group=1234556789asdfv81238a&sysparm_offset=500"
 
 
 @pytest.mark.skipif(
