@@ -18,6 +18,7 @@ try:
         KnowledgeManagementModel,
         TableModel,
         Response,
+        Token,
     )
 except ModuleNotFoundError:
     from servicenow_models import (
@@ -30,6 +31,7 @@ except ModuleNotFoundError:
         KnowledgeManagementModel,
         TableModel,
         Response,
+        Token,
     )
 try:
     from servicenow_api.decorators import require_auth
@@ -130,7 +132,7 @@ class Api(object):
             raise ParameterError
 
     @require_auth
-    def refresh_auth_token(self) -> Response:
+    def refresh_auth_token(self) -> Token:
         """
         Refresh the authentication token
         :param kwargs:
@@ -150,7 +152,7 @@ class Api(object):
             )
             response.raise_for_status()
             data = response.json()
-            token = Response(**data)
+            token = Token(**data)
             self.token = token.access_token
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
