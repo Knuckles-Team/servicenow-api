@@ -2005,10 +2005,7 @@ class ImportSetResult(BaseModel):
     transform_map: Optional[str] = Field(None, description="Name of the transform map.")
 
 
-class Token(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    __hash__ = object.__hash__
-    base_type: str = Field(default="Token")
+class Response(BaseModel):
     scope: str = Field(
         default=None,
         description="Amount of access granted by the access token. The scope is always useraccount, meaning that the "
@@ -2034,9 +2031,6 @@ class Token(BaseModel):
         "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
-
-
-class Response(BaseModel):
     import_set: Optional[str] = Field(None, description="Name of the import set.")
     staging_table: Optional[str] = Field(
         None, description="Name of the import staging table."
@@ -2079,7 +2073,6 @@ class Response(BaseModel):
         if v:
             for model in models:
                 try:
-                    print(f"VALIDATING FOR {model} - {v}")
                     if isinstance(v, Dict):
                         v = model(**v)
                     elif isinstance(v, List):
@@ -2092,9 +2085,8 @@ class Response(BaseModel):
                                         f"Error validating one of the models in the list: {e}"
                                     )
                                     continue
-                    print(f"VALIDATION FOR {model} - {v}")
                 except Exception as e:
-                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2106,7 +2098,6 @@ class Response(BaseModel):
         if v:
             for model in models:
                 try:
-                    print(f"VALIDATING FOR {model} - {v}")
                     if isinstance(v, Dict):
                         v = model(**v)
                     elif isinstance(v, List):
@@ -2119,9 +2110,8 @@ class Response(BaseModel):
                                         f"Error validating one of the models in the list: {e}"
                                     )
                                     continue
-                    print(f"VALIDATION FOR {model} - {v}")
                 except Exception as e:
-                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2147,7 +2137,6 @@ class Response(BaseModel):
         if v:
             for model in models:
                 try:
-                    # print(f"VALIDATING FOR {model} - {v}")
                     if isinstance(v, Dict):
                         v = model(**v)
                     elif isinstance(v, List):
@@ -2156,10 +2145,8 @@ class Response(BaseModel):
                                 try:
                                     return [model(**item) for item in v]
                                 except Exception:
-                                    # print(f"Error validating one of the models in the list: {e}")
                                     continue
-                    print(f"VALIDATION FOR {model} - {v}")
                 except Exception as e:
-                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
