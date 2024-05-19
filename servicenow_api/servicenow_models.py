@@ -1079,7 +1079,7 @@ class State(BaseModel):
 
 
 class ChangeRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="ChangeRequest")
     action_status: Optional[Union[FieldValue, int]] = Field(
@@ -2040,8 +2040,6 @@ class Response(BaseModel):
             Dict,
             List,
             BatchInstallResult,
-            List[ChangeRequest],
-            ChangeRequest,
             CICD,
             CMDB,
             List[ConfigurationItem],
@@ -2053,6 +2051,8 @@ class Response(BaseModel):
             State,
             List[Task],
             Task,
+            List[ChangeRequest],
+            ChangeRequest,
             Table,
         ]
     ] = Field(default=None, description="Result containing available responses.")
@@ -2119,8 +2119,6 @@ class Response(BaseModel):
     def determine_result_type(cls, v):
         models = [
             BatchInstallResult,
-            List[ChangeRequest],
-            ChangeRequest,
             CICD,
             CMDB,
             List[ConfigurationItem],
@@ -2132,6 +2130,8 @@ class Response(BaseModel):
             State,
             List[Task],
             Task,
+            List[ChangeRequest],
+            ChangeRequest,
             Table,
         ]
         if v:
