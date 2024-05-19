@@ -1919,7 +1919,7 @@ class CICD(BaseModel):
 
 
 class CMDB(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="CMDB")
     icon_url: Optional[str] = Field(default=None, description="Class icon URL.")
@@ -1967,7 +1967,7 @@ class ServiceRelation(BaseModel):
 
 
 class Service(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Service")
     name: str = Field(default=None, description="Name of the application service.")
@@ -2041,7 +2041,6 @@ class Response(BaseModel):
             List,
             BatchInstallResult,
             CICD,
-            CMDB,
             List[ConfigurationItem],
             ConfigurationItem,
             List[ImportSetResult],
@@ -2049,6 +2048,7 @@ class Response(BaseModel):
             Schedule,
             List[State],
             State,
+            CMDB,
             List[Task],
             Task,
             List[ChangeRequest],
@@ -2081,12 +2081,12 @@ class Response(BaseModel):
                                 try:
                                     return [model(**item) for item in v]
                                 except Exception as e:
-                                    print(
-                                        f"Error validating one of the models in the list: {e}"
-                                    )
+                                    # print(
+                                    #     f"Error validating one of the models in the list: {e}"
+                                    # )
                                     continue
                 except Exception as e:
-                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2106,12 +2106,12 @@ class Response(BaseModel):
                                 try:
                                     return [model(**item) for item in v]
                                 except Exception as e:
-                                    print(
-                                        f"Error validating one of the models in the list: {e}"
-                                    )
+                                    # print(
+                                    #     f"Error validating one of the models in the list: {e}"
+                                    # )
                                     continue
                 except Exception as e:
-                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2120,7 +2120,6 @@ class Response(BaseModel):
         models = [
             BatchInstallResult,
             CICD,
-            CMDB,
             List[ConfigurationItem],
             ConfigurationItem,
             List[ImportSetResult],
@@ -2128,6 +2127,7 @@ class Response(BaseModel):
             Schedule,
             List[State],
             State,
+            CMDB,
             List[Task],
             Task,
             List[ChangeRequest],
@@ -2147,6 +2147,6 @@ class Response(BaseModel):
                                 except Exception:
                                     continue
                 except Exception as e:
-                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
