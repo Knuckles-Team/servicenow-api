@@ -18,7 +18,6 @@ try:
         KnowledgeManagementModel,
         TableModel,
         Response,
-        Token,
     )
 
 except ImportError:
@@ -135,8 +134,6 @@ def test_servicenow_cmdb():
     reason=reason,
 )
 def test_servicenow_cicd_responses():
-    print("TEST 1 CICD - Batch Install")
-    # Test CICD - Batch Install
     example_data = {
         "result": {
             "links": {
@@ -158,8 +155,6 @@ def test_servicenow_cicd_responses():
     assert response.result.links.progress.id == "c159b1e9db1c0010b5e3f6c5ae961903"
     assert response.result.base_type == "CICD"
 
-    print("\n\n\n\n\nTEST 2 - CICD Progress")
-    # Test CICD
     example_data = {
         "result": {
             "links": {
@@ -181,8 +176,6 @@ def test_servicenow_cicd_responses():
     assert response.result.status == "0"
     assert response.result.base_type == "CICD"
 
-    print("\n\n\n\n\nTEST 3 - CICD Scan Progress")
-    # Test Scan Progress
     example_data = {
         "result": {
             "links": {
@@ -209,8 +202,6 @@ def test_servicenow_cicd_responses():
     assert response.result.percent_complete == 0
     assert response.result.base_type == "CICD"
 
-    print("\n\n\n\n\nTEST 4 CICD - Scan Results")
-    # Test Test Results
     example_data = {
         "result": {
             "links": {
@@ -239,7 +230,6 @@ def test_servicenow_cicd_responses():
     assert response.result.rolledup_test_skip_count == 0
     assert response.result.base_type == "CICD"
 
-    print("\n\n\n\n\nTEST 5 CICD Publish")
     example_data = {
         "result": {
             "links": {
@@ -299,7 +289,6 @@ def test_servicenow_cicd_responses():
     reason=reason,
 )
 def test_servicenow_batch_install_responses():
-    print("TEST 6")
     example_data = {
         "result": {
             "batch_plan": {
@@ -346,7 +335,6 @@ def test_servicenow_batch_install_responses():
     reason=reason,
 )
 def test_servicenow_install_responses():
-    print("TEST 7 - Get installation Progress")
     example_data = {
         "result": {
             "links": {
@@ -379,7 +367,6 @@ def test_servicenow_install_responses():
     reason=reason,
 )
 def test_servicenow_oauth_responses():
-    print("TEST 8 - OAuth 2.0")
     example_data = {
         "access_token": "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw",
         "refresh_token": "EuoV22-H28J_frduuMUlKXcuJ-tFz9F2Pe_PSNa3Ml3H8bzG4FIn8ChCcmtLJkMeP_T4a-MBI-c6YRW_1D4Mcw",
@@ -388,12 +375,11 @@ def test_servicenow_oauth_responses():
         "expires_in": 1799,
     }
 
-    response = Token(**example_data)
+    response = Response(**example_data)
     assert (
         response.access_token
         == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
     )
-    assert response.base_type == "Token"
 
 
 @pytest.mark.skipif(
@@ -401,7 +387,6 @@ def test_servicenow_oauth_responses():
     reason=reason,
 )
 def test_servicenow_schedule_responses():
-    print("TEST 9 - Change Management Schedule")
     example_data = {
         "result": {
             "worker": {
@@ -452,7 +437,6 @@ def test_servicenow_schedule_responses():
     reason=reason,
 )
 def test_servicenow_change_requests_responses():
-    print("TEST 10 - Get Change Requests")
     example_data = {
         "result": [
             {
@@ -706,7 +690,6 @@ def test_servicenow_change_requests_responses():
     reason=reason,
 )
 def test_servicenow_state_responses():
-    print("TEST 11 - Change Management Next State")
     example_data = {
         "result": {
             "available_states": ["0", "4", "-1"],
@@ -777,7 +760,6 @@ def test_servicenow_state_responses():
     reason=reason,
 )
 def test_servicenow_task_responses():
-    print("TEST 12 - Change Management Tasks")
     example_data = {
         "result": [
             {
@@ -827,7 +809,6 @@ def test_servicenow_task_responses():
     reason=reason,
 )
 def test_servicenow_change_request_responses():
-    print("TEST 13 Single Change Request")
     example_data = {
         "result": {
             "reason": {"display_value": "", "value": ""},
@@ -1074,7 +1055,6 @@ def test_servicenow_change_request_responses():
     reason=reason,
 )
 def test_servicenow_table_responses():
-    print("TEST - Table Response")
     example_data = {
         "result": {
             "upon_approval": "",
@@ -1193,7 +1173,6 @@ def test_servicenow_table_responses():
     reason=reason,
 )
 def test_servicenow_service_responses():
-    print("TEST - Table Response")
     example_data = {
         "service": {
             "name": "PeopleSoft Portals",
@@ -1273,7 +1252,6 @@ def test_servicenow_service_responses():
     reason=reason,
 )
 def test_servicenow_cmdb_responses():
-    print("TEST - CMDB META RESPONSE")
     example_data = {
         "result": {
             "icon_url": "images/app.ngbsm/computer.svg",
@@ -1462,7 +1440,6 @@ def test_servicenow_cmdb_responses():
     reason=reason,
 )
 def test_servicenow_import_set_responses():
-    print("TEST - Import Set RESPONSE")
     example_data = {
         "import_set": "ISET0010001",
         "staging_table": "imp_user",
