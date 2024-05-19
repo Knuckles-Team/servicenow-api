@@ -2080,13 +2080,13 @@ class Response(BaseModel):
                             for model in models:
                                 try:
                                     return [model(**item) for item in v]
-                                except Exception as e:
+                                except Exception:
                                     # print(
                                     #     f"Error validating one of the models in the list: {e}"
                                     # )
                                     continue
-                except Exception as e:
-                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
+                except Exception:
+                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2105,13 +2105,13 @@ class Response(BaseModel):
                             for model in models:
                                 try:
                                     return [model(**item) for item in v]
-                                except Exception as e:
+                                except Exception:
                                     # print(
                                     #     f"Error validating one of the models in the list: {e}"
                                     # )
                                     continue
-                except Exception as e:
-                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
+                except Exception:
+                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
 
@@ -2146,7 +2146,7 @@ class Response(BaseModel):
                                     return [model(**item) for item in v]
                                 except Exception:
                                     continue
-                except Exception as e:
-                    #print(f"Validation Failed for {model} - {v}\nError: {e}")
+                except Exception:
+                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
                     pass
         return v
