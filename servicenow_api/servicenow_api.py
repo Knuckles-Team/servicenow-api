@@ -834,20 +834,19 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_request_tasks = response
             while response.result and len(response.result) > 1:
                 try:
-                    response = self._session.get(
+                    second_response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
                         f"/change{change_type}{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    response.raise_for_status()
-                    response = response.json()
-                    response = Response(**response)
-                    all_change_request_tasks.result.extend(response.result)
+                    second_response.raise_for_status()
+                    second_response = second_response.json()
+                    second_response = Response(**second_response)
+                    response.result.extend(second_response.result)
                     change_request.sysparm_offset = (
                         change_request.sysparm_offset + change_request.sysparm_limit
                     )
@@ -864,8 +863,7 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_request_tasks = response
-        return all_change_request_tasks
+        return response
 
     @require_auth
     def get_change_request_nextstate(self, **kwargs) -> Response:
@@ -977,10 +975,9 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_request_tasks = response
             while response.result and len(response.result) > 1:
                 try:
-                    response = self._session.get(
+                    second_response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
                         f"/change/{change_request.change_request_sys_id}/"
                         f"task{change_request.api_parameters}",
@@ -988,10 +985,10 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    response.raise_for_status()
-                    response = response.json()
-                    response = Response(**response)
-                    all_change_request_tasks.result.extend(response.result)
+                    second_response.raise_for_status()
+                    second_response = second_response.json()
+                    second_response = Response(**second_response)
+                    response.result.extend(second_response.result)
                     change_request.sysparm_offset = (
                         change_request.sysparm_offset + change_request.sysparm_limit
                     )
@@ -1009,8 +1006,7 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_request_tasks = response
-        return all_change_request_tasks
+        return response
 
     @require_auth
     def get_change_request(self, **kwargs) -> Response:
@@ -1200,20 +1196,19 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_requests = response
             while response.result and len(response.result) > 1:
                 try:
-                    response = self._session.get(
+                    second_response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
                         f"/change/model{change_type}{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    response.raise_for_status()
-                    response = response.json()
-                    response = Response(**response)
-                    all_change_requests.result.extend(response.result)
+                    second_response.raise_for_status()
+                    second_response = second_response.json()
+                    second_response = Response(**second_response)
+                    response.result.extend(second_response.result)
                     change_request.sysparm_offset = (
                         change_request.sysparm_offset + change_request.sysparm_limit
                     )
@@ -1229,8 +1224,7 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_requests = response
-        return all_change_requests
+        return response
 
     @require_auth
     def get_change_request_models(self, **kwargs) -> Response:
@@ -1271,20 +1265,19 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_requests = response
             while response.result and len(response.result) > 1:
                 try:
-                    response = self._session.get(
+                    second_response = self._session.get(
                         url=f"{self.url}/sn_chg_rest"
                         f"/change/model{change_type}{change_request.api_parameters}",
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    response.raise_for_status()
-                    response = response.json()
-                    response = Response(**response)
-                    all_change_requests.result.extend(response.result)
+                    second_response.raise_for_status()
+                    second_response = second_response.json()
+                    second_response = Response(**second_response)
+                    response.result.extend(second_response.result)
                     change_request.sysparm_offset = (
                         change_request.sysparm_offset + change_request.sysparm_limit
                     )
@@ -1301,8 +1294,7 @@ class Api(object):
             response.raise_for_status()
             response = response.json()
             response = Response(**response)
-            all_change_requests = response
-        return all_change_requests
+        return response
 
     @require_auth
     def get_standard_change_request_model(self, **kwargs) -> Response:
