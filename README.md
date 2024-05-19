@@ -28,7 +28,9 @@ This repository is actively maintained and will continue adding more API calls
 
 Contributions are welcome!
 
-AI Skill Ready (**PEP8** Documented) - Assimilate the following package into your agent and begin using it!
+All API Response objects are customized for the response call.
+You can get all return values in a parent.value.nested_value format,
+or you can run parent.model_dump() to get the table in dictionary format.
 
 #### API Calls:
 - Application Service
@@ -63,7 +65,7 @@ client = servicenow_api.Api(url=servicenow_url,
                             client_secret=client_secret)
 
 table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table}")
+print(f"Table: {table.model_dump()}")
 ```
 
 
@@ -83,7 +85,7 @@ client = servicenow_api.Api(url=servicenow_url,
                             password=password)
 
 table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table}")
+print(f"Table: {table.model_dump()}")
 ```
 
 Proxy and SSL Verify
@@ -106,7 +108,7 @@ client = servicenow_api.Api(url=servicenow_url,
                             verify=False)
 
 table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table}")
+print(f"Table: {table.model_dump()}")
 ```
 
 </details>
