@@ -1,5 +1,11 @@
-from typing import Union, List, Dict, Optional
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from typing import Union, List, Dict, Optional, Any
+from pydantic import (
+    BaseModel,
+    Field,
+    ConfigDict,
+    field_validator,
+    model_validator,
+)
 
 try:
     from servicenow_api.decorators import require_auth
@@ -18,6 +24,11 @@ except ModuleNotFoundError:
     )
 
 
+########################################################################################################################
+#                                               Input Models                                                           #
+########################################################################################################################
+
+
 class ApplicationServiceModel(BaseModel):
     """
     Pydantic model representing an application service.
@@ -34,6 +45,8 @@ class ApplicationServiceModel(BaseModel):
 
     model_config = ConfigDict(validate_assignment=True)
     application_id: Optional[str] = None
+    mode: Optional[str] = None
+    api_parameters: Optional[str] = None
 
     @field_validator("application_id")
     def validate_string_parameters(cls, v):
@@ -52,6 +65,50 @@ class ApplicationServiceModel(BaseModel):
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
         return v
+
+    @field_validator("mode")
+    def convert_to_lowercase(cls, value):
+        """
+        Convert specified parameters to lowercase.
+
+        Args:
+        - value: The value of the parameter.
+
+        Returns:
+        - str: The value converted to lowercase.
+        """
+        return value.lower()
+
+    @field_validator("mode")
+    def validate_mode(cls, v):
+        if v is not None and v in ["full", "shallow"]:
+            raise ValueError("Invalid optional params")
+        return v
+
+    @model_validator(mode="before")
+    def build_api_parameters(cls, values):
+        """
+        Build API parameters.
+
+        Args:
+        - values: Dictionary of values.
+
+        Returns:
+        - The constructed API parameters string.
+
+        Raises:
+        - None.
+        """
+
+        filters = []
+        if "mode" in values:
+            filters.append(f'mode={values["mode"]}')
+
+        if filters:
+            api_parameters = "?" + "&".join(filters)
+            values["api_parameters"] = api_parameters
+
+        return values
 
 
 class CMDBModel(BaseModel):
@@ -329,6 +386,7 @@ class ChangeManagementModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     model_config = ConfigDict(validate_assignment=True)
     change_request_sys_id: Optional[str] = None
     state: Optional[str] = None
@@ -489,7 +547,7 @@ class ChangeManagementModel(BaseModel):
         if filters:
             values["api_parameters"] = "?" + "&".join(filters)
 
-        if "order" in values and values['order']:
+        if "order" in values and values["order"]:
             values["api_parameters"] = f"{values['api_parameters']}{values['order']}"
 
         data = {}
@@ -811,3 +869,1284 @@ class TableModel(BaseModel):
             values["api_parameters"] = api_parameters
 
         return values
+
+
+########################################################################################################################
+#                                              Output Models                                                           #
+########################################################################################################################
+class FieldValue(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    value: Union[str, int] = Field(default=None, description="The value of the field.")
+    display_value: str = Field(
+        default=None, description="The display value of the field."
+    )
+    display_value_internal: Optional[str] = Field(
+        default=None, description="Time for Display value interval"
+    )
+
+
+class ItemValue(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    sys_id: str = Field(default=None, description="Sys Id of the value")
+    name: str = Field(default=None, description="Name of the value")
+
+
+class BatchItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    customization_version: Optional[str] = Field(
+        default=None,
+        description="Version of the store application or scoped ServiceNow plugin customization package to install, "
+        "such as 1.0.2 or 2.3.",
+    )
+    id: Optional[str] = Field(
+        default=None,
+        description="Sys_id of the application or identifier of the plugin to install.",
+    )
+    install_date: Optional[str] = Field(
+        default=None, description="Date and time that the package was installed."
+    )
+    name: Optional[str] = Field(default=None, description="Name of the package.")
+    notes: Optional[str] = Field(
+        default=None, description="User specified notes about the package."
+    )
+    state: Optional[str] = Field(
+        default=None,
+        description="Current state of the associated package installation.",
+    )
+    status_message: Optional[str] = Field(
+        default=None,
+        description="Describes any errors that occurred during the installation of the package and/or customizations.",
+    )
+    type: Optional[str] = Field(default=None, description="Type of application.")
+    url: Optional[str] = Field(
+        default=None,
+        description="URL of the associated package installation record on your ServiceNow instance.",
+    )
+    version: Optional[str] = Field(
+        default=None,
+        description="Version of the package to install, such as 1.0.2 or 2.3.",
+    )
+
+
+class BatchPlan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    id: Optional[str] = Field(
+        default=None, description="Sys_id of the return results information."
+    )
+    name: Optional[str] = Field(
+        default=None,
+        description="User specified descriptive name for this batch request.",
+    )
+    notes: Optional[str] = Field(
+        default=None,
+        description="Notes that were passed in when the batch install was invoked.",
+    )
+    state: Optional[str] = Field(
+        default=None, description="Current state of the overall batch installation."
+    )
+    url: Optional[str] = Field(
+        default=None,
+        description="URL of the batch installation plan record on your ServiceNow instance.",
+    )
+
+
+class BatchInstallResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="BatchInstallResult")
+    error: Optional[str] = Field(default=None, description="Error message.")
+    batch_items: Optional[List[BatchItem]] = Field(
+        default=None,
+        description="JSON array, where each object provides details of a "
+        "package installation.",
+    )
+    batch_plan: Optional[BatchPlan] = Field(
+        default=None, description="Describes the installation batch plan."
+    )
+
+
+class ConditionDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    description: Optional[str] = Field(
+        default=None, description="Description of the condition."
+    )
+    name: Optional[str] = Field(default=None, description="Name of the condition.")
+    sys_id: Optional[str] = Field(default=None, description="Sys_id of the condition.")
+
+
+class Condition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    condition: Optional[ConditionDetail] = Field(
+        default=None, description="Values of a specific condition."
+    )
+    passed: Optional[bool] = Field(
+        default=None,
+        description="Flag that indicates whether the change request met the associated condition.",
+    )
+
+
+class StateTransition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    sys_id: str = Field(default=None, description="Sys_id of the transition state.")
+    display_value: str = Field(
+        default=None, description="Displayed description of the state."
+    )
+    from_state: str = Field(
+        default=None,
+        description="Value of the state that the change request is transitioning from.",
+    )
+    to_state: str = Field(
+        default=None,
+        description="Value of the state that the change request is transitioning to.",
+    )
+    transition_available: Optional[bool] = Field(
+        default=None,
+        description="Flag that indicates whether the change request can transition from its current state to this "
+        "state.",
+    )
+    automatic_transition: Optional[bool] = Field(
+        default=None,
+        description="Flag that indicates whether to automatically transition to this state.",
+    )
+    conditions: Optional[List[Condition]] = Field(
+        default=None, description="List of the conditions associated with the state."
+    )
+
+
+class ErrorDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    detail: Optional[str] = Field(
+        None, description="Additional information about the error."
+    )
+    message: Optional[str] = Field(
+        None, description="Message that identifies the error."
+    )
+    status: Optional[str] = Field(None, description="Status of the error.")
+
+
+class Messages(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    errorMessages: Optional[List[str]] = Field(
+        None, description="Error messages encountered while processing the request."
+    )
+    infoMessages: Optional[List[str]] = Field(
+        None,
+        description="Information messages encountered while processing the request.",
+    )
+    warningMessages: Optional[List[str]] = Field(
+        None, description="Warning messages encountered while processing the request."
+    )
+
+
+class Worker(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Worker")
+    link: Optional[str] = Field(None, description="Link for retrieving time slot data.")
+    sysId: Optional[str] = Field(
+        None, description="Sys_id of the worker associated with the change request."
+    )
+
+
+class State(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="State")
+    available_states: List[str] = Field(
+        default=None,
+        description="Values for the states that are available for the specified change request, including the current "
+        "state.",
+    )
+    state_transitions: List[List[StateTransition]] = Field(
+        default=None,
+        description="Information on what is required to transition to each available state. Each distinct available "
+        '"to state" is in its own Array with each differing set of conditions for that to state being in '
+        "its own Object.",
+    )
+    state_label: Dict = Field(
+        default=None,
+        description="Key-value pairs that associate labels with the available states.",
+    )
+
+
+class ChangeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="ChangeRequest")
+    action_status: Optional[Union[FieldValue, int]] = Field(
+        default=None,
+        description="Current action status of the associated change request.",
+    )
+    active: Optional[Union[FieldValue, str]] = Field(
+        default=True,
+        description="Flag that indicates whether the change request is active.",
+    )
+    activity_due: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time for which the associated case is expected to "
+        "be completed.",
+    )
+    additional_assignee_list: Optional[Union[FieldValue, str, List[str]]] = Field(
+        default=None,
+        description="List of sys_ids of additional persons "
+        "assigned to work on the change request.",
+    )
+    approval: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Type of approval process required."
+    )
+    approval_history: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Most recent approval history journal entry."
+    )
+    approval_set: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the associated action was approved.",
+    )
+    assigned_to: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Sys_id of the user assigned to the change request."
+    )
+    assignment_group: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Sys_id of the group assigned to the change request."
+    )
+    backout_plan: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Description of the plan to execute if the change must be "
+        "reversed.",
+    )
+    business_duration: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Length in scheduled work hours, work days, and work "
+        "weeks that it took to complete the change.",
+    )
+    business_service: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the business service associated with the "
+        "change request.",
+    )
+    cab_date: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Date on which the Change Advisory Board (CAB) meets."
+    )
+    cab_delegate: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the user that can substitute for the CAB manager "
+        "during a CAB meeting.",
+    )
+    cab_recommendation: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Description of the CAB recommendations for the change request.",
+    )
+    cab_required: Optional[Union[FieldValue, bool]] = Field(
+        False, description="Flag that indicates whether the CAB is required."
+    )
+    calendar_duration: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Not currently used by Change Management."
+    )
+    category: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Category of the change, for example hardware, network, or software.",
+    )
+    change_plan: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Activities and roles for managing and controlling the change request.",
+    )
+    chg_model: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the change model that the associated change request was based on.",
+    )
+    ci_class: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the change model that the associated change request was based on.",
+    )
+    closed_at: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the associated change request was closed.",
+    )
+    closed_by: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Sys_id of the person that closed the change request."
+    )
+    close_code: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Code assigned to the change request when it was closed.",
+    )
+    close_notes: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Notes that the person entered when closing the change request.",
+    )
+    cmdb_ci: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the configuration item associated with the change request.",
+    )
+    comments: Optional[Union[FieldValue, str, List[str]]] = Field(
+        default=None,
+        description="List of customer-facing work notes entered in the associated change request.",
+    )
+    comments_and_work_notes: Optional[Union[FieldValue, str, List[str]]] = Field(
+        default=None,
+        description="List of both internal and customer-facing work notes entered for the associated change request.",
+    )
+    company: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the company associated with the change request.",
+    )
+    conflict_last_run: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the conflict detection script was last run on the change request.",
+    )
+    conflict_status: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Current conflict status as detected by the conflict detection script.",
+    )
+    contact_type: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Method in which the change request was initially requested.",
+    )
+    contract: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the contract associated with the change request.",
+    )
+    correlation_display: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="User-friendly name for the correlation_id."
+    )
+    correlation_id: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Globally unique ID (GUID) of a matching change request record in a third-party system.",
+    )
+    delivery_plan: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="No longer in use. Sys_id of the delivery plan associated with the change request.",
+    )
+    delivery_task: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="No longer in use. Sys_id of the delivery task associated with the change request.",
+    )
+    description: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Detailed description of the change request."
+    )
+    due_date: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Task due date. Not used by change request process."
+    )
+    end_date: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time when the change request is to be completed.",
+    )
+    escalation: Optional[Union[FieldValue, int]] = Field(
+        default=None, description="Current escalation level."
+    )
+    expected_start: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time when the task is to start. Not used by the change request process.",
+    )
+    follow_up: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time when a user followed-up with the person requesting the change request.",
+    )
+    group_list: Optional[Union[FieldValue, str, List[str]]] = Field(
+        default=None,
+        description="List of sys_ids and names of the groups associated with the change request.",
+    )
+    impact: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Impact on the change request will have on the customer.",
+    )
+    implementation_plan: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sequential steps to execute to implement this change.",
+    )
+    is_bulk: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Bulk change",
+    )
+    justification: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Benefits of implementing this change and the impact if this change is not implemented.",
+    )
+    knowledge: Optional[Union[FieldValue, str]] = Field(
+        False,
+        description="Flag that indicates whether there are any knowledge base (KB) articles associated with the "
+        "change request.",
+    )
+    location: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id and name of the location of the equipment referenced in the change request.",
+    )
+    made_sla: Optional[Union[FieldValue, bool]] = Field(
+        default=None,
+        description="No longer used. Flag that indicates whether the change request was implemented in alignment with "
+        "the associated service level agreement.",
+    )
+    needs_attention: Optional[Union[FieldValue, bool]] = Field(
+        False,
+        description="Flag that indicates whether the change request needs attention.",
+    )
+    number: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Change number assigned to the change request by the system.",
+    )
+    on_hold: Optional[Union[FieldValue, bool]] = Field(
+        False,
+        description="Flag that indicates whether the change request is currently on hold.",
+    )
+    on_hold_reason: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="If the on_hold parameter is 'true', description of the reason why the change request is being "
+        "held up.",
+    )
+    on_hold_task: Optional[Union[FieldValue, str, List[str]]] = Field(
+        default=None,
+        description="If the on_hold parameter is 'true', list of the sys_ids of the tasks that must be completed "
+        "before the hold is released.",
+    )
+    opened_at: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Date and time that the change release was created."
+    )
+    opened_by: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id and name of the user that created the change release.",
+    )
+    order: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Not used by Change Management. Optional numeric field by which to order records.",
+    )
+    outside_maintenance_schedule: Optional[Union[FieldValue, bool]] = Field(
+        False,
+        description="Flag that indicates whether maintenance by an outside company has been scheduled for the change "
+        "request.",
+    )
+    parent: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id and name of the parent task to this change request, if any.",
+    )
+    phase: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Current phase of the change request."
+    )
+    phase_state: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Change_phase records that should be created for a change.",
+    )
+    priority: Optional[Union[FieldValue, int, str]] = Field(
+        4, description="Priority of the change request."
+    )
+    production_system: Optional[Union[FieldValue, bool]] = Field(
+        False,
+        description="Flag that indicates whether the change request is for a ServiceNow instance that is in a "
+        "production environment.",
+    )
+    proposed_change: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Proposed change reason"
+    )
+    reason: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Description of why the change request was initiated."
+    )
+    reassignment_count: Optional[Union[FieldValue, int]] = Field(
+        default=None,
+        description="Number of times that the change request has been reassigned to a new owner.",
+    )
+    rejection_goto: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the task to perform if the change request is rejected.",
+    )
+    requested_by: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Sys_id of the user that requested the change."
+    )
+    requested_by_date: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time when the change is requested to be implemented by.",
+    )
+    review_comments: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Comments entered when the change request was reviewed.",
+    )
+    review_date: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Date that the change request was reviewed."
+    )
+    review_status: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Current status of the requested change request review.",
+    )
+    risk: Optional[Union[FieldValue, int]] = Field(
+        default=None, description="Level of risk associated with the change request."
+    )
+    risk_value: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Risk value associated with the change request."
+    )
+    risk_impact_analysis: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Description of the risk and analysis of implementing the change request.",
+    )
+    route_reason: Optional[Union[FieldValue, int]] = Field(
+        default=None, description="Reason that the change request was transferred."
+    )
+    scope: Optional[Union[FieldValue, int]] = Field(
+        default=None, description="Size of the change request."
+    )
+    service_offering: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the service offering associated with the change request.",
+    )
+    short_description: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Description of the change request."
+    )
+    skills: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="List of the sys_ids of all of the skills required to implement the change request.",
+    )
+    sla_due: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the change request must be completed based on the associated service level "
+        "agreement.",
+    )
+    sn_esign_document: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of any E-signed document attached to the change request.",
+    )
+    sn_esign_esignature_configuration: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the E-signed signature template used for the associated document.",
+    )
+    start_date: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the change request is planned to start implementation.",
+    )
+    state: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Current state of the change request."
+    )
+    std_change_producer_version: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the record producer and change proposal associated with the change request.",
+    )
+    sys_class_name: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Name of the table in which the change request is located.",
+    )
+    sys_created_by: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Name of the user that initially created the change request.",
+    )
+    sys_created_on: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that the associated change request record was originally created.",
+    )
+    sys_domain: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Name of the domain to which the change module record is associated.",
+    )
+    sys_domain_path: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Domain path in which the associated change module record resides.",
+    )
+    sys_id: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Unique identifier of the associated change request record.",
+    )
+    sys_mod_count: Optional[Union[FieldValue, int]] = Field(
+        default=None,
+        description="Number of updates to the case since it was initially created.",
+    )
+    sys_tags: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Tags associated to the change."
+    )
+    sys_updated_by: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Person that last updated the case."
+    )
+    sys_updated_on: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Date and time when the case was last updated."
+    )
+    task_effective_number: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Universal request number."
+    )
+    task_for: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Sys_id of the user that the task was created for."
+    )
+    test_plan: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Description of the associated test plan for the change.",
+    )
+    time_worked: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Total amount of time worked on the change request."
+    )
+    type: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Change request type."
+    )
+    unauthorized: Optional[Union[FieldValue, bool]] = Field(
+        default=None,
+        description="Flag that indicates whether the change request is unauthorized.",
+    )
+    universal_request: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the Parent Universal request to which this change request is a part of.",
+    )
+    upon_approval: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Action to take if the change request is approved."
+    )
+    upon_reject: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Action to take if the change request is rejected."
+    )
+    urgency: Optional[Union[FieldValue, int]] = Field(
+        default=None, description="Urgency of the change request."
+    )
+    user_input: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Additional user input."
+    )
+    variables: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Name-value pairs of variables associated with the change request.",
+    )
+    watch_list: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="List of sys_ids of the users who receive notifications about this change request.",
+    )
+    wf_activity: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Sys_id of the workflow activity record associated with the change request.",
+    )
+    work_end: Optional[Union[FieldValue, str]] = Field(
+        default=None, description="Date and time work ended on the change request."
+    )
+    work_notes: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Information about how to resolve the change request, or steps taken to resolve it.",
+    )
+    work_notes_list: Optional[Union[FieldValue, List[str]]] = Field(
+        default=None,
+        description="List of sys_ids of the internal users who receive notifications about this change request when "
+        "work notes are added.",
+    )
+    work_start: Optional[Union[FieldValue, str]] = Field(
+        default=None,
+        description="Date and time that work started on the change request.",
+    )
+
+
+class Task(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Task")
+    sys_id: FieldValue = Field(
+        default=None, description="Sys_id information for the change request task."
+    )
+    parent: FieldValue = Field(
+        default=None,
+        description="Information for the change request associated to the task.",
+    )
+    short_description: FieldValue = Field(
+        default=None, description="Short description of the change request task."
+    )
+    active: Optional[bool] = Field(
+        default=None,
+        description="Specifies whether work is still being done on a task or whether the work for the task is complete.",
+    )
+    comments: Optional[str] = Field(
+        default=None,
+        description="Displays and allows the entry of comments about the task record.",
+    )
+    approval_history: Optional[str] = Field(
+        default=None, description="Displays the history of approvals for the record."
+    )
+    assigned_to: Optional[FieldValue] = Field(
+        default=None, description="Specifies the user assigned to complete the task."
+    )
+    sys_created_on: Optional[str] = Field(
+        default=None,
+        description="Displays the date and time when the task record was created.",
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="Displays and allows the entry of a multi-line description of the work to be done.",
+    )
+    escalation: Optional[int] = Field(
+        default=None,
+        description="Indicates how long the task has been open, with states from Normal to Overdue.",
+    )
+    number: Optional[str] = Field(
+        default=None, description="Displays an identifying number for each task record."
+    )
+    opened_at: Optional[str] = Field(
+        default=None,
+        description="Displays the date and time when a human opened the task record for the first time.",
+    )
+    priority: Optional[int] = Field(
+        default=None,
+        description="Specifies how high a priority the task should be for the assignee.",
+    )
+    state: Optional[int] = Field(
+        default=None, description="Displays a choice list for status of the task."
+    )
+    sys_class_name: Optional[str] = Field(
+        default=None,
+        description="Specifies the type of task, which corresponds to the child class.",
+    )
+    time_worked: Optional[str] = Field(
+        default=None,
+        description="Displays a timer which measures how long a record is open in the form view.",
+    )
+    watch_list: Optional[List[FieldValue]] = Field(
+        default=None,
+        description="Specifies users who receive notifications when the record is updated.",
+    )
+    work_notes: Optional[str] = Field(
+        default=None,
+        description="Displays and allows the entry of comments viewable only by ITIL users.",
+    )
+    work_notes_list: Optional[List[FieldValue]] = Field(
+        default=None,
+        description="Specifies users who receive notifications when work notes are added to the record.",
+    )
+
+
+class ConfigurationItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_type: str = Field(default="ConfigurationItem")
+    __hash__ = object.__hash__
+    sys_id: Optional[Union[FieldValue, str]] = None
+    ci_item: Optional[Union[FieldValue, str]] = None
+    cmdb_ci_service: Optional[Union[FieldValue, str]] = None
+    record_fields: Optional[Dict] = None
+
+
+class TimeSpan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_type: str = Field(default="TimeSpan")
+    __hash__ = object.__hash__
+    start: Optional[FieldValue] = Field(None, description="Start time of the span.")
+    end: Optional[FieldValue] = Field(None, description="End time of the span.")
+
+
+class Payload(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_type: str = Field(default="Payload")
+    __hash__ = object.__hash__
+    spans: Optional[List[TimeSpan]] = Field(
+        None, description="List of time spans associated with the payload."
+    )
+
+
+class Schedule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    base_type: str = Field(default="Schedule")
+    __hash__ = object.__hash__
+    error: Optional[ErrorDetail] = Field(
+        None,
+        description="Information on any errors encountered while processing the endpoint request.",
+    )
+    messages: Optional[Messages] = Field(None, description="Message information.")
+    request: Optional[str] = Field(None, description="Original endpoint request.")
+    state: Optional[FieldValue] = Field(
+        None, description="Information on the current state of the worker."
+    )
+    type: Optional[str] = Field(
+        None, description="Indicates the type of request. Valid value: schedule."
+    )
+    worker: Optional[Worker] = Field(
+        None, description="Information about the associated worker."
+    )
+    payload: Optional[Payload] = Field(None, description="Payload information.")
+
+
+class Item(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Item")
+    className: Optional[str] = Field(
+        default=None, description="Name of the class that contains the CI."
+    )
+    values: Optional[ItemValue] = Field(
+        default=None, description="Information to use to locate an associated CI."
+    )
+
+
+class Relation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Relation")
+    parent: Optional[str] = Field(
+        default=None, description="Name of a parent CI related to the CI."
+    )
+    child: Optional[str] = Field(
+        default=None, description="Name of a child CI related to the CI."
+    )
+
+
+class Attribute(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Attribute")
+    is_inherited: Optional[str] = Field(
+        default=None, description="Indicates if the attribute is inherited."
+    )
+    is_mandatory: Optional[str] = Field(
+        default=None, description="Indicates if the attribute is mandatory."
+    )
+    is_read_only: Optional[str] = Field(
+        default=None, description="Indicates if the attribute is read-only."
+    )
+    default_value: Optional[Any] = Field(
+        default=None, description="Default value of the attribute."
+    )
+    label: Optional[str] = Field(default=None, description="Label of the attribute.")
+    type: Optional[str] = Field(default=None, description="Type of the attribute.")
+    element: Optional[str] = Field(
+        default=None, description="Element name of the attribute."
+    )
+    max_length: Optional[str] = Field(
+        default=None, description="Max length of the attribute."
+    )
+    is_display: Optional[str] = Field(
+        default=None, description="Indicates if the attribute is a display field."
+    )
+
+
+class RelationshipRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="RelationshipRule")
+    parent: Optional[str] = Field(
+        default=None, description="Parent class of the relationship."
+    )
+    relation_type: Optional[str] = Field(
+        default=None, description="Type of the relationship."
+    )
+    child: Optional[str] = Field(
+        default=None, description="Child class of the relationship."
+    )
+
+
+class RelatedRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="RelatedRule")
+    condition: Optional[str] = Field(
+        default=None, description="Condition for the related rule."
+    )
+    exact_count_match: Optional[bool] = Field(
+        default=None, description="Indicates if exact count match is required."
+    )
+    referenced_field: Optional[str] = Field(
+        default=None, description="Referenced field for the related rule."
+    )
+    active: Optional[bool] = Field(
+        default=None, description="Indicates if the rule is active."
+    )
+    attributes: Optional[str] = Field(
+        default=None, description="Attributes associated with the rule."
+    )
+    allow_fallback: Optional[bool] = Field(
+        default=None, description="Indicates if fallback is allowed."
+    )
+    table: Optional[str] = Field(
+        default=None, description="Table name for the related rule."
+    )
+    order: Optional[int] = Field(default=None, description="Order of the rule.")
+    allow_null_attribute: Optional[bool] = Field(
+        default=None, description="Indicates if null attributes are allowed."
+    )
+
+
+class IdentificationRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="IdentificationRule")
+    related_rules: Optional[List[RelatedRule]] = Field(
+        default=None, description="List of related rules."
+    )
+    applies_to: Optional[str] = Field(
+        default=None, description="Class to which the identification rules apply."
+    )
+    identifiers: Optional[List[RelatedRule]] = Field(
+        default=None, description="List of identifiers for the class."
+    )
+    name: Optional[str] = Field(
+        default=None, description="Name of the identification rule."
+    )
+    description: Optional[str] = Field(
+        default=None, description="Description of the identification rule."
+    )
+    active: Optional[bool] = Field(
+        default=None, description="Indicates if the identification rule is active."
+    )
+    is_independent: Optional[bool] = Field(
+        default=None, description="Indicates if the rule is independent."
+    )
+    condition: Optional[str] = Field(
+        None, description="Condition for the identification rule."
+    )
+    exact_count_match: Optional[bool] = Field(
+        None, description="Indicates if an exact count match is required."
+    )
+    referenced_field: Optional[str] = Field(
+        None, description="Referenced field for the identification rule."
+    )
+    attributes: Optional[str] = Field(
+        None, description="Attributes involved in the identification rule."
+    )
+    allow_fallback: Optional[bool] = Field(
+        None, description="Indicates if fallback is allowed."
+    )
+    table: Optional[str] = Field(
+        None, description="Table involved in the identification rule."
+    )
+    order: Optional[int] = Field(None, description="Order of the identification rule.")
+    allow_null_attribute: Optional[bool] = Field(
+        None, description="Indicates if null attributes are allowed."
+    )
+
+
+class Link(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Link")
+    id: Optional[str] = Field(
+        default=None, description="Unique identifier of the results information."
+    )
+    url: Optional[str] = Field(
+        default=None,
+        description="URL to retrieve a list of records that violated the checks.",
+    )
+    link: Optional[str] = Field(
+        default=None,
+        description="Link to records.",
+    )
+    value: Optional[str] = Field(
+        default=None,
+        description="Link to records.",
+    )
+    label: Optional[str] = Field(
+        default=None,
+        description="Additional information about the instance scan findings.",
+    )
+
+
+class Rollback(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Rollback")
+    id: str = Field(
+        default=None,
+        description="Sys_id of the rollback details for the installed packages.",
+    )
+
+
+class Links(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Links")
+    findings: Optional[Link] = Field(
+        default=None,
+        description="Object that contains information about the instance scan findings.",
+    )
+    progress: Optional[Link] = Field(
+        default=None, description="Describes the progress link information."
+    )
+    results: Optional[Link] = Field(default=None, description="Results information.")
+    source: Optional[Link] = Field(default=None, description="Source information.")
+    stash: Optional[Link] = Field(
+        default=None, description="Information about the stash."
+    )
+    rollback: Optional[Rollback] = Field(
+        default=None, description="Describes the batch install rollback information."
+    )
+
+
+class TestSuiteResults(BaseModel):
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    __hash__ = object.__hash__
+    child_suite_results: Optional[List["TestSuiteResults"]] = Field(
+        default=[], description="Results of nested test suites."
+    )
+    error: Optional[str] = Field(default=None, description="Error message.")
+
+
+class CICD(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="CICD")
+    error: Optional[str] = Field(default=None, description="Error message.")
+    links: Optional[Links] = Field(
+        default=None, description="All links and sys_ids associated with the response."
+    )
+    percent_complete: Optional[float] = Field(
+        default=None, description="Percentage of the request that is complete."
+    )
+    status: Optional[str] = Field(default=None, description="Numeric execution state.")
+    status_detail: Optional[str] = Field(
+        default=None, description="Additional information about the current state."
+    )
+    status_label: Optional[str] = Field(
+        default=None, description="Execution state description."
+    )
+    status_message: Optional[str] = Field(
+        default=None, description="Additional information on why the operation failed."
+    )
+    rolledup_test_error_count: Optional[int] = Field(
+        default=None, description="Number of tests with errors."
+    )
+    rolledup_test_failure_count: Optional[int] = Field(
+        default=None, description="Number of tests that failed."
+    )
+    rolledup_test_skip_count: Optional[int] = Field(
+        default=None, description="Number of tests that were skipped."
+    )
+    rolledup_test_success_count: Optional[int] = Field(
+        default=None, description="Number of tests that ran successfully."
+    )
+    test_suite_duration: Optional[str] = Field(
+        default=None,
+        description="Amount of time that it took to execute the test suite.",
+    )
+    test_suite_name: Optional[str] = Field(
+        default=None, description="Name of the test suite."
+    )
+    test_suite_status: Optional[str] = Field(
+        default=None, description="State of the test suite."
+    )
+    rollback_version: Optional[str] = Field(
+        default=None, description="Version to rollback the application"
+    )
+    child_suite_results: Optional[List[TestSuiteResults]] = Field(
+        default=None, description="Child tests"
+    )
+
+    @property
+    def is_successful(self):
+        return self.status == "2" and self.test_suite_status == "success"
+
+
+class CMDB(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="CMDB")
+    icon_url: Optional[str] = Field(default=None, description="Class icon URL.")
+    is_extendable: Optional[bool] = Field(
+        default=None, description="Indicates if the class can be extended."
+    )
+    parent: Optional[str] = Field(default=None, description="Parent class.")
+    children: Optional[List[str]] = Field(
+        default=None, description="List of classes extended from the specified class."
+    )
+    name: Optional[str] = Field(default=None, description="Table/class name.")
+    icon: Optional[str] = Field(default=None, description="Class icon sys_id.")
+    attributes: Optional[List[Attribute]] = Field(
+        default=None, description="Available fields in the specified class table."
+    )
+    relationship_rules: Optional[List[RelationshipRule]] = Field(
+        default=None,
+        description="Relationships between the specified class and other classes in the CMDB.",
+    )
+    label: Optional[str] = Field(
+        default=None, description="Specified class display name."
+    )
+    identification_rules: Optional[IdentificationRule] = Field(
+        default=None,
+        description="Attributes associated with the configuration item identification rules for the specified class.",
+    )
+    items: Optional[List[Item]] = Field(
+        default=None, description="CIs within the application service."
+    )
+    relations: Optional[List[Relation]] = Field(
+        default=None, description="Relationship data for associated CIs."
+    )
+
+
+class ServiceRelation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="ServiceRelation")
+    parent: str = Field(
+        default=None, description="Name of a parent CI related to the CI."
+    )
+    child: str = Field(
+        default=None, description="Name of a child CI related to the CI."
+    )
+
+
+class Service(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Service")
+    name: str = Field(default=None, description="Name of the application service.")
+    url: str = Field(
+        default=None, description="Relative path to the application service."
+    )
+    service_relations: Optional[List[ServiceRelation]] = Field(
+        default=None,
+        description="Hierarchy data for the CIs within the application service.",
+    )
+
+
+class Table(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Table")
+
+
+class ImportSetResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="ImportSetResult")
+    display_name: Optional[str] = Field(
+        None, description="Display name of the import set."
+    )
+    display_value: Optional[str] = Field(None, description="Value of the import set.")
+    record_link: Optional[str] = Field(
+        None, description="Table API GET request for the imported record."
+    )
+    status: Optional[str] = Field(None, description="Status of the import.")
+    sys_id: Optional[str] = Field(None, description="Sys_id of the import record.")
+    table: Optional[str] = Field(
+        None, description="Name of the table in which the data was imported."
+    )
+    transform_map: Optional[str] = Field(None, description="Name of the transform map.")
+
+
+class Response(BaseModel):
+    scope: str = Field(
+        default=None,
+        description="Amount of access granted by the access token. The scope is always useraccount, meaning that the "
+        "access token has the same rights as the user account that authorized the token. For example, "
+        "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
+        "access token grants the token bearer the same access privileges as Abel Tuter.",
+    )
+    token_type: str = Field(
+        default=None,
+        description="Type of token issued by the request as defined in the OAuth RFC. The token type is always "
+        "Bearer, meaning that anyone in possession of the access token can access a protected resource "
+        "without providing a cryptographic key.",
+    )
+    expires_in: Optional[int] = Field(
+        default=None, description="Lifespan of the access token in seconds."
+    )
+    refresh_token: str = Field(
+        default=None, description="String value of the refresh token."
+    )
+    access_token: str = Field(
+        default=None,
+        description="String value of the access token. Access requests made within the access token expiration time "
+        "always return the current access token.",
+    )
+    format: str = Field(default=None, description="Output Format type. Always JSON")
+    import_set: Optional[str] = Field(None, description="Name of the import set.")
+    staging_table: Optional[str] = Field(
+        None, description="Name of the import staging table."
+    )
+    result: Optional[
+        Union[
+            Dict,
+            List,
+            BatchInstallResult,
+            List[ChangeRequest],
+            ChangeRequest,
+            CICD,
+            CMDB,
+            List[ConfigurationItem],
+            ConfigurationItem,
+            List[ImportSetResult],
+            ImportSetResult,
+            Schedule,
+            List[State],
+            State,
+            List[Task],
+            Task,
+            Table,
+        ]
+    ] = Field(default=None, description="Result containing available responses.")
+    cmdb: Optional[Union[Dict, List, CMDB]] = Field(
+        default=None,
+        description="List of objects that describe the CIs associated with the specified application service.",
+    )
+    service: Optional[Union[Dict, List, Service]] = Field(
+        default=None, description="List of services related to the identified service."
+    )
+    error: Optional[Any] = None
+
+    @field_validator("service")
+    def determine_application_service_type(cls, v):
+        models = [
+            Service,
+        ]
+        if v:
+            for model in models:
+                try:
+                    if isinstance(v, Dict):
+                        v = model(**v)
+                    elif isinstance(v, List):
+                        if all(isinstance(i, Dict) for i in v):
+                            for model in models:
+                                try:
+                                    return [model(**item) for item in v]
+                                except Exception as e:
+                                    print(
+                                        f"Error validating one of the models in the list: {e}"
+                                    )
+                                    continue
+                except Exception as e:
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    pass
+        return v
+
+    @field_validator("cmdb")
+    def determine_cmdb_type(cls, v):
+        models = [
+            CMDB,
+        ]
+        if v:
+            for model in models:
+                try:
+                    if isinstance(v, Dict):
+                        v = model(**v)
+                    elif isinstance(v, List):
+                        if all(isinstance(i, Dict) for i in v):
+                            for model in models:
+                                try:
+                                    return [model(**item) for item in v]
+                                except Exception as e:
+                                    print(
+                                        f"Error validating one of the models in the list: {e}"
+                                    )
+                                    continue
+                except Exception as e:
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    pass
+        return v
+
+    @field_validator("result")
+    def determine_result_type(cls, v):
+        models = [
+            BatchInstallResult,
+            List[ChangeRequest],
+            ChangeRequest,
+            CICD,
+            CMDB,
+            List[ConfigurationItem],
+            ConfigurationItem,
+            List[ImportSetResult],
+            ImportSetResult,
+            Schedule,
+            List[State],
+            State,
+            List[Task],
+            Task,
+            Table,
+        ]
+        if v:
+            for model in models:
+                try:
+                    if isinstance(v, Dict):
+                        v = model(**v)
+                    elif isinstance(v, List):
+                        if all(isinstance(i, Dict) for i in v):
+                            for model in models:
+                                try:
+                                    return [model(**item) for item in v]
+                                except Exception:
+                                    continue
+                except Exception as e:
+                    print(f"Validation Failed for {model} - {v}\nError: {e}")
+                    pass
+        return v
