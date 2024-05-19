@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import requests
-import json
 import urllib3
 from base64 import b64encode
 from pydantic import ValidationError
@@ -149,12 +148,12 @@ class Api(object):
                 url=self.auth_url, data=refresh_data, headers=self.auth_headers
             )
             response.raise_for_status()
-            data = response.json()
-            token = Response(**data)
-            self.token = token.access_token
+            response = response.json()
+            response = Response(**response)
+            self.token = response.access_token
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
-        return token
+        return response
 
     ####################################################################################################################
     #                                         Application Service API                                                  #
@@ -182,8 +181,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -213,8 +212,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -246,8 +245,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -276,8 +275,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -306,8 +305,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -338,12 +337,12 @@ class Api(object):
                 url=f"{self.url}/sn_cicd/app/batch/install",
                 headers=self.headers,
                 verify=self.verify,
-                data=json.dumps(cicd.data, indent=2),
+                json=cicd.data,
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -372,8 +371,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -411,8 +410,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -447,8 +446,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -481,8 +480,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -503,8 +502,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -535,8 +534,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -565,8 +564,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -597,13 +596,13 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}",
                 headers=self.headers,
-                data=json.dumps(cicd.data, indent=2),
+                json=cicd.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -632,8 +631,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -662,8 +661,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -699,8 +698,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -738,8 +737,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -779,8 +778,8 @@ class Api(object):
                 proxies=self.proxies,
             )
             response.raise_for_status()
-            data = response.json()
-            response = Response(**data)
+            response = response.json()
+            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         return response
@@ -1433,7 +1432,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change{change_type}{standard_change_template_id}",
                 headers=self.headers,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1471,7 +1470,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/sn_chg_rest/change/task",
                 headers=self.headers,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1516,7 +1515,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1653,7 +1652,7 @@ class Api(object):
                 f"/change/{change_request.change_request_sys_id}/approvals",
                 headers=self.headers,
                 verify=self.verify,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 proxies=self.proxies,
             )
             response.raise_for_status()
@@ -1700,7 +1699,7 @@ class Api(object):
                 url=f"{self.url}/sn_chg_rest"
                 f"/change{change_type}/{change_request.change_request_sys_id}",
                 headers=self.headers,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1777,7 +1776,7 @@ class Api(object):
                 f"/sn_chg_rest/change/{change_request.change_request_sys_id}"
                 f"/task/{change_request.change_request_task_sys_id}",
                 headers=self.headers,
-                data=json.dumps(change_request.data, indent=2),
+                json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -1988,7 +1987,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}",
                 headers=self.headers,
-                data=json.dumps(import_set.data, indent=2),
+                json=import_set.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -2022,7 +2021,7 @@ class Api(object):
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}/insertMultiple",
                 headers=self.headers,
-                data=json.dumps(import_set.data, indent=2),
+                json=import_set.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
@@ -2088,7 +2087,7 @@ class Api(object):
                 url=f"{self.url}/now/table/incident",
                 headers=self.headers,
                 verify=self.verify,
-                data=json.dumps(incident.data, indent=2),
+                json=incident.data,
             )
             response.raise_for_status()
             response = response.json()
@@ -2479,7 +2478,7 @@ class Api(object):
         try:
             response = self._session.patch(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
-                data=json.dumps(table.data, indent=2),
+                json=table.data,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2519,7 +2518,7 @@ class Api(object):
         try:
             response = self._session.put(
                 url=f"{self.url}/now/table/{table}/{table.table_record_sys_id}",
-                data=json.dumps(table.data, indent=2),
+                json=table.data,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2553,7 +2552,7 @@ class Api(object):
         try:
             response = self._session.post(
                 url=f"{self.url}/now/table/{table}",
-                data=json.dumps(table.data, indent=2),
+                json=table.data,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
