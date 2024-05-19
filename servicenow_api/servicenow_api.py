@@ -1647,6 +1647,7 @@ class Api(object):
         if change_request.change_request_sys_id is None or change_request.state is None:
             raise MissingParameterError
         try:
+            print(f"DATA: {change_request.data}")
             response = self._session.patch(
                 url=f"{self.url}/sn_chg_rest"
                 f"/change/{change_request.change_request_sys_id}/approvals",
