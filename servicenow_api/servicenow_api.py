@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
+from typing import Union
 
 import requests
 import urllib3
@@ -48,6 +49,10 @@ except ModuleNotFoundError:
         ParameterError,
         MissingParameterError,
     )
+try:
+    from servicenow_api.utils import process_response
+except ModuleNotFoundError:
+    from utils import process_response
 
 
 class Api(object):
@@ -129,7 +134,7 @@ class Api(object):
             raise ParameterError
 
     @require_auth
-    def refresh_auth_token(self) -> Response:
+    def refresh_auth_token(self) -> Union[Response, requests.Response]:
         """
         Refresh the authentication token
         :param kwargs:
@@ -147,19 +152,17 @@ class Api(object):
             response = requests.post(
                 url=self.auth_url, data=refresh_data, headers=self.auth_headers
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
-            self.token = response.access_token
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
+        self.token = response.access_token
         return response
 
     ####################################################################################################################
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
-    def get_application(self, **kwargs) -> Response:
+    def get_application(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get information about an application.
 
@@ -180,18 +183,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                                   CMDB API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_cmdb(self, **kwargs) -> Response:
+    def get_cmdb(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get Configuration Management Database (CMDB) information based on specified parameters.
 
@@ -211,18 +212,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                                  CI/CD API                                                       #
     ####################################################################################################################
     @require_auth
-    def batch_install_result(self, **kwargs) -> Response:
+    def batch_install_result(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get the result of a batch installation based on the provided result ID.
 
@@ -244,15 +243,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def instance_scan_progress(self, **kwargs) -> Response:
+    def instance_scan_progress(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get progress information for an instance scan based on the provided progress ID.
 
@@ -274,15 +271,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def progress(self, **kwargs) -> Response:
+    def progress(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get progress information based on the provided progress ID.
 
@@ -304,15 +299,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def batch_install(self, **kwargs) -> Response:
+    def batch_install(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Initiate a batch installation with the provided parameters.
 
@@ -340,15 +333,13 @@ class Api(object):
                 json=cicd.data,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def batch_rollback(self, **kwargs) -> Response:
+    def batch_rollback(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Rollback a batch installation based on the provided rollback ID.
 
@@ -370,15 +361,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def app_repo_install(self, **kwargs) -> Response:
+    def app_repo_install(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Install an application from the repository based on the provided parameters.
 
@@ -409,15 +398,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def app_repo_publish(self, **kwargs) -> Response:
+    def app_repo_publish(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Publish an application to the repository based on the provided parameters.
 
@@ -445,15 +432,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def app_repo_rollback(self, **kwargs) -> Response:
+    def app_repo_rollback(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Rollback an application in the repository based on the provided parameters.
 
@@ -479,15 +464,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def full_scan(self) -> Response:
+    def full_scan(self) -> Union[Response, requests.Response]:
         """
         Initiate a full instance scan.
 
@@ -501,15 +484,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def point_scan(self, **kwargs) -> Response:
+    def point_scan(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Initiate a point instance scan based on the provided parameters.
 
@@ -533,15 +514,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def combo_suite_scan(self, **kwargs) -> Response:
+    def combo_suite_scan(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Initiate a suite scan for a combo based on the provided combo_sys_id.
 
@@ -563,15 +542,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def suite_scan(self, **kwargs) -> Response:
+    def suite_scan(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Initiate a suite scan based on the provided suite_sys_id and sys_ids.
 
@@ -600,15 +577,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def activate_plugin(self, **kwargs) -> Response:
+    def activate_plugin(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Activate a plugin based on the provided plugin_id.
 
@@ -630,15 +605,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def rollback_plugin(self, **kwargs) -> Response:
+    def rollback_plugin(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Rollback a plugin based on the provided plugin_id.
 
@@ -660,15 +633,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def apply_remote_source_control_changes(self, **kwargs) -> Response:
+    def apply_remote_source_control_changes(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Apply remote source control changes based on the provided parameters.
 
@@ -697,15 +670,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def import_repository(self, **kwargs) -> Response:
+    def import_repository(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Import a repository based on the provided parameters.
 
@@ -736,15 +707,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def run_test_suite(self, **kwargs) -> Response:
+    def run_test_suite(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Run a test suite based on the provided parameters.
 
@@ -777,18 +746,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, **kwargs) -> Response:
+    def get_change_requests(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve change requests based on specified parameters.
 
@@ -830,9 +797,8 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
@@ -842,15 +808,13 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    second_response.raise_for_status()
-                    second_response = second_response.json()
-                    second_response = Response(**second_response)
-                    response.result.extend(second_response.result)
-                    change_request.sysparm_offset = (
-                        change_request.sysparm_offset + change_request.sysparm_limit
-                    )
                 except ValidationError or Exception as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
+                second_response = process_response(response=second_response)
+                response.result.extend(second_response.result)
+                change_request.sysparm_offset = (
+                    change_request.sysparm_offset + change_request.sysparm_limit
+                )
         else:
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest"
@@ -859,13 +823,14 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
         return response
 
     @require_auth
-    def get_change_request_nextstate(self, **kwargs) -> Response:
+    def get_change_request_nextstate(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve the next state of a specific change request.
 
@@ -890,15 +855,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_change_request_schedule(self, **kwargs) -> Response:
+    def get_change_request_schedule(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve the schedule of a change request based on CI sys ID.
 
@@ -923,15 +888,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_change_request_tasks(self, **kwargs) -> Response:
+    def get_change_request_tasks(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve tasks associated with a specific change request.
 
@@ -971,9 +934,8 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
@@ -984,15 +946,13 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    second_response.raise_for_status()
-                    second_response = second_response.json()
-                    second_response = Response(**second_response)
-                    response.result.extend(second_response.result)
-                    change_request.sysparm_offset = (
-                        change_request.sysparm_offset + change_request.sysparm_limit
-                    )
                 except ValidationError or Exception as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
+                second_response = process_response(response=second_response)
+                response.result.extend(second_response.result)
+                change_request.sysparm_offset = (
+                    change_request.sysparm_offset + change_request.sysparm_limit
+                )
         else:
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest"
@@ -1002,13 +962,12 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
         return response
 
     @require_auth
-    def get_change_request(self, **kwargs) -> Response:
+    def get_change_request(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve details of a specific change request.
 
@@ -1090,7 +1049,7 @@ class Api(object):
         return response
 
     @require_auth
-    def get_change_request_ci(self, **kwargs) -> Response:
+    def get_change_request_ci(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve the configuration item (CI) associated with a change request.
 
@@ -1115,15 +1074,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_change_request_conflict(self, **kwargs) -> Response:
+    def get_change_request_conflict(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve conflict information associated with a change request.
 
@@ -1148,15 +1107,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_standard_change_request_templates(self, **kwargs) -> Response:
+    def get_standard_change_request_templates(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve standard change request templates based on specified parameters.
 
@@ -1192,9 +1151,8 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
@@ -1204,15 +1162,13 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    second_response.raise_for_status()
-                    second_response = second_response.json()
-                    second_response = Response(**second_response)
-                    response.result.extend(second_response.result)
-                    change_request.sysparm_offset = (
-                        change_request.sysparm_offset + change_request.sysparm_limit
-                    )
                 except ValidationError or Exception as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
+                second_response = process_response(response=second_response)
+                response.result.extend(second_response.result)
+                change_request.sysparm_offset = (
+                    change_request.sysparm_offset + change_request.sysparm_limit
+                )
         else:
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}",
@@ -1220,13 +1176,12 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
         return response
 
     @require_auth
-    def get_change_request_models(self, **kwargs) -> Response:
+    def get_change_request_models(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve change request models based on specified parameters.
 
@@ -1261,9 +1216,8 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
@@ -1273,15 +1227,13 @@ class Api(object):
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                    second_response.raise_for_status()
-                    second_response = second_response.json()
-                    second_response = Response(**second_response)
-                    response.result.extend(second_response.result)
-                    change_request.sysparm_offset = (
-                        change_request.sysparm_offset + change_request.sysparm_limit
-                    )
                 except ValidationError or Exception as e:
                     raise ParameterError(f"Invalid parameters: {e.errors()}")
+                second_response = process_response(response=second_response)
+                response.result.extend(second_response.result)
+                change_request.sysparm_offset = (
+                    change_request.sysparm_offset + change_request.sysparm_limit
+                )
         else:
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest"
@@ -1290,13 +1242,14 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
+            response = process_response(response=response)
+
         return response
 
     @require_auth
-    def get_standard_change_request_model(self, **kwargs) -> Response:
+    def get_standard_change_request_model(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve details of a standard change request model.
 
@@ -1321,15 +1274,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_standard_change_request_template(self, **kwargs) -> Response:
+    def get_standard_change_request_template(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Retrieve details of a standard change request template.
 
@@ -1354,15 +1307,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_change_request_worker(self, **kwargs) -> Response:
+    def get_change_request_worker(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve details of a change request worker.
 
@@ -1387,15 +1338,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def create_change_request(self, **kwargs) -> Response:
+    def create_change_request(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Create a new change request.
 
@@ -1436,15 +1385,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def create_change_request_task(self, **kwargs) -> Response:
+    def create_change_request_task(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Create a new task associated with a change request.
 
@@ -1474,15 +1423,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def create_change_request_ci_association(self, **kwargs) -> Response:
+    def create_change_request_ci_association(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Create associations between a change request and configuration items (CIs).
 
@@ -1519,15 +1468,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def calculate_standard_change_request_risk(self, **kwargs) -> Response:
+    def calculate_standard_change_request_risk(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Calculate and update the risk of a standard change request.
 
@@ -1552,15 +1501,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def check_change_request_conflict(self, **kwargs) -> Response:
+    def check_change_request_conflict(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Check for conflicts in a change request.
 
@@ -1585,15 +1534,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def refresh_change_request_impacted_services(self, **kwargs) -> Response:
+    def refresh_change_request_impacted_services(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Refresh impacted services for a change request.
 
@@ -1618,15 +1567,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def approve_change_request(self, **kwargs) -> Response:
+    def approve_change_request(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Approve or reject a change request.
 
@@ -1656,15 +1603,13 @@ class Api(object):
                 json=change_request.data,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def update_change_request(self, **kwargs) -> Response:
+    def update_change_request(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Update details of a change request.
 
@@ -1704,15 +1649,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def update_change_request_first_available(self, **kwargs) -> Response:
+    def update_change_request_first_available(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Update the schedule of a change request to the first available slot.
 
@@ -1738,15 +1683,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def update_change_request_task(self, **kwargs) -> Response:
+    def update_change_request_task(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Update details of a task associated with a change request.
 
@@ -1781,13 +1726,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def delete_change_request(self, **kwargs) -> Response:
+    def delete_change_request(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Delete a change request.
 
@@ -1848,10 +1793,13 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def delete_change_request_task(self, **kwargs) -> Response:
+    def delete_change_request_task(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Delete a task associated with a change request.
 
@@ -1883,15 +1831,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def delete_change_request_conflict_scan(self, **kwargs) -> Response:
+    def delete_change_request_conflict_scan(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Delete conflict scan information associated with a change request.
 
@@ -1922,18 +1870,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_import_set(self, **kwargs) -> Response:
+    def get_import_set(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get details of a specific import set record.
 
@@ -1958,15 +1904,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def insert_import_set(self, **kwargs) -> Response:
+    def insert_import_set(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Insert a new record into the specified import set.
 
@@ -1992,15 +1936,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def insert_multiple_import_sets(self, **kwargs) -> Response:
+    def insert_multiple_import_sets(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Insert multiple records into the specified import set.
 
@@ -2026,18 +1970,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                               Incident API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_incident(self, **kwargs) -> Response:
+    def get_incident(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve details of a specific incident record.
 
@@ -2060,15 +2002,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def create_incident(self, **kwargs) -> Response:
+    def create_incident(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Create a new incident record.
 
@@ -2090,18 +2030,16 @@ class Api(object):
                 verify=self.verify,
                 json=incident.data,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                       Knowledge Management API                                                   #
     ####################################################################################################################
     @require_auth
-    def get_knowledge_articles(self, **kwargs) -> Response:
+    def get_knowledge_articles(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get all Knowledge Base articles.
 
@@ -2146,15 +2084,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_knowledge_article(self, **kwargs) -> Response:
+    def get_knowledge_article(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get Knowledge Base article.
 
@@ -2208,15 +2144,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_knowledge_article_attachment(self, **kwargs) -> Response:
+    def get_knowledge_article_attachment(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Get Knowledge Base article.
 
@@ -2240,15 +2176,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_featured_knowledge_article(self, **kwargs) -> Response:
+    def get_featured_knowledge_article(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Get Knowledge Base article.
 
@@ -2281,15 +2217,15 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_most_viewed_knowledge_articles(self, **kwargs) -> Response:
+    def get_most_viewed_knowledge_articles(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
         """
         Get Knowledge Base article.
 
@@ -2321,18 +2257,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     ####################################################################################################################
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, **kwargs) -> Response:
+    def delete_table_record(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Delete a record from the specified table.
 
@@ -2356,15 +2290,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_table(self, **kwargs) -> Response:
+    def get_table(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get records from the specified table based on provided parameters.
 
@@ -2411,15 +2343,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def get_table_record(self, **kwargs) -> Response:
+    def get_table_record(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Get a specific record from the specified table.
 
@@ -2443,15 +2373,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def patch_table_record(self, **kwargs) -> Response:
+    def patch_table_record(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Partially update a record in the specified table.
 
@@ -2484,15 +2412,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def update_table_record(self, **kwargs) -> Response:
+    def update_table_record(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Fully update a record in the specified table.
 
@@ -2524,15 +2450,13 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()
-            response = response.json()
-            response = Response(**response)
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
 
     @require_auth
-    def add_table_record(self, **kwargs) -> Response:
+    def add_table_record(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Add a new record to the specified table.
 
@@ -2560,4 +2484,5 @@ class Api(object):
             )
         except ValidationError or Exception as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}")
+        response = process_response(response=response)
         return response
