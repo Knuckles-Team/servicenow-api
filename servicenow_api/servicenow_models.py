@@ -886,6 +886,13 @@ class FieldValue(BaseModel):
     )
 
 
+class ItemValue(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    sys_id: str = Field(default=None, description="Sys Id of the value")
+    name: str = Field(default=None, description="Name of the value")
+
+
 class BatchItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
@@ -1650,7 +1657,7 @@ class Item(BaseModel):
     className: Optional[str] = Field(
         default=None, description="Name of the class that contains the CI."
     )
-    values: Optional[FieldValue] = Field(
+    values: Optional[ItemValue] = Field(
         default=None, description="Information to use to locate an associated CI."
     )
 
@@ -1766,6 +1773,28 @@ class IdentificationRule(BaseModel):
     )
     is_independent: Optional[bool] = Field(
         default=None, description="Indicates if the rule is independent."
+    )
+    condition: Optional[str] = Field(
+        None, description="Condition for the identification rule."
+    )
+    exact_count_match: Optional[bool] = Field(
+        None, description="Indicates if an exact count match is required."
+    )
+    referenced_field: Optional[str] = Field(
+        None, description="Referenced field for the identification rule."
+    )
+    attributes: Optional[str] = Field(
+        None, description="Attributes involved in the identification rule."
+    )
+    allow_fallback: Optional[bool] = Field(
+        None, description="Indicates if fallback is allowed."
+    )
+    table: Optional[str] = Field(
+        None, description="Table involved in the identification rule."
+    )
+    order: Optional[int] = Field(None, description="Order of the identification rule.")
+    allow_null_attribute: Optional[bool] = Field(
+        None, description="Indicates if null attributes are allowed."
     )
 
 
@@ -1928,6 +1957,7 @@ class CMDB(BaseModel):
 class ServiceRelation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
+    base_type: str = Field(default="ServiceRelation")
     parent: str = Field(
         default=None, description="Name of a parent CI related to the CI."
     )
@@ -1939,6 +1969,7 @@ class ServiceRelation(BaseModel):
 class Service(BaseModel):
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
+    base_type: str = Field(default="Service")
     name: str = Field(default=None, description="Name of the application service.")
     url: str = Field(
         default=None, description="Relative path to the application service."
@@ -1949,23 +1980,29 @@ class Service(BaseModel):
     )
 
 
-class ApplicationService(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    __hash__ = object.__hash__
-    base_type: str = Field(default="ApplicationService")
-    cmdb: CMDB = Field(
-        default=None,
-        description="List of objects that describe the CIs associated with the specified application service.",
-    )
-    service: Service = Field(
-        default=None, description="List of services related to the identified service."
-    )
-
-
 class Table(BaseModel):
     model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Table")
+
+
+class ImportSetResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="ImportSetResult")
+    display_name: Optional[str] = Field(
+        None, description="Display name of the import set."
+    )
+    display_value: Optional[str] = Field(None, description="Value of the import set.")
+    record_link: Optional[str] = Field(
+        None, description="Table API GET request for the imported record."
+    )
+    status: Optional[str] = Field(None, description="Status of the import.")
+    sys_id: Optional[str] = Field(None, description="Sys_id of the import record.")
+    table: Optional[str] = Field(
+        None, description="Name of the table in which the data was imported."
+    )
+    transform_map: Optional[str] = Field(None, description="Name of the transform map.")
 
 
 class Token(BaseModel):
@@ -2000,6 +2037,10 @@ class Token(BaseModel):
 
 
 class Response(BaseModel):
+    import_set: Optional[str] = Field(None, description="Name of the import set.")
+    staging_table: Optional[str] = Field(
+        None, description="Name of the import staging table."
+    )
     result: Optional[
         Union[
             Dict,
@@ -2011,6 +2052,8 @@ class Response(BaseModel):
             CMDB,
             List[ConfigurationItem],
             ConfigurationItem,
+            List[ImportSetResult],
+            ImportSetResult,
             Schedule,
             List[State],
             State,
@@ -2019,14 +2062,68 @@ class Response(BaseModel):
             Table,
         ]
     ] = Field(default=None, description="Result containing available responses.")
-    cmdb: Optional[CMDB] = Field(
+    cmdb: Optional[Union[Dict, List, CMDB]] = Field(
         default=None,
         description="List of objects that describe the CIs associated with the specified application service.",
     )
-    service: Optional[Service] = Field(
+    service: Optional[Union[Dict, List, Service]] = Field(
         default=None, description="List of services related to the identified service."
     )
     error: Optional[Any] = None
+
+    @field_validator("service")
+    def determine_application_service_type(cls, v):
+        models = [
+            Service,
+        ]
+        if v:
+            for model in models:
+                try:
+                    print(f"VALIDATING FOR {model} - {v}")
+                    if isinstance(v, Dict):
+                        v = model(**v)
+                    elif isinstance(v, List):
+                        if all(isinstance(i, Dict) for i in v):
+                            for model in models:
+                                try:
+                                    return [model(**item) for item in v]
+                                except Exception as e:
+                                    print(
+                                        f"Error validating one of the models in the list: {e}"
+                                    )
+                                    continue
+                    print(f"VALIDATION FOR {model} - {v}")
+                except Exception as e:
+                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    pass
+        return v
+
+    @field_validator("cmdb")
+    def determine_cmdb_type(cls, v):
+        models = [
+            CMDB,
+        ]
+        if v:
+            for model in models:
+                try:
+                    print(f"VALIDATING FOR {model} - {v}")
+                    if isinstance(v, Dict):
+                        v = model(**v)
+                    elif isinstance(v, List):
+                        if all(isinstance(i, Dict) for i in v):
+                            for model in models:
+                                try:
+                                    return [model(**item) for item in v]
+                                except Exception as e:
+                                    print(
+                                        f"Error validating one of the models in the list: {e}"
+                                    )
+                                    continue
+                    print(f"VALIDATION FOR {model} - {v}")
+                except Exception as e:
+                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    pass
+        return v
 
     @field_validator("result")
     def determine_result_type(cls, v):
@@ -2038,6 +2135,8 @@ class Response(BaseModel):
             CMDB,
             List[ConfigurationItem],
             ConfigurationItem,
+            List[ImportSetResult],
+            ImportSetResult,
             Schedule,
             List[State],
             State,
@@ -2059,8 +2158,8 @@ class Response(BaseModel):
                                 except Exception:
                                     # print(f"Error validating one of the models in the list: {e}")
                                     continue
-                    # print(f"VALIDATION FOR {model} - {v}")
-                except Exception:
-                    # print(f"FAILED FOR {model} - {v}\nERROR: {e}")
+                    print(f"VALIDATION FOR {model} - {v}")
+                except Exception as e:
+                    print(f"FAILED FOR {model} - {v}\nERROR: {e}")
                     pass
         return v

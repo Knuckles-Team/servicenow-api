@@ -1072,7 +1072,7 @@ def test_servicenow_change_request_responses():
 @pytest.mark.skipif(
     sys.platform in ["darwin"] or skip,
     reason=reason,
-    )
+)
 def test_servicenow_table_responses():
     print("TEST - Table Response")
     example_data = {
@@ -1080,7 +1080,7 @@ def test_servicenow_table_responses():
             "upon_approval": "",
             "location": {
                 "link": "https://instance.servicenow.com/api/now/table/cmn_location/105cf7f3c611227501e75e08b14a38ba",
-                "value": "105cf7f3c611227501e75e08b14a38ba"
+                "value": "105cf7f3c611227501e75e08b14a38ba",
             },
             "expected_start": "",
             "reopen_count": "",
@@ -1092,7 +1092,7 @@ def test_servicenow_table_responses():
             "sys_tags": "",
             "sys_domain": {
                 "link": "https://instance.servicenow.com/api/now/table/sys_user_group/global",
-                "value": "global"
+                "value": "global",
             },
             "description": "",
             "group_list": "",
@@ -1122,11 +1122,11 @@ def test_servicenow_table_responses():
             "due_date": "",
             "assignment_group": {
                 "link": "https://instance.servicenow.com/api/now/table/sys_user_group/8a4dde73c6112278017a6a4baf547aa7",
-                "value": "8a4dde73c6112278017a6a4baf547aa7"
+                "value": "8a4dde73c6112278017a6a4baf547aa7",
             },
             "caller_id": {
                 "link": "https://instance.servicenow.com/api/now/table/sys_user/46c6f9efa9fe198101ddf5eed9adf6e7",
-                "value": "46c6f9efa9fe198101ddf5eed9adf6e7"
+                "value": "46c6f9efa9fe198101ddf5eed9adf6e7",
             },
             "knowledge": "false",
             "made_sla": "false",
@@ -1149,7 +1149,7 @@ def test_servicenow_table_responses():
             "approval_history": "",
             "problem_id": {
                 "link": "https://instance.servicenow.com/api/now/table/problem/a9e4890bc6112276003d7a5a5c774a74",
-                "value": "a9e4890bc6112276003d7a5a5c774a74"
+                "value": "a9e4890bc6112276003d7a5a5c774a74",
             },
             "work_notes": "",
             "calendar_duration": "",
@@ -1166,11 +1166,11 @@ def test_servicenow_table_responses():
             "sys_domain_path": "/",
             "cmdb_ci": {
                 "link": "https://instance.servicenow.com/api/now/table/cmdb_ci/a9c0c8d2c6112276018f7705562f9cb0",
-                "value": "a9c0c8d2c6112276018f7705562f9cb0"
+                "value": "a9c0c8d2c6112276018f7705562f9cb0",
             },
             "opened_by": {
                 "link": "https://instance.servicenow.com/api/now/table/sys_user/46c6f9efa9fe198101ddf5eed9adf6e7",
-                "value": "46c6f9efa9fe198101ddf5eed9adf6e7"
+                "value": "46c6f9efa9fe198101ddf5eed9adf6e7",
             },
             "subcategory": "",
             "rejection_goto": "",
@@ -1179,13 +1179,310 @@ def test_servicenow_table_responses():
             "time_worked": "",
             "contact_type": "phone",
             "escalation": "0",
-            "comments": ""
+            "comments": "",
         }
     }
     response = Response(**example_data)
     assert response.result.sys_class_name == "incident"
-    assert response.result.cmdb_ci['value'] == "a9c0c8d2c6112276018f7705562f9cb0"
+    assert response.result.cmdb_ci["value"] == "a9c0c8d2c6112276018f7705562f9cb0"
     assert response.result.base_type == "Table"
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_servicenow_service_responses():
+    print("TEST - Table Response")
+    example_data = {
+        "service": {
+            "name": "PeopleSoft Portals",
+            "url": "/api/now/table/cmdb_ci_service_discovered/2fce42d80a0a0bb4004af34d7e3984c8",
+            "service_relations": [
+                {"parent": "", "child": "3a2810c20a0a0bb400268337d6e942ca"},
+                {
+                    "parent": "3a27f1520a0a0bb400ecd6ff7afcf036",
+                    "child": "3a5dd3dbc0a8ce0100655f1ec66ed42c",
+                },
+                {
+                    "parent": "3a290cc60a0a0bb400000bdb386af1cf",
+                    "child": "3a307c930a0a0bb400353965d0b8861f",
+                },
+                {
+                    "parent": "3a172e820a0a0bb40034228e9f65f1be",
+                    "child": "3a27d4370a0a0bb4006316812bf45439",
+                },
+                {"parent": "", "child": "3a172e820a0a0bb40034228e9f65f1be"},
+                {"parent": "", "child": "3a27f1520a0a0bb400ecd6ff7afcf036"},
+                {
+                    "parent": "3a2810c20a0a0bb400268337d6e942ca",
+                    "child": "3a290cc60a0a0bb400000bdb386af1cf",
+                },
+            ],
+        },
+        "cmdb": {
+            "relations": [],
+            "items": [
+                {
+                    "values": {
+                        "sys_id": "3a172e820a0a0bb40034228e9f65f1be",
+                        "name": "PS LoadBal01",
+                    },
+                    "className": "cmdb_ci_win_server",
+                },
+                {
+                    "values": {
+                        "sys_id": "3a2810c20a0a0bb400268337d6e942ca",
+                        "name": "PS Apache03",
+                    },
+                    "className": "cmdb_ci_web_server",
+                },
+                {
+                    "values": {
+                        "sys_id": "55b35562c0a8010e01cff22378e0aea9",
+                        "name": "ny8500-nbxs08",
+                    },
+                    "className": "cmdb_ci_netgear",
+                },
+                {
+                    "values": {
+                        "sys_id": "3a27f1520a0a0bb400ecd6ff7afcf036",
+                        "name": "PS Apache02",
+                    },
+                    "className": "cmdb_ci_web_server",
+                },
+                {
+                    "values": {
+                        "sys_id": "3a307c930a0a0bb400353965d0b8861f",
+                        "name": "PS ORA01",
+                    },
+                    "className": "cmdb_ci_database",
+                },
+            ],
+        },
+    }
+    response = Response(**example_data)
+    assert response.service.name == "PeopleSoft Portals"
+    assert response.cmdb.items[1].values.sys_id == "3a2810c20a0a0bb400268337d6e942ca"
+    assert response.service.base_type == "Service"
+    assert response.cmdb.base_type == "CMDB"
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_servicenow_cmdb_responses():
+    print("TEST - CMDB META RESPONSE")
+    example_data = {
+        "result": {
+            "icon_url": "images/app.ngbsm/computer.svg",
+            "is_extendable": True,
+            "parent": "cmdb_ci_hardware",
+            "children": [
+                "cmdb_ci_ucs_blade",
+                "cmdb_ci_pc_hardware",
+                "cmdb_ci_ucs_rack_unit",
+                "cmdb_ci_mainframe_hardware",
+                "cmdb_ci_server",
+                "cmdb_ci_storage_switch",
+            ],
+            "name": "cmdb_ci_computer",
+            "icon": "c6442dd69fb00200eb3919eb552e7012",
+            "attributes": [
+                {
+                    "is_inherited": "false",
+                    "is_mandatory": "false",
+                    "is_read_only": "false",
+                    "default_value": None,
+                    "label": "OS Address Width (bits)",
+                    "type": "integer",
+                    "element": "os_address_width",
+                    "max_length": "40",
+                    "is_display": "false",
+                },
+                {
+                    "is_inherited": "true",
+                    "is_mandatory": "false",
+                    "is_read_only": "true",
+                    "default_value": "false",
+                    "label": "Skip sync",
+                    "type": "boolean",
+                    "element": "skip_sync",
+                    "max_length": "40",
+                    "is_display": "false",
+                },
+                {
+                    "is_inherited": "true",
+                    "is_mandatory": "false",
+                    "is_read_only": "false",
+                    "default_value": None,
+                    "label": "DNS Domain",
+                    "type": "string",
+                    "element": "dns_domain",
+                    "max_length": "255",
+                    "is_display": "false",
+                },
+                {
+                    "is_inherited": "true",
+                    "is_mandatory": "false",
+                    "is_read_only": "false",
+                    "default_value": None,
+                    "label": "Purchased",
+                    "type": "glide_date",
+                    "element": "purchase_date",
+                    "max_length": "40",
+                    "is_display": "false",
+                },
+                {
+                    "is_inherited": "true",
+                    "is_mandatory": "false",
+                    "is_read_only": "false",
+                    "default_value": None,
+                    "label": "Lease contract",
+                    "type": "string",
+                    "element": "lease_id",
+                    "max_length": "40",
+                    "is_display": "false",
+                },
+            ],
+            "relationship_rules": [
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "cb5592603751200032ff8c00dfbe5d17",
+                    "child": "dscy_route_next_hop",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "cb5592603751200032ff8c00dfbe5d17",
+                    "child": "dscy_router_interface",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "cb5592603751200032ff8c00dfbe5d17",
+                    "child": "dscy_route_interface",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "55c95bf6c0a8010e0118ec7056ebc54d",
+                    "child": "cmdb_ci_storage_pool",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "55c95bf6c0a8010e0118ec7056ebc54d",
+                    "child": "cmdb_ci_disk_partition",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "55c95bf6c0a8010e0118ec7056ebc54d",
+                    "child": "cmdb_ci_storage_volume",
+                },
+                {
+                    "parent": "cmdb_ci_computer",
+                    "relation_type": "55c95bf6c0a8010e0118ec7056ebc54d",
+                    "child": "cmdb_ci_storage_device",
+                },
+            ],
+            "label": "Computer",
+            "identification_rules": {
+                "related_rules": [
+                    {
+                        "condition": "",
+                        "exact_count_match": False,
+                        "referenced_field": "installed_on",
+                        "active": True,
+                        "attributes": "name",
+                        "allow_fallback": False,
+                        "table": "cmdb_print_queue_instance",
+                        "order": 100,
+                        "allow_null_attribute": False,
+                    }
+                ],
+                "applies_to": "cmdb_ci_hardware",
+                "identifiers": [
+                    {
+                        "condition": "valid=true^absent=false^EQ",
+                        "exact_count_match": True,
+                        "referenced_field": "cmdb_ci",
+                        "active": True,
+                        "attributes": "serial_number,serial_number_type",
+                        "allow_fallback": False,
+                        "table": "cmdb_serial_number",
+                        "order": 100,
+                        "allow_null_attribute": False,
+                    },
+                    {
+                        "condition": None,
+                        "exact_count_match": False,
+                        "referenced_field": None,
+                        "active": True,
+                        "attributes": "serial_number",
+                        "allow_fallback": False,
+                        "table": None,
+                        "order": 200,
+                        "allow_null_attribute": False,
+                    },
+                    {
+                        "condition": None,
+                        "exact_count_match": False,
+                        "referenced_field": None,
+                        "active": True,
+                        "attributes": "name",
+                        "allow_fallback": False,
+                        "table": None,
+                        "order": 300,
+                        "allow_null_attribute": False,
+                    },
+                    {
+                        "condition": "install_status!=100^EQ",
+                        "exact_count_match": True,
+                        "referenced_field": "cmdb_ci",
+                        "active": True,
+                        "attributes": "ip_address,mac_address",
+                        "allow_fallback": False,
+                        "table": "cmdb_ci_network_adapter",
+                        "order": 400,
+                        "allow_null_attribute": False,
+                    },
+                ],
+                "name": "Hardware Rule",
+                "description": "Identifier for hardware.",
+                "active": True,
+                "is_independent": True,
+            },
+        }
+    }
+    response = Response(**example_data)
+    assert response.result.children[0] == "cmdb_ci_ucs_blade"
+    assert response.result.base_type == "CMDB"
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_servicenow_import_set_responses():
+    print("TEST - Import Set RESPONSE")
+    example_data = {
+        "import_set": "ISET0010001",
+        "staging_table": "imp_user",
+        "result": [
+            {
+                "transform_map": "User",
+                "table": "sys_user",
+                "display_name": "name",
+                "display_value": "John Public",
+                "record_link": "https://instance.service-now.com/api/now/table/sys_user/ea928be64f411200adf9f8e18110c777",
+                "status": "inserted",
+                "sys_id": "ea928be64f411200adf9f8e18110c777",
+            }
+        ],
+    }
+    response = Response(**example_data)
+    assert response.import_set == "ISET0010001"
+    assert response.staging_table == "imp_user"
+    assert response.result[0].table == "sys_user"
+    assert response.result[0].base_type == "ImportSetResult"
 
 
 if __name__ == "__main__":
@@ -1204,7 +1501,7 @@ if __name__ == "__main__":
     test_servicenow_state_responses()
     test_servicenow_change_requests_responses()
     test_servicenow_change_request_responses()
-    #test_servicenow_cmdb_responses()
+    test_servicenow_cmdb_responses()
     test_servicenow_table_responses()
-   #test_servicenow_application_responses()
-    #test_servicenow_incident_responses()
+    test_servicenow_service_responses()
+    test_servicenow_import_set_responses()
