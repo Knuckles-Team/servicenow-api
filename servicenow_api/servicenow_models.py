@@ -389,6 +389,7 @@ class ChangeManagementModel(BaseModel):
 
     model_config = ConfigDict(validate_assignment=True)
     change_request_sys_id: Optional[str] = None
+    change_request_task_sys_id: Optional[str] = None
     state: Optional[str] = None
     cmdb_ci_sys_ids: Optional[List[str]] = None
     cmdb_ci_sys_id: Optional[str] = None
