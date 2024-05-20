@@ -1018,7 +1018,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         elif (
             change_request.change_type
             and isinstance(change_request.change_type, str)
@@ -1034,7 +1034,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         elif (
             change_request.change_type
             and isinstance(change_request.change_type, str)
@@ -1050,7 +1050,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         else:
             try:
                 response = self._session.get(
@@ -1062,7 +1062,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         response.raise_for_status()
         response = response.json()
         response = Response(**response)
@@ -1421,8 +1421,8 @@ class Api(object):
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
-        :param name_value_pairs: Name-value pairs providing details for the new task.
-        :type name_value_pairs: dict or None
+        :param data: Name-value pairs providing details for the new task.
+        :type data: dict or None
 
         :return: JSON response containing information about the created task.
         :rtype: dict
@@ -1791,7 +1791,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         elif change_request.change_type and change_request.change_type == "normal":
             try:
                 response = self._session.delete(
@@ -1803,7 +1803,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         elif change_request.change_type and change_request.change_type == "standard":
             try:
                 response = self._session.delete(
@@ -1815,7 +1815,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         else:
             try:
                 response = self._session.delete(
@@ -1827,7 +1827,7 @@ class Api(object):
                 )
             except ValidationError or Exception as e:
                 print(f"Invalid parameters: {e.errors()}")
-            raise e
+                raise e
         response = process_response(response=response)
         return response
 
