@@ -779,10 +779,6 @@ class Api(object):
         :raises ParameterError: If unexpected response format is encountered.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if not change_request.sysparm_limit:
-            change_request.sysparm_limit = 500
-        if not change_request.sysparm_offset:
-            change_request.sysparm_offset = 0
 
         if change_request.change_type:
             change_type = f"/{change_request.change_type}"
@@ -917,10 +913,6 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if not change_request.sysparm_limit:
-            change_request.sysparm_limit = 500
-        if not change_request.sysparm_offset:
-            change_request.sysparm_offset = 0
 
         if change_request.change_request_sys_id is None:
             raise MissingParameterError
@@ -1135,10 +1127,6 @@ class Api(object):
         :raises ParameterError: If JSON deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if not change_request.sysparm_limit:
-            change_request.sysparm_limit = 500
-        if not change_request.sysparm_offset:
-            change_request.sysparm_offset = 0
         if change_request.change_type:
             change_type = f"/{change_request.change_type}"
         else:
@@ -1189,8 +1177,6 @@ class Api(object):
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
         :type name_value_pairs: dict or None
-        change_request.sysparm_limit = 500
-        change_request.sysparm_offset = 0
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
