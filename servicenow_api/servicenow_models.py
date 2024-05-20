@@ -355,7 +355,8 @@ class CICDModel(BaseModel):
         # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
 
-        values["data"] = data
+        if "data" not in values or values["data"] is None:
+            values["data"] = data
         return values
 
 
@@ -565,7 +566,8 @@ class ChangeManagementModel(BaseModel):
         # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
 
-        values["data"] = data
+        if "data" not in values or values["data"] is None:
+            values["data"] = data
         return values
 
 
