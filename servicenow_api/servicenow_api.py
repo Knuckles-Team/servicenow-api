@@ -1432,10 +1432,7 @@ class Api(object):
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.data is None
-        ):
+        if change_request.change_request_sys_id is None or change_request.data is None:
             raise MissingParameterError
         try:
             response = self._session.post(
@@ -1657,10 +1654,7 @@ class Api(object):
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.data is None
-        ):
+        if change_request.change_request_sys_id is None or change_request.data is None:
             raise MissingParameterError
         if change_request.change_type:
             change_type = f"/{change_request.change_type}"
