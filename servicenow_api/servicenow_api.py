@@ -1385,7 +1385,7 @@ class Api(object):
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
         change_request = ChangeManagementModel(**kwargs)
-        if change_request.name_value_pairs is None:
+        if change_request.data is None:
             raise MissingParameterError
         if change_request.standard_change_template_id:
             standard_change_template_id = (
@@ -1434,7 +1434,7 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if (
             change_request.change_request_sys_id is None
-            or change_request.name_value_pairs is None
+            or change_request.data is None
         ):
             raise MissingParameterError
         try:
@@ -1659,7 +1659,7 @@ class Api(object):
         change_request = ChangeManagementModel(**kwargs)
         if (
             change_request.change_request_sys_id is None
-            or change_request.name_value_pairs is None
+            or change_request.data is None
         ):
             raise MissingParameterError
         if change_request.change_type:
@@ -1743,7 +1743,7 @@ class Api(object):
         if (
             change_request.change_request_sys_id is None
             or change_request.change_request_task_sys_id is None
-            or change_request.name_value_pairs is None
+            or change_request.data is None
         ):
             raise MissingParameterError
         try:
