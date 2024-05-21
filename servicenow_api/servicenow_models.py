@@ -2067,8 +2067,12 @@ class Response(BaseModel):
         default=None, description="List of services related to the identified service."
     )
     error: Optional[Any] = None
-    status_code: Union[str, int] = Field(default=None, description="Response status code")
-    json: Optional[Union[List, Dict]] = Field(default=None, description="Response JSON data")
+    status_code: Union[str, int] = Field(
+        default=None, description="Response status code"
+    )
+    json: Optional[Union[List, Dict]] = Field(
+        default=None, description="Response JSON data"
+    )
     raw: Optional[bytes] = Field(default=None, description="Response Raw bytes")
 
     @field_validator("service")
