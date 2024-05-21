@@ -2070,10 +2070,10 @@ class Response(BaseModel):
     status_code: Union[str, int] = Field(
         default=None, description="Response status code"
     )
-    json: Optional[Union[List, Dict]] = Field(
+    json_output: Optional[Union[List, Dict]] = Field(
         default=None, description="Response JSON data"
     )
-    raw: Optional[bytes] = Field(default=None, description="Response Raw bytes")
+    raw_output: Optional[bytes] = Field(default=None, description="Response Raw bytes")
 
     @field_validator("service")
     def determine_application_service_type(cls, v):
