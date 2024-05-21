@@ -151,7 +151,7 @@ def test_servicenow_cicd_responses():
             "rollback_version": "1.1.0",
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.progress.id == "c159b1e9db1c0010b5e3f6c5ae961903"
     assert response.result.base_type == "CICD"
 
@@ -171,7 +171,7 @@ def test_servicenow_cicd_responses():
             "percent_complete": 0,
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.progress.id == "c159b1e9db1c0010b5e3f6c5ae961903"
     assert response.result.status == "0"
     assert response.result.base_type == "CICD"
@@ -197,7 +197,7 @@ def test_servicenow_cicd_responses():
             "percent_complete": 0,
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.results.id == "df24b1e9db2d0110b5e3f6c5ae97c561"
     assert response.result.percent_complete == 0
     assert response.result.base_type == "CICD"
@@ -225,7 +225,7 @@ def test_servicenow_cicd_responses():
             "child_suite_results": [],
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.results.id == "2891389d1b1040103d374087bc4bcb09"
     assert response.result.rolledup_test_skip_count == 0
     assert response.result.base_type == "CICD"
@@ -251,7 +251,7 @@ def test_servicenow_cicd_responses():
         }
     }
 
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.progress.id == "a4fae8911bdc00103d374087bc4bcbbd"
     assert response.result.percent_complete == 100
     assert response.result.base_type == "CICD"
@@ -279,7 +279,7 @@ def test_servicenow_cicd_responses():
             "child_suite_results": [],
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.results.id == "2891389d1b1040103d374087bc4bcb09"
     assert response.result.base_type == "CICD"
 
@@ -324,7 +324,7 @@ def test_servicenow_batch_install_responses():
             ],
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.batch_plan.name == "Release 2.0 IT Operations"
     assert response.result.batch_items[0].name == "com.sn_cicd_spoke"
     assert response.result.base_type == "BatchInstallResult"
@@ -355,7 +355,7 @@ def test_servicenow_install_responses():
             "percent_complete": 100,
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.links.progress.id == "a4fae8911bdc00103d374087bc4bcbbd"
     assert response.result.status == "2"
     assert response.result.percent_complete == 100
@@ -375,7 +375,7 @@ def test_servicenow_oauth_responses():
         "expires_in": 1799,
     }
 
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert (
         response.access_token
         == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
@@ -427,7 +427,7 @@ def test_servicenow_schedule_responses():
             },
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.worker.sysId == "d7d1f2b4a444b010f87712198fe9caae"
     assert response.result.base_type == "Schedule"
 
@@ -680,7 +680,7 @@ def test_servicenow_change_requests_responses():
             }
         ]
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result[0].upon_reject.display_value == "Cancel all future Tasks"
     assert response.result[0].base_type == "ChangeRequest"
 
@@ -747,7 +747,7 @@ def test_servicenow_state_responses():
             "state_label": {"0": "Review", "4": "Canceled", "-1": "Implement"},
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert (
         response.result.state_transitions[0][0].sys_id
         == "7a0d2ccdc343101035ae3f52c1d3ae2e"
@@ -800,7 +800,7 @@ def test_servicenow_task_responses():
             }
         ]
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result[0].sys_id.display_value == "12629ec4b750230096c3e4f6ee11a9d5"
 
 
@@ -1045,7 +1045,7 @@ def test_servicenow_change_request_responses():
         }
     }
 
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.sys_updated_on.display_value == "2015-07-06 11:59:27"
     assert response.result.base_type == "ChangeRequest"
 
@@ -1162,7 +1162,7 @@ def test_servicenow_table_responses():
             "comments": "",
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.sys_class_name == "incident"
     assert response.result.cmdb_ci["value"] == "a9c0c8d2c6112276018f7705562f9cb0"
     assert response.result.base_type == "Table"
@@ -1240,7 +1240,7 @@ def test_servicenow_service_responses():
             ],
         },
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.service.name == "PeopleSoft Portals"
     assert response.cmdb.items[1].values.sys_id == "3a2810c20a0a0bb400268337d6e942ca"
     assert response.service.base_type == "Service"
@@ -1430,7 +1430,7 @@ def test_servicenow_cmdb_responses():
             },
         }
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.children[0] == "cmdb_ci_ucs_blade"
     assert response.result.base_type == "CMDB"
 
@@ -1455,7 +1455,7 @@ def test_servicenow_import_set_responses():
             }
         ],
     }
-    response = Response(**example_data, status_code=200)
+    response = Response(**example_data, status_code=200, json=example_data)
     assert response.import_set == "ISET0010001"
     assert response.staging_table == "imp_user"
     assert response.result[0].table == "sys_user"
