@@ -2067,6 +2067,7 @@ class Response(BaseModel):
         default=None, description="List of services related to the identified service."
     )
     error: Optional[Any] = None
+    status_code: Union[str, int] = Field(default=None, description="Response status code")
 
     @field_validator("service")
     def determine_application_service_type(cls, v):
