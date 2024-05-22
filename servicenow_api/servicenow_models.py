@@ -216,7 +216,6 @@ class CICDModel(BaseModel):
     os_version: Optional[str] = None
     api_parameters: Optional[str] = ""
     data: Dict = Optional[None]
-    sys_ids: Optional[List] = None
 
     @field_validator(
         "result_id", "progress_id", "rollback_id", "name", "notes", "packages"
@@ -238,8 +237,8 @@ class CICDModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator("sys_ids")
-    def validate_sys_ids_parameters(cls, v):
+    @field_validator("app_scope_sys_ids")
+    def validate_app_scope_sys_ids_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are a List
 
