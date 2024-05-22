@@ -53,19 +53,19 @@ def test_servicenow_change():
     assert change.change_request_sys_id == change_request_sys_id
     assert change.sysparm_query == sysparm_query
     assert (
-        change.api_parameters == "?sysparm_query=assignment_group=1234556789asdfv81238a"
+            change.api_parameters == "?sysparm_query=assignment_group=1234556789asdfv81238a"
     )
     change.sysparm_offset = 100
     assert (
-        change.api_parameters
-        == "?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100"
+            change.api_parameters
+            == "?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100"
     )
     change.sysparm_query = ""
     change.name_value_pairs = name_value_pairs
     change.sysparm_offset = 500
     assert (
-        change.api_parameters
-        == "?assignment_group=1234556789asdfv81238a&sysparm_offset=500"
+            change.api_parameters
+            == "?assignment_group=1234556789asdfv81238a&sysparm_offset=500"
     )
 
 
@@ -377,8 +377,8 @@ def test_servicenow_oauth_responses():
 
     response = Response(**example_data, status_code=200, json=example_data)
     assert (
-        response.access_token
-        == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
+            response.access_token
+            == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
     )
 
 
@@ -749,8 +749,8 @@ def test_servicenow_state_responses():
     }
     response = Response(**example_data, status_code=200, json=example_data)
     assert (
-        response.result.state_transitions[0][0].sys_id
-        == "7a0d2ccdc343101035ae3f52c1d3ae2e"
+            response.result.state_transitions[0][0].sys_id
+            == "7a0d2ccdc343101035ae3f52c1d3ae2e"
     )
     assert response.result.base_type == "State"
 
@@ -1244,7 +1244,7 @@ def test_servicenow_service_responses():
     assert response.service.name == "PeopleSoft Portals"
     assert response.cmdb.items[1].values.sys_id == "3a2810c20a0a0bb400268337d6e942ca"
     assert response.service.base_type == "Service"
-    assert response.cmdb.base_type == "CMDB"
+    assert response.cmdb.base_type == "CMDBService"
 
 
 @pytest.mark.skipif(
@@ -1461,6 +1461,208 @@ def test_servicenow_import_set_responses():
     assert response.result[0].table == "sys_user"
     assert response.result[0].base_type == "ImportSetResult"
 
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_servicenow_kb_article_responses():
+    example_data = {
+        "result": {
+            "meta": {
+                "start": 0,
+                "end": 2,
+                "fields": "short_description,sys_class_name",
+                "query": "Windows",
+                "filter": "",
+                "kb": "",
+                "language": "en",
+                "count": 19,
+                "ts_query_id": "7976f36129c30410f877796e70786991",
+                "status": {
+                    "code": 200
+                }
+            },
+            "articles": [
+                {
+                    "link": "?sys_kb_id=9e528db1474321009db4b5b08b9a71a6&id=kb_article_view&sysparm_rank=1&sysparm_tsqueryId=7976f36129c30410f877796e70786991",
+                    "rank": 1,
+                    "id": "kb_knowledge:9e528db1474321009db4b5b08b9a71a6",
+                    "title": "Windows: Should I upgrade to Windows 8.x?",
+                    "snippet": "    Should I upgrade to <B>Windows</B> 8.x? <B>Windows</B> 8.x is designed for using touch, mouse, and keyboard the <B>Windows</B> Store and access apps such as Calendar, Mail, and Messaging. By most accounts, <B>Windows</B> boot times, smaller memory footprint, and more free memory for the programs you run. <B>Windows</B>",
+                    "score": 14.869,
+                    "number": "KB0000020",
+                    "fields": {
+                        "short_description": {
+                            "display_value": "Windows: Should I upgrade to Windows 8.x?\n\t\t",
+                            "name": "short_description",
+                            "label": "Short description",
+                            "type": "string",
+                            "value": "Windows: Should I upgrade to Windows 8.x?\n\t\t"
+                        },
+                        "sys_class_name": {
+                            "display_value": "Knowledge",
+                            "name": "sys_class_name",
+                            "label": "Class",
+                            "type": "sys_class_name",
+                            "value": "kb_knowledge"
+                        }
+                    }
+                },
+                {
+                    "link": "?sys_kb_id=3b07857187032100deddb882a2e3ec20&id=kb_article_view&sysparm_rank=2&sysparm_tsqueryId=7976f36129c30410f877796e70786991",
+                    "rank": 2,
+                    "id": "kb_knowledge:3b07857187032100deddb882a2e3ec20",
+                    "title": "What is the Windows key?",
+                    "snippet": "What is the <B>Windows</B> key? The <B>Windows</B> key is a standard key on most keyboards on computers built to use a <B>Windows</B> operating system. It is labeled with a <B>Windows</B> logo, and is usually placed between on the right side as well. Pressing Win (the <B>Windows</B> key) on its own will do the following: <B>Windows</B> 8.x: Toggle",
+                    "score": 13.4826,
+                    "number": "KB0000017",
+                    "fields": {
+                        "short_description": {
+                            "display_value": "What is the Windows key?\t\t",
+                            "name": "short_description",
+                            "label": "Short description",
+                            "type": "string",
+                            "value": "What is the Windows key?\t\t"
+                        },
+                        "sys_class_name": {
+                            "display_value": "Knowledge",
+                            "name": "sys_class_name",
+                            "label": "Class",
+                            "type": "sys_class_name",
+                            "value": "kb_knowledge"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+
+    response = Response(**example_data, status_code=200, json=example_data)
+    assert response.result.base_type == "KnowledgeManagement"
+    example_data = {
+        "result": {
+            "meta": {
+                "start": 0,
+                "end": 3,
+                "fields": "short_description",
+                "query": "homepage",
+                "filter": "",
+                "kb": "",
+                "language": "en",
+                "status": {
+                    "code": 200
+                },
+                "count": 2
+            },
+            "articles": [
+                {
+                    "link": "?id=kb_article_view&sys_kb_id=f27d7f79c0a8011b0018f9d700d2b9aa",
+                    "id": "kb_knowledge:f27d7f79c0a8011b0018f9d700d2b9aa",
+                    "title": "Email Interruption Tonight at 11:00 PM Eastern",
+                    "snippet": " If the site is UP but you cant access the page, try one of the below solutions: Browser Related Problems Force a full refresh for the site. This can be achieved by pressing CTRL + F5 keys at the same time on your favourite browser (Firefox, Chrome, Explorer, etc.) Try alternative urls such as m.outlook.com Clear the temporary cache and cookies ",
+                    "score": -1,
+                    "number": "KB0000002",
+                    "fields": {
+                        "short_description": {
+                            "display_value": "Email Interruption Tonight at 11:00 PM Eastern\n\t\t",
+                            "name": "short_description",
+                            "label": "Short description",
+                            "type": "string",
+                            "value": "Email Interruption Tonight at 11:00 PM Eastern\n\t\t"
+                        }
+                    }
+                },
+                {
+                    "link": "?id=kb_article_view&sys_kb_id=f2765f9fc0a8011b0120ec1b352bf09b",
+                    "id": "kb_knowledge:f2765f9fc0a8011b0120ec1b352bf09b",
+                    "title": "Sales Force Automation is DOWN",
+                    "snippet": "  On Friday, January 20th, we experienced a widespread outage that affected all Zoho services. The outage started around 8:13 am Pacific Time. Zoho services started coming back online for customer use at 3:49 pm, and all services were fully restored at 6:22 pm PST. We absolutely realize how important our services are for businesses and users who",
+                    "score": -1,
+                    "number": "KB0000001",
+                    "fields": {
+                        "short_description": {
+                            "display_value": "Sales Force Automation is DOWN",
+                            "name": "short_description",
+                            "label": "Short description",
+                            "type": "string",
+                            "value": "Sales Force Automation is DOWN"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+
+    response = Response(**example_data, status_code=200, json=example_data)
+    assert response.result.base_type == "KnowledgeManagement"
+    example_data = {
+        "result": {
+            "content": "<p><span style=\"font-size: 18pt;\"><strong>How to Deal with Spam</strong></span></p>\r\n<p>Spam has increasingly become a problem on the Internet. While every Internet user receives some spam, email  addresses posted to web sites or in newsgroups and chat rooms attract the most spam.</p>\r\n<p>To reduce the amount of spam you receive:</p>\r\n<p>",
+            "template": False,
+            "number": "KB0000011",
+            "sys_id": "0b48fd75474321009db4b5b08b9a71c2",
+            "short_description": "How to Deal with Spam",
+            "display_attachments": True,
+            "attachments": [
+                {
+                    "sys_id": "dc27ae18294f4010f877796e707869c8",
+                    "file_name": "image.jpg",
+                    "size_bytes": "66792",
+                    "state": "available_conditionally"
+                },
+                {
+                    "sys_id": "fedf5614294f4010f877796e70786956",
+                    "file_name": "attachment.txt",
+                    "size_bytes": "75",
+                    "state": "available_conditionally"
+                }
+            ],
+            "embedded_content": []
+        }
+    }
+    response = Response(**example_data, status_code=200, json=example_data)
+    assert response.result.base_type == "Article"
+
+    example_data = {
+        "result": {
+            "meta": {
+                "start": 0,
+                "end": 5,
+                "fields": "",
+                "query": "",
+                "filter": "workflow_state=published^valid_to>=javascript:gs.beginningOfToday()^active=true^sys_class_name!=kb_knowledge_block^sys_view_count>0^ORDERBYDESCsys_view_count^ORDERBYshort_description",
+                "kb": "",
+                "count": 2,
+                "status": {
+                    "code": 200
+                },
+                "language": "en"
+            },
+            "articles": [
+                {
+                    "link": "?id=kb_article_view&sys_kb_id=0b48fd75474321009db4b5b08b9a71c2",
+                    "id": "kb_knowledge:0b48fd75474321009db4b5b08b9a71c2",
+                    "title": "How to Deal with Spam",
+                    "snippet": "How to Deal with Spam Spam has increasingly become a problem on the Internet. While every Internet user receives some spam, email addresses posted to web sites or in newsgroups and chat rooms attract the most spam. To reduce the amount of spam you receive: Don't reply to spam Be careful releasing your email address, and know how it will be used ",
+                    "score": 7,
+                    "tags": [],
+                    "number": "KB0000011"
+                },
+                {
+                    "link": "?id=kb_article_view&sys_kb_id=c85cd2519f77230088aebde8132e70c2",
+                    "id": "kb_knowledge:c85cd2519f77230088aebde8132e70c2",
+                    "title": "Microsoft Outlook Issues",
+                    "snippet": "Microsoft Outlook Issues This article explains how to use automatic replies in Outlook 2010 for Exchange accounts. Setting Up Automatic Replies Click the File tab. Click Automatic Replies. Select Send automatic replies. If desired, select the Only send during this time range check box to schedule when your out of office replies are active. If yo",
+                    "score": 6,
+                    "tags": [],
+                    "number": "KB99999999"
+                }
+            ]
+        }
+    }
+    response = Response(**example_data, status_code=200, json=example_data)
+    assert response.result.base_type == "KnowledgeManagement"
+
 
 if __name__ == "__main__":
     test_servicenow_article()
@@ -1482,3 +1684,4 @@ if __name__ == "__main__":
     test_servicenow_table_responses()
     test_servicenow_service_responses()
     test_servicenow_import_set_responses()
+    test_servicenow_kb_article_responses()

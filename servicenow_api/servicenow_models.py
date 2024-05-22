@@ -901,7 +901,7 @@ class BatchItem(BaseModel):
     customization_version: Optional[str] = Field(
         default=None,
         description="Version of the store application or scoped ServiceNow plugin customization package to install, "
-        "such as 1.0.2 or 2.3.",
+                    "such as 1.0.2 or 2.3.",
     )
     id: Optional[str] = Field(
         default=None,
@@ -964,7 +964,7 @@ class BatchInstallResult(BaseModel):
     batch_items: Optional[List[BatchItem]] = Field(
         default=None,
         description="JSON array, where each object provides details of a "
-        "package installation.",
+                    "package installation.",
     )
     batch_plan: Optional[BatchPlan] = Field(
         default=None, description="Describes the installation batch plan."
@@ -1011,7 +1011,7 @@ class StateTransition(BaseModel):
     transition_available: Optional[bool] = Field(
         default=None,
         description="Flag that indicates whether the change request can transition from its current state to this "
-        "state.",
+                    "state.",
     )
     automatic_transition: Optional[bool] = Field(
         default=None,
@@ -1066,13 +1066,13 @@ class State(BaseModel):
     available_states: List[str] = Field(
         default=None,
         description="Values for the states that are available for the specified change request, including the current "
-        "state.",
+                    "state.",
     )
     state_transitions: List[List[StateTransition]] = Field(
         default=None,
         description="Information on what is required to transition to each available state. Each distinct available "
-        '"to state" is in its own Array with each differing set of conditions for that to state being in '
-        "its own Object.",
+                    '"to state" is in its own Array with each differing set of conditions for that to state being in '
+                    "its own Object.",
     )
     state_label: Dict = Field(
         default=None,
@@ -1095,12 +1095,12 @@ class ChangeRequest(BaseModel):
     activity_due: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Date and time for which the associated case is expected to "
-        "be completed.",
+                    "be completed.",
     )
     additional_assignee_list: Optional[Union[FieldValue, str, List[str]]] = Field(
         default=None,
         description="List of sys_ids of additional persons "
-        "assigned to work on the change request.",
+                    "assigned to work on the change request.",
     )
     approval: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Type of approval process required."
@@ -1112,26 +1112,26 @@ class ChangeRequest(BaseModel):
         default=None,
         description="Date and time that the associated action was approved.",
     )
-    assigned_to: Optional[Union[FieldValue, str]] = Field(
+    assigned_to: Union[FieldValue, str] = Field(
         default=None, description="Sys_id of the user assigned to the change request."
     )
-    assignment_group: Optional[Union[FieldValue, str]] = Field(
+    assignment_group: Union[FieldValue, str] = Field(
         default=None, description="Sys_id of the group assigned to the change request."
     )
     backout_plan: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Description of the plan to execute if the change must be "
-        "reversed.",
+                    "reversed.",
     )
     business_duration: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Length in scheduled work hours, work days, and work "
-        "weeks that it took to complete the change.",
+                    "weeks that it took to complete the change.",
     )
     business_service: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Sys_id of the business service associated with the "
-        "change request.",
+                    "change request.",
     )
     cab_date: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Date on which the Change Advisory Board (CAB) meets."
@@ -1139,7 +1139,7 @@ class ChangeRequest(BaseModel):
     cab_delegate: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Sys_id of the user that can substitute for the CAB manager "
-        "during a CAB meeting.",
+                    "during a CAB meeting.",
     )
     cab_recommendation: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1182,7 +1182,7 @@ class ChangeRequest(BaseModel):
         default=None,
         description="Notes that the person entered when closing the change request.",
     )
-    cmdb_ci: Optional[Union[FieldValue, str]] = Field(
+    cmdb_ci: Union[FieldValue, str] = Field(
         default=None,
         description="Sys_id of the configuration item associated with the change request.",
     )
@@ -1229,7 +1229,7 @@ class ChangeRequest(BaseModel):
         default=None,
         description="No longer in use. Sys_id of the delivery task associated with the change request.",
     )
-    description: Optional[Union[FieldValue, str]] = Field(
+    description: Union[FieldValue, str] = Field(
         default=None, description="Detailed description of the change request."
     )
     due_date: Optional[Union[FieldValue, str]] = Field(
@@ -1273,7 +1273,7 @@ class ChangeRequest(BaseModel):
     knowledge: Optional[Union[FieldValue, str]] = Field(
         False,
         description="Flag that indicates whether there are any knowledge base (KB) articles associated with the "
-        "change request.",
+                    "change request.",
     )
     location: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1282,7 +1282,7 @@ class ChangeRequest(BaseModel):
     made_sla: Optional[Union[FieldValue, bool]] = Field(
         default=None,
         description="No longer used. Flag that indicates whether the change request was implemented in alignment with "
-        "the associated service level agreement.",
+                    "the associated service level agreement.",
     )
     needs_attention: Optional[Union[FieldValue, bool]] = Field(
         False,
@@ -1299,12 +1299,12 @@ class ChangeRequest(BaseModel):
     on_hold_reason: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="If the on_hold parameter is 'true', description of the reason why the change request is being "
-        "held up.",
+                    "held up.",
     )
     on_hold_task: Optional[Union[FieldValue, str, List[str]]] = Field(
         default=None,
         description="If the on_hold parameter is 'true', list of the sys_ids of the tasks that must be completed "
-        "before the hold is released.",
+                    "before the hold is released.",
     )
     opened_at: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Date and time that the change release was created."
@@ -1320,7 +1320,7 @@ class ChangeRequest(BaseModel):
     outside_maintenance_schedule: Optional[Union[FieldValue, bool]] = Field(
         False,
         description="Flag that indicates whether maintenance by an outside company has been scheduled for the change "
-        "request.",
+                    "request.",
     )
     parent: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1339,7 +1339,7 @@ class ChangeRequest(BaseModel):
     production_system: Optional[Union[FieldValue, bool]] = Field(
         False,
         description="Flag that indicates whether the change request is for a ServiceNow instance that is in a "
-        "production environment.",
+                    "production environment.",
     )
     proposed_change: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Proposed change reason"
@@ -1393,7 +1393,7 @@ class ChangeRequest(BaseModel):
         default=None,
         description="Sys_id of the service offering associated with the change request.",
     )
-    short_description: Optional[Union[FieldValue, str]] = Field(
+    short_description: Union[FieldValue, str] = Field(
         default=None, description="Description of the change request."
     )
     skills: Optional[Union[FieldValue, str]] = Field(
@@ -1403,7 +1403,7 @@ class ChangeRequest(BaseModel):
     sla_due: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Date and time that the change request must be completed based on the associated service level "
-        "agreement.",
+                    "agreement.",
     )
     sn_esign_document: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1519,7 +1519,7 @@ class ChangeRequest(BaseModel):
     work_notes_list: Optional[Union[FieldValue, List[str]]] = Field(
         default=None,
         description="List of sys_ids of the internal users who receive notifications about this change request when "
-        "work notes are added.",
+                    "work notes are added.",
     )
     work_start: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1650,6 +1650,72 @@ class Schedule(BaseModel):
         None, description="Information about the associated worker."
     )
     payload: Optional[Payload] = Field(None, description="Payload information.")
+
+
+class FieldDetail(BaseModel):
+    display_value: Optional[str] = Field(None, description="Display value of the requested field.")
+    label: Optional[str] = Field(None, description="Label representing the requested field. For example, Knowledge.")
+    name: Optional[str] = Field(None, description="Name of the requested field. Matches field name.")
+    type: Optional[str] = Field(None, description="Data type of the requested field.")
+    value: Optional[str] = Field(None, description="Value of the requested field.")
+
+
+class Attachment(BaseModel):
+    sys_id: Optional[str] = Field(None, description="Unique identifier for the attachment.")
+    file_name: Optional[str] = Field(None, description="Name of the attached file.")
+    size_bytes: Optional[int] = Field(None, description="Size of the file in bytes.")
+    state: Optional[str] = Field(None, description="State of the attachment, e.g., available_conditionally.")
+
+
+class ArticleFields(BaseModel):
+    fields: Optional[Dict[str, FieldDetail]] = Field(None, description="Values of requested fields, if any.")
+
+
+class Article(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Article")
+    fields: Optional[Dict[str, FieldDetail]] = Field(None, description="Values of requested fields, if any.")
+    link: Optional[str] = Field(None, description="Link to the article.")
+    id: Optional[str] = Field(None, description="Knowledge article sys_id from the Knowledge [kb_knowledge] table.")
+    number: Optional[str] = Field(None, description="Knowledge article number.")
+    rank: Optional[float] = Field(None, description="Search rank of article specific to this search.")
+    score: Optional[float] = Field(None, description="Relevancy score, results sorted in descending order by score.")
+    snippet: Optional[str] = Field(None, description="Text showing a small portion of the knowledge article.")
+    title: Optional[str] = Field(None, description="Short description or title of the knowledge article.")
+    tags: Optional[List[str]] = Field(None, description="List of tags associated with the article.")
+    content: Optional[str] = Field(None, description="Content the article.")
+    template: Optional[bool] = Field(None, description="Template of article.")
+    sys_id: Optional[str] = Field(None, description="Sys ID of article.")
+    short_description: Optional[str] = Field(None, description="Short description of article.")
+    display_attachments: Optional[bool] = Field(None, description="Display attachments flag.")
+    attachments: Optional[List[Attachment]] = Field(None, description="List of attachments.")
+    embedded_content: Optional[List] = Field(None, description="Additional embedded content.")
+
+
+class Meta(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Meta")
+    count: Optional[int] = Field(None, description="Number of available KB articles.")
+    end: Optional[int] = Field(None, description="Ending index of the result set.")
+    fields: Optional[str] = Field(None, description="Fields in the article.")
+    filter: Optional[str] = Field(None, description="Filter used to acquire the data.")
+    kb: Optional[str] = Field(None, description="List of knowledge base article sys_ids.")
+    language: Optional[str] = Field(None,
+                                    description="List of comma-separated languages of the KB articles that were requested.")
+    query: Optional[str] = Field(None, description="Specified request query.")
+    start: Optional[int] = Field(None, description="Starting index of result set.")
+    status: Optional[Dict[str, Any]] = Field(None, description="Status of the call.")
+    ts_query_id: Optional[str] = Field(None, description="Sys_id of the query.")
+
+
+class KnowledgeManagement(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="KnowledgeManagement")
+    meta: Meta = Field(None, description="Meta information of the results and request parameters.")
+    articles: List[Article] = Field(None, description="List of articles returned in response.")
 
 
 class Item(BaseModel):
@@ -1932,26 +1998,32 @@ class CMDB(BaseModel):
     children: Optional[List[str]] = Field(
         default=None, description="List of classes extended from the specified class."
     )
-    name: Optional[str] = Field(default=None, description="Table/class name.")
+    name: str = Field(default=None, description="Table/class name.")
     icon: Optional[str] = Field(default=None, description="Class icon sys_id.")
     attributes: Optional[List[Attribute]] = Field(
         default=None, description="Available fields in the specified class table."
     )
-    relationship_rules: Optional[List[RelationshipRule]] = Field(
+    relationship_rules: List[RelationshipRule] = Field(
         default=None,
         description="Relationships between the specified class and other classes in the CMDB.",
     )
-    label: Optional[str] = Field(
+    label: str = Field(
         default=None, description="Specified class display name."
     )
-    identification_rules: Optional[IdentificationRule] = Field(
+    identification_rules: IdentificationRule = Field(
         default=None,
         description="Attributes associated with the configuration item identification rules for the specified class.",
     )
-    items: Optional[List[Item]] = Field(
+
+
+class CMDBService(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="CMDBService")
+    items: List[Item] = Field(
         default=None, description="CIs within the application service."
     )
-    relations: Optional[List[Relation]] = Field(
+    relations: List[Relation] = Field(
         default=None, description="Relationship data for associated CIs."
     )
 
@@ -1969,7 +2041,7 @@ class ServiceRelation(BaseModel):
 
 
 class Service(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
     base_type: str = Field(default="Service")
     name: str = Field(default=None, description="Name of the application service.")
@@ -2011,15 +2083,15 @@ class Response(BaseModel):
     scope: str = Field(
         default=None,
         description="Amount of access granted by the access token. The scope is always useraccount, meaning that the "
-        "access token has the same rights as the user account that authorized the token. For example, "
-        "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
-        "access token grants the token bearer the same access privileges as Abel Tuter.",
+                    "access token has the same rights as the user account that authorized the token. For example, "
+                    "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
+                    "access token grants the token bearer the same access privileges as Abel Tuter.",
     )
     token_type: str = Field(
         default=None,
         description="Type of token issued by the request as defined in the OAuth RFC. The token type is always "
-        "Bearer, meaning that anyone in possession of the access token can access a protected resource "
-        "without providing a cryptographic key.",
+                    "Bearer, meaning that anyone in possession of the access token can access a protected resource "
+                    "without providing a cryptographic key.",
     )
     expires_in: Optional[int] = Field(
         default=None, description="Lifespan of the access token in seconds."
@@ -2030,7 +2102,7 @@ class Response(BaseModel):
     access_token: str = Field(
         default=None,
         description="String value of the access token. Access requests made within the access token expiration time "
-        "always return the current access token.",
+                    "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
     import_set: Optional[str] = Field(None, description="Name of the import set.")
@@ -2053,12 +2125,14 @@ class Response(BaseModel):
             CMDB,
             List[Task],
             Task,
+            Article,
+            KnowledgeManagement,
             List[ChangeRequest],
             ChangeRequest,
             Table,
         ]
     ] = Field(default=None, description="Result containing available responses.")
-    cmdb: Optional[Union[Dict, List, CMDB]] = Field(
+    cmdb: Optional[Union[Dict, List, CMDBService]] = Field(
         default=None,
         description="List of objects that describe the CIs associated with the specified application service.",
     )
@@ -2102,7 +2176,7 @@ class Response(BaseModel):
     @field_validator("cmdb")
     def determine_cmdb_type(cls, v):
         models = [
-            CMDB,
+            CMDBService,
         ]
         if v:
             for model in models:
@@ -2139,6 +2213,8 @@ class Response(BaseModel):
             CMDB,
             List[Task],
             Task,
+            Article,
+            KnowledgeManagement,
             List[ChangeRequest],
             ChangeRequest,
             Table,
