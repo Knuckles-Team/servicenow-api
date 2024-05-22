@@ -1921,7 +1921,7 @@ class CICD(BaseModel):
 
 
 class CMDB(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
     base_type: str = Field(default="CMDB")
     icon_url: Optional[str] = Field(default=None, description="Class icon URL.")
