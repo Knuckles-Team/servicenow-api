@@ -581,7 +581,7 @@ class Api(object):
         """
 
         cicd = CICDModel(**kwargs)
-        if cicd.suite_sys_id is None or cicd.sys_ids is None:
+        if cicd.suite_sys_id is None or cicd.app_scope_sys_ids is None:
             raise MissingParameterError
         try:
             response = self._session.post(
