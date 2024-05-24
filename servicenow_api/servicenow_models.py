@@ -323,6 +323,10 @@ class CICDModel(BaseModel):
             filters.append(f'target_sys_id={values["target_sys_id"]}')
         if "app_sys_id" in values:
             filters.append(f'app_sys_id={values["app_sys_id"]}')
+        if "test_suite_sys_id" in values:
+            filters.append(f'test_suite_sys_id={values["test_suite_sys_id"]}')
+        if "test_suite_name" in values:
+            filters.append(f'test_suite_name={values["test_suite_name"]}')
         if "branch_name" in values:
             filters.append(f'branch_name={values["branch_name"]}')
         if "credential_sys_id" in values:
