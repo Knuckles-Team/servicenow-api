@@ -397,7 +397,7 @@ class Api(object):
         :raises ParameterError: If auto_upgrade_base_app is not a boolean.
         """
         cicd = CICDModel(**kwargs)
-        if cicd.app_sys_id is None and cicd.scope is None:
+        if cicd.sys_id is None and cicd.scope is None:
             raise MissingParameterError
         try:
             response = self._session.post(
@@ -432,7 +432,7 @@ class Api(object):
         :raises MissingParameterError: If app_sys_id or scope is not provided.
         """
         cicd = CICDModel(**kwargs)
-        if cicd.app_sys_id is None and cicd.scope is None:
+        if cicd.sys_id is None and cicd.scope is None:
             raise MissingParameterError
         try:
             response = self._session.post(
@@ -465,7 +465,7 @@ class Api(object):
         :raises MissingParameterError: If app_sys_id, scope, or version is not provided.
         """
         cicd = CICDModel(**kwargs)
-        if cicd.app_sys_id is None and cicd.scope is None or cicd.version is None:
+        if cicd.sys_id is None and cicd.scope is None or cicd.version is None:
             raise MissingParameterError
         try:
             response = self._session.post(
