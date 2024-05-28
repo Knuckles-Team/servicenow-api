@@ -186,6 +186,7 @@ class CICDModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
+    sys_id: Optional[str] = None
     model_config = ConfigDict(validate_assignment=True)
     result_id: Optional[str] = None
     progress_id: Optional[str] = None
