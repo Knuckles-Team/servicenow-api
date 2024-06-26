@@ -734,8 +734,6 @@ class TableModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
-
-    model_config = ConfigDict(validate_assignment=True)
     table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[Dict] = None
@@ -751,7 +749,7 @@ class TableModel(BaseModel):
     sysparm_suppress_pagination_header: Optional[bool] = None
     sysparm_view: Optional[str] = None
     api_parameters: Optional[str] = ""
-    data: Optional[Dict] = None
+    data: Optional[Dict] = Field(default=None, description="Table dictionary value to insert")
 
     @field_validator("table", "table_record_sys_id")
     def validate_string_parameters(cls, v):
