@@ -2489,7 +2489,7 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.put(
-                url=f"{self.url}/now/table/{table}/{table.table_record_sys_id}",
+                url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
                 json=table.data,
                 headers=self.headers,
                 verify=self.verify,
@@ -2522,7 +2522,7 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/now/table/{table}",
+                url=f"{self.url}/now/table/{table.table}",
                 json=table.data,
                 headers=self.headers,
                 verify=self.verify,
