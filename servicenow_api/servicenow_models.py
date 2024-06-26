@@ -785,7 +785,8 @@ class TableModel(BaseModel):
         Returns:
         - str: The value converted to lowercase.
         """
-        return value.lower()
+        if value is not None:
+            return value.lower()
 
     @field_validator("sysparm_view")
     def validate_sysparm_view(cls, v):
