@@ -178,8 +178,8 @@ class Api(object):
         application = ApplicationServiceModel(**kwargs)
         try:
             response = self._session.get(
-                url=f"{self.url}/cmdb/app_service/"
-                f"{application.application_id}/getContent{application.api_parameters}",
+                url=f"{self.url}/cmdb/app_service/{application.application_id}/getContent",
+                params=application.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -401,7 +401,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/app_repo/install{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/app_repo/install",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -436,7 +437,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/app_repo/publish{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/app_repo/publish",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -469,7 +471,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/app_repo/rollback{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/app_repo/rollback",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -521,7 +524,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/instance_scan/point_scan{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/instance_scan/point_scan",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -682,7 +686,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/sc/apply_changes{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/sc/apply_changes",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -720,7 +725,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/sc/import{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/sc/import",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -760,7 +766,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.post(
-                url=f"{self.url}/sn_cicd/testsuite/run{cicd.api_parameters}",
+                url=f"{self.url}/sn_cicd/testsuite/run",
+                params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -807,8 +814,8 @@ class Api(object):
 
         if change_request.sysparm_offset and change_request.sysparm_limit:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change{change_type}{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change{change_type}",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -818,8 +825,8 @@ class Api(object):
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest"
-                        f"/change{change_type}{change_request.api_parameters}",
+                        url=f"{self.url}/sn_chg_rest/change{change_type}",
+                        params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -832,10 +839,11 @@ class Api(object):
                 change_request.sysparm_offset = (
                     change_request.sysparm_offset + change_request.sysparm_limit
                 )
+                change_request.model_post_init(change_request)
         else:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change{change_type}{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change{change_type}",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -942,9 +950,8 @@ class Api(object):
 
         if change_request.sysparm_offset and change_request.sysparm_limit:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/"
-                f"task{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -954,9 +961,8 @@ class Api(object):
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest"
-                        f"/change/{change_request.change_request_sys_id}/"
-                        f"task{change_request.api_parameters}",
+                        url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
+                        params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -969,11 +975,11 @@ class Api(object):
                 change_request.sysparm_offset = (
                     change_request.sysparm_offset + change_request.sysparm_limit
                 )
+                change_request.model_post_init(change_request)
         else:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/"
-                f"task{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -1164,7 +1170,8 @@ class Api(object):
 
         if change_request.sysparm_offset and change_request.sysparm_limit:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/standard/template",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -1174,8 +1181,8 @@ class Api(object):
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest"
-                        f"/change/model{change_type}{change_request.api_parameters}",
+                        url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                        params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -1188,9 +1195,11 @@ class Api(object):
                 change_request.sysparm_offset = (
                     change_request.sysparm_offset + change_request.sysparm_limit
                 )
+                change_request.model_post_init(change_request)
         else:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/standard/template{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/standard/template",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -1227,8 +1236,8 @@ class Api(object):
 
         if change_request.sysparm_offset and change_request.sysparm_limit:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/model{change_type}{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -1238,8 +1247,8 @@ class Api(object):
             while response.result and len(response.result) > 1:
                 try:
                     second_response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest"
-                        f"/change/model{change_type}{change_request.api_parameters}",
+                        url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                        params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
@@ -1252,10 +1261,11 @@ class Api(object):
                 change_request.sysparm_offset = (
                     change_request.sysparm_offset + change_request.sysparm_limit
                 )
+                change_request.model_post_init(change_request)
         else:
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/model{change_type}{change_request.api_parameters}",
+                url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                params=change_request.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2115,7 +2125,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.get(
-                url=f"{self.url}/sn_km_api/knowledge/articles{knowledge_base.api_parameters}",
+                url=f"{self.url}/sn_km_api/knowledge/articles",
+                params=knowledge_base.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2175,8 +2186,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.get(
-                url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}"
-                f"{knowledge_base.api_parameters}",
+                url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}",
+                params=knowledge_base.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2250,8 +2261,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.get(
-                url=f"{self.url}/sn_km_api/knowledge/articles"
-                f"/featured{knowledge_base.api_parameters}",
+                url=f"{self.url}/sn_km_api/knowledge/articles/featured",
+                params=knowledge_base.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
@@ -2380,7 +2391,8 @@ class Api(object):
             raise MissingParameterError
         try:
             response = self._session.get(
-                url=f"{self.url}/now/table/{table.table}{table.api_parameters}",
+                url=f"{self.url}/now/table/{table.table}",
+                params=table.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
