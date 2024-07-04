@@ -52,21 +52,23 @@ def test_servicenow_change():
     )
     assert change.change_request_sys_id == change_request_sys_id
     assert change.sysparm_query == sysparm_query
-    assert (
-            change.api_parameters == "?sysparm_query=assignment_group=1234556789asdfv81238a"
-    )
+    assert change.api_parameters == {
+        "sysparm_query": "assignment_group=1234556789asdfv81238a"
+    }
     change.sysparm_offset = 100
-    assert (
-            change.api_parameters
-            == "?sysparm_query=assignment_group=1234556789asdfv81238a&sysparm_offset=100"
-    )
+    change.model_post_init(change)
+    assert change.api_parameters == {
+        "sysparm_query": "assignment_group=1234556789asdfv81238a",
+        "sysparm_offset": 100,
+    }
     change.sysparm_query = ""
     change.name_value_pairs = name_value_pairs
     change.sysparm_offset = 500
-    assert (
-            change.api_parameters
-            == "?assignment_group=1234556789asdfv81238a&sysparm_offset=500"
-    )
+    change.model_post_init(change)
+    assert change.api_parameters == {
+        "name_value_pairs": "assignment_group=1234556789asdfv81238a",
+        "sysparm_offset": 500,
+    }
 
 
 @pytest.mark.skipif(
@@ -377,8 +379,8 @@ def test_servicenow_oauth_responses():
 
     response = Response(**example_data, status_code=200, json=example_data)
     assert (
-            response.access_token
-            == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
+        response.access_token
+        == "CH1XAvt8FU1yjsRHq-ixDB1Fct4mpcztmvlD_2Wfu_F83thGqcPVfjvHsf8HvBi_ByeMsPXz1Igd5OYdADfXFw"
     )
 
 
@@ -749,8 +751,8 @@ def test_servicenow_state_responses():
     }
     response = Response(**example_data, status_code=200, json=example_data)
     assert (
-            response.result.state_transitions[0][0].sys_id
-            == "7a0d2ccdc343101035ae3f52c1d3ae2e"
+        response.result.state_transitions[0][0].sys_id
+        == "7a0d2ccdc343101035ae3f52c1d3ae2e"
     )
     assert response.result.base_type == "State"
 
@@ -1461,6 +1463,7 @@ def test_servicenow_import_set_responses():
     assert response.result[0].table == "sys_user"
     assert response.result[0].base_type == "ImportSetResult"
 
+
 @pytest.mark.skipif(
     sys.platform in ["darwin"] or skip,
     reason=reason,
@@ -1478,9 +1481,7 @@ def test_servicenow_kb_article_responses():
                 "language": "en",
                 "count": 19,
                 "ts_query_id": "7976f36129c30410f877796e70786991",
-                "status": {
-                    "code": 200
-                }
+                "status": {"code": 200},
             },
             "articles": [
                 {
@@ -1497,16 +1498,16 @@ def test_servicenow_kb_article_responses():
                             "name": "short_description",
                             "label": "Short description",
                             "type": "string",
-                            "value": "Windows: Should I upgrade to Windows 8.x?\n\t\t"
+                            "value": "Windows: Should I upgrade to Windows 8.x?\n\t\t",
                         },
                         "sys_class_name": {
                             "display_value": "Knowledge",
                             "name": "sys_class_name",
                             "label": "Class",
                             "type": "sys_class_name",
-                            "value": "kb_knowledge"
-                        }
-                    }
+                            "value": "kb_knowledge",
+                        },
+                    },
                 },
                 {
                     "link": "?sys_kb_id=3b07857187032100deddb882a2e3ec20&id=kb_article_view&sysparm_rank=2&sysparm_tsqueryId=7976f36129c30410f877796e70786991",
@@ -1522,18 +1523,18 @@ def test_servicenow_kb_article_responses():
                             "name": "short_description",
                             "label": "Short description",
                             "type": "string",
-                            "value": "What is the Windows key?\t\t"
+                            "value": "What is the Windows key?\t\t",
                         },
                         "sys_class_name": {
                             "display_value": "Knowledge",
                             "name": "sys_class_name",
                             "label": "Class",
                             "type": "sys_class_name",
-                            "value": "kb_knowledge"
-                        }
-                    }
-                }
-            ]
+                            "value": "kb_knowledge",
+                        },
+                    },
+                },
+            ],
         }
     }
 
@@ -1549,10 +1550,8 @@ def test_servicenow_kb_article_responses():
                 "filter": "",
                 "kb": "",
                 "language": "en",
-                "status": {
-                    "code": 200
-                },
-                "count": 2
+                "status": {"code": 200},
+                "count": 2,
             },
             "articles": [
                 {
@@ -1568,9 +1567,9 @@ def test_servicenow_kb_article_responses():
                             "name": "short_description",
                             "label": "Short description",
                             "type": "string",
-                            "value": "Email Interruption Tonight at 11:00 PM Eastern\n\t\t"
+                            "value": "Email Interruption Tonight at 11:00 PM Eastern\n\t\t",
                         }
-                    }
+                    },
                 },
                 {
                     "link": "?id=kb_article_view&sys_kb_id=f2765f9fc0a8011b0120ec1b352bf09b",
@@ -1585,11 +1584,11 @@ def test_servicenow_kb_article_responses():
                             "name": "short_description",
                             "label": "Short description",
                             "type": "string",
-                            "value": "Sales Force Automation is DOWN"
+                            "value": "Sales Force Automation is DOWN",
                         }
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         }
     }
 
@@ -1597,7 +1596,7 @@ def test_servicenow_kb_article_responses():
     assert response.result.base_type == "KnowledgeManagement"
     example_data = {
         "result": {
-            "content": "<p><span style=\"font-size: 18pt;\"><strong>How to Deal with Spam</strong></span></p>\r\n<p>Spam has increasingly become a problem on the Internet. While every Internet user receives some spam, email  addresses posted to web sites or in newsgroups and chat rooms attract the most spam.</p>\r\n<p>To reduce the amount of spam you receive:</p>\r\n<p>",
+            "content": '<p><span style="font-size: 18pt;"><strong>How to Deal with Spam</strong></span></p>\r\n<p>Spam has increasingly become a problem on the Internet. While every Internet user receives some spam, email  addresses posted to web sites or in newsgroups and chat rooms attract the most spam.</p>\r\n<p>To reduce the amount of spam you receive:</p>\r\n<p>',
             "template": False,
             "number": "KB0000011",
             "sys_id": "0b48fd75474321009db4b5b08b9a71c2",
@@ -1608,16 +1607,16 @@ def test_servicenow_kb_article_responses():
                     "sys_id": "dc27ae18294f4010f877796e707869c8",
                     "file_name": "image.jpg",
                     "size_bytes": "66792",
-                    "state": "available_conditionally"
+                    "state": "available_conditionally",
                 },
                 {
                     "sys_id": "fedf5614294f4010f877796e70786956",
                     "file_name": "attachment.txt",
                     "size_bytes": "75",
-                    "state": "available_conditionally"
-                }
+                    "state": "available_conditionally",
+                },
             ],
-            "embedded_content": []
+            "embedded_content": [],
         }
     }
     response = Response(**example_data, status_code=200, json=example_data)
@@ -1633,10 +1632,8 @@ def test_servicenow_kb_article_responses():
                 "filter": "workflow_state=published^valid_to>=javascript:gs.beginningOfToday()^active=true^sys_class_name!=kb_knowledge_block^sys_view_count>0^ORDERBYDESCsys_view_count^ORDERBYshort_description",
                 "kb": "",
                 "count": 2,
-                "status": {
-                    "code": 200
-                },
-                "language": "en"
+                "status": {"code": 200},
+                "language": "en",
             },
             "articles": [
                 {
@@ -1646,7 +1643,7 @@ def test_servicenow_kb_article_responses():
                     "snippet": "How to Deal with Spam Spam has increasingly become a problem on the Internet. While every Internet user receives some spam, email addresses posted to web sites or in newsgroups and chat rooms attract the most spam. To reduce the amount of spam you receive: Don't reply to spam Be careful releasing your email address, and know how it will be used ",
                     "score": 7,
                     "tags": [],
-                    "number": "KB0000011"
+                    "number": "KB0000011",
                 },
                 {
                     "link": "?id=kb_article_view&sys_kb_id=c85cd2519f77230088aebde8132e70c2",
@@ -1655,9 +1652,9 @@ def test_servicenow_kb_article_responses():
                     "snippet": "Microsoft Outlook Issues This article explains how to use automatic replies in Outlook 2010 for Exchange accounts. Setting Up Automatic Replies Click the File tab. Click Automatic Replies. Select Send automatic replies. If desired, select the Only send during this time range check box to schedule when your out of office replies are active. If yo",
                     "score": 6,
                     "tags": [],
-                    "number": "KB99999999"
-                }
-            ]
+                    "number": "KB99999999",
+                },
+            ],
         }
     }
     response = Response(**example_data, status_code=200, json=example_data)

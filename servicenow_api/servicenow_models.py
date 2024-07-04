@@ -46,7 +46,7 @@ class ApplicationServiceModel(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
     application_id: Optional[str] = None
     mode: Optional[str] = None
-    api_parameters: Optional[str] = None
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
 
     @field_validator("application_id")
     def validate_string_parameters(cls, v):
@@ -85,30 +85,13 @@ class ApplicationServiceModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @model_validator(mode="before")
-    def build_api_parameters(cls, values):
+    def model_post_init(self, __context):
         """
-        Build API parameters.
-
-        Args:
-        - values: Dictionary of values.
-
-        Returns:
-        - The constructed API parameters string.
-
-        Raises:
-        - None.
+        Build the API parameters
         """
-
-        filters = []
-        if "mode" in values:
-            filters.append(f'mode={values["mode"]}')
-
-        if filters:
-            api_parameters = "?" + "&".join(filters)
-            values["api_parameters"] = api_parameters
-
-        return values
+        self.api_parameters = {}
+        if self.mode:
+            self.api_parameters["mode"] = self.mode
 
 
 class CMDBModel(BaseModel):
@@ -215,8 +198,10 @@ class CICDModel(BaseModel):
     browser_version: Optional[str] = None
     os_name: Optional[str] = None
     os_version: Optional[str] = None
-    api_parameters: Optional[str] = ""
-    data: Dict = Optional[None]
+    target_table: Optional[str] = None
+    target_sys_id: Optional[str] = None
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
+    data: Optional[Dict] = None
 
     @field_validator(
         "result_id", "progress_id", "rollback_id", "name", "notes", "packages"
@@ -291,7 +276,7 @@ class CICDModel(BaseModel):
         return v
 
     @model_validator(mode="before")
-    def build_api_parameters(cls, values):
+    def build_data(cls, values):
         """
         Build API parameters.
 
@@ -304,48 +289,6 @@ class CICDModel(BaseModel):
         Raises:
         - None.
         """
-
-        filters = []
-        if "sys_id" in values:
-            filters.append(f'sys_id={values["sys_id"]}')
-        if "scope" in values:
-            filters.append(f'scope={values["scope"]}')
-        if "auto_upgrade_base_app" in values:
-            filters.append(f'auto_upgrade_base_app={values["auto_upgrade_base_app"]}')
-        if "base_app_version" in values:
-            filters.append(f'base_app_version={values["base_app_version"]}')
-        if "version" in values:
-            filters.append(f'version={values["version"]}')
-        if "dev_notes" in values:
-            filters.append(f'dev_notes={values["dev_notes"]}')
-        if "target_table" in values:
-            filters.append(f'target_table={values["target_table"]}')
-        if "target_sys_id" in values:
-            filters.append(f'target_sys_id={values["target_sys_id"]}')
-        if "app_sys_id" in values:
-            filters.append(f'app_sys_id={values["app_sys_id"]}')
-        if "test_suite_sys_id" in values:
-            filters.append(f'test_suite_sys_id={values["test_suite_sys_id"]}')
-        if "test_suite_name" in values:
-            filters.append(f'test_suite_name={values["test_suite_name"]}')
-        if "branch_name" in values:
-            filters.append(f'branch_name={values["branch_name"]}')
-        if "credential_sys_id" in values:
-            filters.append(f'credential_sys_id={values["credential_sys_id"]}')
-        if "mid_server_sys_id" in values:
-            filters.append(f'mid_server_sys_id={values["mid_server_sys_id"]}')
-        if "browser_name" in values:
-            filters.append(f'browser_name={values["browser_name"]}')
-        if "browser_version" in values:
-            filters.append(f'browser_version={values["browser_version"]}')
-        if "os_name" in values:
-            filters.append(f'os_name={values["os_name"]}')
-        if "os_version" in values:
-            filters.append(f'os_version={values["os_version"]}')
-
-        if filters:
-            api_parameters = "?" + "&".join(filters)
-            values["api_parameters"] = api_parameters
 
         data = {}
 
@@ -363,6 +306,48 @@ class CICDModel(BaseModel):
             values["data"] = data
         return values
 
+    def model_post_init(self, __context):
+        """
+        Build the API parameters
+        """
+        self.api_parameters = {}
+        if self.sys_id:
+            self.api_parameters["sys_id"] = self.sys_id
+        if self.scope:
+            self.api_parameters["scope"] = self.scope
+        if self.auto_upgrade_base_app:
+            self.api_parameters["auto_upgrade_base_app"] = self.auto_upgrade_base_app
+        if self.base_app_version:
+            self.api_parameters["base_app_version"] = self.base_app_version
+        if self.version:
+            self.api_parameters["version"] = self.version
+        if self.dev_notes:
+            self.api_parameters["dev_notes"] = self.dev_notes
+        if self.target_table:
+            self.api_parameters["target_table"] = self.target_table
+        if self.target_sys_id:
+            self.api_parameters["target_sys_id"] = self.target_sys_id
+        if self.app_sys_id:
+            self.api_parameters["app_sys_id"] = self.app_sys_id
+        if self.test_suite_sys_id:
+            self.api_parameters["test_suite_sys_id"] = self.test_suite_sys_id
+        if self.test_suite_name:
+            self.api_parameters["test_suite_name"] = self.test_suite_name
+        if self.branch_name:
+            self.api_parameters["branch_name"] = self.branch_name
+        if self.credential_sys_id:
+            self.api_parameters["credential_sys_id"] = self.credential_sys_id
+        if self.mid_server_sys_id:
+            self.api_parameters["mid_server_sys_id"] = self.mid_server_sys_id
+        if self.browser_name:
+            self.api_parameters["browser_name"] = self.browser_name
+        if self.browser_version:
+            self.api_parameters["browser_version"] = self.browser_version
+        if self.os_name:
+            self.api_parameters["os_name"] = self.os_name
+        if self.os_version:
+            self.api_parameters["os_version"] = self.os_version
+
 
 class ChangeManagementModel(BaseModel):
     """
@@ -376,7 +361,6 @@ class ChangeManagementModel(BaseModel):
     - association_type (Optional[str]): Type of association.
     - refresh_impacted_services (Optional[bool]): Flag indicating whether to refresh impacted services.
     - name_value_pairs (Optional[Dict]): Dictionary containing name-value pairs.
-    - order (Optional[str]): Order for sorting (default is "desc").
     - sysparm_query (Optional[str]): Sysparm query.
     - text_search (Optional[str]): Text search query.
     - change_model_sys_id (Optional[str]): Identifier for the model.
@@ -401,7 +385,6 @@ class ChangeManagementModel(BaseModel):
     association_type: Optional[str] = None
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[str] = None
-    order: Optional[str] = None
     sysparm_limit: Optional[Union[str, int]] = None
     sysparm_offset: Optional[Union[str, int]] = None
     sysparm_query: Optional[str] = None
@@ -412,7 +395,7 @@ class ChangeManagementModel(BaseModel):
     change_type: Optional[str] = None
     standard_change_template_id: Optional[str] = None
     response_length: int = 10
-    api_parameters: Optional[str] = ""
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
     data: Optional[Dict] = None
 
     @field_validator(
@@ -506,26 +489,8 @@ class ChangeManagementModel(BaseModel):
             raise ParameterError
         return v
 
-    @field_validator("order")
-    def validate_order(cls, v):
-        """
-        Validate the 'state' parameter to ensure it is a valid state.
-
-        Args:
-        - v: The value of 'state'.
-
-        Returns:
-        - str: The validated 'state'.
-
-        Raises:
-        - ParameterError: If 'state' is not a valid state.
-        """
-        if v is not None and "^ORDERBY" not in v and "^ORDERBYDESC" not in v:
-            raise ParameterError
-        return v
-
     @model_validator(mode="before")
-    def build_api_parameters(cls, values):
+    def build_data(cls, values):
         """
         Build API parameters.
 
@@ -538,23 +503,6 @@ class ChangeManagementModel(BaseModel):
         Raises:
         - None.
         """
-        filters = []
-        if "name_value_pairs" in values and values["name_value_pairs"]:
-            filters.append(values["name_value_pairs"])
-        if "textSearch" in values and values["textSearch"]:
-            filters.append(f'textSearch={values["textSearch"]}')
-        if "sysparm_query" in values and values["sysparm_query"]:
-            filters.append(f'sysparm_query={values["sysparm_query"]}')
-        if "sysparm_limit" in values and values["sysparm_limit"]:
-            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
-        if "sysparm_offset" in values and values["sysparm_offset"]:
-            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-
-        if filters:
-            values["api_parameters"] = "?" + "&".join(filters)
-
-        if "order" in values and values["order"]:
-            values["api_parameters"] = f"{values['api_parameters']}{values['order']}"
 
         data = {}
 
@@ -573,6 +521,22 @@ class ChangeManagementModel(BaseModel):
         if "data" not in values or values["data"] is None:
             values["data"] = data
         return values
+
+    def model_post_init(self, __context):
+        """
+        Build the API parameters
+        """
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.text_search:
+            self.api_parameters["textSearch"] = self.text_search
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
 class ImportSetModel(BaseModel):
@@ -671,42 +635,31 @@ class KnowledgeManagementModel(BaseModel):
     sysparm_search_id: Optional[str] = None
     sysparm_search_rank: Optional[int] = None
     sysparm_update_view: Optional[bool] = None
-    api_parameters: Optional[str] = ""
+    name_value_pairs: Optional[str] = None
+    textSearch: Optional[str] = None
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
 
-    @model_validator(mode="before")
-    def build_api_parameters(cls, values):
+    def model_post_init(self, __context):
         """
-        Build API parameters.
-
-        Args:
-        - values: Dictionary of values.
-
-        Returns:
-        - The constructed API parameters string.
-
-        Raises:
-        - None.
+        Build the API parameters
         """
-        filters = []
-        if "sysparm_fields" in values:
-            filters.append(f'sysparm_fields={values["sysparm_fields"]}')
-        if "sysparm_limit" in values:
-            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
-        if "sysparm_search_id" in values:
-            filters.append(f'sysparm_search_id={values["sysparm_search_id"]}')
-        if "sysparm_search_rank" in values:
-            filters.append(f'sysparm_search_rank={values["sysparm_search_rank"]}')
-        if "sysparm_update_view" in values:
-            filters.append(f'sysparm_update_view={values["sysparm_update_view"]}')
-        if "sysparm_offset" in values:
-            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-        if "sysparm_query" in values:
-            filters.append(f'sysparm_query={values["sysparm_query"]}')
-
-        if filters:
-            api_parameters = "?" + "&".join(filters)
-            values["api_parameters"] = api_parameters
-        return values
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.textSearch:
+            self.api_parameters["textSearch"] = self.textSearch
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
+        if self.sysparm_search_id:
+            self.api_parameters["sysparm_search_id"] = self.sysparm_search_id
+        if self.sysparm_search_rank:
+            self.api_parameters["sysparm_search_rank"] = self.sysparm_search_rank
+        if self.sysparm_update_view:
+            self.api_parameters["sysparm_update_view"] = self.sysparm_update_view
 
 
 class TableModel(BaseModel):
@@ -734,6 +687,7 @@ class TableModel(BaseModel):
     Note:
     The class includes field_validator functions for specific attribute validations.
     """
+
     table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[Dict] = None
@@ -749,7 +703,9 @@ class TableModel(BaseModel):
     sysparm_suppress_pagination_header: Optional[bool] = None
     sysparm_view: Optional[str] = None
     api_parameters: Optional[str] = ""
-    data: Optional[Dict] = Field(default=None, description="Table dictionary value to insert")
+    data: Optional[Dict] = Field(
+        default=None, description="Table dictionary value to insert"
+    )
 
     @field_validator("table", "table_record_sys_id")
     def validate_string_parameters(cls, v):
@@ -824,57 +780,39 @@ class TableModel(BaseModel):
             raise ParameterError
         return v
 
-    @model_validator(mode="before")
-    def build_api_parameters(cls, values):
+    def model_post_init(self, __context):
         """
-        Build API parameters.
-
-        Args:
-        - values: Dictionary of values.
-
-        Returns:
-        - The constructed API parameters string.
-
-        Raises:
-        - None.
+        Build the API parameters
         """
-        filters = []
-        if "name_value_pairs" in values:
-            filters.append(f'{values["name_value_pairs"]}')
-        if "sysparm_display_value" in values:
-            filters.append(f'sysparm_display_value={values["sysparm_display_value"]}')
-        if "sysparm_exclude_reference_link" in values:
-            filters.append(
-                f'sysparm_exclude_reference_link={values["sysparm_exclude_reference_link"]}'
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.sysparm_display_value:
+            self.api_parameters["sysparm_display_value"] = self.sysparm_display_value
+        if self.sysparm_exclude_reference_link:
+            self.api_parameters["sysparm_exclude_reference_link"] = (
+                self.sysparm_exclude_reference_link
             )
-        if "sysparm_fields" in values:
-            filters.append(f'sysparm_fields={values["sysparm_fields"]}')
-        if "sysparm_limit" in values:
-            filters.append(f'sysparm_limit={values["sysparm_limit"]}')
-        if "sysparm_no_count" in values:
-            filters.append(f'sysparm_no_count={values["sysparm_no_count"]}')
-        if "sysparm_offset" in values:
-            filters.append(f'sysparm_offset={values["sysparm_offset"]}')
-        if "sysparm_query" in values:
-            filters.append(f'sysparm_query={values["sysparm_query"]}')
-        if "sysparm_query_category" in values:
-            filters.append(f'sysparm_query_category={values["sysparm_query_category"]}')
-        if "sysparm_query_no_domain" in values:
-            filters.append(
-                f'sysparm_query_no_domain={values["sysparm_query_no_domain"]}'
+        if self.sysparm_fields:
+            self.api_parameters["sysparm_fields"] = self.sysparm_fields
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_query_category:
+            self.api_parameters["sysparm_query_category"] = self.sysparm_query_category
+        if self.sysparm_query_no_domain:
+            self.api_parameters["sysparm_query_no_domain"] = (
+                self.sysparm_query_no_domain
             )
-        if "sysparm_suppress_pagination_header" in values:
-            filters.append(
-                f'sysparm_suppress_pagination_header={values["sysparm_suppress_pagination_header"]}'
+        if self.sysparm_suppress_pagination_header:
+            self.api_parameters["sysparm_suppress_pagination_header"] = (
+                self.sysparm_suppress_pagination_header
             )
-        if "sysparm_view" in values:
-            filters.append(f'sysparm_view={values["sysparm_view"]}')
-
-        if filters:
-            api_parameters = "?" + "&".join(filters)
-            values["api_parameters"] = api_parameters
-
-        return values
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_no_count:
+            self.api_parameters["sysparm_no_count"] = self.sysparm_no_count
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
 ########################################################################################################################
@@ -905,7 +843,7 @@ class BatchItem(BaseModel):
     customization_version: Optional[str] = Field(
         default=None,
         description="Version of the store application or scoped ServiceNow plugin customization package to install, "
-                    "such as 1.0.2 or 2.3.",
+        "such as 1.0.2 or 2.3.",
     )
     id: Optional[str] = Field(
         default=None,
@@ -968,7 +906,7 @@ class BatchInstallResult(BaseModel):
     batch_items: Optional[List[BatchItem]] = Field(
         default=None,
         description="JSON array, where each object provides details of a "
-                    "package installation.",
+        "package installation.",
     )
     batch_plan: Optional[BatchPlan] = Field(
         default=None, description="Describes the installation batch plan."
@@ -1015,7 +953,7 @@ class StateTransition(BaseModel):
     transition_available: Optional[bool] = Field(
         default=None,
         description="Flag that indicates whether the change request can transition from its current state to this "
-                    "state.",
+        "state.",
     )
     automatic_transition: Optional[bool] = Field(
         default=None,
@@ -1070,13 +1008,13 @@ class State(BaseModel):
     available_states: List[str] = Field(
         default=None,
         description="Values for the states that are available for the specified change request, including the current "
-                    "state.",
+        "state.",
     )
     state_transitions: List[List[StateTransition]] = Field(
         default=None,
         description="Information on what is required to transition to each available state. Each distinct available "
-                    '"to state" is in its own Array with each differing set of conditions for that to state being in '
-                    "its own Object.",
+        '"to state" is in its own Array with each differing set of conditions for that to state being in '
+        "its own Object.",
     )
     state_label: Dict = Field(
         default=None,
@@ -1099,12 +1037,12 @@ class ChangeRequest(BaseModel):
     activity_due: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Date and time for which the associated case is expected to "
-                    "be completed.",
+        "be completed.",
     )
     additional_assignee_list: Optional[Union[FieldValue, str, List[str]]] = Field(
         default=None,
         description="List of sys_ids of additional persons "
-                    "assigned to work on the change request.",
+        "assigned to work on the change request.",
     )
     approval: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Type of approval process required."
@@ -1125,17 +1063,17 @@ class ChangeRequest(BaseModel):
     backout_plan: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Description of the plan to execute if the change must be "
-                    "reversed.",
+        "reversed.",
     )
     business_duration: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Length in scheduled work hours, work days, and work "
-                    "weeks that it took to complete the change.",
+        "weeks that it took to complete the change.",
     )
     business_service: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Sys_id of the business service associated with the "
-                    "change request.",
+        "change request.",
     )
     cab_date: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Date on which the Change Advisory Board (CAB) meets."
@@ -1143,7 +1081,7 @@ class ChangeRequest(BaseModel):
     cab_delegate: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Sys_id of the user that can substitute for the CAB manager "
-                    "during a CAB meeting.",
+        "during a CAB meeting.",
     )
     cab_recommendation: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1277,7 +1215,7 @@ class ChangeRequest(BaseModel):
     knowledge: Optional[Union[FieldValue, str]] = Field(
         False,
         description="Flag that indicates whether there are any knowledge base (KB) articles associated with the "
-                    "change request.",
+        "change request.",
     )
     location: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1286,7 +1224,7 @@ class ChangeRequest(BaseModel):
     made_sla: Optional[Union[FieldValue, bool]] = Field(
         default=None,
         description="No longer used. Flag that indicates whether the change request was implemented in alignment with "
-                    "the associated service level agreement.",
+        "the associated service level agreement.",
     )
     needs_attention: Optional[Union[FieldValue, bool]] = Field(
         False,
@@ -1303,12 +1241,12 @@ class ChangeRequest(BaseModel):
     on_hold_reason: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="If the on_hold parameter is 'true', description of the reason why the change request is being "
-                    "held up.",
+        "held up.",
     )
     on_hold_task: Optional[Union[FieldValue, str, List[str]]] = Field(
         default=None,
         description="If the on_hold parameter is 'true', list of the sys_ids of the tasks that must be completed "
-                    "before the hold is released.",
+        "before the hold is released.",
     )
     opened_at: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Date and time that the change release was created."
@@ -1324,7 +1262,7 @@ class ChangeRequest(BaseModel):
     outside_maintenance_schedule: Optional[Union[FieldValue, bool]] = Field(
         False,
         description="Flag that indicates whether maintenance by an outside company has been scheduled for the change "
-                    "request.",
+        "request.",
     )
     parent: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1343,7 +1281,7 @@ class ChangeRequest(BaseModel):
     production_system: Optional[Union[FieldValue, bool]] = Field(
         False,
         description="Flag that indicates whether the change request is for a ServiceNow instance that is in a "
-                    "production environment.",
+        "production environment.",
     )
     proposed_change: Optional[Union[FieldValue, str]] = Field(
         default=None, description="Proposed change reason"
@@ -1407,7 +1345,7 @@ class ChangeRequest(BaseModel):
     sla_due: Optional[Union[FieldValue, str]] = Field(
         default=None,
         description="Date and time that the change request must be completed based on the associated service level "
-                    "agreement.",
+        "agreement.",
     )
     sn_esign_document: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1523,7 +1461,7 @@ class ChangeRequest(BaseModel):
     work_notes_list: Optional[Union[FieldValue, List[str]]] = Field(
         default=None,
         description="List of sys_ids of the internal users who receive notifications about this change request when "
-                    "work notes are added.",
+        "work notes are added.",
     )
     work_start: Optional[Union[FieldValue, str]] = Field(
         default=None,
@@ -1657,44 +1595,81 @@ class Schedule(BaseModel):
 
 
 class FieldDetail(BaseModel):
-    display_value: Optional[str] = Field(None, description="Display value of the requested field.")
-    label: Optional[str] = Field(None, description="Label representing the requested field. For example, Knowledge.")
-    name: Optional[str] = Field(None, description="Name of the requested field. Matches field name.")
+    display_value: Optional[str] = Field(
+        None, description="Display value of the requested field."
+    )
+    label: Optional[str] = Field(
+        None,
+        description="Label representing the requested field. For example, Knowledge.",
+    )
+    name: Optional[str] = Field(
+        None, description="Name of the requested field. Matches field name."
+    )
     type: Optional[str] = Field(None, description="Data type of the requested field.")
     value: Optional[str] = Field(None, description="Value of the requested field.")
 
 
 class Attachment(BaseModel):
-    sys_id: Optional[str] = Field(None, description="Unique identifier for the attachment.")
+    sys_id: Optional[str] = Field(
+        None, description="Unique identifier for the attachment."
+    )
     file_name: Optional[str] = Field(None, description="Name of the attached file.")
     size_bytes: Optional[int] = Field(None, description="Size of the file in bytes.")
-    state: Optional[str] = Field(None, description="State of the attachment, e.g., available_conditionally.")
+    state: Optional[str] = Field(
+        None, description="State of the attachment, e.g., available_conditionally."
+    )
 
 
 class ArticleFields(BaseModel):
-    fields: Optional[Dict[str, FieldDetail]] = Field(None, description="Values of requested fields, if any.")
+    fields: Optional[Dict[str, FieldDetail]] = Field(
+        None, description="Values of requested fields, if any."
+    )
 
 
 class Article(BaseModel):
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
     base_type: str = Field(default="Article")
-    fields: Optional[Dict[str, FieldDetail]] = Field(None, description="Values of requested fields, if any.")
+    fields: Optional[Dict[str, FieldDetail]] = Field(
+        None, description="Values of requested fields, if any."
+    )
     link: Optional[str] = Field(None, description="Link to the article.")
-    id: Optional[str] = Field(None, description="Knowledge article sys_id from the Knowledge [kb_knowledge] table.")
+    id: Optional[str] = Field(
+        None,
+        description="Knowledge article sys_id from the Knowledge [kb_knowledge] table.",
+    )
     number: Optional[str] = Field(None, description="Knowledge article number.")
-    rank: Optional[float] = Field(None, description="Search rank of article specific to this search.")
-    score: Optional[float] = Field(None, description="Relevancy score, results sorted in descending order by score.")
-    snippet: Optional[str] = Field(None, description="Text showing a small portion of the knowledge article.")
-    title: Optional[str] = Field(None, description="Short description or title of the knowledge article.")
-    tags: Optional[List[str]] = Field(None, description="List of tags associated with the article.")
+    rank: Optional[float] = Field(
+        None, description="Search rank of article specific to this search."
+    )
+    score: Optional[float] = Field(
+        None,
+        description="Relevancy score, results sorted in descending order by score.",
+    )
+    snippet: Optional[str] = Field(
+        None, description="Text showing a small portion of the knowledge article."
+    )
+    title: Optional[str] = Field(
+        None, description="Short description or title of the knowledge article."
+    )
+    tags: Optional[List[str]] = Field(
+        None, description="List of tags associated with the article."
+    )
     content: Optional[str] = Field(None, description="Content the article.")
     template: Optional[bool] = Field(None, description="Template of article.")
     sys_id: Optional[str] = Field(None, description="Sys ID of article.")
-    short_description: Optional[str] = Field(None, description="Short description of article.")
-    display_attachments: Optional[bool] = Field(None, description="Display attachments flag.")
-    attachments: Optional[List[Attachment]] = Field(None, description="List of attachments.")
-    embedded_content: Optional[List] = Field(None, description="Additional embedded content.")
+    short_description: Optional[str] = Field(
+        None, description="Short description of article."
+    )
+    display_attachments: Optional[bool] = Field(
+        None, description="Display attachments flag."
+    )
+    attachments: Optional[List[Attachment]] = Field(
+        None, description="List of attachments."
+    )
+    embedded_content: Optional[List] = Field(
+        None, description="Additional embedded content."
+    )
 
 
 class Meta(BaseModel):
@@ -1705,9 +1680,13 @@ class Meta(BaseModel):
     end: Optional[int] = Field(None, description="Ending index of the result set.")
     fields: Optional[str] = Field(None, description="Fields in the article.")
     filter: Optional[str] = Field(None, description="Filter used to acquire the data.")
-    kb: Optional[str] = Field(None, description="List of knowledge base article sys_ids.")
-    language: Optional[str] = Field(None,
-                                    description="List of comma-separated languages of the KB articles that were requested.")
+    kb: Optional[str] = Field(
+        None, description="List of knowledge base article sys_ids."
+    )
+    language: Optional[str] = Field(
+        None,
+        description="List of comma-separated languages of the KB articles that were requested.",
+    )
     query: Optional[str] = Field(None, description="Specified request query.")
     start: Optional[int] = Field(None, description="Starting index of result set.")
     status: Optional[Dict[str, Any]] = Field(None, description="Status of the call.")
@@ -1718,8 +1697,12 @@ class KnowledgeManagement(BaseModel):
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
     base_type: str = Field(default="KnowledgeManagement")
-    meta: Meta = Field(None, description="Meta information of the results and request parameters.")
-    articles: List[Article] = Field(None, description="List of articles returned in response.")
+    meta: Meta = Field(
+        None, description="Meta information of the results and request parameters."
+    )
+    articles: List[Article] = Field(
+        None, description="List of articles returned in response."
+    )
 
 
 class Item(BaseModel):
@@ -2011,9 +1994,7 @@ class CMDB(BaseModel):
         default=None,
         description="Relationships between the specified class and other classes in the CMDB.",
     )
-    label: str = Field(
-        default=None, description="Specified class display name."
-    )
+    label: str = Field(default=None, description="Specified class display name.")
     identification_rules: IdentificationRule = Field(
         default=None,
         description="Attributes associated with the configuration item identification rules for the specified class.",
@@ -2087,15 +2068,15 @@ class Response(BaseModel):
     scope: str = Field(
         default=None,
         description="Amount of access granted by the access token. The scope is always useraccount, meaning that the "
-                    "access token has the same rights as the user account that authorized the token. For example, "
-                    "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
-                    "access token grants the token bearer the same access privileges as Abel Tuter.",
+        "access token has the same rights as the user account that authorized the token. For example, "
+        "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
+        "access token grants the token bearer the same access privileges as Abel Tuter.",
     )
     token_type: str = Field(
         default=None,
         description="Type of token issued by the request as defined in the OAuth RFC. The token type is always "
-                    "Bearer, meaning that anyone in possession of the access token can access a protected resource "
-                    "without providing a cryptographic key.",
+        "Bearer, meaning that anyone in possession of the access token can access a protected resource "
+        "without providing a cryptographic key.",
     )
     expires_in: Optional[int] = Field(
         default=None, description="Lifespan of the access token in seconds."
@@ -2106,7 +2087,7 @@ class Response(BaseModel):
     access_token: str = Field(
         default=None,
         description="String value of the access token. Access requests made within the access token expiration time "
-                    "always return the current access token.",
+        "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
     import_set: Optional[str] = Field(None, description="Name of the import set.")
