@@ -1558,7 +1558,7 @@ def test_servicenow_kb_article_responses():
                     "link": "?id=kb_article_view&sys_kb_id=f27d7f79c0a8011b0018f9d700d2b9aa",
                     "id": "kb_knowledge:f27d7f79c0a8011b0018f9d700d2b9aa",
                     "title": "Email Interruption Tonight at 11:00 PM Eastern",
-                    "snippet": " If the site is UP but you cant access the page, try one of the below solutions: Browser Related Problems Force a full refresh for the site. This can be achieved by pressing CTRL + F5 keys at the same time on your favourite browser (Firefox, Chrome, Explorer, etc.) Try alternative urls such as m.outlook.com Clear the temporary cache and cookies ",
+                    "snippet": " If the site is UP but you can't access the page, try one of the below solutions: Browser Related Problems Force a full refresh for the site. This can be achieved by pressing CTRL + F5 keys at the same time on your favourite browser (Firefox, Chrome, Explorer, etc.) Try alternative urls such as m.outlook.com Clear the temporary cache and cookies ",
                     "score": -1,
                     "number": "KB0000002",
                     "fields": {

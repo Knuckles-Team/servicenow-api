@@ -2551,13 +2551,13 @@ class Api(object):
     ####################################################################################################################
     @require_auth
     def api_request(
-            self,
-            method: str,
-            endpoint: str,
-            data: Dict[str, Any] = None,
-            json: Dict[str, Any] = None,
+        self,
+        method: str,
+        endpoint: str,
+        data: Dict[str, Any] = None,
+        json: Dict[str, Any] = None,
     ) -> Union[Response, Dict[str, Any]]:
-        if method.upper() not in ['GET', 'POST', 'PUT', 'DELETE']:
+        if method.upper() not in ["GET", "POST", "PUT", "DELETE"]:
             raise ValueError(f"Unsupported HTTP method: {method.upper()}")
         try:
             request_func = getattr(self._session, method.lower())
