@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
-from typing import Union
+from typing import Union, Dict, Any
 
 import requests
 import urllib3
@@ -2544,4 +2544,48 @@ class Api(object):
             print(f"Invalid parameters: {e.errors()}")
             raise e
         response = process_response(response=response)
+        return response
+
+    ####################################################################################################################
+    #                                                 Custom API                                                       #
+    ####################################################################################################################
+    @require_auth
+    def api_request(
+            self,
+            method: str,
+            endpoint: str,
+            data: Dict[str, Any] = None,
+            json: Dict[str, Any] = None,
+    ) -> Union[Response, Dict[str, Any]]:
+        if method.upper() not in ['GET', 'POST', 'PUT', 'DELETE']:
+            raise ValueError(f"Unsupported HTTP method: {method.upper()}")
+        try:
+            request_func = getattr(self._session, method.lower())
+            response = request_func(
+                url=f"{self.url}/{endpoint}",
+                headers=self.headers,
+                data=data,
+                json=json,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        try:
+            response.raise_for_status()
+        except Exception as response_error:
+            print(f"Response Error: {response_error}")
+        status_code = response.status_code
+        raw_output = response.content
+        try:
+            response = response.json()
+        except Exception as response_error:
+            print(f"JSON Conversion Error: {response_error}")
+        try:
+            response.status_code = status_code
+            response.raw_output = raw_output
+            response.json_output = response
+        except Exception as response_error:
+            print(f"Response Model Application Error: {response_error}")
         return response
