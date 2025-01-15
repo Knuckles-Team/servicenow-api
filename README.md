@@ -41,6 +41,9 @@ or you can run parent.model_dump() to get the table in dictionary format.
 - Incident
 - Knowledge Base
 - Table
+- Custom Endpoint
+
+If your API call isn't supported, you can always run the standard custom API endpoint function to get/post/put/delete and endpoint
 
 <details>
   <summary><b>Usage:</b></summary>
