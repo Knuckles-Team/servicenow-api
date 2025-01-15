@@ -96,6 +96,7 @@ class Api(object):
                 "username": quote(username),
                 "password": quote(password),
             }
+            response = None
             try:
                 response = requests.post(
                     url=self.auth_url,
@@ -105,7 +106,7 @@ class Api(object):
                 response = response.json()
                 self.token = response["access_token"]
             except Exception as e:
-                print(f"Error Authenticating with OAuth: \n\n{e}")
+                print(f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}")
                 raise e
             self.headers = {
                 "Authorization": f"Bearer {self.token}",
