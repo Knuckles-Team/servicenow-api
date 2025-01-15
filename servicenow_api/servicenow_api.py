@@ -143,8 +143,7 @@ class Api(object):
         Refresh the authentication token
         :param kwargs:
         :return:
-
-
+        Response with new refreshed token.
         """
         decoded_auth_data = {}
         for key, value in self.auth_data.items():
