@@ -4,7 +4,7 @@ from typing import Union, Dict, Any
 
 import requests
 import urllib3
-from urllib.parse import quote, unquote
+from urllib.parse import quote_plus, unquote_plus
 from base64 import b64encode
 from pydantic import ValidationError
 
@@ -91,10 +91,10 @@ class Api(object):
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {
                 "grant_type": grant_type,
-                "client_id": quote(client_id),
-                "client_secret": quote(client_secret),
-                "username": quote(username),
-                "password": quote(password),
+                "client_id": quote_plus(client_id),
+                "client_secret": quote_plus(client_secret),
+                "username": quote_plus(username),
+                "password": quote_plus(password),
             }
             response = None
             try:
@@ -148,7 +148,7 @@ class Api(object):
         """
         decoded_auth_data = {}
         for key, value in self.auth_data.items():
-            decoded_auth_data[key] = unquote(value)
+            decoded_auth_data[key] = unquote_plus(value)
         refresh_data = {
             "grant_type": "refresh_token",
             "client_id": decoded_auth_data["client_id"],
