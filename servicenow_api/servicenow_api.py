@@ -4,7 +4,7 @@ from typing import Union, Dict, Any
 
 import requests
 import urllib3
-from urllib.parse import quote, unquote, urlencode
+from urllib.parse import quote, unquote
 from base64 import b64encode
 from pydantic import ValidationError
 
@@ -96,11 +96,10 @@ class Api(object):
                 "username": quote(username),
                 "password": quote(password),
             }
-            self.encoded_auth_data = urlencode(self.auth_data)
             try:
                 response = requests.post(
                     url=self.auth_url,
-                    data=self.encoded_auth_data,
+                    data=self.auth_data,
                     headers=self.auth_headers,
                 )
                 response = response.json()
@@ -147,21 +146,15 @@ class Api(object):
 
 
         """
-        # Parse the URL encoded string back to a dictionary
         decoded_auth_data = {}
         for key, value in self.auth_data.items():
             decoded_auth_data[key] = unquote(value)
-
-        # Prepare data for refresh token request
         refresh_data = {
             "grant_type": "refresh_token",
             "client_id": decoded_auth_data["client_id"],
             "client_secret": decoded_auth_data["client_secret"],
-            "refresh_token": unquote(self.token),  # Assuming self.token is URL encoded
+            "refresh_token": self.token,
         }
-
-        # Convert the refresh data to URL encoded format
-        refresh_data = urlencode(refresh_data)
         try:
             response = requests.post(
                 url=self.auth_url, data=refresh_data, headers=self.auth_headers
