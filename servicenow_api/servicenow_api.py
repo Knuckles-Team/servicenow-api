@@ -4,7 +4,7 @@ from typing import Union, Dict, Any
 
 import requests
 import urllib3
-from urllib.parse import quote_plus, unquote_plus
+from urllib.parse import urlencode
 from base64 import b64encode
 from pydantic import ValidationError
 
@@ -91,16 +91,17 @@ class Api(object):
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {
                 "grant_type": grant_type,
-                "client_id": quote_plus(client_id),
-                "client_secret": quote_plus(client_secret),
-                "username": quote_plus(username),
-                "password": quote_plus(password),
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "username": username,
+                "password": password,
             }
+            encoded_data_str = urlencode(self.auth_data)
             response = None
             try:
                 response = requests.post(
                     url=self.auth_url,
-                    data=self.auth_data,
+                    data=encoded_data_str,
                     headers=self.auth_headers,
                 )
                 response = response.json()
@@ -146,18 +147,16 @@ class Api(object):
         :return:
         Response with new refreshed token.
         """
-        decoded_auth_data = {}
-        for key, value in self.auth_data.items():
-            decoded_auth_data[key] = unquote_plus(value)
         refresh_data = {
             "grant_type": "refresh_token",
-            "client_id": decoded_auth_data["client_id"],
-            "client_secret": decoded_auth_data["client_secret"],
+            "client_id": self.auth_data["client_id"],
+            "client_secret": self.auth_data["client_secret"],
             "refresh_token": self.token,
         }
+        encoded_data_str = urlencode(refresh_data)
         try:
             response = requests.post(
-                url=self.auth_url, data=refresh_data, headers=self.auth_headers
+                url=self.auth_url, data=encoded_data_str, headers=self.auth_headers
             )
         except ValidationError or Exception as e:
             print(f"Invalid parameters: {e.errors()}")
