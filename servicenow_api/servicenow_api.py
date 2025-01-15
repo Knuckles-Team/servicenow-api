@@ -4,6 +4,7 @@ from typing import Union, Dict, Any
 
 import requests
 import urllib3
+from urllib.parse import quote, unquote, urlencode
 from base64 import b64encode
 from pydantic import ValidationError
 
@@ -78,6 +79,7 @@ class Api(object):
         self.headers = None
         self.auth_headers = None
         self.auth_data = None
+        self.encoded_auth_data = None
         self.token = None
         self.verify = verify
         self.proxies = proxies
@@ -89,14 +91,17 @@ class Api(object):
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {
                 "grant_type": grant_type,
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "username": username,
-                "password": password,
+                "client_id": quote(client_id),
+                "client_secret": quote(client_secret),
+                "username": quote(username),
+                "password": quote(password),
             }
+            self.encoded_auth_data = urlencode(self.auth_data)
             try:
                 response = requests.post(
-                    url=self.auth_url, data=self.auth_data, headers=self.auth_headers
+                    url=self.auth_url,
+                    data=self.encoded_auth_data,
+                    headers=self.auth_headers,
                 )
                 response = response.json()
                 self.token = response["access_token"]
@@ -142,12 +147,21 @@ class Api(object):
 
 
         """
+        # Parse the URL encoded string back to a dictionary
+        decoded_auth_data = {}
+        for key, value in self.auth_data.items():
+            decoded_auth_data[key] = unquote(value)
+
+        # Prepare data for refresh token request
         refresh_data = {
             "grant_type": "refresh_token",
-            "client_id": self.auth_data["client_id"],
-            "client_secret": self.auth_data["client_secret"],
-            "refresh_token": self.token,
+            "client_id": decoded_auth_data["client_id"],
+            "client_secret": decoded_auth_data["client_secret"],
+            "refresh_token": unquote(self.token),  # Assuming self.token is URL encoded
         }
+
+        # Convert the refresh data to URL encoded format
+        refresh_data = urlencode(refresh_data)
         try:
             response = requests.post(
                 url=self.auth_url, data=refresh_data, headers=self.auth_headers
