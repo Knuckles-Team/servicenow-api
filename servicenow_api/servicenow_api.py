@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Optional
 
 import requests
 import urllib3
@@ -8,52 +8,25 @@ from urllib.parse import urlencode
 from base64 import b64encode
 from pydantic import ValidationError
 
-try:
-    from servicenow_api.servicenow_models import (
-        ApplicationServiceModel,
-        CMDBModel,
-        CICDModel,
-        ChangeManagementModel,
-        IncidentModel,
-        ImportSetModel,
-        KnowledgeManagementModel,
-        TableModel,
-        Response,
-    )
-except ModuleNotFoundError:
-    from servicenow_models import (
-        ApplicationServiceModel,
-        CMDBModel,
-        CICDModel,
-        ChangeManagementModel,
-        IncidentModel,
-        ImportSetModel,
-        KnowledgeManagementModel,
-        TableModel,
-        Response,
-    )
-try:
-    from servicenow_api.decorators import require_auth
-except ModuleNotFoundError:
-    from decorators import require_auth
-try:
-    from servicenow_api.exceptions import (
-        AuthError,
-        UnauthorizedError,
-        ParameterError,
-        MissingParameterError,
-    )
-except ModuleNotFoundError:
-    from exceptions import (
-        AuthError,
-        UnauthorizedError,
-        ParameterError,
-        MissingParameterError,
-    )
-try:
-    from servicenow_api.utils import process_response
-except ModuleNotFoundError:
-    from utils import process_response
+from servicenow_api.servicenow_models import (
+    ApplicationServiceModel,
+    CMDBModel,
+    CICDModel,
+    ChangeManagementModel,
+    IncidentModel,
+    ImportSetModel,
+    KnowledgeManagementModel,
+    TableModel,
+    Response,
+)
+from servicenow_api.decorators import require_auth
+from servicenow_api.exceptions import (
+    AuthError,
+    UnauthorizedError,
+    ParameterError,
+    MissingParameterError,
+)
+from servicenow_api.utils import process_response
 
 
 class Api(object):
@@ -61,13 +34,13 @@ class Api(object):
     def __init__(
         self,
         url: str = None,
-        username: str = None,
-        password: str = None,
-        client_id: str = None,
-        client_secret: str = None,
-        grant_type: str = "password",
-        proxies: dict = None,
-        verify: bool = True,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        grant_type: Optional[str] = "password",
+        proxies: Optional[str] = None,
+        verify: Optional[str] = True,
     ):
         if url is None:
             raise MissingParameterError
@@ -107,7 +80,9 @@ class Api(object):
                 response = response.json()
                 self.token = response["access_token"]
             except Exception as e:
-                print(f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}")
+                print(
+                    f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}"
+                )
                 raise e
             self.headers = {
                 "Authorization": f"Bearer {self.token}",
@@ -773,6 +748,208 @@ class Api(object):
         try:
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/testsuite/run",
+                params=cicd.api_parameters,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_create(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Creates a new update set and inserts the new record in the Update Sets [sys_update_set] table.
+
+        :param update_set_name: Name to give the update set.
+        :type update_set_name: str
+        :param description: Description of the update set.
+        :type description: str
+        :param scope: The scope name of the application in which to create the new update set.
+        :type scope: str
+        :param sys_id: Sys_id of the application in which to create the new update set.
+        :type sys_id: str
+
+        :return: JSON response containing information about the created update set.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If update_set_name is not provided or both sys_id and scope are not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.update_set_name is None or (cicd.sys_id is None and cicd.scope is None):
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/create",
+                params=cicd.api_parameters,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_retrieve(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Retrieves an update set with a given sys_id and allows you to remove the existing retrieved update set from the instance.
+
+        :param update_set_id: Sys_id of the update set on the source instance from where the update set was retrieved.
+        :type update_set_id: str
+        :param update_source_id: Sys_id of the remote instance record.
+        :type update_source_id: str
+        :param update_source_instance_id: Instance ID of the remote instance.
+        :type update_source_instance_id: str
+        :param auto_preview: Flag that indicates whether to automatically preview the update set after retrieval.
+        :type auto_preview: bool
+        :param cleanup_retrieved: Flag that indicates whether to remove the existing retrieved update set from the instance.
+        :type cleanup_retrieved: bool
+
+        :return: JSON response containing progress information about the retrieval.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If update_set_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.update_set_id is None:
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/retrieve",
+                params=cicd.api_parameters,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_preview(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Previews an update set to check for any conflicts and retrieve progress information about the update set operation.
+
+        :param remote_update_set_id: Sys_id of the update set to preview.
+        :type remote_update_set_id: str
+
+        :return: JSON response containing progress information about the preview.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If remote_update_set_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.remote_update_set_id is None:
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/preview/{cicd.remote_update_set_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_commit(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Commits an update set with a given sys_id.
+
+        :param remote_update_set_id: Sys_id of the update set to commit.
+        :type remote_update_set_id: str
+        :param force_commit: Flag that indicates whether to force commit the update set.
+        :type force_commit: str
+
+        :return: JSON response containing progress information about the commit.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If remote_update_set_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.remote_update_set_id is None:
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/commit/{cicd.remote_update_set_id}",
+                json=cicd.data,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_commit_multiple(
+        self, **kwargs
+    ) -> Union[Response, requests.Response]:
+        """
+        Commits multiple update sets in a single request according to the order that they're provided.
+
+        :param remote_update_set_ids: List of sys_ids associated with any update sets to commit. Sys_ids are committed in the order given in the request.
+        :type remote_update_set_ids: str
+        :param force_commit: Flag that indicates whether to force commit the update set.
+        :type force_commit: str
+
+        :return: JSON response containing progress information about the multiple commits.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If remote_update_set_ids is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.remote_update_set_ids is None:
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/commitMultiple",
+                params=cicd.api_parameters,
+                json=cicd.data,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
+    def update_set_back_out(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Backs out an installation operation that was performed on an update set with a given sys_id.
+
+        :param update_set_id: Sys_id of the update set.
+        :type update_set_id: str
+        :param rollback_installs: Flag that indicates whether to rollback the batch installation performed during the update set commit.
+        :type rollback_installs: bool
+
+        :return: JSON response containing progress information about the back out.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If update_set_id is not provided.
+        """
+        cicd = CICDModel(**kwargs)
+        if cicd.update_set_id is None:
+            raise MissingParameterError
+        try:
+            response = self._session.post(
+                url=f"{self.url}/sn_cicd/update_set/back_out",
                 params=cicd.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
