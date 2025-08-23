@@ -162,7 +162,21 @@ class CICDModel(BaseModel):
     - browser_version (Optional[str]): Version of the browser.
     - os_name (Optional[str]): Name of the operating system.
     - os_version (Optional[str]): Version of the operating system.
-    - api_parameters (str): API parameters.
+    - target_table (Optional[str]): Target table for scan.
+    - target_sys_id (Optional[str]): Target sys_id for scan.
+    - update_set_id (Optional[str]): Sys_id of the update set.
+    - update_source_id (Optional[str]): Sys_id of the remote instance record.
+    - update_source_instance_id (Optional[str]): Instance ID of the remote instance.
+    - auto_preview (Optional[bool]): Flag indicating whether to automatically preview the update set after retrieval.
+    - cleanup_retrieved (Optional[bool]): Flag indicating whether to remove the existing retrieved update set.
+    - remote_update_set_id (Optional[str]): Sys_id of the remote update set.
+    - remote_update_set_ids (Optional[List[str]]): List of sys_ids for remote update sets.
+    - force_commit (Optional[bool]): Flag indicating whether to force commit the update set.
+    - rollback_installs (Optional[bool]): Flag indicating whether to rollback installations.
+    - update_set_name (Optional[str]): Name to give the update set.
+    - description (Optional[str]): Description of the update set.
+    - sys_id (Optional[str]): General sys_id, used in various contexts.
+    - api_parameters (Dict): Dictionary containing API parameters.
     - data (Dict): Dictionary containing data.
 
     Note:
@@ -200,11 +214,33 @@ class CICDModel(BaseModel):
     os_version: Optional[str] = None
     target_table: Optional[str] = None
     target_sys_id: Optional[str] = None
+    update_set_id: Optional[str] = None
+    update_source_id: Optional[str] = None
+    update_source_instance_id: Optional[str] = None
+    auto_preview: Optional[bool] = None
+    cleanup_retrieved: Optional[bool] = None
+    remote_update_set_id: Optional[str] = None
+    remote_update_set_ids: Optional[List[str]] = None
+    force_commit: Optional[bool] = None
+    rollback_installs: Optional[bool] = None
+    update_set_name: Optional[str] = None
+    description: Optional[str] = None
     api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
     data: Optional[Dict] = None
 
     @field_validator(
-        "result_id", "progress_id", "rollback_id", "name", "notes", "packages"
+        "result_id",
+        "progress_id",
+        "rollback_id",
+        "name",
+        "notes",
+        "packages",
+        "update_set_id",
+        "update_source_id",
+        "update_source_instance_id",
+        "remote_update_set_id",
+        "update_set_name",
+        "description",
     )
     def validate_string_parameters(cls, v):
         """
@@ -223,28 +259,28 @@ class CICDModel(BaseModel):
             raise ValueError("Invalid optional params")
         return v
 
-    @field_validator("app_scope_sys_ids")
-    def validate_app_scope_sys_ids_parameters(cls, v):
+    @field_validator("app_scope_sys_ids", "remote_update_set_ids")
+    def validate_list_parameters(cls, v):
         """
-        Validate specific string parameters to ensure they are a List
+        Validate specific list parameters to ensure they are lists.
 
         Args:
         - v: The value of the parameter.
 
         Returns:
-        - str: The validated parameter value as a list.
+        - list: The validated parameter value as a list.
 
         Raises:
-        - ValueError: If the parameter is provided and not a List, str, or int.
+        - ValueError: If the parameter is provided and not a list, str, or int.
         """
-        if v is not None and not isinstance(v, List):
-            if v is isinstance(v, str) or v is isinstance(v, int):
-                return [v]
+        if v is not None and not isinstance(v, list):
+            if isinstance(v, str) or isinstance(v, int):
+                return [str(v)]
             else:
                 raise ValueError("Invalid optional params")
         return v
 
-    @field_validator("auto_upgrade_base_app", "browser_name")
+    @field_validator("browser_name")
     def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
@@ -255,7 +291,9 @@ class CICDModel(BaseModel):
         Returns:
         - str: The value converted to lowercase.
         """
-        return value.lower()
+        if value is not None:
+            return value.lower()
+        return value
 
     @field_validator("browser_name")
     def validate_browser_name(cls, v):
@@ -298,6 +336,8 @@ class CICDModel(BaseModel):
             data["packages"] = values.get("packages")
         if "app_scope_sys_ids" in values:
             data["app_scope_sys_ids"] = values.get("app_scope_sys_ids")
+        if "force_commit" in values and values["force_commit"] is not None:
+            data["force_commit"] = str(values["force_commit"]).lower()
 
         # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
@@ -347,6 +387,28 @@ class CICDModel(BaseModel):
             self.api_parameters["os_name"] = self.os_name
         if self.os_version:
             self.api_parameters["os_version"] = self.os_version
+        if self.update_set_id:
+            self.api_parameters["update_set_id"] = self.update_set_id
+        if self.update_source_id:
+            self.api_parameters["update_source_id"] = self.update_source_id
+        if self.update_source_instance_id:
+            self.api_parameters["update_source_instance_id"] = (
+                self.update_source_instance_id
+            )
+        if self.auto_preview:
+            self.api_parameters["auto_preview"] = self.auto_preview
+        if self.cleanup_retrieved:
+            self.api_parameters["cleanup_retrieved"] = self.cleanup_retrieved
+        if self.remote_update_set_ids:
+            self.api_parameters["remote_update_set_ids"] = ",".join(
+                self.remote_update_set_ids
+            )
+        if self.rollback_installs:
+            self.api_parameters["rollback_installs"] = self.rollback_installs
+        if self.update_set_name:
+            self.api_parameters["update_set_name"] = self.update_set_name
+        if self.description:
+            self.api_parameters["description"] = self.description
 
 
 class ChangeManagementModel(BaseModel):
@@ -702,7 +764,7 @@ class TableModel(BaseModel):
     sysparm_query_no_domain: Optional[bool] = None
     sysparm_suppress_pagination_header: Optional[bool] = None
     sysparm_view: Optional[str] = None
-    api_parameters: Optional[str] = ""
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
     data: Optional[Dict] = Field(
         default=None, description="Table dictionary value to insert"
     )
@@ -1919,6 +1981,30 @@ class TestSuiteResults(BaseModel):
 
 
 class CICD(BaseModel):
+    """
+    Pydantic model for parsing CI/CD API responses.
+
+    Attributes:
+    - base_type (str): Type of the response, defaults to "CICD".
+    - error (Optional[str]): Error message.
+    - links (Optional[Links]): Links and sys_ids associated with the response.
+    - percent_complete (Optional[float]): Percentage of the request that is complete.
+    - status (Optional[str]): Numeric execution state (e.g., "0" for Pending).
+    - status_detail (Optional[str]): Detailed message about the execution status.
+    - status_label (Optional[str]): Execution state description (e.g., "Pending").
+    - status_message (Optional[str]): Additional description of the action's state.
+    - rolledup_test_error_count (Optional[int]): Number of tests with errors.
+    - rolledup_test_failure_count (Optional[int]): Number of tests that failed.
+    - rolledup_test_skip_count (Optional[int]): Number of tests that were skipped.
+    - rolledup_test_success_count (Optional[int]): Number of tests that ran successfully.
+    - test_suite_duration (Optional[str]): Time taken to execute the test suite.
+    - test_suite_name (Optional[str]): Name of the test suite.
+    - test_suite_status (Optional[str]): State of the test suite.
+    - rollback_version (Optional[str]): Version to rollback the application.
+    - child_suite_results (Optional[List[TestSuiteResults]]): Child test suite results.
+    - update_set_id (Optional[str]): Sys_id of the created update set.
+    """
+
     model_config = ConfigDict(extra="forbid")
     __hash__ = object.__hash__
     base_type: str = Field(default="CICD")
@@ -1966,6 +2052,9 @@ class CICD(BaseModel):
     )
     child_suite_results: Optional[List[TestSuiteResults]] = Field(
         default=None, description="Child tests"
+    )
+    update_set_id: Optional[str] = Field(
+        default=None, description="Sys_id of the created update set."
     )
 
     @property

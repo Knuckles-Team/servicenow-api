@@ -26,6 +26,8 @@ ServiceNow API Python Wrapper
 
 This repository is actively maintained and will continue adding more API calls
 
+This can run as a standalone MCP Server for Agentic AI!
+
 Contributions are welcome!
 
 All API Response objects are customized for the response call.
@@ -112,6 +114,19 @@ client = servicenow_api.Api(url=servicenow_url,
 
 table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table.model_dump()}")
+```
+
+Use with Agentic AI
+
+```json
+{
+  "mcpServers": {
+    "gitlab": {
+      "command": "servicenow-mcp"
+    }
+  }
+}
+
 ```
 
 </details>
