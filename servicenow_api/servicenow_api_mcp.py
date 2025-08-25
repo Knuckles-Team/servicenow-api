@@ -3529,7 +3529,14 @@ def servicenow_api_mcp(argv):
         elif opt in ("-h", "--host"):
             host = arg
         elif opt in ("-p", "--port"):
-            port = arg
+            try:
+                port = int(arg)  # Attempt to convert port to integer
+                if not (0 <= port <= 65535):  # Valid port range
+                    print(f"Error: Port {arg} is out of valid range (0-65535).")
+                    sys.exit(1)
+            except ValueError:
+                print(f"Error: Port {arg} is not a valid integer.")
+                sys.exit(1)
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "http":
