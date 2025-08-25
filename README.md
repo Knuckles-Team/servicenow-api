@@ -116,7 +116,27 @@ table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table.model_dump()}")
 ```
 
-Use with Agentic AI
+### Use with AI
+
+Deploy MCP Server as a Service
+```bash
+docker pull knucklessg1/servicenow:latest
+```
+
+Modify the `compose.yml`
+
+```compose
+services:
+  servicenow-mcp:
+    image: knucklessg1/servicenow:latest
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8004
+    ports:
+      - 8004:8004
+```
+
+Configure `mcp.json`
 
 ```json
 {
