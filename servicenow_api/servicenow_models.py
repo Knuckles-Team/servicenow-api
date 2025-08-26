@@ -77,6 +77,8 @@ class ApplicationServiceModel(BaseModel):
         Returns:
         - str: The value converted to lowercase.
         """
+        if value is None:
+            return None
         return value.lower()
 
     @field_validator("mode")
@@ -495,6 +497,8 @@ class ChangeManagementModel(BaseModel):
         Returns:
         - str: The value converted to lowercase.
         """
+        if value is None:
+            return None
         return value.lower()
 
     @field_validator("change_type")
@@ -803,8 +807,9 @@ class TableModel(BaseModel):
         Returns:
         - str: The value converted to lowercase.
         """
-        if value is not None:
-            return value.lower()
+        if value is None:
+            return None
+        return value.lower()
 
     @field_validator("sysparm_view")
     def validate_sysparm_view(cls, v):

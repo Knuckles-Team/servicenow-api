@@ -12,13 +12,14 @@ from fastmcp import FastMCP
 
 mcp = FastMCP("ServiceNow")
 
+
 def to_boolean(string):
     # Normalize the string: strip whitespace and convert to lowercase
     normalized = str(string).strip().lower()
 
     # Define valid true/false values
-    true_values = {'t', 'true', 'y', 'yes', '1'}
-    false_values = {'f', 'false', 'n', 'no', '0'}
+    true_values = {"t", "true", "y", "yes", "1"}
+    false_values = {"f", "false", "n", "no", "0"}
 
     if normalized in true_values:
         return True
@@ -26,6 +27,7 @@ def to_boolean(string):
         return False
     else:
         raise ValueError(f"Cannot convert '{string}' to boolean")
+
 
 environment_servicenow_instance = os.environ.get("SERVICENOW_INSTANCE", None)
 environment_username = os.environ.get("USERNAME", None)
@@ -36,6 +38,7 @@ environment_verify = os.environ.get("VERIFY", True)
 
 if environment_verify:
     environment_verify = to_boolean(environment_verify)
+
 
 # Application Service Tools
 @mcp.tool()
