@@ -2,7 +2,6 @@
 # coding: utf-8
 
 from setuptools import setup
-from servicenow_api.version import __version__, __author__
 from pathlib import Path
 import os
 import re
@@ -10,7 +9,7 @@ from pip._internal.network.session import PipSession
 from pip._internal.req import parse_requirements
 
 readme = Path("README.md").read_text()
-version = __version__
+version = os.environ.get("NEW_VERSION", "1.0.0")
 requirements = parse_requirements(
     os.path.join(os.path.dirname(__file__), "requirements.txt"), session=PipSession()
 )
@@ -26,7 +25,7 @@ setup(
     long_description=f"{readme}",
     long_description_content_type="text/markdown",
     url="https://github.com/Knuckles-Team/servicenow-api",
-    author=__author__,
+    author="Audel Rouhi",
     author_email="knucklessg1@gmail.com",
     license="MIT",
     packages=["servicenow_api"],
