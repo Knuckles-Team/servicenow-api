@@ -138,12 +138,28 @@ services:
 
 Configure `mcp.json`
 
+Recommended: Store secrets in environment variables with lookup in JSON file.
+
+For Testing Only: Plain text storage will also work, although **not** recommended.
+
 ```json
 {
   "mcpServers": {
-    "gitlab": {
+    "servicenow": {
       "command": "servicenow-mcp"
-    }
+    },
+    "env": {
+      "SERVICENOW_INSTANCE": "https://www.servicenow.com",
+      "USERNAME": "user",
+      "PASSWORD": "${env:PASSWORD}",
+      // "PASSWORD": "pass",
+      "CLIENT_ID": "${env:CLIENT_ID}",
+      // "CLIENT_ID": "client_id",
+      "CLIENT_SECRET": "${env:CLIENT_SECRET}",
+      // "CLIENT_SECRET": "client_secret",
+      "VERIFY": true
+    },
+    "timeout": 300000
   }
 }
 
