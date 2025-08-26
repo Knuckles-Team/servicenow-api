@@ -149,13 +149,13 @@ For Testing Only: Plain text storage will also work, although **not** recommende
       "command": "servicenow-mcp"
     },
     "env": {
-      "SERVICENOW_INSTANCE": "https://www.servicenow.com",
-      "USERNAME": "user",
-      "PASSWORD": "${env:PASSWORD}",
+      "SERVICENOW_INSTANCE": "https://www.servicenow.com", // Optional - Can be specified at prompt
+      "USERNAME": "user",                                  // Optional - Can be specified at prompt
+      "PASSWORD": "${env:PASSWORD}",                       // Optional - Can be specified at prompt
       // "PASSWORD": "pass",
-      "CLIENT_ID": "${env:CLIENT_ID}",
+      "CLIENT_ID": "${env:CLIENT_ID}",                     // Optional - Can be specified at prompt
       // "CLIENT_ID": "client_id",
-      "CLIENT_SECRET": "${env:CLIENT_SECRET}",
+      "CLIENT_SECRET": "${env:CLIENT_SECRET}",             // Optional - Can be specified at prompt
       // "CLIENT_SECRET": "client_secret",
       "VERIFY": true
     },
