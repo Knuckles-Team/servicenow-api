@@ -2206,6 +2206,33 @@ class Api(object):
     #                                               Incident API                                                       #
     ####################################################################################################################
     @require_auth
+    def get_incidents(self, **kwargs) -> Union[Response, requests.Response]:
+        """
+        Retrieve details of a specific incident record.
+
+        :param kwargs: Keyword arguments to initialize an IncidentModel instance.
+        :type kwargs: dict
+
+        :return: JSON response containing information about the incident record.
+        :rtype: requests.models.Response
+
+        :raises MissingParameterError: If the incident_id is not provided.
+        :raises ParameterError: If validation of parameters fails.
+        """
+        try:
+            response = self._session.get(
+                url=f"{self.url}/now/table/incident",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+        except ValidationError or Exception as e:
+            print(f"Invalid parameters: {e.errors()}")
+            raise e
+        response = process_response(response=response)
+        return response
+
+    @require_auth
     def get_incident(self, **kwargs) -> Union[Response, requests.Response]:
         """
         Retrieve details of a specific incident record.
