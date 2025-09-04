@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.0.11*
+*Version: 1.0.12*
 
 ServiceNow API Python Wrapper
 
@@ -146,20 +146,23 @@ For Testing Only: Plain text storage will also work, although **not** recommende
 {
   "mcpServers": {
     "servicenow": {
-      "command": "servicenow-mcp"
-    },
-    "env": {
-      "SERVICENOW_INSTANCE": "https://www.servicenow.com", // Optional - Can be specified at prompt
-      "USERNAME": "user",                                  // Optional - Can be specified at prompt
-      "PASSWORD": "${env:PASSWORD}",                       // Optional - Can be specified at prompt
-      // "PASSWORD": "pass",
-      "CLIENT_ID": "${env:CLIENT_ID}",                     // Optional - Can be specified at prompt
-      // "CLIENT_ID": "client_id",
-      "CLIENT_SECRET": "${env:CLIENT_SECRET}",             // Optional - Can be specified at prompt
-      // "CLIENT_SECRET": "client_secret",
-      "VERIFY": true
-    },
-    "timeout": 300000
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "servicenow-api",
+        "servicenow-mcp"
+      ],
+      "env": {
+        "SERVICENOW_INSTANCE": "https://www.servicenow.com",
+        "USERNAME": "user",
+        "PASSWORD": "pass",
+        "CLIENT_ID": "client_id",
+        "CLIENT_SECRET": "client_secret",
+        "VERIFY": "False"
+      },
+      "timeout": 200000
+    }
   }
 }
 
