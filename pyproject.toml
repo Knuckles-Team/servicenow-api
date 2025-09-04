@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=80.9.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "servicenow-api"
+version = "1.0.11"
+description = "Python ServiceNow API Wrapper"
+readme = "README.md"
+authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: Public Domain",
+    "Environment :: Console",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.8.1",
+    "urllib3>=2.2.2",
+    "pydantic[email]>=2.8.2",
+    "fastmcp>=2.11.3"
+]
+
+[project.scripts]
+servicenow-mcp = "servicenow_api.servicenow_api_mcp:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools]
+include-package-data = true
+package-data = { "servicenow_api" = ["servicenow_api"] }
