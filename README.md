@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/knuckles-team-servicenow-api-badge.png)](https://mseep.ai/app/knuckles-team-servicenow-api)
+
 # ServiceNow API
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
