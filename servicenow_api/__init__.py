@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from servicenow_api.servicenow_api import Api
-from servicenow_api.servicenow_api_mcp import main
+from servicenow_api.servicenow_api_mcp import servicenow_api_mcp
 from servicenow_api.servicenow_models import (
     ApplicationServiceModel,
     CMDBModel,
@@ -21,7 +21,7 @@ A Python Wrapper for ServiceNow API
 
 __all__ = [
     "Api",
-    "main",
+    "servicenow_api_mcp",
     "ApplicationServiceModel",
     "CMDBModel",
     "CICDModel",

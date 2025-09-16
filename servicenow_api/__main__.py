@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
-from .servicenow_api_mcp import main
+
+from servicenow_api.servicenow_api_mcp import servicenow_api_mcp
 
 if __name__ == "__main__":
-    main()
+    servicenow_api_mcp()

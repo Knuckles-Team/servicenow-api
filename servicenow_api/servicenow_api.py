@@ -118,7 +118,6 @@ class Api(object):
     def refresh_auth_token(self) -> Union[Response, requests.Response]:
         """
         Refresh the authentication token
-        :param kwargs:
         :return:
         Response with new refreshed token.
         """
