@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import os
-import getopt
+import argparse
 import sys
 import logging
 from typing import Optional, List, Dict, Any, Union
@@ -30,17 +30,6 @@ def to_boolean(string):
         raise ValueError(f"Cannot convert '{string}' to boolean")
 
 
-environment_servicenow_instance = os.environ.get("SERVICENOW_INSTANCE", None)
-environment_username = os.environ.get("USERNAME", None)
-environment_password = os.environ.get("PASSWORD", None)
-environment_client_id = os.environ.get("CLIENT_ID", None)
-environment_client_secret = os.environ.get("CLIENT_SECRET", None)
-environment_verify = to_boolean(os.environ.get("VERIFY", "True"))
-
-if environment_verify:
-    environment_verify = to_boolean(environment_verify)
-
-
 # Application Service Tools
 @mcp.tool(
     exclude_args=[
@@ -58,26 +47,33 @@ def get_application(
         description="The unique identifier of the application to retrieve"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -107,26 +103,33 @@ def get_cmdb(
         description="The unique identifier of the CMDB record to retrieve"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -156,26 +159,33 @@ def batch_install_result(
         description="The ID associated with the batch installation result"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves the result of a batch installation process in ServiceNow by result ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -204,26 +214,33 @@ def instance_scan_progress(
         description="The ID associated with the instance scan progress"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Gets the progress status of an instance scan in ServiceNow by progress ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -250,26 +267,33 @@ def instance_scan_progress(
 def progress(
     progress_id: str = Field(description="The ID associated with the progress"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves the progress status of a specified process in ServiceNow by progress ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -297,29 +321,36 @@ def batch_install(
     name: str = Field(description="The name of the batch installation"),
     packages: str = Field(description="The packages to be installed in the batch"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     notes: Optional[str] = Field(
         default=None, description="Additional notes for the batch installation"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Initiates a batch installation of specified packages in ServiceNow with optional notes.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -346,26 +377,33 @@ def batch_install(
 def batch_rollback(
     rollback_id: str = Field(description="The ID associated with the batch rollback"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Performs a rollback of a batch installation in ServiceNow using the rollback ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -395,7 +433,7 @@ def app_repo_install(
     ),
     scope: str = Field(description="The scope of the application"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     auto_upgrade_base_app: Optional[bool] = Field(
@@ -408,22 +446,29 @@ def app_repo_install(
         default=None, description="The version of the application to be installed"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Installs an application from a repository in ServiceNow with specified parameters.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -459,7 +504,7 @@ def app_repo_publish(
     ),
     scope: str = Field(description="The scope of the application"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     dev_notes: Optional[str] = Field(
@@ -469,22 +514,29 @@ def app_repo_publish(
         default=None, description="The version of the application to be published"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Publishes an application to a repository in ServiceNow with development notes and version.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -519,26 +571,33 @@ def app_repo_rollback(
         description="The version of the application to be rolled back"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -566,26 +625,33 @@ def app_repo_rollback(
 )
 def full_scan(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Initiates a full scan of the ServiceNow instance.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -613,26 +679,33 @@ def point_scan(
     target_sys_id: str = Field(description="The sys_id of the target instance"),
     target_table: str = Field(description="The table of the target instance"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Performs a targeted scan on a specific instance and table in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -659,26 +732,33 @@ def point_scan(
 def combo_suite_scan(
     combo_sys_id: str = Field(description="The sys_id of the combo to be scanned"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Executes a scan on a combination of suites in ServiceNow by combo sys_id.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -711,26 +791,33 @@ def suite_scan(
         default="scoped_apps", description="Type of scan to be performed"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -760,26 +847,33 @@ def suite_scan(
 def activate_plugin(
     plugin_id: str = Field(description="The ID of the plugin to be activated"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Activates a specified plugin in ServiceNow by plugin ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -806,26 +900,33 @@ def activate_plugin(
 def rollback_plugin(
     plugin_id: str = Field(description="The ID of the plugin to be rolled back"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -858,29 +959,36 @@ def apply_remote_source_control_changes(
         description="The name of the branch containing the changes"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     auto_upgrade_base_app: Optional[bool] = Field(
         default=None, description="Flag indicating whether to auto-upgrade the base app"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Applies changes from a remote source control branch to a ServiceNow application.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -912,7 +1020,7 @@ def apply_remote_source_control_changes(
 def import_repository(
     repo_url: str = Field(description="The URL of the repository to be imported"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     credential_sys_id: Optional[str] = Field(
@@ -930,22 +1038,29 @@ def import_repository(
         default=None, description="Flag indicating whether to auto-upgrade the base app"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Imports a repository into ServiceNow with specified credentials and branch.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -981,7 +1096,7 @@ def run_test_suite(
     ),
     test_suite_name: str = Field(description="The name of the test suite to be run"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     browser_name: Optional[str] = Field(
@@ -997,22 +1112,29 @@ def run_test_suite(
         default=None, description="The version of the operating system for the test run"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Executes a test suite in ServiceNow with specified browser and OS configurations.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1052,29 +1174,36 @@ def update_set_create(
         description="Sys_id of the application in which to create the new update set"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     description: Optional[str] = Field(
         default=None, description="Description of the update set"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Creates a new update set in ServiceNow with a given name, scope, and description.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1108,7 +1237,7 @@ def update_set_retrieve(
         description="Sys_id of the update set on the source instance from where the update set was retrieved"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     update_source_id: Optional[str] = Field(
@@ -1126,22 +1255,29 @@ def update_set_retrieve(
         description="Flag that indicates whether to remove the existing retrieved update set from the instance",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1176,26 +1312,33 @@ def update_set_preview(
         description="Sys_id of the update set to preview"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Previews an update set in ServiceNow by its remote sys_id.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1222,7 +1365,7 @@ def update_set_preview(
 def update_set_commit(
     remote_update_set_id: str = Field(description="Sys_id of the update set to commit"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     force_commit: Optional[str] = Field(
@@ -1230,22 +1373,29 @@ def update_set_commit(
         description="Flag that indicates whether to force commit the update set",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Commits an update set in ServiceNow with an option to force commit.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1276,7 +1426,7 @@ def update_set_commit_multiple(
         description="List of sys_ids associated with update sets to commit. Sys_ids are committed in the order given"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     force_commit: Optional[str] = Field(
@@ -1284,22 +1434,29 @@ def update_set_commit_multiple(
         description="Flag that indicates whether to force commit the update sets",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Commits multiple update sets in ServiceNow in the specified order.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1328,7 +1485,7 @@ def update_set_commit_multiple(
 def update_set_back_out(
     update_set_id: str = Field(description="Sys_id of the update set"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     rollback_installs: Optional[bool] = Field(
@@ -1336,22 +1493,29 @@ def update_set_back_out(
         description="Flag that indicates whether to rollback the batch installation performed during the update set commit",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Backs out an update set in ServiceNow with an option to rollback installations.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1380,7 +1544,7 @@ def update_set_back_out(
 )
 def get_change_requests(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     order: Optional[str] = Field(
@@ -1405,22 +1569,29 @@ def get_change_requests(
         default=None, description="Limit for pagination"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> Union[List, Dict]:
+    """
+    Retrieves change requests from ServiceNow with optional filtering and pagination.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1455,26 +1626,33 @@ def get_change_requests(
 def get_change_request_nextstate(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Gets the next state for a specific change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1503,26 +1681,33 @@ def get_change_request_nextstate(
 def get_change_request_schedule(
     cmdb_ci_sys_id: str = Field(description="Sys ID of the CI (Configuration Item)"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1549,7 +1734,7 @@ def get_change_request_schedule(
 def get_change_request_tasks(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     order: Optional[str] = Field(
@@ -1571,22 +1756,29 @@ def get_change_request_tasks(
         default=None, description="Limit for pagination"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> Union[List, Dict]:
+    """
+    Fetches tasks associated with a change request in ServiceNow with optional filtering.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1621,29 +1813,36 @@ def get_change_request_tasks(
 def get_change_request(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     change_type: Optional[str] = Field(
         default=None, description="Type of change (emergency, normal, standard)"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves details of a specific change request in ServiceNow by sys_id and type.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1672,26 +1871,33 @@ def get_change_request(
 def get_change_request_ci(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Gets Configuration Items (CIs) associated with a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1718,26 +1924,33 @@ def get_change_request_ci(
 def get_change_request_conflict(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Checks for conflicts in a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1765,7 +1978,7 @@ def get_change_request_conflict(
 )
 def get_standard_change_request_templates(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     order: Optional[str] = Field(
@@ -1787,22 +2000,29 @@ def get_standard_change_request_templates(
         default=None, description="Limit for pagination"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves standard change request templates from ServiceNow with optional filtering.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1835,7 +2055,7 @@ def get_standard_change_request_templates(
 )
 def get_change_request_models(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     order: Optional[str] = Field(
@@ -1860,22 +2080,29 @@ def get_change_request_models(
         default=None, description="Limit for pagination"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Fetches change request models from ServiceNow with optional filtering and type.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1912,26 +2139,33 @@ def get_standard_change_request_model(
         description="Sys ID of the standard change request model"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves a specific standard change request model in ServiceNow by sys_id.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -1960,26 +2194,33 @@ def get_standard_change_request_template(
         description="Sys ID of the standard change request template"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Gets a specific standard change request template in ServiceNow by sys_id.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2008,26 +2249,33 @@ def get_standard_change_request_template(
 def get_change_request_worker(
     worker_sys_id: str = Field(description="Sys ID of the change request worker"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Retrieves details of a change request worker in ServiceNow by sys_id.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2056,7 +2304,7 @@ def create_change_request(
         description="Name-value pairs providing details for the new change request"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     change_type: Optional[str] = Field(
@@ -2067,22 +2315,29 @@ def create_change_request(
         description="Sys ID of the standard change request template (if applicable)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Creates a new change request in ServiceNow with specified details and type.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2116,26 +2371,33 @@ def create_change_request_task(
         description="Name-value pairs providing details for the new task"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Creates a task for a change request in ServiceNow with provided details.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2170,7 +2432,7 @@ def create_change_request_ci_association(
         description="Type of association (affected, impacted, offering)"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     refresh_impacted_services: Optional[bool] = Field(
@@ -2178,22 +2440,29 @@ def create_change_request_ci_association(
         description="Flag to refresh impacted services (applicable for 'affected' association)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Associates Configuration Items (CIs) with a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2227,26 +2496,33 @@ def calculate_standard_change_request_risk(
         description="Sys ID of the standard change request"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Calculates the risk for a standard change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2275,26 +2551,33 @@ def calculate_standard_change_request_risk(
 def check_change_request_conflict(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Checks for conflicts in a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2323,26 +2606,33 @@ def check_change_request_conflict(
 def refresh_change_request_impacted_services(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Refreshes the impacted services for a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2374,26 +2664,33 @@ def approve_change_request(
         description="State to set the change request to (approved or rejected)"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Approves or rejects a change request in ServiceNow by setting its state.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2425,29 +2722,36 @@ def update_change_request(
         description="New name-value pairs providing updated details for the change request"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     change_type: Optional[str] = Field(
         default=None, description="Type of change (emergency, normal, standard, model)"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Updates a change request in ServiceNow with new details and type.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2478,26 +2782,33 @@ def update_change_request(
 def update_change_request_first_available(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Updates a change request to the first available state in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2532,26 +2843,33 @@ def update_change_request_task(
         description="New name-value pairs providing updated details for the task"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Updates a task for a change request in ServiceNow with new details.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2582,29 +2900,36 @@ def update_change_request_task(
 def delete_change_request(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     change_type: Optional[str] = Field(
         default=None, description="Type of change (emergency, normal, standard)"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Deletes a change request from ServiceNow by sys_id and type.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2636,26 +2961,33 @@ def delete_change_request_task(
         description="Sys ID of the task associated with the change request"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Deletes a task associated with a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2687,26 +3019,33 @@ def delete_change_request_conflict_scan(
         description="Sys ID of the task associated with the change request"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
+    """
+    Deletes a conflict scan for a change request in ServiceNow.
+    """
     client = Api(
         url=servicenow_instance,
         username=username,
@@ -2739,28 +3078,32 @@ def get_import_set(
     ),
     import_set_sys_id: str = Field(description="The sys_id of the import set record"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
-    Get details of a specific import set record from a ServiceNow instance.
+    Retrieves details of a specific import set record from a ServiceNow instance.
     """
     client = Api(
         url=servicenow_instance,
@@ -2793,28 +3136,32 @@ def insert_import_set(
         description="Dictionary containing the field values for the new import set record"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
-    Insert a new record into the specified import set on a ServiceNow instance.
+    Inserts a new record into a specified import set on a ServiceNow instance.
     """
     client = Api(
         url=servicenow_instance,
@@ -2847,28 +3194,32 @@ def insert_multiple_import_sets(
         description="List of dictionaries containing field values for multiple new import set records"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
-    Insert multiple records into the specified import set on a ServiceNow instance.
+    Inserts multiple records into a specified import set on a ServiceNow instance.
     """
     client = Api(
         url=servicenow_instance,
@@ -2900,28 +3251,32 @@ def get_incidents(
         description="The sys_id of the incident record, if retrieving a specific incident",
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> Union[List, Dict]:
     """
-    Retrieve incident records from a ServiceNow instance.
+    Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
     client = Api(
         url=servicenow_instance,
@@ -2954,29 +3309,32 @@ def create_incident(
         description="Dictionary containing the field values for the new incident record"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id,
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
         description="Client ID for OAuthBlog authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
-    Create a new incident record on a ServiceNow instance.
+    Creates a new incident record on a ServiceNow instance with provided details.
     """
     client = Api(
         url=servicenow_instance,
@@ -3004,7 +3362,7 @@ def create_incident(
 )
 def get_knowledge_articles(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     filter: Optional[str] = Field(
@@ -3037,20 +3395,24 @@ def get_knowledge_articles(
         description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> Union[List, Dict]:
     """
@@ -3091,7 +3453,7 @@ def get_knowledge_articles(
 def get_knowledge_article(
     article_sys_id: str = Field(description="The sys_id of the Knowledge Base article"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     filter: Optional[str] = Field(
@@ -3135,20 +3497,24 @@ def get_knowledge_article(
         description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3194,24 +3560,28 @@ def get_knowledge_article_attachment(
     article_sys_id: str = Field(description="The sys_id of the Knowledge Base article"),
     attachment_sys_id: str = Field(description="The sys_id of the attachment"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3244,7 +3614,7 @@ def get_knowledge_article_attachment(
 )
 def get_featured_knowledge_article(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     sysparm_fields: Optional[str] = Field(
@@ -3267,20 +3637,24 @@ def get_featured_knowledge_article(
         description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3317,7 +3691,7 @@ def get_featured_knowledge_article(
 )
 def get_most_viewed_knowledge_articles(
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     sysparm_fields: Optional[str] = Field(
@@ -3340,20 +3714,24 @@ def get_most_viewed_knowledge_articles(
         description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3395,24 +3773,28 @@ def delete_table_record(
         description="The sys_id of the record to be deleted"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3446,7 +3828,7 @@ def delete_table_record(
 def get_table(
     table: str = Field(description="The name of the table"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     name_value_pairs: Optional[Dict[str, str]] = Field(
@@ -3490,20 +3872,24 @@ def get_table(
         default=None, description="Display style ('desktop', 'mobile', or 'both')"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3552,24 +3938,28 @@ def get_table_record(
         description="The sys_id of the record to be retrieved"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3609,24 +3999,28 @@ def patch_table_record(
         description="Dictionary containing the fields to be updated"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3666,24 +4060,28 @@ def update_table_record(
         description="Dictionary containing the fields to be updated"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3720,24 +4118,28 @@ def add_table_record(
         description="Dictionary containing the field values for the new record"
     ),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3773,7 +4175,7 @@ def api_request(
     ),
     endpoint: str = Field(description="The API endpoint to send the request to"),
     servicenow_instance: str = Field(
-        default=environment_servicenow_instance,
+        default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
     data: Optional[Dict[str, Any]] = Field(
@@ -3784,20 +4186,24 @@ def api_request(
         default=None, description="JSON data to include in the request body"
     ),
     username: str = Field(
-        default=environment_username, description="Username for basic authentication"
+        default=os.environ.get("SERVICENOW_USERNAME", None),
+        description="Username for basic authentication",
     ),
     password: str = Field(
-        default=environment_password, description="Password for basic authentication"
+        default=os.environ.get("SERVICENOW_PASSWORD", None),
+        description="Password for basic authentication",
     ),
     client_id: Optional[str] = Field(
-        default=environment_client_id, description="Client ID for OAuth authentication"
+        default=os.environ.get("SERVICENOW_CLIENT_ID", None),
+        description="Client ID for OAuth authentication",
     ),
     client_secret: Optional[str] = Field(
-        default=environment_client_secret,
+        default=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
         description="Client secret for OAuth authentication",
     ),
     verify: Optional[bool] = Field(
-        default=environment_verify, description="Whether to verify SSL certificates"
+        default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+        description="Whether to verify SSL certificates",
     ),
 ) -> dict:
     """
@@ -3817,47 +4223,44 @@ def api_request(
     return response.result
 
 
-def servicenow_api_mcp(argv):
-    transport = "stdio"
-    host = "0.0.0.0"
-    port = 8000
-    try:
-        opts, args = getopt.getopt(
-            argv,
-            "ht:h:p:",
-            ["help", "transport=", "host=", "port="],
-        )
-    except getopt.GetoptError:
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            sys.exit()
-        elif opt in ("-t", "--transport"):
-            transport = arg
-        elif opt in ("-h", "--host"):
-            host = arg
-        elif opt in ("-p", "--port"):
-            try:
-                port = int(arg)  # Attempt to convert port to integer
-                if not (0 <= port <= 65535):  # Valid port range
-                    print(f"Error: Port {arg} is out of valid range (0-65535).")
-                    sys.exit(1)
-            except ValueError:
-                print(f"Error: Port {arg} is not a valid integer.")
-                sys.exit(1)
-    if transport == "stdio":
+def servicenow_api_mcp():
+    parser = argparse.ArgumentParser(description="ServiceNow API MCP Runner")
+    parser.add_argument(
+        "-t",
+        "--transport",
+        default="stdio",
+        choices=["stdio", "http"],
+        help="Transport method: 'stdio' or 'http' (default: stdio)",
+    )
+    parser.add_argument(
+        "-s",
+        "--host",
+        default="0.0.0.0",
+        help="Host address for HTTP transport (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=8000,
+        help="Port number for HTTP transport (default: 8000)",
+    )
+
+    args = parser.parse_args()
+
+    if args.port < 0 or args.port > 65535:
+        print(f"Error: Port {args.port} is out of valid range (0-65535).")
+        sys.exit(1)
+
+    if args.transport == "stdio":
         mcp.run(transport="stdio")
-    elif transport == "http":
-        mcp.run(transport="http", host=host, port=port)
+    elif args.transport == "http":
+        mcp.run(transport="http", host=args.host, port=args.port)
     else:
         logger = logging.getLogger("MediaDownloader")
         logger.error("Transport not supported")
         sys.exit(1)
 
 
-def main():
-    servicenow_api_mcp(sys.argv[1:])
-
-
 if __name__ == "__main__":
-    servicenow_api_mcp(sys.argv[1:])
+    servicenow_api_mcp()
