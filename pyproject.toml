@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.0.13"
+version = "1.1.0"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.scripts]
-servicenow-mcp = "servicenow_api.servicenow_api_mcp:main"
+servicenow-mcp = "servicenow_api.servicenow_api_mcp:servicenow_api_mcp"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -1,5 +1,3 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/knuckles-team-servicenow-api-badge.png)](https://mseep.ai/app/knuckles-team-servicenow-api)
-
 # ServiceNow API
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
@@ -22,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.0.13*
+*Version: 1.1.0*
 
 ServiceNow API Python Wrapper
 
@@ -191,12 +189,11 @@ python ./test/test_servicenow_models.py
 ```
 </details>
 
-<details>
-  <summary><b>Repository Owners:</b></summary>
-
 
 <img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
 
 ![GitHub followers](https://img.shields.io/github/followers/Knucklessg1)
+
 ![GitHub User's stars](https://img.shields.io/github/stars/Knucklessg1)
-</details>
+
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/knuckles-team-servicenow-api-badge.png)](https://mseep.ai/app/knuckles-team-servicenow-api)
