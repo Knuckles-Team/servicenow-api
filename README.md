@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.1.0*
+*Version: 1.1.1*
 
 ServiceNow API Python Wrapper
 
@@ -155,11 +155,11 @@ For Testing Only: Plain text storage will also work, although **not** recommende
       ],
       "env": {
         "SERVICENOW_INSTANCE": "https://www.servicenow.com",
-        "USERNAME": "user",
-        "PASSWORD": "pass",
-        "CLIENT_ID": "client_id",
-        "CLIENT_SECRET": "client_secret",
-        "VERIFY": "False"
+        "SERVICENOW_USERNAME": "user",
+        "SERVICENOW_PASSWORD": "pass",
+        "SERVICENOW_CLIENT_ID": "client_id",
+        "SERVICENOW_CLIENT_SECRET": "client_secret",
+        "SERVICENOW_VERIFY": "False"
       },
       "timeout": 200000
     }
