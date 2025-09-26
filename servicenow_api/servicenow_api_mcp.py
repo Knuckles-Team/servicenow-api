@@ -1566,7 +1566,7 @@ def get_change_requests(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Limit for pagination"
+        default=10, description="Limit for pagination"
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -1753,7 +1753,7 @@ def get_change_request_tasks(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Limit for pagination"
+        default=10, description="Limit for pagination"
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -1997,7 +1997,7 @@ def get_standard_change_request_templates(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Limit for pagination"
+        default=10, description="Limit for pagination"
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -2077,7 +2077,7 @@ def get_change_request_models(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Limit for pagination"
+        default=10, description="Limit for pagination"
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -3374,7 +3374,7 @@ def get_knowledge_articles(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Maximum number of records to return"
+        default=10, description="Maximum number of records to return"
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3465,7 +3465,7 @@ def get_knowledge_article(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Maximum number of records to return"
+        default=10, description="Maximum number of records to return"
     ),
     sysparm_search_id: Optional[str] = Field(
         default=None,
@@ -3622,7 +3622,7 @@ def get_featured_knowledge_article(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Maximum number of records to return"
+        default=10, description="Maximum number of records to return"
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3699,7 +3699,7 @@ def get_most_viewed_knowledge_articles(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Maximum number of records to return"
+        default=10, description="Maximum number of records to return"
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3846,7 +3846,7 @@ def get_table(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=None, description="Maximum number of records to return"
+        default=10, description="Maximum number of records to return"
     ),
     sysparm_no_count: Optional[bool] = Field(
         default=None,
@@ -4229,8 +4229,8 @@ def servicenow_api_mcp():
         "-t",
         "--transport",
         default="stdio",
-        choices=["stdio", "http"],
-        help="Transport method: 'stdio' or 'http' (default: stdio)",
+        choices=["stdio", "http", "sse"],
+        help="Transport method: 'stdio', 'http', or 'sse' [legacy] (default: stdio)",
     )
     parser.add_argument(
         "-s",
@@ -4256,8 +4256,10 @@ def servicenow_api_mcp():
         mcp.run(transport="stdio")
     elif args.transport == "http":
         mcp.run(transport="http", host=args.host, port=args.port)
+    elif args.transport == "sse":
+        mcp.run(transport="sse", host=args.host, port=args.port)
     else:
-        logger = logging.getLogger("MediaDownloader")
+        logger = logging.getLogger("ServiceNow")
         logger.error("Transport not supported")
         sys.exit(1)
 
