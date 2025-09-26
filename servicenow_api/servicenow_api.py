@@ -39,8 +39,8 @@ class Api(object):
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
         grant_type: Optional[str] = "password",
-        proxies: Optional[str] = None,
-        verify: Optional[str] = True,
+        proxies: Optional[dict] = None,
+        verify: Optional[bool] = True,
     ):
         if url is None:
             raise MissingParameterError
