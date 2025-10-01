@@ -6,10 +6,14 @@ on:
       - 'main'
 
 jobs:
-  publish:
+  publish-pypi:
     uses: Knuckles-Team/pipelines/.github/workflows/python_pipeline.yml@latest
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+  publish-docker:
+    needs: publish-pypi
+    uses: Knuckles-Team/pipelines/.github/workflows/container_pipeline.yml@latest
+    secrets:
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
