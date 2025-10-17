@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.2.0*
+*Version: 1.2.1*
 
 ServiceNow API Python Wrapper
 
@@ -52,6 +52,48 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 
 <details>
   <summary><b>Usage:</b></summary>
+
+### MCP CLI
+
+| Short Flag | Long Flag                          | Description                                                                 |
+|------------|------------------------------------|-----------------------------------------------------------------------------|
+| -h         | --help                             | Display help information                                                    |
+| -t         | --transport                        | Transport method: 'stdio', 'http', or 'sse' [legacy] (default: stdio)       |
+| -s         | --host                             | Host address for HTTP transport (default: 0.0.0.0)                          |
+| -p         | --port                             | Port number for HTTP transport (default: 8000)                              |
+|            | --auth-type                        | Authentication type: 'none', 'static', 'jwt', 'oauth-proxy', 'oidc-proxy', 'remote-oauth' (default: none) |
+|            | --token-jwks-uri                   | JWKS URI for JWT verification                                              |
+|            | --token-issuer                     | Issuer for JWT verification                                                |
+|            | --token-audience                   | Audience for JWT verification                                              |
+|            | --oauth-upstream-auth-endpoint     | Upstream authorization endpoint for OAuth Proxy                             |
+|            | --oauth-upstream-token-endpoint    | Upstream token endpoint for OAuth Proxy                                    |
+|            | --oauth-upstream-client-id         | Upstream client ID for OAuth Proxy                                         |
+|            | --oauth-upstream-client-secret     | Upstream client secret for OAuth Proxy                                     |
+|            | --oauth-base-url                   | Base URL for OAuth Proxy                                                   |
+|            | --oidc-config-url                  | OIDC configuration URL                                                     |
+|            | --oidc-client-id                   | OIDC client ID                                                             |
+|            | --oidc-client-secret               | OIDC client secret                                                         |
+|            | --oidc-base-url                    | Base URL for OIDC Proxy                                                    |
+|            | --remote-auth-servers              | Comma-separated list of authorization servers for Remote OAuth             |
+|            | --remote-base-url                  | Base URL for Remote OAuth                                                  |
+|            | --allowed-client-redirect-uris     | Comma-separated list of allowed client redirect URIs                       |
+|            | --eunomia-type                     | Eunomia authorization type: 'none', 'embedded', 'remote' (default: none)   |
+|            | --eunomia-policy-file              | Policy file for embedded Eunomia (default: mcp_policies.json)              |
+|            | --eunomia-remote-url               | URL for remote Eunomia server                                              |
+
+### Using as an MCP Server
+
+The MCP Server can be run in two modes: `stdio` (for local testing) or `http` (for networked access). To start the server, use the following commands:
+
+#### Run in stdio mode (default):
+```bash
+servicenow-mcp --transport "stdio"
+```
+
+#### Run in HTTP mode:
+```bash
+servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
+```
 
 ### Basic API Usage
 
