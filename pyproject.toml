@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.1.7"
+version = "1.2.0"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -21,7 +21,12 @@ dependencies = [
     "requests>=2.8.1",
     "urllib3>=2.2.2",
     "pydantic[email]>=2.8.2",
-    "fastmcp>=2.11.3"
+    "fastmcp>=2.12.4"
+]
+
+[project.optional-dependencies]
+eunomia-mcp = [
+    "eunomia-mcp>=0.3.9",
 ]
 
 [project.scripts]
