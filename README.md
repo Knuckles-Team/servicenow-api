@@ -24,15 +24,11 @@
 
 ServiceNow API Python Wrapper
 
-This repository is actively maintained and will continue adding more API calls
-
-This can run as a standalone MCP Server for Agentic AI!
+This repository is actively maintained and will continue adding more API calls. It includes a Model Context Protocol (MCP) server for Agentic AI, enhanced with various authentication mechanisms, middleware for observability and control, and optional Eunomia authorization for policy-based access control.
 
 Contributions are welcome!
 
-All API Response objects are customized for the response call.
-You can get all return values in a parent.value.nested_value format,
-or you can run parent.model_dump() to get the table in dictionary format.
+All API Response objects are customized for the response call. You can access return values in a `parent.value.nested_value` format, or use `parent.model_dump()` to get the response as a dictionary.
 
 #### API Calls:
 - Application Service
@@ -45,12 +41,21 @@ or you can run parent.model_dump() to get the table in dictionary format.
 - Table
 - Custom Endpoint
 
-If your API call isn't supported, you can always run the standard custom API endpoint function to get/post/put/delete and endpoint
+If your API call isn't supported, you can use the `api_request` tool to perform GET/POST/PUT/DELETE requests to any ServiceNow endpoint.
+
+#### Features:
+- **Authentication**: Supports multiple authentication types including none (disabled), static (internal tokens), JWT, OAuth Proxy, OIDC Proxy, and Remote OAuth for external identity providers.
+- **Middleware**: Includes logging, timing, rate limiting, and error handling for robust server operation.
+- **Eunomia Authorization**: Optional policy-based authorization with embedded or remote Eunomia server integration.
+- **Resources**: Provides `instance_config` and `incident_categories` for ServiceNow configuration and data.
+- **Prompts**: Includes `create_incident_prompt` and `query_table_prompt` for AI-driven interactions.
 
 <details>
   <summary><b>Usage:</b></summary>
 
-OAuth Authentication
+### Basic API Usage
+
+**OAuth Authentication**
 
 ```python
 #!/usr/bin/python
@@ -63,18 +68,19 @@ client_id = "<SERVICENOW CLIENT_ID>"
 client_secret = "<SERVICENOW_CLIENT_SECRET>"
 servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_url,
-                            username=username,
-                            password=password,
-                            client_id=client_id,
-                            client_secret=client_secret)
+client = servicenow_api.Api(
+    url=servicenow_url,
+    username=username,
+    password=password,
+    client_id=client_id,
+    client_secret=client_secret
+)
 
 table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table.model_dump()}")
 ```
 
-
-Basic Authentication
+**Basic Authentication**
 
 ```python
 #!/usr/bin/python
@@ -85,15 +91,17 @@ username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(url=servicenow_url,
-                            username=username,
-                            password=password)
+client = servicenow_api.Api(
+    url=servicenow_url,
+    username=username,
+    password=password
+)
 
 table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table.model_dump()}")
 ```
 
-Proxy and SSL Verify
+**Proxy and SSL Verify**
 
 ```python
 #!/usr/bin/python
@@ -106,39 +114,133 @@ servicenow_url = "<SERVICENOW_URL>"
 
 proxy = "https://proxy.net"
 
-client = servicenow_api.Api(url=servicenow_url,
-                            username=username,
-                            password=password,
-                            proxy=proxy,
-                            verify=False)
+client = servicenow_api.Api(
+    url=servicenow_url,
+    username=username,
+    password=password,
+    proxy=proxy,
+    verify=False
+)
 
 table = client.get_table(table="<TABLE NAME>")
 print(f"Table: {table.model_dump()}")
 ```
 
-### Use with AI
+### Deploy MCP Server as a Service
 
-Deploy MCP Server as a Service
+The ServiceNow MCP server can be deployed using Docker, with configurable authentication, middleware, and Eunomia authorization.
+
+#### Using Docker Run
+
 ```bash
 docker pull knucklessg1/servicenow:latest
+
+docker run -d \
+  --name servicenow-mcp \
+  -p 8004:8004 \
+  -e HOST=0.0.0.0 \
+  -e PORT=8004 \
+  -e TRANSPORT=http \
+  -e AUTH_TYPE=none \
+  -e EUNOMIA_TYPE=none \
+  -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
+  -e SERVICENOW_USERNAME=user \
+  -e SERVICENOW_PASSWORD=pass \
+  -e SERVICENOW_CLIENT_ID=client_id \
+  -e SERVICENOW_CLIENT_SECRET=client_secret \
+  -e SERVICENOW_VERIFY=False \
+  knucklessg1/servicenow:latest
 ```
 
-Modify the `compose.yml`
+For advanced authentication (e.g., JWT, OAuth Proxy, OIDC Proxy, Remote OAuth) or Eunomia, add the relevant environment variables:
 
-```compose
+```bash
+docker run -d \
+  --name servicenow-mcp \
+  -p 8004:8004 \
+  -e HOST=0.0.0.0 \
+  -e PORT=8004 \
+  -e TRANSPORT=http \
+  -e AUTH_TYPE=oidc-proxy \
+  -e OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration \
+  -e OIDC_CLIENT_ID=your-client-id \
+  -e OIDC_CLIENT_SECRET=your-client-secret \
+  -e OIDC_BASE_URL=https://your-server.com \
+  -e ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/* \
+  -e EUNOMIA_TYPE=embedded \
+  -e EUNOMIA_POLICY_FILE=/app/mcp_policies.json \
+  -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
+  -e SERVICENOW_USERNAME=user \
+  -e SERVICENOW_PASSWORD=pass \
+  -e SERVICENOW_CLIENT_ID=client_id \
+  -e SERVICENOW_CLIENT_SECRET=client_secret \
+  -e SERVICENOW_VERIFY=False \
+  knucklessg1/servicenow:latest
+```
+
+#### Using Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
 services:
   servicenow-mcp:
     image: knucklessg1/servicenow:latest
     environment:
       - HOST=0.0.0.0
       - PORT=8004
+      - TRANSPORT=http
+      - AUTH_TYPE=none
+      - EUNOMIA_TYPE=none
+      - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
+      - SERVICENOW_USERNAME=user
+      - SERVICENOW_PASSWORD=pass
+      - SERVICENOW_CLIENT_ID=client_id
+      - SERVICENOW_CLIENT_SECRET=client_secret
+      - SERVICENOW_VERIFY=False
     ports:
       - 8004:8004
 ```
 
-Configure `mcp.json`
+For advanced setups with authentication and Eunomia:
 
-Recommended: Store secrets in environment variables with lookup in JSON file.
+```yaml
+services:
+  servicenow-mcp:
+    image: knucklessg1/servicenow:latest
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8004
+      - TRANSPORT=http
+      - AUTH_TYPE=oidc-proxy
+      - OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration
+      - OIDC_CLIENT_ID=your-client-id
+      - OIDC_CLIENT_SECRET=your-client-secret
+      - OIDC_BASE_URL=https://your-server.com
+      - ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/*
+      - EUNOMIA_TYPE=embedded
+      - EUNOMIA_POLICY_FILE=/app/mcp_policies.json
+      - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
+      - SERVICENOW_USERNAME=user
+      - SERVICENOW_PASSWORD=pass
+      - SERVICENOW_CLIENT_ID=client_id
+      - SERVICENOW_CLIENT_SECRET=client_secret
+      - SERVICENOW_VERIFY=False
+    ports:
+      - 8004:8004
+    volumes:
+      - ./mcp_policies.json:/app/mcp_policies.json
+```
+
+Run the service:
+
+```bash
+docker-compose up -d
+```
+
+#### Configure `mcp.json` for AI Integration
+
+Recommended: Store secrets in environment variables with lookup in the JSON file.
 
 For Testing Only: Plain text storage will also work, although **not** recommended.
 
@@ -151,21 +253,102 @@ For Testing Only: Plain text storage will also work, although **not** recommende
         "run",
         "--with",
         "servicenow-api",
-        "servicenow-mcp"
+        "servicenow-mcp",
+        "--transport",
+        "${TRANSPORT}",
+        "--host",
+        "${HOST}",
+        "--port",
+        "${PORT}",
+        "--auth-type",
+        "${AUTH_TYPE}",
+        "--eunomia-type",
+        "${EUNOMIA_TYPE}"
       ],
       "env": {
-        "SERVICENOW_INSTANCE": "https://www.servicenow.com",
+        "SERVICENOW_INSTANCE": "https://yourinstance.servicenow.com",
         "SERVICENOW_USERNAME": "user",
         "SERVICENOW_PASSWORD": "pass",
         "SERVICENOW_CLIENT_ID": "client_id",
         "SERVICENOW_CLIENT_SECRET": "client_secret",
-        "SERVICENOW_VERIFY": "False"
+        "SERVICENOW_VERIFY": "False",
+        "TOKEN_JWKS_URI": "${TOKEN_JWKS_URI}",
+        "TOKEN_ISSUER": "${TOKEN_ISSUER}",
+        "TOKEN_AUDIENCE": "${TOKEN_AUDIENCE}",
+        "OAUTH_UPSTREAM_AUTH_ENDPOINT": "${OAUTH_UPSTREAM_AUTH_ENDPOINT}",
+        "OAUTH_UPSTREAM_TOKEN_ENDPOINT": "${OAUTH_UPSTREAM_TOKEN_ENDPOINT}",
+        "OAUTH_UPSTREAM_CLIENT_ID": "${OAUTH_UPSTREAM_CLIENT_ID}",
+        "OAUTH_UPSTREAM_CLIENT_SECRET": "${OAUTH_UPSTREAM_CLIENT_SECRET}",
+        "OAUTH_BASE_URL": "${OAUTH_BASE_URL}",
+        "OIDC_CONFIG_URL": "${OIDC_CONFIG_URL}",
+        "OIDC_CLIENT_ID": "${OIDC_CLIENT_ID}",
+        "OIDC_CLIENT_SECRET": "${OIDC_CLIENT_SECRET}",
+        "OIDC_BASE_URL": "${OIDC_BASE_URL}",
+        "REMOTE_AUTH_SERVERS": "${REMOTE_AUTH_SERVERS}",
+        "REMOTE_BASE_URL": "${REMOTE_BASE_URL}",
+        "ALLOWED_CLIENT_REDIRECT_URIS": "${ALLOWED_CLIENT_REDIRECT_URIS}",
+        "EUNOMIA_TYPE": "${EUNOMIA_TYPE}",
+        "EUNOMIA_POLICY_FILE": "${EUNOMIA_POLICY_FILE}",
+        "EUNOMIA_REMOTE_URL": "${EUNOMIA_REMOTE_URL}"
       },
       "timeout": 200000
     }
   }
 }
+```
 
+#### CLI Parameters
+
+The `servicenow-mcp` command supports the following CLI options for configuration:
+
+- `--transport`: Transport method (`stdio`, `http`, `sse`) [default: `http`]
+- `--host`: Host address for HTTP transport [default: `0.0.0.0`]
+- `--port`: Port number for HTTP transport [default: `8000`]
+- `--auth-type`: Authentication type (`none`, `static`, `jwt`, `oauth-proxy`, `oidc-proxy`, `remote-oauth`) [default: `none`]
+- `--token-jwks-uri`: JWKS URI for JWT verification
+- `--token-issuer`: Issuer for JWT verification
+- `--token-audience`: Audience for JWT verification
+- `--oauth-upstream-auth-endpoint`: Upstream authorization endpoint for OAuth Proxy
+- `--oauth-upstream-token-endpoint`: Upstream token endpoint for OAuth Proxy
+- `--oauth-upstream-client-id`: Upstream client ID for OAuth Proxy
+- `--oauth-upstream-client-secret`: Upstream client secret for OAuth Proxy
+- `--oauth-base-url`: Base URL for OAuth Proxy
+- `--oidc-config-url`: OIDC configuration URL
+- `--oidc-client-id`: OIDC client ID
+- `--oidc-client-secret`: OIDC client secret
+- `--oidc-base-url`: Base URL for OIDC Proxy
+- `--remote-auth-servers`: Comma-separated list of authorization servers for Remote OAuth
+- `--remote-base-url`: Base URL for Remote OAuth
+- `--allowed-client-redirect-uris`: Comma-separated list of allowed client redirect URIs
+- `--eunomia-type`: Eunomia authorization type (`none`, `embedded`, `remote`) [default: `none`]
+- `--eunomia-policy-file`: Policy file for embedded Eunomia [default: `mcp_policies.json`]
+- `--eunomia-remote-url`: URL for remote Eunomia server
+
+#### Middleware
+
+The MCP server includes the following built-in middleware for enhanced functionality:
+
+- **ErrorHandlingMiddleware**: Provides comprehensive error logging and transformation.
+- **RateLimitingMiddleware**: Limits request frequency with a token bucket algorithm (10 requests/second, burst capacity of 20).
+- **TimingMiddleware**: Tracks execution time of requests.
+- **LoggingMiddleware**: Logs all requests and responses for observability.
+
+#### Eunomia Authorization
+
+The server supports optional Eunomia authorization for policy-based access control:
+
+- **Disabled (`none`)**: No authorization checks.
+- **Embedded (`embedded`)**: Runs an embedded Eunomia server with a local policy file (`mcp_policies.json` by default).
+- **Remote (`remote`)**: Connects to an external Eunomia server for centralized policy decisions.
+
+To configure Eunomia policies:
+
+```bash
+# Initialize a default policy file
+eunomia-mcp init
+
+# Validate the policy file
+eunomia-mcp validate mcp_policies.json
 ```
 
 </details>
@@ -176,7 +359,7 @@ For Testing Only: Plain text storage will also work, although **not** recommende
 Install Python Package
 
 ```bash
-python -m pip install servicenow-api
+python -m pip install servicenow-api eunomia-mcp
 ```
 
 </details>
