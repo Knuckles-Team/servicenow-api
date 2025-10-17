@@ -15,6 +15,7 @@ from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.timing import TimingMiddleware
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
+from fastmcp.exceptions import ResourceError
 from servicenow_api.servicenow_api import Api
 
 mcp = FastMCP("ServiceNow")
@@ -4281,7 +4282,28 @@ def api_request(
     return response.result
 
 
-# Resources
+def get_servicenow_client() -> Api:
+    """Helper to create ServiceNow API client with environment variables."""
+    servicenow_instance = os.environ.get("SERVICENOW_INSTANCE")
+    username = os.environ.get("SERVICENOW_USERNAME")
+    password = os.environ.get("SERVICENOW_PASSWORD")
+    client_id = os.environ.get("SERVICENOW_CLIENT_ID")
+    client_secret = os.environ.get("SERVICENOW_CLIENT_SECRET")
+    verify = to_boolean(os.environ.get("SERVICENOW_VERIFY", "True"))
+
+    if not all([servicenow_instance, username, password]):
+        raise ResourceError("ServiceNow credentials not configured")
+
+    return Api(
+        url=servicenow_instance,
+        username=username,
+        password=password,
+        client_id=client_id,
+        client_secret=client_secret,
+        verify=verify,
+    )
+
+
 @mcp.resource("data://instance_config")
 def get_instance_config() -> dict:
     """
@@ -4294,25 +4316,11 @@ def get_instance_config() -> dict:
 
 
 @mcp.resource("data://incident_categories")
-def get_incident_categories(
-    servicenow_instance: str = os.environ.get("SERVICENOW_INSTANCE", None),
-    username: str = os.environ.get("SERVICENOW_USERNAME", None),
-    password: str = os.environ.get("SERVICENOW_PASSWORD", None),
-    client_id: str = os.environ.get("SERVICENOW_CLIENT_ID", None),
-    client_secret: str = os.environ.get("SERVICENOW_CLIENT_SECRET", None),
-    verify: bool = to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
-) -> List[str]:
+def get_incident_categories() -> List[str]:
     """
     Retrieves unique incident categories from ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
-        username=username,
-        password=password,
-        client_id=client_id,
-        client_secret=client_secret,
-        verify=verify,
-    )
+    client = get_servicenow_client()
     response = client.get_table(
         table="incident", sysparm_fields="category", sysparm_limit=1000
     )
@@ -4565,7 +4573,7 @@ def servicenow_api_mcp():
                 sys.exit(1)
             middleware = create_eunomia_middleware(
                 use_remote_eunomia=args.eunomia_remote_url
-            )  # Assuming param; adjust if different
+            )
             mcp.add_middleware(middleware)
 
     mcp.add_middleware(
