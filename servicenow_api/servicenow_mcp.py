@@ -23,6 +23,17 @@ from servicenow_api.servicenow_models import Response
 mcp = FastMCP("ServiceNow")
 
 
+def to_integer(string: Union[str, int] = None) -> int:
+    if isinstance(string, int):
+        return string
+    if not string:
+        return 0
+    try:
+        return int(string.strip())
+    except ValueError:
+        raise ValueError(f"Cannot convert '{string}' to integer")
+
+
 def to_boolean(string: Union[str, bool] = None) -> bool:
     if isinstance(string, bool):
         return string
@@ -1575,7 +1586,8 @@ def get_change_requests(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Limit for pagination"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Limit for pagination",
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -1762,7 +1774,8 @@ def get_change_request_tasks(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Limit for pagination"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Limit for pagination",
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -2006,7 +2019,8 @@ def get_standard_change_request_templates(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Limit for pagination"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Limit for pagination",
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -2086,7 +2100,8 @@ def get_change_request_models(
         default=None, description="Offset for pagination"
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Limit for pagination"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Limit for pagination",
     ),
     username: str = Field(
         default=os.environ.get("SERVICENOW_USERNAME", None),
@@ -3383,7 +3398,8 @@ def get_knowledge_articles(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Maximum number of records to return"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3474,7 +3490,8 @@ def get_knowledge_article(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Maximum number of records to return"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
     ),
     sysparm_search_id: Optional[str] = Field(
         default=None,
@@ -3631,7 +3648,8 @@ def get_featured_knowledge_article(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Maximum number of records to return"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3708,7 +3726,8 @@ def get_most_viewed_knowledge_articles(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Maximum number of records to return"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
     ),
     sysparm_offset: Optional[int] = Field(
         default=None,
@@ -3855,7 +3874,8 @@ def get_table(
         description="Comma-separated list of field names to include in the response",
     ),
     sysparm_limit: Optional[int] = Field(
-        default=10, description="Maximum number of records to return"
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
     ),
     sysparm_no_count: Optional[bool] = Field(
         default=None,
@@ -4326,7 +4346,7 @@ def get_incident_categories() -> Any:
     response = client.get_table(
         table="incident", sysparm_fields="category", sysparm_limit=1000
     )
-    categories = set(r.get("category") for r in response if r.get("category"))
+    categories = set(r.get("category") for r in response.result if r.get("category"))
     return categories
 
 
@@ -4340,7 +4360,11 @@ def create_incident_prompt(
     """
     Generates a prompt for creating a ServiceNow incident.
     """
-    return f"Create a new ServiceNow incident with short description: '{short_description}', full description: '{description}', and priority: {priority}. Use the add_table_record tool with table='incident'."
+    return (
+        f"Create a new ServiceNow incident with short description: '{short_description}', "
+        f"full description: '{description}', and priority: {priority}. "
+        f"Use the add_table_record tool with table='incident'."
+    )
 
 
 @mcp.prompt

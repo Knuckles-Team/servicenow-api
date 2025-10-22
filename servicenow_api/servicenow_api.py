@@ -1160,8 +1160,6 @@ class Api(object):
             else:
                 change_type = ""
 
-            first_response = None
-
             if change_request.sysparm_offset and change_request.sysparm_limit:
                 response = self._session.get(
                     url=f"{self.url}/sn_chg_rest/change{change_type}",
@@ -1325,8 +1323,6 @@ class Api(object):
             if change_request.change_request_sys_id is None:
                 raise MissingParameterError
             tasks_data = []
-
-            first_response = None
 
             if change_request.sysparm_offset and change_request.sysparm_limit:
                 response = self._session.get(
@@ -1527,8 +1523,6 @@ class Api(object):
             change_request = ChangeManagementModel(**kwargs)
             standard_change_templates_data = []
 
-            first_response = None
-
             if change_request.sysparm_offset and change_request.sysparm_limit:
                 response = self._session.get(
                     url=f"{self.url}/sn_chg_rest/change/standard/template",
@@ -1619,8 +1613,6 @@ class Api(object):
                 change_type = f"/{change_request.change_type}"
             else:
                 change_type = ""
-
-            first_response = None
 
             if change_request.sysparm_offset and change_request.sysparm_limit:
                 response = self._session.get(

@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Optional, Any, TypeVar
+from typing import Union, List, Dict, Optional, Any, TypeVar, Generic
 
 import requests
 from pydantic import (
@@ -639,25 +639,130 @@ class IncidentModel(BaseModel):
 
     model_config = ConfigDict(validate_assignment=True)
     incident_id: Union[int, str] = None
-    data: Optional[Dict] = None
+    name_value_pairs: Optional[Dict] = None
+    sysparm_display_value: Optional[str] = None
+    sysparm_exclude_reference_link: Optional[bool] = None
+    sysparm_fields: Optional[str] = None
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_no_count: Optional[bool] = None
+    sysparm_offset: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    sysparm_query_category: Optional[str] = None
+    sysparm_query_no_domain: Optional[bool] = None
+    sysparm_suppress_pagination_header: Optional[bool] = None
+    sysparm_view: Optional[str] = None
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
+    data: Optional[Dict] = Field(
+        default=None, description="Table dictionary value to insert"
+    )
 
-    @field_validator("incident_id")
+    @field_validator("table", "table_record_sys_id")
     def validate_string_parameters(cls, v):
         """
-        Validate the 'incident_id' parameter to ensure it is a valid string.
+        Validate specific string parameters to ensure they are valid strings.
 
         Args:
-        - v: The value of 'incident_id'.
+        - v: The value of the parameter.
 
         Returns:
-        - str: The validated 'incident_id'.
+        - str: The validated parameter value.
 
         Raises:
-        - ValueError: If 'incident_id' is provided and not a string.
+        - ValueError: If the parameter is provided and not a string.
         """
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
         return v
+
+    @field_validator(
+        "sysparm_display_value",
+        "sysparm_no_count",
+        "sysparm_query_no_domain",
+        "sysparm_suppress_pagination_header",
+    )
+    def convert_to_lowercase(cls, value):
+        """
+        Convert specified parameters to lowercase.
+
+        Args:
+        - value: The value of the parameter.
+
+        Returns:
+        - str: The value converted to lowercase.
+        """
+        if value is None:
+            return None
+        return value.lower()
+
+    @field_validator("sysparm_view")
+    def validate_sysparm_view(cls, v):
+        """
+        Validate the 'sysparm_view' parameter to ensure it is a valid view.
+
+        Args:
+        - v: The value of 'sysparm_view'.
+
+        Returns:
+        - str: The validated 'sysparm_view'.
+
+        Raises:
+        - ParameterError: If 'sysparm_view' is not a valid view.
+        """
+        if v not in ["desktop", "mobile", "both"]:
+            raise ParameterError
+        return v
+
+    @field_validator("sysparm_display_value")
+    def validate_sysparm_display_value(cls, v):
+        """
+        Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
+
+        Args:
+        - v: The value of 'sysparm_display_value'.
+
+        Returns:
+        - str: The validated 'sysparm_display_value'.
+
+        Raises:
+        - ParameterError: If 'sysparm_display_value' is not a valid display value.
+        """
+        if v not in [True, False, "all"]:
+            raise ParameterError
+        return v
+
+    def model_post_init(self, __context):
+        """
+        Build the API parameters
+        """
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.sysparm_display_value:
+            self.api_parameters["sysparm_display_value"] = self.sysparm_display_value
+        if self.sysparm_exclude_reference_link:
+            self.api_parameters["sysparm_exclude_reference_link"] = (
+                self.sysparm_exclude_reference_link
+            )
+        if self.sysparm_fields:
+            self.api_parameters["sysparm_fields"] = self.sysparm_fields
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_query_category:
+            self.api_parameters["sysparm_query_category"] = self.sysparm_query_category
+        if self.sysparm_query_no_domain:
+            self.api_parameters["sysparm_query_no_domain"] = (
+                self.sysparm_query_no_domain
+            )
+        if self.sysparm_suppress_pagination_header:
+            self.api_parameters["sysparm_suppress_pagination_header"] = (
+                self.sysparm_suppress_pagination_header
+            )
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_no_count:
+            self.api_parameters["sysparm_no_count"] = self.sysparm_no_count
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
 class KnowledgeManagementModel(BaseModel):
@@ -2310,17 +2415,18 @@ class Authentication(BaseModel):
 T = TypeVar("T")
 
 
-class Response:
+class Response(BaseModel, Generic[T]):
     """
-    A wrapper class to hold the original requests.Response along with the parsed Pydantic result.
+    A wrapper class to hold the original requests.Response along with the parsed Pydantic data.
     This allows access to response metadata (e.g., status_code, headers) while providing
-    the parsed result in Pydantic models.
+    the parsed data in Pydantic models.
     """
 
-    def __init__(
-        self,
-        response: requests.Response,
-        result: Optional[Union[T, List[T]]] = None,
-    ):
-        self.response = response
-        self.result = result
+    model_config = ConfigDict(extra="forbid")
+    base_type: str = Field(default="Response")
+    response: requests.Response = Field(
+        default=None, description="The original requests.Response object"
+    )
+    data: Optional[Union[T, List[T]]] = Field(
+        default=None, description="The Pydantic models converted from the response"
+    )
