@@ -2425,7 +2425,7 @@ class Response(BaseModel, Generic[T]):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     base_type: str = Field(default="Response")
     response: requests.Response = Field(
-        default=None, description="The original requests.Response object"
+        default=None, description="The original requests.Response object", exclude=True
     )
     data: Optional[Union[T, List[T]]] = Field(
         default=None, description="The Pydantic models converted from the response"
