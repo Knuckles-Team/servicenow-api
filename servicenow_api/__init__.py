@@ -7,11 +7,10 @@ import inspect
 # List of modules to import from
 MODULES = [
     "servicenow_api.servicenow_api",
-    "servicenow_api.servicenow_api_mcp",
+    "servicenow_api.servicenow_mcp",
     "servicenow_api.servicenow_models",
     "servicenow_api.decorators",
     "servicenow_api.exceptions",
-    "servicenow_api.utils",
 ]
 
 # Initialize __all__ to expose all public classes and functions
