@@ -6,22 +6,9 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-
-try:
-    from servicenow_api.decorators import require_auth
-except ModuleNotFoundError:
-    pass
-try:
-    from servicenow_api.exceptions import (
-        AuthError,
-        UnauthorizedError,
-        ParameterError,
-        MissingParameterError,
-    )
-except ModuleNotFoundError:
-    from exceptions import (
-        ParameterError,
-    )
+from servicenow_api.exceptions import (
+    ParameterError,
+)
 
 
 ########################################################################################################################
@@ -886,7 +873,7 @@ class TableModel(BaseModel):
 #                                              Output Models                                                           #
 ########################################################################################################################
 class FieldValue(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     value: Union[str, int] = Field(default=None, description="The value of the field.")
     display_value: str = Field(
@@ -898,14 +885,14 @@ class FieldValue(BaseModel):
 
 
 class ItemValue(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     sys_id: str = Field(default=None, description="Sys Id of the value")
     name: str = Field(default=None, description="Name of the value")
 
 
 class BatchItem(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     customization_version: Optional[str] = Field(
         default=None,
@@ -943,7 +930,7 @@ class BatchItem(BaseModel):
 
 
 class BatchPlan(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     id: Optional[str] = Field(
         default=None, description="Sys_id of the return results information."
@@ -966,7 +953,7 @@ class BatchPlan(BaseModel):
 
 
 class BatchInstallResult(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="BatchInstallResult")
     error: Optional[str] = Field(default=None, description="Error message.")
@@ -981,7 +968,7 @@ class BatchInstallResult(BaseModel):
 
 
 class ConditionDetail(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     description: Optional[str] = Field(
         default=None, description="Description of the condition."
@@ -991,7 +978,7 @@ class ConditionDetail(BaseModel):
 
 
 class Condition(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     condition: Optional[ConditionDetail] = Field(
         default=None, description="Values of a specific condition."
@@ -1003,7 +990,7 @@ class Condition(BaseModel):
 
 
 class StateTransition(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     sys_id: str = Field(default=None, description="Sys_id of the transition state.")
     display_value: str = Field(
@@ -1032,7 +1019,7 @@ class StateTransition(BaseModel):
 
 
 class ErrorDetail(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     detail: Optional[str] = Field(
         None, description="Additional information about the error."
@@ -1044,7 +1031,7 @@ class ErrorDetail(BaseModel):
 
 
 class Messages(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     errorMessages: Optional[List[str]] = Field(
         None, description="Error messages encountered while processing the request."
@@ -1059,7 +1046,7 @@ class Messages(BaseModel):
 
 
 class Worker(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Worker")
     link: Optional[str] = Field(None, description="Link for retrieving time slot data.")
@@ -1069,7 +1056,7 @@ class Worker(BaseModel):
 
 
 class State(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="State")
     available_states: List[str] = Field(
@@ -1537,7 +1524,7 @@ class ChangeRequest(BaseModel):
 
 
 class Task(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Task")
     sys_id: FieldValue = Field(
@@ -1612,8 +1599,127 @@ class Task(BaseModel):
     )
 
 
+class Incident(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    base_type: str = Field(default="Incident")
+    __hash__ = object.__hash__
+    sys_id: Optional[str] = Field(
+        default=None, description="Unique identifier of the incident record"
+    )
+    number: Optional[str] = Field(
+        default=None, description="Incident number (e.g., INC0012345)"
+    )
+    state: Optional[str] = Field(
+        default=None,
+        description="State of the incident (e.g., New, In Progress, Resolved)",
+    )
+    priority: Optional[str] = Field(
+        default=None, description="Priority level (e.g., 1 - Critical, 2 - High)"
+    )
+    short_description: Optional[str] = Field(
+        default=None, description="Brief description of the incident"
+    )
+    description: Optional[str] = Field(
+        default=None, description="Detailed description of the incident"
+    )
+    impact: Optional[str] = Field(
+        default=None, description="Impact level (e.g., 1 - High, 2 - Medium)"
+    )
+    urgency: Optional[str] = Field(
+        default=None, description="Urgency level (e.g., 1 - High, 2 - Medium)"
+    )
+    category: Optional[str] = Field(
+        default=None, description="Category of the incident (e.g., Hardware, Software)"
+    )
+    subcategory: Optional[str] = Field(
+        default=None, description="Subcategory of the incident"
+    )
+    caller_id: Optional[str] = Field(default=None, description="Sys ID of the caller")
+    assigned_to: Optional[str] = Field(
+        default=None, description="Sys ID of the assigned user"
+    )
+    assignment_group: Optional[str] = Field(
+        default=None, description="Sys ID of the assignment group"
+    )
+    opened_at: Optional[str] = Field(
+        default=None, description="Timestamp when the incident was opened"
+    )
+    opened_by: Optional[str] = Field(
+        default=None, description="Sys ID of the user who opened the incident"
+    )
+    closed_at: Optional[str] = Field(
+        default=None, description="Timestamp when the incident was closed"
+    )
+    close_code: Optional[str] = Field(
+        default=None, description="Closure code (e.g., Resolved, Cancelled)"
+    )
+    close_notes: Optional[str] = Field(
+        default=None, description="Notes provided upon incident closure"
+    )
+    incident_state: Optional[str] = Field(
+        default=None, description="Detailed incident state"
+    )
+    sys_created_on: Optional[str] = Field(
+        default=None, description="Timestamp when the record was created"
+    )
+    sys_updated_on: Optional[str] = Field(
+        default=None, description="Timestamp when the record was last updated"
+    )
+    sys_updated_by: Optional[str] = Field(
+        default=None, description="User who last updated the record"
+    )
+    sys_created_by: Optional[str] = Field(
+        default=None, description="User who created the record"
+    )
+    company: Optional[str] = Field(
+        default=None, description="Sys ID of the associated company"
+    )
+    location: Optional[str] = Field(default=None, description="Sys ID of the location")
+    cmdb_ci: Optional[str] = Field(
+        default=None, description="Sys ID of the related configuration item"
+    )
+    problem_id: Optional[str] = Field(
+        default=None, description="Sys ID of the related problem"
+    )
+    change_request: Optional[str] = Field(
+        default=None, description="Sys ID of the related change request"
+    )
+    comments: Optional[str] = Field(
+        default=None, description="Additional comments added to the incident"
+    )
+    work_notes: Optional[str] = Field(
+        default=None, description="Work notes added to the incident"
+    )
+    active: Optional[bool] = Field(
+        default=None, description="Whether the incident is active"
+    )
+    severity: Optional[str] = Field(
+        default=None, description="Severity level of the incident"
+    )
+    notify: Optional[str] = Field(default=None, description="Notification preference")
+    contact_type: Optional[str] = Field(
+        default=None, description="How the incident was reported (e.g., phone, email)"
+    )
+    parent: Optional[str] = Field(
+        default=None, description="Sys ID of the parent incident, if any"
+    )
+    escalation: Optional[str] = Field(
+        default=None, description="Escalation level of the incident"
+    )
+    sys_domain: Optional[str] = Field(
+        default=None, description="Sys ID of the domain for domain separation"
+    )
+    sys_mod_count: Optional[int] = Field(
+        default=None, description="Number of times the record was modified"
+    )
+    custom_fields: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Dictionary for custom fields (e.g., u_custom_field)",
+    )
+
+
 class ConfigurationItem(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     base_type: str = Field(default="ConfigurationItem")
     __hash__ = object.__hash__
     sys_id: Optional[Union[FieldValue, str]] = None
@@ -1623,7 +1729,7 @@ class ConfigurationItem(BaseModel):
 
 
 class TimeSpan(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     base_type: str = Field(default="TimeSpan")
     __hash__ = object.__hash__
     start: Optional[FieldValue] = Field(None, description="Start time of the span.")
@@ -1631,7 +1737,7 @@ class TimeSpan(BaseModel):
 
 
 class Payload(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     base_type: str = Field(default="Payload")
     __hash__ = object.__hash__
     spans: Optional[List[TimeSpan]] = Field(
@@ -1640,7 +1746,7 @@ class Payload(BaseModel):
 
 
 class Schedule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     base_type: str = Field(default="Schedule")
     __hash__ = object.__hash__
     error: Optional[ErrorDetail] = Field(
@@ -1694,7 +1800,7 @@ class ArticleFields(BaseModel):
 
 
 class Article(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Article")
     fields: Optional[Dict[str, FieldDetail]] = Field(
@@ -1740,7 +1846,7 @@ class Article(BaseModel):
 
 
 class Meta(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Meta")
     count: Optional[int] = Field(None, description="Number of available KB articles.")
@@ -1761,7 +1867,7 @@ class Meta(BaseModel):
 
 
 class KnowledgeManagement(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="KnowledgeManagement")
     meta: Meta = Field(
@@ -1773,7 +1879,7 @@ class KnowledgeManagement(BaseModel):
 
 
 class Item(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Item")
     className: Optional[str] = Field(
@@ -1785,7 +1891,7 @@ class Item(BaseModel):
 
 
 class Relation(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Relation")
     parent: Optional[str] = Field(
@@ -1797,7 +1903,7 @@ class Relation(BaseModel):
 
 
 class Attribute(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Attribute")
     is_inherited: Optional[str] = Field(
@@ -1826,7 +1932,7 @@ class Attribute(BaseModel):
 
 
 class RelationshipRule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="RelationshipRule")
     parent: Optional[str] = Field(
@@ -1841,7 +1947,7 @@ class RelationshipRule(BaseModel):
 
 
 class RelatedRule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="RelatedRule")
     condition: Optional[str] = Field(
@@ -1872,7 +1978,7 @@ class RelatedRule(BaseModel):
 
 
 class IdentificationRule(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="IdentificationRule")
     related_rules: Optional[List[RelatedRule]] = Field(
@@ -1921,7 +2027,7 @@ class IdentificationRule(BaseModel):
 
 
 class Link(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Link")
     id: Optional[str] = Field(
@@ -1946,7 +2052,7 @@ class Link(BaseModel):
 
 
 class Rollback(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Rollback")
     id: str = Field(
@@ -1956,7 +2062,7 @@ class Rollback(BaseModel):
 
 
 class Links(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Links")
     findings: Optional[Link] = Field(
@@ -2010,7 +2116,7 @@ class CICD(BaseModel):
     - update_set_id (Optional[str]): Sys_id of the created update set.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="CICD")
     error: Optional[str] = Field(default=None, description="Error message.")
@@ -2068,7 +2174,7 @@ class CICD(BaseModel):
 
 
 class CMDB(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="CMDB")
     icon_url: Optional[str] = Field(default=None, description="Class icon URL.")
@@ -2096,7 +2202,7 @@ class CMDB(BaseModel):
 
 
 class CMDBService(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="CMDBService")
     items: List[Item] = Field(
@@ -2108,7 +2214,7 @@ class CMDBService(BaseModel):
 
 
 class ServiceRelation(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="ServiceRelation")
     parent: str = Field(
@@ -2120,7 +2226,7 @@ class ServiceRelation(BaseModel):
 
 
 class Service(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="Service")
     name: str = Field(default=None, description="Name of the application service.")
@@ -2139,8 +2245,18 @@ class Table(BaseModel):
     base_type: str = Field(default="Table")
 
 
+class ImportSet(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="ImportSet")
+    import_set: Optional[str] = Field(None, description="Name of the import set.")
+    staging_table: Optional[str] = Field(
+        None, description="Name of the import staging table."
+    )
+
+
 class ImportSetResult(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
     base_type: str = Field(default="ImportSetResult")
     display_name: Optional[str] = Field(
@@ -2158,10 +2274,13 @@ class ImportSetResult(BaseModel):
     transform_map: Optional[str] = Field(None, description="Name of the transform map.")
 
 
-class Response(BaseModel):
+class Authentication(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    __hash__ = object.__hash__
+    base_type: str = Field(default="Authentication")
     scope: str = Field(
         default=None,
-        description="Amount of access granted by the access token. The scope is always useraccount, meaning that the "
+        description="Amount of access granted by the access token. The scope is always user account, meaning that the "
         "access token has the same rights as the user account that authorized the token. For example, "
         "if Abel Tuter authorizes an application by providing login credentials, then the resulting "
         "access token grants the token bearer the same access privileges as Abel Tuter.",
@@ -2184,133 +2303,3 @@ class Response(BaseModel):
         "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
-    import_set: Optional[str] = Field(None, description="Name of the import set.")
-    staging_table: Optional[str] = Field(
-        None, description="Name of the import staging table."
-    )
-    result: Optional[
-        Union[
-            Dict,
-            List,
-            BatchInstallResult,
-            CICD,
-            List[ConfigurationItem],
-            ConfigurationItem,
-            List[ImportSetResult],
-            ImportSetResult,
-            Schedule,
-            List[State],
-            State,
-            CMDB,
-            List[Task],
-            Task,
-            Article,
-            KnowledgeManagement,
-            List[ChangeRequest],
-            ChangeRequest,
-            Table,
-        ]
-    ] = Field(default=None, description="Result containing available responses.")
-    cmdb: Optional[Union[Dict, List, CMDBService]] = Field(
-        default=None,
-        description="List of objects that describe the CIs associated with the specified application service.",
-    )
-    service: Optional[Union[Dict, List, Service]] = Field(
-        default=None, description="List of services related to the identified service."
-    )
-    error: Optional[Any] = None
-    status_code: Union[str, int] = Field(
-        default=None, description="Response status code"
-    )
-    json_output: Optional[Union[List, Dict]] = Field(
-        default=None, description="Response JSON data"
-    )
-    raw_output: Optional[bytes] = Field(default=None, description="Response Raw bytes")
-
-    @field_validator("service")
-    def determine_application_service_type(cls, v):
-        models = [
-            Service,
-        ]
-        if v:
-            for model in models:
-                try:
-                    if isinstance(v, Dict):
-                        v = model(**v)
-                    elif isinstance(v, List):
-                        if all(isinstance(i, Dict) for i in v):
-                            for model in models:
-                                try:
-                                    return [model(**item) for item in v]
-                                except Exception:
-                                    # print(
-                                    #     f"Error validating one of the models in the list: {e}"
-                                    # )
-                                    continue
-                except Exception:
-                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
-                    pass
-        return v
-
-    @field_validator("cmdb")
-    def determine_cmdb_type(cls, v):
-        models = [
-            CMDBService,
-        ]
-        if v:
-            for model in models:
-                try:
-                    if isinstance(v, Dict):
-                        v = model(**v)
-                    elif isinstance(v, List):
-                        if all(isinstance(i, Dict) for i in v):
-                            for model in models:
-                                try:
-                                    return [model(**item) for item in v]
-                                except Exception:
-                                    # print(
-                                    #     f"Error validating one of the models in the list: {e}"
-                                    # )
-                                    continue
-                except Exception:
-                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
-                    pass
-        return v
-
-    @field_validator("result")
-    def determine_result_type(cls, v):
-        models = [
-            BatchInstallResult,
-            CICD,
-            List[ConfigurationItem],
-            ConfigurationItem,
-            List[ImportSetResult],
-            ImportSetResult,
-            Schedule,
-            List[State],
-            State,
-            CMDB,
-            List[Task],
-            Task,
-            Article,
-            KnowledgeManagement,
-            List[ChangeRequest],
-            ChangeRequest,
-            Table,
-        ]
-        if v:
-            for model in models:
-                try:
-                    if isinstance(v, Dict):
-                        v = model(**v)
-                    elif isinstance(v, List):
-                        if all(isinstance(i, Dict) for i in v):
-                            for model in models:
-                                try:
-                                    return [model(**item) for item in v]
-                                except Exception:
-                                    continue
-                except Exception:
-                    # print(f"Validation Failed for {model} - {v}\nError: {e}")
-                    pass
-        return v

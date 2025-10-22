@@ -30,7 +30,7 @@ eunomia-mcp = [
 ]
 
 [project.scripts]
-servicenow-mcp = "servicenow_api.servicenow_api_mcp:servicenow_api_mcp"
+servicenow-mcp = "servicenow_api.servicenow_mcp:servicenow_mcp"
 
 [tool.setuptools.packages.find]
 where = ["."]

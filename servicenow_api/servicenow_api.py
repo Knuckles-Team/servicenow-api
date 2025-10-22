@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
-from typing import Union, Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 import requests
 import urllib3
@@ -17,7 +17,17 @@ from servicenow_api.servicenow_models import (
     ImportSetModel,
     KnowledgeManagementModel,
     TableModel,
-    Response,
+    Authentication,
+    ChangeRequest,
+    CICD,
+    CMDB,
+    CMDBService,
+    Table,
+    ImportSet,
+    Incident,
+    Task,
+    Attachment,
+    Article,
 )
 from servicenow_api.decorators import require_auth
 from servicenow_api.exceptions import (
@@ -26,7 +36,6 @@ from servicenow_api.exceptions import (
     ParameterError,
     MissingParameterError,
 )
-from servicenow_api.utils import process_response
 
 
 class Api(object):
@@ -115,7 +124,7 @@ class Api(object):
             raise ParameterError
 
     @require_auth
-    def refresh_auth_token(self) -> Union[Response, requests.Response]:
+    def refresh_auth_token(self) -> Authentication:
         """
         Refresh the authentication token
         :return:
@@ -132,31 +141,35 @@ class Api(object):
             response = requests.post(
                 url=self.auth_url, data=encoded_data_str, headers=self.auth_headers
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        self.token = response.access_token
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            self.token = json_response["access_token"]
+            return Authentication.model_validate(json_response)
+        except ValidationError as ve:
+            print(f"Invalid response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during token refresh: {e}")
+            raise
 
     ####################################################################################################################
     #                                         Application Service API                                                  #
     ####################################################################################################################
     @require_auth
-    def get_application(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_application(self, **kwargs) -> CMDBService:
         """
         Get information about an application.
 
         :param application_id: The unique identifier of the application.
         :type application_id: str
 
-        :return: JSON response containing information about the application.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the application.
+        :rtype: CMDBService
 
         :raises MissingParameterError: If the required parameter `application_id` is not provided.
         """
-        application = ApplicationServiceModel(**kwargs)
         try:
+            application = ApplicationServiceModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/cmdb/app_service/{application.application_id}/getContent",
                 params=application.api_parameters,
@@ -164,134 +177,160 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            # Assuming ServiceNow APIs often wrap data in "result" key; adjust if direct
+            result_data = json_response.get("result", json_response)
+            return CMDBService.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                                   CMDB API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_cmdb(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_cmdb(self, **kwargs) -> CMDB:
         """
         Get Configuration Management Database (CMDB) information based on specified parameters.
 
         :param cmdb_id: The unique identifier of the CMDB record
         :type cmdb_id: str
 
-        :return: JSON response containing CMDB information.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing CMDB information.
+        :rtype: CMDB
 
         :raises ParameterError: If the provided parameters are invalid.
         """
-        cmdb = CMDBModel(**kwargs)
         try:
+            cmdb = CMDBModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/cmdb/meta/{cmdb.cmdb_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CMDB.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                                  CI/CD API                                                       #
     ####################################################################################################################
     @require_auth
-    def batch_install_result(self, **kwargs) -> Union[Response, requests.Response]:
+    def batch_install_result(self, **kwargs) -> CICD:
         """
         Get the result of a batch installation based on the provided result ID.
 
         :param result_id: The ID associated with the batch installation result.
         :type result_id: str
 
-        :return: JSON response containing batch installation result.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing batch installation result.
+        :rtype: CICD
 
         :raises MissingParameterError: If result_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.result_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.result_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/app/batch/results/{cicd.result_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def instance_scan_progress(self, **kwargs) -> Union[Response, requests.Response]:
+    def instance_scan_progress(self, **kwargs) -> CICD:
         """
         Get progress information for an instance scan based on the provided progress ID.
 
         :param progress_id: The ID associated with the instance scan progress.
         :type progress_id: str
 
-        :return: JSON response containing instance scan progress.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing instance scan progress.
+        :rtype: CICD
 
         :raises MissingParameterError: If progress_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.progress_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.progress_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/instance_scan/result/{cicd.progress_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def progress(self, **kwargs) -> Union[Response, requests.Response]:
+    def progress(self, **kwargs) -> CICD:
         """
         Get progress information based on the provided progress ID.
 
         :param progress_id: The ID associated with the progress.
         :type progress_id: str
 
-        :return: JSON response containing progress information.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information.
+        :rtype: CICD
 
         :raises MissingParameterError: If progress_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.progress_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.progress_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/progress/{cicd.progress_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def batch_install(self, **kwargs) -> Union[Response, requests.Response]:
+    def batch_install(self, **kwargs) -> CICD:
         """
         Initiate a batch installation with the provided parameters.
 
@@ -302,16 +341,16 @@ class Api(object):
         :param packages: The packages to be installed in the batch.
         :type packages: str
 
-        :return: JSON response containing information about the batch installation.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the batch installation.
+        :rtype: CICD
 
         :raises MissingParameterError: If name or packages are not provided.
         :raises ParameterError: If notes is not a string.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.name is None or cicd.packages is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.name is None or cicd.packages is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/app/batch/install",
                 headers=self.headers,
@@ -319,43 +358,53 @@ class Api(object):
                 json=cicd.data,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def batch_rollback(self, **kwargs) -> Union[Response, requests.Response]:
+    def batch_rollback(self, **kwargs) -> CICD:
         """
         Rollback a batch installation based on the provided rollback ID.
 
         :param rollback_id: The ID associated with the batch rollback.
         :type rollback_id: str
 
-        :return: JSON response containing information about the batch rollback.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the batch rollback.
+        :rtype: CICD
 
         :raises MissingParameterError: If rollback_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.rollback_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.rollback_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/app/batch/rollback/{cicd.rollback_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def app_repo_install(self, **kwargs) -> Union[Response, requests.Response]:
+    def app_repo_install(self, **kwargs) -> CICD:
         """
         Install an application from the repository based on the provided parameters.
 
@@ -370,16 +419,16 @@ class Api(object):
         :param version: The version of the application to be installed.
         :type version: str
 
-        :return: JSON response containing information about the installation.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the installation.
+        :rtype: CICD
 
         :raises MissingParameterError: If app_sys_id or scope is not provided.
         :raises ParameterError: If auto_upgrade_base_app is not a boolean.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.sys_id is None and cicd.scope is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.sys_id is None and cicd.scope is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/app_repo/install",
                 params=cicd.api_parameters,
@@ -387,14 +436,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def app_repo_publish(self, **kwargs) -> Union[Response, requests.Response]:
+    def app_repo_publish(self, **kwargs) -> CICD:
         """
         Publish an application to the repository based on the provided parameters.
 
@@ -407,15 +461,15 @@ class Api(object):
         :param version: The version of the application to be published.
         :type version: str
 
-        :return: JSON response containing information about the publication.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the publication.
+        :rtype: CICD
 
         :raises MissingParameterError: If app_sys_id or scope is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.sys_id is None and cicd.scope is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.sys_id is None and cicd.scope is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/app_repo/publish",
                 params=cicd.api_parameters,
@@ -423,14 +477,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def app_repo_rollback(self, **kwargs) -> Union[Response, requests.Response]:
+    def app_repo_rollback(self, **kwargs) -> CICD:
         """
         Rollback an application in the repository based on the provided parameters.
 
@@ -441,15 +500,15 @@ class Api(object):
         :param version: The version of the application to be rolled back.
         :type version: str
 
-        :return: JSON response containing information about the rollback.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the rollback.
+        :rtype: CICD
 
         :raises MissingParameterError: If app_sys_id, scope, or version is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.sys_id is None and cicd.scope is None or cicd.version is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.sys_id is None and cicd.scope is None or cicd.version is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/app_repo/rollback",
                 params=cicd.api_parameters,
@@ -457,19 +516,24 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def full_scan(self) -> Union[Response, requests.Response]:
+    def full_scan(self) -> CICD:
         """
         Initiate a full instance scan.
 
-        :return: JSON response containing information about the full scan.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the full scan.
+        :rtype: CICD
         """
         try:
             response = self._session.post(
@@ -478,14 +542,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def point_scan(self, **kwargs) -> Union[Response, requests.Response]:
+    def point_scan(self, **kwargs) -> CICD:
         """
         Initiate a point instance scan based on the provided parameters.
 
@@ -494,15 +563,15 @@ class Api(object):
         :param target_table: The table of the target instance.
         :type target_table: str
 
-        :return: JSON response containing information about the point scan.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the point scan.
+        :rtype: CICD
 
         :raises MissingParameterError: If target_sys_id or target_table is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.target_sys_id is None or cicd.target_table is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.target_sys_id is None or cicd.target_table is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/point_scan",
                 params=cicd.api_parameters,
@@ -510,43 +579,53 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def combo_suite_scan(self, **kwargs) -> Union[Response, requests.Response]:
+    def combo_suite_scan(self, **kwargs) -> CICD:
         """
         Initiate a suite scan for a combo based on the provided combo_sys_id.
 
         :param combo_sys_id: The sys_id of the combo to be scanned.
         :type combo_sys_id: str
 
-        :return: JSON response containing information about the combo suite scan.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the combo suite scan.
+        :rtype: CICD
 
         :raises MissingParameterError: If combo_sys_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.combo_sys_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.combo_sys_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/combo/{cicd.combo_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def suite_scan(self, **kwargs) -> Union[Response, requests.Response]:
+    def suite_scan(self, **kwargs) -> CICD:
         """
         Initiate a suite scan based on the provided suite_sys_id and sys_ids.
 
@@ -557,17 +636,16 @@ class Api(object):
         :param scan_type: Type of scan to be performed (default is "scoped_apps").
         :type scan_type: str
 
-        :return: JSON response containing information about the suite scan.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the suite scan.
+        :rtype: CICD
 
         :raises MissingParameterError: If suite_sys_id or sys_ids is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-
-        cicd = CICDModel(**kwargs)
-        if cicd.suite_sys_id is None or cicd.app_scope_sys_ids is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.suite_sys_id is None or cicd.app_scope_sys_ids is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}",
                 headers=self.headers,
@@ -575,74 +653,87 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def activate_plugin(self, **kwargs) -> Union[Response, requests.Response]:
+    def activate_plugin(self, **kwargs) -> CICD:
         """
         Activate a plugin based on the provided plugin_id.
 
         :param plugin_id: The ID of the plugin to be activated.
         :type plugin_id: str
 
-        :return: JSON response containing information about the activation.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the activation.
+        :rtype: CICD
 
         :raises MissingParameterError: If plugin_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.plugin_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.plugin_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/plugin/{cicd.plugin_id}/activate",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def rollback_plugin(self, **kwargs) -> Union[Response, requests.Response]:
+    def rollback_plugin(self, **kwargs) -> CICD:
         """
         Rollback a plugin based on the provided plugin_id.
 
         :param plugin_id: The ID of the plugin to be rolled back.
         :type plugin_id: str
 
-        :return: JSON response containing information about the rollback.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the rollback.
+        :rtype: CICD
 
         :raises MissingParameterError: If plugin_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.plugin_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.plugin_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/plugin/{cicd.plugin_id}/rollback",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def apply_remote_source_control_changes(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def apply_remote_source_control_changes(self, **kwargs) -> CICD:
         """
         Apply remote source control changes based on the provided parameters.
 
@@ -655,16 +746,16 @@ class Api(object):
         :param auto_upgrade_base_app: Flag indicating whether to auto-upgrade the base app.
         :type auto_upgrade_base_app: bool
 
-        :return: JSON response containing information about the applied changes.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the applied changes.
+        :rtype: CICD
 
         :raises MissingParameterError: If app_sys_id or scope is not provided.
         :raises ParameterError: If auto_upgrade_base_app is not a boolean.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.app_sys_id is None and cicd.scope is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.app_sys_id is None and cicd.scope is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/sc/apply_changes",
                 params=cicd.api_parameters,
@@ -672,14 +763,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def import_repository(self, **kwargs) -> Union[Response, requests.Response]:
+    def import_repository(self, **kwargs) -> CICD:
         """
         Import a repository based on the provided parameters.
 
@@ -694,16 +790,16 @@ class Api(object):
         :param auto_upgrade_base_app: Flag indicating whether to auto-upgrade the base app.
         :type auto_upgrade_base_app: bool
 
-        :return: JSON response containing information about the repository import.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the repository import.
+        :rtype: CICD
 
         :raises MissingParameterError: If repo_url is not provided.
         :raises ParameterError: If auto_upgrade_base_app is not a boolean.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.repo_url is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.repo_url is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/sc/import",
                 params=cicd.api_parameters,
@@ -711,14 +807,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def run_test_suite(self, **kwargs) -> Union[Response, requests.Response]:
+    def run_test_suite(self, **kwargs) -> CICD:
         """
         Run a test suite based on the provided parameters.
 
@@ -735,16 +836,16 @@ class Api(object):
         :param os_version: The version of the operating system for the test run.
         :type os_version: str
 
-        :return: JSON response containing information about the test run.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the test run.
+        :rtype: CICD
 
         :raises MissingParameterError: If test_suite_sys_id or test_suite_name is not provided.
         :raises ParameterError: If browser_name is not a valid string.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.test_suite_sys_id is None and cicd.test_suite_name is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.test_suite_sys_id is None and cicd.test_suite_name is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/testsuite/run",
                 params=cicd.api_parameters,
@@ -752,14 +853,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_create(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_set_create(self, **kwargs) -> CICD:
         """
         Creates a new update set and inserts the new record in the Update Sets [sys_update_set] table.
 
@@ -772,15 +878,17 @@ class Api(object):
         :param sys_id: Sys_id of the application in which to create the new update set.
         :type sys_id: str
 
-        :return: JSON response containing information about the created update set.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the created update set.
+        :rtype: CICD
 
         :raises MissingParameterError: If update_set_name is not provided or both sys_id and scope are not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.update_set_name is None or (cicd.sys_id is None and cicd.scope is None):
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.update_set_name is None or (
+                cicd.sys_id is None and cicd.scope is None
+            ):
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/create",
                 params=cicd.api_parameters,
@@ -788,14 +896,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_retrieve(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_set_retrieve(self, **kwargs) -> CICD:
         """
         Retrieves an update set with a given sys_id and allows you to remove the existing retrieved update set from the instance.
 
@@ -810,15 +923,15 @@ class Api(object):
         :param cleanup_retrieved: Flag that indicates whether to remove the existing retrieved update set from the instance.
         :type cleanup_retrieved: bool
 
-        :return: JSON response containing progress information about the retrieval.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information about the retrieval.
+        :rtype: CICD
 
         :raises MissingParameterError: If update_set_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.update_set_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.update_set_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/retrieve",
                 params=cicd.api_parameters,
@@ -826,43 +939,53 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_preview(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_set_preview(self, **kwargs) -> CICD:
         """
         Previews an update set to check for any conflicts and retrieve progress information about the update set operation.
 
         :param remote_update_set_id: Sys_id of the update set to preview.
         :type remote_update_set_id: str
 
-        :return: JSON response containing progress information about the preview.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information about the preview.
+        :rtype: CICD
 
         :raises MissingParameterError: If remote_update_set_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.remote_update_set_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.remote_update_set_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/preview/{cicd.remote_update_set_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_commit(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_set_commit(self, **kwargs) -> CICD:
         """
         Commits an update set with a given sys_id.
 
@@ -871,15 +994,15 @@ class Api(object):
         :param force_commit: Flag that indicates whether to force commit the update set.
         :type force_commit: str
 
-        :return: JSON response containing progress information about the commit.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information about the commit.
+        :rtype: CICD
 
         :raises MissingParameterError: If remote_update_set_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.remote_update_set_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.remote_update_set_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/commit/{cicd.remote_update_set_id}",
                 json=cicd.data,
@@ -887,16 +1010,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_commit_multiple(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def update_set_commit_multiple(self, **kwargs) -> CICD:
         """
         Commits multiple update sets in a single request according to the order that they're provided.
 
@@ -905,15 +1031,15 @@ class Api(object):
         :param force_commit: Flag that indicates whether to force commit the update set.
         :type force_commit: str
 
-        :return: JSON response containing progress information about the multiple commits.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information about the multiple commits.
+        :rtype: CICD
 
         :raises MissingParameterError: If remote_update_set_ids is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.remote_update_set_ids is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.remote_update_set_ids is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/commitMultiple",
                 params=cicd.api_parameters,
@@ -922,14 +1048,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_set_back_out(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_set_back_out(self, **kwargs) -> CICD:
         """
         Backs out an installation operation that was performed on an update set with a given sys_id.
 
@@ -938,15 +1069,15 @@ class Api(object):
         :param rollback_installs: Flag that indicates whether to rollback the batch installation performed during the update set commit.
         :type rollback_installs: bool
 
-        :return: JSON response containing progress information about the back out.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing progress information about the back out.
+        :rtype: CICD
 
         :raises MissingParameterError: If update_set_id is not provided.
         """
-        cicd = CICDModel(**kwargs)
-        if cicd.update_set_id is None:
-            raise MissingParameterError
         try:
+            cicd = CICDModel(**kwargs)
+            if cicd.update_set_id is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/back_out",
                 params=cicd.api_parameters,
@@ -954,17 +1085,23 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()  # Raise if HTTP error
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return CICD.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
-    ####################################################################################################################
+        ####################################################################################################################
+
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
-    def get_change_requests(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_requests(self, **kwargs) -> List[ChangeRequest]:
         """
         Retrieve change requests based on specified parameters.
 
@@ -979,131 +1116,156 @@ class Api(object):
         :param change_type: Type of change (emergency, normal, standard, model).
         :type change_type: str or None
 
-        :return: JSON response containing information about change requests.
-        :rtype: dict
+        :return: List of parsed Pydantic models containing information about change requests.
+        :rtype: List[ChangeRequest]
 
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If change_type is specified but not valid.
         :raises ParameterError: If JSON serialization or deserialization fails.
         :raises ParameterError: If unexpected response format is encountered.
         """
-        change_request = ChangeManagementModel(**kwargs)
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            change_requests = []
 
-        if change_request.change_type:
-            change_type = f"/{change_request.change_type}"
-        else:
-            change_type = ""
+            if change_request.change_type:
+                change_type = f"/{change_request.change_type}"
+            else:
+                change_type = ""
 
-        if change_request.sysparm_offset and change_request.sysparm_limit:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change{change_type}",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+            if change_request.sysparm_offset and change_request.sysparm_limit:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change{change_type}",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                change_requests.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-            while response.result and len(response.result) > 1:
-                try:
-                    second_response = self._session.get(
+                while (
+                    response.content
+                    and len(result_data) >= change_request.sysparm_limit
+                ):
+                    change_request.sysparm_offset = (
+                        change_request.sysparm_offset + change_request.sysparm_limit
+                    )
+                    change_request.model_post_init(change_request)
+                    response = self._session.get(
                         url=f"{self.url}/sn_chg_rest/change{change_type}",
                         params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                except ValidationError or Exception as e:
-                    print(f"Invalid parameters: {e.errors()}")
-                    raise e
-                second_response = process_response(response=second_response)
-                response.result.extend(second_response.result)
-                change_request.sysparm_offset = (
-                    change_request.sysparm_offset + change_request.sysparm_limit
+                    response.raise_for_status()
+                    json_response = response.json()
+                    result_data = json_response.get("result", json_response)
+                    change_requests.extend(
+                        [ChangeRequest.model_validate(item) for item in result_data]
+                    )
+            else:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change{change_type}",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
                 )
-                change_request.model_post_init(change_request)
-        else:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change{change_type}",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                change_requests.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-        return response
+            return change_requests
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_nextstate(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_change_request_nextstate(self, **kwargs) -> ChangeRequest:
         """
         Retrieve the next state of a specific change request.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the next state.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the next state.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/nextstate",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/nextstate",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_schedule(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_change_request_schedule(self, **kwargs) -> ChangeRequest:
         """
         Retrieve the schedule of a change request based on CI sys ID.
 
         :param cmdb_ci_sys_id: Sys ID of the CI (Configuration Item).
         :type cmdb_ci_sys_id: str or None
 
-        :return: JSON response containing information about the change request schedule.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the change request schedule.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If cmdb_ci_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.cmdb_ci_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.cmdb_ci_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/ci/{change_request.cmdb_ci_sys_id}/schedule",
+                url=f"{self.url}/sn_chg_rest/change/ci/{change_request.cmdb_ci_sys_id}/schedule",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_tasks(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_request_tasks(self, **kwargs) -> List[Task]:
         """
         Retrieve tasks associated with a specific change request.
 
@@ -1118,60 +1280,74 @@ class Api(object):
         :param text_search: Text search parameter for searching results.
         :type text_search: str or None
 
-        :return: JSON response containing information about change request tasks.
-        :rtype: dict
+        :return: List of parsed Pydantic models containing information about change request tasks.
+        :rtype: List[Task]
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
+            tasks = []
 
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
+            if change_request.sysparm_offset and change_request.sysparm_limit:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                tasks.extend([Task.model_validate(item) for item in result_data])
 
-        if change_request.sysparm_offset and change_request.sysparm_limit:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
-
-            while response.result and len(response.result) > 1:
-                try:
-                    second_response = self._session.get(
+                while (
+                    response.content
+                    and len(result_data) >= change_request.sysparm_limit
+                ):
+                    change_request.sysparm_offset = (
+                        change_request.sysparm_offset + change_request.sysparm_limit
+                    )
+                    change_request.model_post_init(change_request)
+                    response = self._session.get(
                         url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
                         params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                except ValidationError or Exception as e:
-                    print(f"Invalid parameters: {e.errors()}")
-                    raise e
-                second_response = process_response(response=second_response)
-                response.result.extend(second_response.result)
-                change_request.sysparm_offset = (
-                    change_request.sysparm_offset + change_request.sysparm_limit
+                    response.raise_for_status()
+                    json_response = response.json()
+                    result_data = json_response.get("result", json_response)
+                    tasks.extend([Task.model_validate(item) for item in result_data])
+            else:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
                 )
-                change_request.model_post_init(change_request)
-        else:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                tasks.extend([Task.model_validate(item) for item in result_data])
 
-        return response
+            return tasks
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_request(self, **kwargs) -> ChangeRequest:
         """
         Retrieve details of a specific change request.
 
@@ -1180,152 +1356,113 @@ class Api(object):
         :param change_type: Type of change (emergency, normal, standard).
         :type change_type: str or None
 
-        :return: JSON response containing information about the change request.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the change request.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If change_type is specified but not valid.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
-        if (
-            change_request.change_type
-            and isinstance(change_request.change_type, str)
-            and change_request.change_type == "emergency"
-        ):
-            try:
-                response = self._session.get(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/emergency/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        elif (
-            change_request.change_type
-            and isinstance(change_request.change_type, str)
-            and change_request.change_type == "normal"
-        ):
-            try:
-                response = self._session.get(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/normal/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        elif (
-            change_request.change_type
-            and isinstance(change_request.change_type, str)
-            and change_request.change_type == "standard"
-        ):
-            try:
-                response = self._session.get(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/standard/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        else:
-            try:
-                response = self._session.get(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        response.raise_for_status()
-        response = response.json()
-        response = Response(**response)
-        return response
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
+            if change_request.change_type in ["emergency", "normal", "standard"]:
+                url = f"{self.url}/sn_chg_rest/change/{change_request.change_type}/{change_request.change_request_sys_id}"
+            else:
+                url = f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}"
+            response = self._session.get(
+                url=url,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_ci(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_request_ci(self, **kwargs) -> ChangeRequest:
         """
         Retrieve the configuration item (CI) associated with a change request.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the associated CI.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the associated CI.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/ci",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_conflict(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_change_request_conflict(self, **kwargs) -> ChangeRequest:
         """
         Retrieve conflict information associated with a change request.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the conflicts.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the conflicts.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/conflict",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_standard_change_request_templates(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_standard_change_request_templates(self, **kwargs) -> List[ChangeRequest]:
         """
         Retrieve standard change request templates based on specified parameters.
 
@@ -1338,60 +1475,81 @@ class Api(object):
         :param text_search: Text search parameter for searching results.
         :type text_search: str or None
 
-        :return: JSON response containing information about standard change request templates.
-        :rtype: dict
+        :return: List of parsed Pydantic models containing information about standard change request templates.
+        :rtype: List[ChangeRequest]
 
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_type:
-            change_type = f"/{change_request.change_type}"
-        else:
-            change_type = ""
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            standard_change_templates = []
+            if change_request.change_type:
+                change_type = f"/{change_request.change_type}"
+            else:
+                change_type = ""
 
-        if change_request.sysparm_offset and change_request.sysparm_limit:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/standard/template",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+            if change_request.sysparm_offset and change_request.sysparm_limit:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/standard/template",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                standard_change_templates.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-            while response.result and len(response.result) > 1:
-                try:
-                    second_response = self._session.get(
-                        url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                while (
+                    response.content
+                    and len(result_data) >= change_request.sysparm_limit
+                ):
+                    change_request.sysparm_offset = (
+                        change_request.sysparm_offset + change_request.sysparm_limit
+                    )
+                    change_request.model_post_init(change_request)
+                    response = self._session.get(
+                        url=f"{self.url}/sn_chg_rest/change/standard/template",
                         params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                except ValidationError or Exception as e:
-                    print(f"Invalid parameters: {e.errors()}")
-                    raise e
-                second_response = process_response(response=second_response)
-                response.result.extend(second_response.result)
-                change_request.sysparm_offset = (
-                    change_request.sysparm_offset + change_request.sysparm_limit
+                    response.raise_for_status()
+                    json_response = response.json()
+                    result_data = json_response.get("result", json_response)
+                    standard_change_templates.extend(
+                        [ChangeRequest.model_validate(item) for item in result_data]
+                    )
+            else:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/standard/template",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
                 )
-                change_request.model_post_init(change_request)
-        else:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/standard/template",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                standard_change_templates.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-        return response
+            return standard_change_templates
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_models(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_request_models(self, **kwargs) -> List[ChangeRequest]:
         """
         Retrieve change request models based on specified parameters.
 
@@ -1404,160 +1562,189 @@ class Api(object):
         :param text_search: Text search parameter for searching results.
         :type text_search: str or None
 
-        :return: JSON response containing information about change request models.
-        :rtype: dict
+        :return: List of parsed Pydantic models containing information about change request models.
+        :rtype: List[ChangeRequest]
 
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_type:
-            change_type = f"/{change_request.change_type}"
-        else:
-            change_type = ""
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            change_models = []
+            if change_request.change_type:
+                change_type = f"/{change_request.change_type}"
+            else:
+                change_type = ""
 
-        if change_request.sysparm_offset and change_request.sysparm_limit:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/model{change_type}",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+            if change_request.sysparm_offset and change_request.sysparm_limit:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                change_models.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-            while response.result and len(response.result) > 1:
-                try:
-                    second_response = self._session.get(
+                while (
+                    response.content
+                    and len(result_data) >= change_request.sysparm_limit
+                ):
+                    change_request.sysparm_offset = (
+                        change_request.sysparm_offset + change_request.sysparm_limit
+                    )
+                    change_request.model_post_init(change_request)
+                    response = self._session.get(
                         url=f"{self.url}/sn_chg_rest/change/model{change_type}",
                         params=change_request.api_parameters,
                         headers=self.headers,
                         verify=self.verify,
                         proxies=self.proxies,
                     )
-                except ValidationError or Exception as e:
-                    print(f"Invalid parameters: {e.errors()}")
-                    raise e
-                second_response = process_response(response=second_response)
-                response.result.extend(second_response.result)
-                change_request.sysparm_offset = (
-                    change_request.sysparm_offset + change_request.sysparm_limit
+                    response.raise_for_status()
+                    json_response = response.json()
+                    result_data = json_response.get("result", json_response)
+                    change_models.extend(
+                        [ChangeRequest.model_validate(item) for item in result_data]
+                    )
+            else:
+                response = self._session.get(
+                    url=f"{self.url}/sn_chg_rest/change/model{change_type}",
+                    params=change_request.api_parameters,
+                    headers=self.headers,
+                    verify=self.verify,
+                    proxies=self.proxies,
                 )
-                change_request.model_post_init(change_request)
-        else:
-            response = self._session.get(
-                url=f"{self.url}/sn_chg_rest/change/model{change_type}",
-                params=change_request.api_parameters,
-                headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
-            )
-            response = process_response(response=response)
+                response.raise_for_status()
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                change_models.extend(
+                    [ChangeRequest.model_validate(item) for item in result_data]
+                )
 
-        return response
+            return change_models
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_standard_change_request_model(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_standard_change_request_model(self, **kwargs) -> ChangeRequest:
         """
         Retrieve details of a standard change request model.
 
         :param model_sys_id: Sys ID of the standard change request model.
         :type model_sys_id: str or None
 
-        :return: JSON response containing information about the standard change request model.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the standard change request model.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If model_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.model_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.model_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/model/{change_request.model_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change/model/{change_request.model_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_standard_change_request_template(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_standard_change_request_template(self, **kwargs) -> ChangeRequest:
         """
         Retrieve details of a standard change request template.
 
         :param template_sys_id: Sys ID of the standard change request template.
         :type template_sys_id: str or None
 
-        :return: JSON response containing information about the standard change request template.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the standard change request template.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If template_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.template_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.template_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/standard/template/{change_request.template_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change/standard/template/{change_request.template_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_change_request_worker(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_change_request_worker(self, **kwargs) -> ChangeRequest:
         """
         Retrieve details of a change request worker.
 
         :param worker_sys_id: Sys ID of the change request worker.
         :type worker_sys_id: str or None
 
-        :return: JSON response containing information about the change request worker.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the change request worker.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If worker_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.worker_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.worker_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/worker/{change_request.worker_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change/worker/{change_request.worker_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def create_change_request(self, **kwargs) -> Union[Response, requests.Response]:
+    def create_change_request(self, **kwargs) -> ChangeRequest:
         """
         Create a new change request.
 
@@ -1568,46 +1755,46 @@ class Api(object):
         :param standard_change_template_id: Sys ID of the standard change request template (if applicable).
         :type standard_change_template_id: str or None
 
-        :return: JSON response containing information about the created change request.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the created change request.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If name_value_pairs is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If change_type is specified but not valid.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.data is None:
-            raise MissingParameterError
-        if change_request.standard_change_template_id:
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.data is None:
+                raise MissingParameterError
             standard_change_template_id = (
                 f"/{change_request.standard_change_template_id}"
+                if change_request.standard_change_template_id
+                else ""
             )
-        else:
-            standard_change_template_id = ""
-        if change_request.change_type:
-            change_type = f"/{change_request.change_type}"
-        else:
-            change_type = ""
-        try:
+            change_type = (
+                f"/{change_request.change_type}" if change_request.change_type else ""
+            )
             response = self._session.post(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change{change_type}{standard_change_template_id}",
+                url=f"{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}",
                 headers=self.headers,
                 json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def create_change_request_task(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def create_change_request_task(self, **kwargs) -> Task:
         """
         Create a new task associated with a change request.
 
@@ -1616,17 +1803,20 @@ class Api(object):
         :param data: Name-value pairs providing details for the new task.
         :type data: dict or None
 
-        :return: JSON response containing information about the created task.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the created task.
+        :rtype: Task
 
         :raises MissingParameterError: If change_request_sys_id or name_value_pairs is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None or change_request.data is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.data is None
+            ):
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/sn_chg_rest/change/task",
                 headers=self.headers,
@@ -1634,16 +1824,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Task.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def create_change_request_ci_association(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def create_change_request_ci_association(self, **kwargs) -> ChangeRequest:
         """
         Create associations between a change request and configuration items (CIs).
 
@@ -1656,140 +1849,150 @@ class Api(object):
         :param refresh_impacted_services: Flag to refresh impacted services (applicable for 'affected' association).
         :type refresh_impacted_services: bool or None
 
-        :return: JSON response containing information about the created associations.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the created associations.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id, cmdb_ci_sys_ids, or association_type is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If association_type is not valid.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.cmdb_ci_sys_ids is None
-            or change_request.association_type is None
-        ):
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.cmdb_ci_sys_ids is None
+                or change_request.association_type is None
+            ):
+                raise MissingParameterError
             response = self._session.post(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/ci",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
                 json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def calculate_standard_change_request_risk(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def calculate_standard_change_request_risk(self, **kwargs) -> ChangeRequest:
         """
         Calculate and update the risk of a standard change request.
 
         :param change_request_sys_id: Sys ID of the standard change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the calculated risk.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the calculated risk.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.patch(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/standard/{change_request.change_request_sys_id}/risk",
+                url=f"{self.url}/sn_chg_rest/change/standard/{change_request.change_request_sys_id}/risk",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def check_change_request_conflict(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def check_change_request_conflict(self, **kwargs) -> ChangeRequest:
         """
         Check for conflicts in a change request.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about conflicts.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about conflicts.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.post(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/conflict",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def refresh_change_request_impacted_services(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def refresh_change_request_impacted_services(self, **kwargs) -> ChangeRequest:
         """
         Refresh impacted services for a change request.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the refreshed impacted services.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the refreshed impacted services.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.post(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/refresh_impacted_services",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/refresh_impacted_services",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def approve_change_request(self, **kwargs) -> Union[Response, requests.Response]:
+    def approve_change_request(self, **kwargs) -> ChangeRequest:
         """
         Approve or reject a change request.
 
@@ -1798,35 +2001,41 @@ class Api(object):
         :param state: State to set the change request to (approved or rejected).
         :type state: str or None
 
-        :return: JSON response containing information about the approval/rejection.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the approval/rejection.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id or state is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If state is not valid.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None or change_request.state is None:
-            raise MissingParameterError
         try:
-            print(f"DATA: {change_request.data}")
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.state is None
+            ):
+                raise MissingParameterError
             response = self._session.patch(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/approvals",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/approvals",
                 headers=self.headers,
-                verify=self.verify,
                 json=change_request.data,
+                verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_change_request(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_change_request(self, **kwargs) -> ChangeRequest:
         """
         Update details of a change request.
 
@@ -1837,77 +2046,80 @@ class Api(object):
         :param change_type: Type of change (emergency, normal, standard, model).
         :type change_type: str or None
 
-        :return: JSON response containing information about the updated change request.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the updated change request.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id or name_value_pairs is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If change_type is specified but not valid.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None or change_request.data is None:
-            raise MissingParameterError
-        if change_request.change_type:
-            change_type = f"/{change_request.change_type}"
-        elif change_request.change_type is None:
-            change_type = ""
-        else:
-            raise ParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.data is None
+            ):
+                raise MissingParameterError
+            change_type = (
+                f"/{change_request.change_type}" if change_request.change_type else ""
+            )
             response = self._session.patch(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change{change_type}/{change_request.change_request_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change{change_type}/{change_request.change_request_sys_id}",
                 headers=self.headers,
                 json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_change_request_first_available(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def update_change_request_first_available(self, **kwargs) -> ChangeRequest:
         """
         Update the schedule of a change request to the first available slot.
 
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
 
-        :return: JSON response containing information about the updated schedule.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the updated schedule.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_request_sys_id is None:
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
             response = self._session.patch(
-                url=f"{self.url}"
-                f"/sn_chg_rest/change/{change_request.change_request_sys_id}"
-                f"/schedule/first_available",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/schedule/first_available",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_change_request_task(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def update_change_request_task(self, **kwargs) -> Task:
         """
         Update details of a task associated with a change request.
 
@@ -1918,38 +2130,41 @@ class Api(object):
         :param name_value_pairs: New name-value pairs providing updated details for the task.
         :type name_value_pairs: dict or None
 
-        :return: JSON response containing information about the updated task.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the updated task.
+        :rtype: Task
 
         :raises MissingParameterError: If change_request_sys_id, change_request_task_sys_id, or name_value_pairs is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON serialization or deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.change_request_task_sys_id is None
-            or change_request.data is None
-        ):
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.change_request_task_sys_id is None
+                or change_request.data is None
+            ):
+                raise MissingParameterError
             response = self._session.patch(
-                url=f"{self.url}"
-                f"/sn_chg_rest/change/{change_request.change_request_sys_id}"
-                f"/task/{change_request.change_request_task_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task/{change_request.change_request_task_sys_id}",
                 headers=self.headers,
                 json=change_request.data,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Task.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def delete_change_request(self, **kwargs) -> Union[Response, requests.Response]:
+    def delete_change_request(self, **kwargs) -> ChangeRequest:
         """
         Delete a change request.
 
@@ -1958,151 +2173,125 @@ class Api(object):
         :param change_type: Type of change (emergency, normal, standard).
         :type change_type: str or None
 
-        :return: JSON response containing information about the deleted change request.
-        :rtype: dict
+        :return: Parsed Pydantic model containing information about the deleted change request.
+        :rtype: ChangeRequest
 
         :raises MissingParameterError: If change_request_sys_id is not provided.
         :raises ParameterError: If invalid parameters or responses are encountered.
         :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if change_request.change_type:
-            try:
-                response = self._session.delete(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/emergency/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        elif change_request.change_type and change_request.change_type == "normal":
-            try:
-                response = self._session.delete(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/normal/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        elif change_request.change_type and change_request.change_type == "standard":
-            try:
-                response = self._session.delete(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/standard/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        else:
-            try:
-                response = self._session.delete(
-                    url=f"{self.url}/sn_chg_rest"
-                    f"/change/{change_request.change_request_sys_id}",
-                    headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
-            except ValidationError or Exception as e:
-                print(f"Invalid parameters: {e.errors()}")
-                raise e
-        response = process_response(response=response)
-        return response
+        try:
+            change_request = ChangeManagementModel(**kwargs)
+            if change_request.change_request_sys_id is None:
+                raise MissingParameterError
+            if change_request.change_type in ["emergency", "normal", "standard"]:
+                url = f"{self.url}/sn_chg_rest/change/{change_request.change_type}/{change_request.change_request_sys_id}"
+            else:
+                url = f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}"
+            response = self._session.delete(
+                url=url,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def delete_change_request_task(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def delete_change_request_task(self, **kwargs) -> Task:
         """
         Delete a task associated with a change request.
 
-        Args:
-            change_request_sys_id (str): The system ID of the change request.
-            task_sys_id (str): The system ID of the task associated with the change request.
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param task_sys_id: Sys ID of the task associated with the change request.
+        :type task_sys_id: str or None
 
-        Raises:
-            MissingParameterError: If either `change_request_sys_id` or `task_sys_id` is None.
+        :return: Parsed Pydantic model containing information about the deleted task.
+        :rtype: Task
 
-        Returns:
-            dict: JSON response from the deletion request.
-
-        Note:
-            This function requires authentication through the @require_auth decorator.
+        :raises MissingParameterError: If either change_request_sys_id or task_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.task_sys_id is None
-        ):
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.task_sys_id is None
+            ):
+                raise MissingParameterError
             response = self._session.delete(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}"
-                f"/task/{change_request.task_sys_id}",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task/{change_request.task_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Task.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def delete_change_request_conflict_scan(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def delete_change_request_conflict_scan(self, **kwargs) -> ChangeRequest:
         """
         Delete conflict scan information associated with a change request.
 
-        Args:
-            change_request_sys_id (str): The system ID of the change request.
-            task_sys_id (str): The system ID of the task associated with the change request.
+        :param change_request_sys_id: Sys ID of the change request.
+        :type change_request_sys_id: str or None
+        :param task_sys_id: Sys ID of the task associated with the change request.
+        :type task_sys_id: str or None
 
-        Raises:
-            MissingParameterError: If either `change_request_sys_id` or `task_sys_id` is None.
+        :return: Parsed Pydantic model containing information about the deleted conflict scan.
+        :rtype: ChangeRequest
 
-        Returns:
-            dict: JSON response from the deletion request.
-
-        Note:
-            This function requires authentication through the @require_auth decorator.
+        :raises MissingParameterError: If either change_request_sys_id or task_sys_id is not provided.
+        :raises ParameterError: If invalid parameters or responses are encountered.
+        :raises ParameterError: If JSON deserialization fails.
         """
-        change_request = ChangeManagementModel(**kwargs)
-        if (
-            change_request.change_request_sys_id is None
-            or change_request.task_sys_id is None
-        ):
-            raise MissingParameterError
         try:
+            change_request = ChangeManagementModel(**kwargs)
+            if (
+                change_request.change_request_sys_id is None
+                or change_request.task_sys_id is None
+            ):
+                raise MissingParameterError
             response = self._session.delete(
-                url=f"{self.url}/sn_chg_rest"
-                f"/change/{change_request.change_request_sys_id}/conflict",
+                url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ChangeRequest.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                             Import Set API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_import_set(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_import_set(self, **kwargs) -> ImportSet:
         """
         Get details of a specific import set record.
 
@@ -2111,30 +2300,34 @@ class Api(object):
         :param import_set_sys_id: The sys_id of the import set record.
         :type import_set_sys_id: str
 
-        :return: JSON response containing information about the import set record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the import set record.
+        :rtype: ImportSet
 
         :raises ParameterError: If import_set_sys_id or table is not provided.
         """
-        import_set = ImportSetModel(**kwargs)
-        if import_set.import_set_sys_id is None or import_set.table is None:
-            raise ParameterError
         try:
+            import_set = ImportSetModel(**kwargs)
+            if import_set.import_set_sys_id is None or import_set.table is None:
+                raise ParameterError
             response = self._session.get(
-                url=f"{self.url}/now/import/"
-                f"{import_set.table}/{import_set.import_set_sys_id}",
+                url=f"{self.url}/now/import/{import_set.table}/{import_set.import_set_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ImportSet.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def insert_import_set(self, **kwargs) -> Union[Response, requests.Response]:
+    def insert_import_set(self, **kwargs) -> ImportSet:
         """
         Insert a new record into the specified import set.
 
@@ -2143,16 +2336,16 @@ class Api(object):
         :param data: Dictionary containing the field values for the new import set record.
         :type data: dict
 
-        :return: JSON response containing information about the inserted import set record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the inserted import set record.
+        :rtype: ImportSet
 
         :raises ParameterError: If data or table is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-        import_set = ImportSetModel(**kwargs)
-        if import_set.data is None or import_set.table is None:
-            raise ParameterError
         try:
+            import_set = ImportSetModel(**kwargs)
+            if import_set.data is None or import_set.table is None:
+                raise ParameterError
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}",
                 headers=self.headers,
@@ -2160,16 +2353,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return ImportSet.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def insert_multiple_import_sets(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def insert_multiple_import_sets(self, **kwargs) -> List[ImportSet]:
         """
         Insert multiple records into the specified import set.
 
@@ -2178,16 +2374,16 @@ class Api(object):
         :param data: Dictionary containing the field values for multiple new import set records.
         :type data: dict
 
-        :return: JSON response containing information about the inserted import set records.
-        :rtype: requests.models.Response
+        :return: List of parsed Pydantic models containing information about the inserted import set records.
+        :rtype: List[ImportSet]
 
         :raises ParameterError: If data or table is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-        import_set = ImportSetModel(**kwargs)
-        if import_set.data is None or import_set.table is None:
-            raise ParameterError
         try:
+            import_set = ImportSetModel(**kwargs)
+            if import_set.data is None or import_set.table is None:
+                raise ParameterError
             response = self._session.post(
                 url=f"{self.url}/now/import/{import_set.table}/insertMultiple",
                 headers=self.headers,
@@ -2195,119 +2391,135 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [ImportSet.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                               Incident API                                                       #
     ####################################################################################################################
     @require_auth
-    def get_incidents(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_incidents(self, **kwargs) -> List[Incident]:
         """
-        Retrieve details of a specific incident record.
+        Retrieve details of incident records.
 
         :param kwargs: Keyword arguments to initialize an IncidentModel instance.
         :type kwargs: dict
 
-        :return: JSON response containing information about the incident record.
-        :rtype: requests.models.Response
+        :return: List of parsed Pydantic models containing information about the incident records.
+        :rtype: List[Incident]
 
-        :raises MissingParameterError: If the incident_id is not provided.
         :raises ParameterError: If validation of parameters fails.
         """
         try:
+            incident = IncidentModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/now/table/incident",
+                params=incident.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [Incident.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_incident(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_incident(self, **kwargs) -> Incident:
         """
         Retrieve details of a specific incident record.
 
-        :param kwargs: Keyword arguments to initialize an IncidentModel instance.
-        :type kwargs: dict
+        :param incident_id: The sys_id of the incident record.
+        :type incident_id: str
 
-        :return: JSON response containing information about the incident record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the incident record.
+        :rtype: Incident
 
         :raises MissingParameterError: If the incident_id is not provided.
         :raises ParameterError: If validation of parameters fails.
         """
-        incident = IncidentModel(**kwargs)
-        if incident.incident_id is None:
-            raise MissingParameterError
         try:
+            incident = IncidentModel(**kwargs)
+            if incident.incident_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/now/table/incident/{incident.incident_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Incident.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def create_incident(self, **kwargs) -> Union[Response, requests.Response]:
+    def create_incident(self, **kwargs) -> Incident:
         """
         Create a new incident record.
 
         :param kwargs: Keyword arguments to initialize an IncidentModel instance.
         :type kwargs: dict
 
-        :return: JSON response containing information about the created incident record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the created incident record.
+        :rtype: Incident
 
         :raises MissingParameterError: If data for the incident is not provided.
         :raises ParameterError: If JSON serialization of incident data fails.
         :raises ParameterError: If validation of parameters fails.
         """
-        incident = IncidentModel(**kwargs)
         try:
+            incident = IncidentModel(**kwargs)
+            if incident.data is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/now/table/incident",
                 headers=self.headers,
-                verify=self.verify,
                 json=incident.data,
+                verify=self.verify,
+                proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Incident.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                       Knowledge Management API                                                   #
     ####################################################################################################################
     @require_auth
-    def get_knowledge_articles(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_knowledge_articles(self, **kwargs) -> List[Article]:
         """
         Get all Knowledge Base articles.
 
         :param filter: Encoded query to use to filter the result set.
         :type filter: str
-            Valid values:
-            =: Exactly matches <value>.
-            !=: Does not match <value>.
-            ^: Enables you to specify more than one condition and logically AND them.
-            ^OR: Enables you to specify more than one condition and logically OR them.
-            LIKE: <attr> contains the specified string. Only works for <attr> fields whose data type is string.
-            STARTSWITH: <attr> starts with the specified string. Only works for <attr> fields whose data type is string.
-            ENDSWITH: <attr> ends with the specified string. Only works for <attr> fields whose data type is string.
         :param sysparm_fields: Comma-separated list of field names to include in the response.
         :type sysparm_fields: str
         :param sysparm_limit: Maximum number of records to return.
@@ -2317,6 +2529,7 @@ class Api(object):
         :param sysparm_query: Encoded query string for filtering records.
         :type sysparm_query: str
         :param sysparm_query_category: Category to which the query belongs.
+        :type sysparm_query_category: str
         :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
             table to restrict results to.
         :type kb: str
@@ -2324,15 +2537,15 @@ class Api(object):
             language code format to restrict results to.
             Alternatively type 'all' to search in all valid installed languages on an instance.
         :type language: str
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
+
+        :return: List of parsed Pydantic models containing information about the retrieved records.
+        :rtype: KnowledgeManagement
+
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeManagementModel(**kwargs)
-        if knowledge_base is None:
-            raise MissingParameterError
         try:
+            knowledge_base = KnowledgeManagementModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/sn_km_api/knowledge/articles",
                 params=knowledge_base.api_parameters,
@@ -2340,44 +2553,42 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [Article.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_knowledge_article(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_knowledge_article(self, **kwargs) -> Article:
         """
         Get Knowledge Base article.
 
+        :param article_sys_id: The sys_id of the knowledge article.
+        :type article_sys_id: str
         :param filter: Encoded query to use to filter the result set.
         :type filter: str
-            Valid values:
-            =: Exactly matches <value>.
-            !=: Does not match <value>.
-            ^: Enables you to specify more than one condition and logically AND them.
-            ^OR: Enables you to specify more than one condition and logically OR them.
-            LIKE: <attr> contains the specified string. Only works for <attr> fields whose data type is string.
-            STARTSWITH: <attr> starts with the specified string. Only works for <attr> fields whose data type is string.
-            ENDSWITH: <attr> ends with the specified string. Only works for <attr> fields whose data type is string.
         :param sysparm_fields: Comma-separated list of field names to include in the response.
         :type sysparm_fields: str
         :param sysparm_limit: Maximum number of records to return.
         :type sysparm_limit: int
         :param sysparm_search_id: Unique identifier of search that returned this article
         :type sysparm_search_id: str
-        :param sysparm_search_rank: Article search rank by click-rate that you can retrieve using one of the
-            following APIs that returns the articles.rank element
+        :param sysparm_search_rank: Article search rank by click-rate
         :type sysparm_search_rank: str
-        :param sysparm_update_view: Update view count and record an entry for the article in the
-            Knowledge Use [kb_use] table. True whether present as a standalone parameter or set to true.
+        :param sysparm_update_view: Update view count and record an entry for the article
         :type sysparm_update_view: bool
         :param sysparm_offset: Number of records to skip before starting the retrieval.
         :type sysparm_offset: int
         :param sysparm_query: Encoded query string for filtering records.
         :type sysparm_query: str
         :param sysparm_query_category: Category to which the query belongs.
+        :type sysparm_query_category: str
         :param kb: Comma-separated list of knowledge base sys_ids from the Knowledge Bases [kb_knowledge_base]
             table to restrict results to.
         :type kb: str
@@ -2385,15 +2596,17 @@ class Api(object):
             language code format to restrict results to.
             Alternatively type 'all' to search in all valid installed languages on an instance.
         :type language: str
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
-        :raises MissingParameterError: If table is not provided.
+
+        :return: Parsed Pydantic model containing information about the retrieved record.
+        :rtype: KnowledgeManagement
+
+        :raises MissingParameterError: If article_sys_id is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeManagementModel(**kwargs)
-        if knowledge_base is None:
-            raise MissingParameterError
         try:
+            knowledge_base = KnowledgeManagementModel(**kwargs)
+            if knowledge_base.article_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}",
                 params=knowledge_base.api_parameters,
@@ -2401,51 +2614,61 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Article.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_knowledge_article_attachment(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_knowledge_article_attachment(self, **kwargs) -> Attachment:
         """
-        Get Knowledge Base article.
+        Get Knowledge Base article attachment.
 
         :param article_sys_id: The Article Sys ID to search attachments for
         :type article_sys_id: str
         :param attachment_sys_id: The Attachment Sys ID
         :type attachment_sys_id: str
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
-        :raises MissingParameterError: If table is not provided.
+
+        :return: Parsed Pydantic model containing information about the retrieved attachment.
+        :rtype: Attachment
+
+        :raises MissingParameterError: If article_sys_id or attachment_sys_id is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeManagementModel(**kwargs)
-        if knowledge_base is None:
-            raise MissingParameterError
         try:
+            knowledge_base = KnowledgeManagementModel(**kwargs)
+            if (
+                knowledge_base.article_sys_id is None
+                or knowledge_base.attachment_sys_id is None
+            ):
+                raise MissingParameterError
             response = self._session.get(
-                url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}"
-                f"/attachments/{knowledge_base.attachment_sys_id}",
+                url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}/attachments/{knowledge_base.attachment_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Attachment.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_featured_knowledge_article(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_featured_knowledge_article(self, **kwargs) -> List[Article]:
         """
-        Get Knowledge Base article.
+        Get featured Knowledge Base articles.
 
         :param sysparm_fields: Comma-separated list of field names to include in the response.
         :type sysparm_fields: str
@@ -2460,15 +2683,14 @@ class Api(object):
             language code format to restrict results to.
             Alternatively type 'all' to search in all valid installed languages on an instance.
         :type language: str
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
-        :raises MissingParameterError: If table is not provided.
+
+        :return: List of parsed Pydantic models containing information about the retrieved records.
+        :rtype: List[Article]
+
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeManagementModel(**kwargs)
-        if knowledge_base is None:
-            raise MissingParameterError
         try:
+            knowledge_base = KnowledgeManagementModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/sn_km_api/knowledge/articles/featured",
                 params=knowledge_base.api_parameters,
@@ -2476,18 +2698,21 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [Article.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_most_viewed_knowledge_articles(
-        self, **kwargs
-    ) -> Union[Response, requests.Response]:
+    def get_most_viewed_knowledge_articles(self, **kwargs) -> List[Article]:
         """
-        Get Knowledge Base article.
+        Get most viewed Knowledge Base articles.
 
         :param sysparm_fields: Comma-separated list of field names to include in the response.
         :type sysparm_fields: str
@@ -2502,32 +2727,37 @@ class Api(object):
             language code format to restrict results to.
             Alternatively type 'all' to search in all valid installed languages on an instance.
         :type language: str
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
-        :raises MissingParameterError: If table is not provided.
+
+        :return: List of parsed Pydantic models containing information about the retrieved records.
+        :rtype: List[KnowledgeManagement]
+
         :raises ParameterError: If input parameters are invalid.
         """
-        knowledge_base = KnowledgeManagementModel(**kwargs)
-        if knowledge_base is None:
-            raise MissingParameterError
         try:
+            knowledge_base = KnowledgeManagementModel(**kwargs)
             response = self._session.get(
                 url=f"{self.url}/sn_km_api/knowledge/articles/most_viewed",
+                params=knowledge_base.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [Article.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                                  Table API                                                       #
     ####################################################################################################################
     @require_auth
-    def delete_table_record(self, **kwargs) -> Union[Response, requests.Response]:
+    def delete_table_record(self, **kwargs) -> Table:
         """
         Delete a record from the specified table.
 
@@ -2536,29 +2766,34 @@ class Api(object):
         :param table_record_sys_id: The sys_id of the record to be deleted.
         :type table_record_sys_id: str
 
-        :return: JSON response containing information about the deletion.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the deletion.
+        :rtype: Table
 
         :raises MissingParameterError: If table or table_record_sys_id is not provided.
         """
-        table = TableModel(**kwargs)
-        if table.table is None or table.table_record_sys_id is None:
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if table.table is None or table.table_record_sys_id is None:
+                raise MissingParameterError
             response = self._session.delete(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Table.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_table(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_table(self, **kwargs) -> List[Table]:
         """
         Get records from the specified table based on provided parameters.
 
@@ -2589,16 +2824,16 @@ class Api(object):
         :param sysparm_view: Display style ('desktop', 'mobile', or 'both').
         :type sysparm_view: str
 
-        :return: JSON response containing information about the retrieved records.
-        :rtype: requests.models.Response
+        :return: List of parsed Pydantic models containing information about the retrieved records.
+        :rtype: List[Table]
 
         :raises MissingParameterError: If table is not provided.
         :raises ParameterError: If input parameters are invalid.
         """
-        table = TableModel(**kwargs)
-        if table is None:
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if table.table is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/now/table/{table.table}",
                 params=table.api_parameters,
@@ -2606,14 +2841,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return [Table.model_validate(item) for item in result_data]
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def get_table_record(self, **kwargs) -> Union[Response, requests.Response]:
+    def get_table_record(self, **kwargs) -> Table:
         """
         Get a specific record from the specified table.
 
@@ -2622,29 +2862,34 @@ class Api(object):
         :param table_record_sys_id: The sys_id of the record to be retrieved.
         :type table_record_sys_id: str
 
-        :return: JSON response containing information about the retrieved record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the retrieved record.
+        :rtype: Table
 
         :raises MissingParameterError: If table or table_record_sys_id is not provided.
         """
-        table = TableModel(**kwargs)
-        if table.table is None or table.table_record_sys_id is None:
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if table.table is None or table.table_record_sys_id is None:
+                raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Table.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def patch_table_record(self, **kwargs) -> Union[Response, requests.Response]:
+    def patch_table_record(self, **kwargs) -> Table:
         """
         Partially update a record in the specified table.
 
@@ -2655,21 +2900,20 @@ class Api(object):
         :param data: Dictionary containing the fields to be updated.
         :type data: dict
 
-        :return: JSON response containing information about the update.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the updated record.
+        :rtype: Table
 
         :raises MissingParameterError: If table, table_record_sys_id, or data is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-
-        table = TableModel(**kwargs)
-        if (
-            table.table is None
-            or table.table_record_sys_id is None
-            or table.data is None
-        ):
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if (
+                table.table is None
+                or table.table_record_sys_id is None
+                or table.data is None
+            ):
+                raise MissingParameterError
             response = self._session.patch(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
                 json=table.data,
@@ -2677,14 +2921,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Table.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def update_table_record(self, **kwargs) -> Union[Response, requests.Response]:
+    def update_table_record(self, **kwargs) -> Table:
         """
         Fully update a record in the specified table.
 
@@ -2695,20 +2944,20 @@ class Api(object):
         :param data: Dictionary containing the fields to be updated.
         :type data: dict
 
-        :return: JSON response containing information about the update.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the updated record.
+        :rtype: Table
 
         :raises MissingParameterError: If table, table_record_sys_id, or data is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-        table = TableModel(**kwargs)
-        if (
-            table.table is None
-            or table.table_record_sys_id is None
-            or table.data is None
-        ):
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if (
+                table.table is None
+                or table.table_record_sys_id is None
+                or table.data is None
+            ):
+                raise MissingParameterError
             response = self._session.put(
                 url=f"{self.url}/now/table/{table.table}/{table.table_record_sys_id}",
                 json=table.data,
@@ -2716,14 +2965,19 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Table.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     @require_auth
-    def add_table_record(self, **kwargs) -> Union[Response, requests.Response]:
+    def add_table_record(self, **kwargs) -> Table:
         """
         Add a new record to the specified table.
 
@@ -2732,16 +2986,16 @@ class Api(object):
         :param data: Dictionary containing the field values for the new record.
         :type data: dict
 
-        :return: JSON response containing information about the added record.
-        :rtype: requests.models.Response
+        :return: Parsed Pydantic model containing information about the added record.
+        :rtype: Table
 
         :raises MissingParameterError: If table or data is not provided.
         :raises ParameterError: If JSON serialization fails.
         """
-        table = TableModel(**kwargs)
-        if table.table is None or table.data is None:
-            raise MissingParameterError
         try:
+            table = TableModel(**kwargs)
+            if table.table is None or table.data is None:
+                raise MissingParameterError
             response = self._session.post(
                 url=f"{self.url}/now/table/{table.table}",
                 json=table.data,
@@ -2749,11 +3003,16 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-        except ValidationError or Exception as e:
-            print(f"Invalid parameters: {e.errors()}")
-            raise e
-        response = process_response(response=response)
-        return response
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Table.model_validate(result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
 
     ####################################################################################################################
     #                                                 Custom API                                                       #
@@ -2765,7 +3024,7 @@ class Api(object):
         endpoint: str,
         data: Dict[str, Any] = None,
         json: Dict[str, Any] = None,
-    ) -> Union[Response, Dict[str, Any]]:
+    ) -> requests.Response:
         if method.upper() not in ["GET", "POST", "PUT", "DELETE"]:
             raise ValueError(f"Unsupported HTTP method: {method.upper()}")
         try:
@@ -2785,16 +3044,4 @@ class Api(object):
             response.raise_for_status()
         except Exception as response_error:
             print(f"Response Error: {response_error}")
-        status_code = response.status_code
-        raw_output = response.content
-        try:
-            response = response.json()
-        except Exception as response_error:
-            print(f"JSON Conversion Error: {response_error}")
-        try:
-            response.status_code = status_code
-            response.raw_output = raw_output
-            response.json_output = response
-        except Exception as response_error:
-            print(f"Response Model Application Error: {response_error}")
         return response
