@@ -7,7 +7,6 @@ import sys
 import logging
 from typing import Optional, List, Dict, Any, Union
 
-import requests
 from pydantic import Field
 from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
@@ -19,19 +18,7 @@ from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.exceptions import ResourceError
 from servicenow_api.servicenow_api import Api
-from servicenow_api.servicenow_models import (
-    ChangeRequest,
-    CMDBService,
-    CMDB,
-    CICD,
-    Task,
-    ImportSet,
-    Article,
-    Attachment,
-    Incident,
-    Table,
-    Authentication,
-)
+from servicenow_api.servicenow_models import Response
 
 mcp = FastMCP("ServiceNow")
 
@@ -92,7 +79,7 @@ def get_application(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CMDBService:
+) -> Response:
     """
     Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
     """
@@ -105,7 +92,7 @@ def get_application(
         verify=verify,
     )
     response = client.get_application(application_id=application_id)
-    return response
+    return response.result
 
 
 # CMDB Tools
@@ -148,7 +135,7 @@ def get_cmdb(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CMDB:
+) -> Response:
     """
     Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
     """
@@ -161,7 +148,7 @@ def get_cmdb(
         verify=verify,
     )
     response = client.get_cmdb(cmdb_id=cmdb_id)
-    return response
+    return response.result
 
 
 # CI/CD Tools
@@ -204,7 +191,7 @@ def batch_install_result(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Retrieves the result of a batch installation process in ServiceNow by result ID.
     """
@@ -217,7 +204,7 @@ def batch_install_result(
         verify=verify,
     )
     response = client.batch_install_result(result_id=result_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -259,7 +246,7 @@ def instance_scan_progress(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Gets the progress status of an instance scan in ServiceNow by progress ID.
     """
@@ -272,7 +259,7 @@ def instance_scan_progress(
         verify=verify,
     )
     response = client.instance_scan_progress(progress_id=progress_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -312,7 +299,7 @@ def progress(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Retrieves the progress status of a specified process in ServiceNow by progress ID.
     """
@@ -325,7 +312,7 @@ def progress(
         verify=verify,
     )
     response = client.progress(progress_id=progress_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -369,7 +356,7 @@ def batch_install(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Initiates a batch installation of specified packages in ServiceNow with optional notes.
     """
@@ -382,7 +369,7 @@ def batch_install(
         verify=verify,
     )
     response = client.batch_install(name=name, packages=packages, notes=notes)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -422,7 +409,7 @@ def batch_rollback(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Performs a rollback of a batch installation in ServiceNow using the rollback ID.
     """
@@ -435,7 +422,7 @@ def batch_rollback(
         verify=verify,
     )
     response = client.batch_rollback(rollback_id=rollback_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -487,7 +474,7 @@ def app_repo_install(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Installs an application from a repository in ServiceNow with specified parameters.
     """
@@ -506,7 +493,7 @@ def app_repo_install(
         base_app_version=base_app_version,
         version=version,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -555,7 +542,7 @@ def app_repo_publish(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Publishes an application to a repository in ServiceNow with development notes and version.
     """
@@ -570,7 +557,7 @@ def app_repo_publish(
     response = client.app_repo_publish(
         app_sys_id=app_sys_id, scope=scope, dev_notes=dev_notes, version=version
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -616,7 +603,7 @@ def app_repo_rollback(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
     """
@@ -631,7 +618,7 @@ def app_repo_rollback(
     response = client.app_repo_rollback(
         app_sys_id=app_sys_id, scope=scope, version=version
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -670,7 +657,7 @@ def full_scan(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Initiates a full scan of the ServiceNow instance.
     """
@@ -683,7 +670,7 @@ def full_scan(
         verify=verify,
     )
     response = client.full_scan()
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -724,7 +711,7 @@ def point_scan(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Performs a targeted scan on a specific instance and table in ServiceNow.
     """
@@ -737,7 +724,7 @@ def point_scan(
         verify=verify,
     )
     response = client.point_scan(target_sys_id=target_sys_id, target_table=target_table)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -777,7 +764,7 @@ def combo_suite_scan(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Executes a scan on a combination of suites in ServiceNow by combo sys_id.
     """
@@ -790,7 +777,7 @@ def combo_suite_scan(
         verify=verify,
     )
     response = client.combo_suite_scan(combo_sys_id=combo_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -836,7 +823,7 @@ def suite_scan(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
     """
@@ -851,7 +838,7 @@ def suite_scan(
     response = client.suite_scan(
         suite_sys_id=suite_sys_id, sys_ids=sys_ids, scan_type=scan_type
     )
-    return response
+    return response.result
 
 
 # Plugin and Update Set Tools
@@ -892,7 +879,7 @@ def activate_plugin(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Activates a specified plugin in ServiceNow by plugin ID.
     """
@@ -905,7 +892,7 @@ def activate_plugin(
         verify=verify,
     )
     response = client.activate_plugin(plugin_id=plugin_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -945,7 +932,7 @@ def rollback_plugin(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
     """
@@ -958,7 +945,7 @@ def rollback_plugin(
         verify=verify,
     )
     response = client.rollback_plugin(plugin_id=plugin_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1007,7 +994,7 @@ def apply_remote_source_control_changes(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Applies changes from a remote source control branch to a ServiceNow application.
     """
@@ -1025,7 +1012,7 @@ def apply_remote_source_control_changes(
         branch_name=branch_name,
         auto_upgrade_base_app=auto_upgrade_base_app,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1079,7 +1066,7 @@ def import_repository(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Imports a repository into ServiceNow with specified credentials and branch.
     """
@@ -1098,7 +1085,7 @@ def import_repository(
         branch_name=branch_name,
         auto_upgrade_base_app=auto_upgrade_base_app,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1153,7 +1140,7 @@ def run_test_suite(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Executes a test suite in ServiceNow with specified browser and OS configurations.
     """
@@ -1173,7 +1160,7 @@ def run_test_suite(
         os_name=os_name,
         os_version=os_version,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1222,7 +1209,7 @@ def update_set_create(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Creates a new update set in ServiceNow with a given name, scope, and description.
     """
@@ -1240,7 +1227,7 @@ def update_set_create(
         scope=scope,
         sys_id=sys_id,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1296,7 +1283,7 @@ def update_set_retrieve(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
     """
@@ -1315,7 +1302,7 @@ def update_set_retrieve(
         auto_preview=auto_preview,
         cleanup_retrieved=cleanup_retrieved,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1357,7 +1344,7 @@ def update_set_preview(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Previews an update set in ServiceNow by its remote sys_id.
     """
@@ -1370,7 +1357,7 @@ def update_set_preview(
         verify=verify,
     )
     response = client.update_set_preview(remote_update_set_id=remote_update_set_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1414,7 +1401,7 @@ def update_set_commit(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Commits an update set in ServiceNow with an option to force commit.
     """
@@ -1429,7 +1416,7 @@ def update_set_commit(
     response = client.update_set_commit(
         remote_update_set_id=remote_update_set_id, force_commit=force_commit
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1475,7 +1462,7 @@ def update_set_commit_multiple(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Commits multiple update sets in ServiceNow in the specified order.
     """
@@ -1490,7 +1477,7 @@ def update_set_commit_multiple(
     response = client.update_set_commit_multiple(
         remote_update_set_ids=remote_update_set_ids, force_commit=force_commit
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1534,7 +1521,7 @@ def update_set_back_out(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> CICD:
+) -> Response:
     """
     Backs out an update set in ServiceNow with an option to rollback installations.
     """
@@ -1549,7 +1536,7 @@ def update_set_back_out(
     response = client.update_set_back_out(
         update_set_id=update_set_id, rollback_installs=rollback_installs
     )
-    return response
+    return response.result
 
 
 # Change Management Tools
@@ -1610,7 +1597,7 @@ def get_change_requests(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Union[List[ChangeRequest], ChangeRequest]:
+) -> Response:
     """
     Retrieves change requests from ServiceNow with optional filtering and pagination.
     """
@@ -1631,7 +1618,7 @@ def get_change_requests(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1671,7 +1658,7 @@ def get_change_request_nextstate(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Gets the next state for a specific change request in ServiceNow.
     """
@@ -1686,7 +1673,7 @@ def get_change_request_nextstate(
     response = client.get_change_request_nextstate(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1726,7 +1713,7 @@ def get_change_request_schedule(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
     """
@@ -1739,7 +1726,7 @@ def get_change_request_schedule(
         verify=verify,
     )
     response = client.get_change_request_schedule(cmdb_ci_sys_id=cmdb_ci_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1797,7 +1784,7 @@ def get_change_request_tasks(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Union[List[Task], Task]:
+) -> Response:
     """
     Fetches tasks associated with a change request in ServiceNow with optional filtering.
     """
@@ -1818,7 +1805,7 @@ def get_change_request_tasks(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1861,7 +1848,7 @@ def get_change_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Retrieves details of a specific change request in ServiceNow by sys_id and type.
     """
@@ -1876,7 +1863,7 @@ def get_change_request(
     response = client.get_change_request(
         change_request_sys_id=change_request_sys_id, change_type=change_type
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1916,7 +1903,7 @@ def get_change_request_ci(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Gets Configuration Items (CIs) associated with a change request in ServiceNow.
     """
@@ -1929,7 +1916,7 @@ def get_change_request_ci(
         verify=verify,
     )
     response = client.get_change_request_ci(change_request_sys_id=change_request_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -1969,7 +1956,7 @@ def get_change_request_conflict(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Checks for conflicts in a change request in ServiceNow.
     """
@@ -1984,7 +1971,7 @@ def get_change_request_conflict(
     response = client.get_change_request_conflict(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2041,7 +2028,7 @@ def get_standard_change_request_templates(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[ChangeRequest]:
+) -> Response:
     """
     Retrieves standard change request templates from ServiceNow with optional filtering.
     """
@@ -2061,7 +2048,7 @@ def get_standard_change_request_templates(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2121,7 +2108,7 @@ def get_change_request_models(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[ChangeRequest]:
+) -> Response:
     """
     Fetches change request models from ServiceNow with optional filtering and type.
     """
@@ -2142,7 +2129,7 @@ def get_change_request_models(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2184,7 +2171,7 @@ def get_standard_change_request_model(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Retrieves a specific standard change request model in ServiceNow by sys_id.
     """
@@ -2197,7 +2184,7 @@ def get_standard_change_request_model(
         verify=verify,
     )
     response = client.get_standard_change_request_model(model_sys_id=model_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2239,7 +2226,7 @@ def get_standard_change_request_template(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Gets a specific standard change request template in ServiceNow by sys_id.
     """
@@ -2254,7 +2241,7 @@ def get_standard_change_request_template(
     response = client.get_standard_change_request_template(
         template_sys_id=template_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2294,7 +2281,7 @@ def get_change_request_worker(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Retrieves details of a change request worker in ServiceNow by sys_id.
     """
@@ -2307,7 +2294,7 @@ def get_change_request_worker(
         verify=verify,
     )
     response = client.get_change_request_worker(worker_sys_id=worker_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2356,7 +2343,7 @@ def create_change_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Creates a new change request in ServiceNow with specified details and type.
     """
@@ -2373,7 +2360,7 @@ def create_change_request(
         change_type=change_type,
         standard_change_template_id=standard_change_template_id,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2416,7 +2403,7 @@ def create_change_request_task(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Task:
+) -> Response:
     """
     Creates a task for a change request in ServiceNow with provided details.
     """
@@ -2431,7 +2418,7 @@ def create_change_request_task(
     response = client.create_change_request_task(
         change_request_sys_id=change_request_sys_id, data=data
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2481,7 +2468,7 @@ def create_change_request_ci_association(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Associates Configuration Items (CIs) with a change request in ServiceNow.
     """
@@ -2499,7 +2486,7 @@ def create_change_request_ci_association(
         association_type=association_type,
         refresh_impacted_services=refresh_impacted_services,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2541,7 +2528,7 @@ def calculate_standard_change_request_risk(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Calculates the risk for a standard change request in ServiceNow.
     """
@@ -2556,7 +2543,7 @@ def calculate_standard_change_request_risk(
     response = client.calculate_standard_change_request_risk(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2596,7 +2583,7 @@ def check_change_request_conflict(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Checks for conflicts in a change request in ServiceNow.
     """
@@ -2611,7 +2598,7 @@ def check_change_request_conflict(
     response = client.check_change_request_conflict(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2651,7 +2638,7 @@ def refresh_change_request_impacted_services(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Refreshes the impacted services for a change request in ServiceNow.
     """
@@ -2666,7 +2653,7 @@ def refresh_change_request_impacted_services(
     response = client.refresh_change_request_impacted_services(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2709,7 +2696,7 @@ def approve_change_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Approves or rejects a change request in ServiceNow by setting its state.
     """
@@ -2724,7 +2711,7 @@ def approve_change_request(
     response = client.approve_change_request(
         change_request_sys_id=change_request_sys_id, state=state
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2770,7 +2757,7 @@ def update_change_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Updates a change request in ServiceNow with new details and type.
     """
@@ -2787,7 +2774,7 @@ def update_change_request(
         name_value_pairs=name_value_pairs,
         change_type=change_type,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2827,7 +2814,7 @@ def update_change_request_first_available(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Updates a change request to the first available state in ServiceNow.
     """
@@ -2842,7 +2829,7 @@ def update_change_request_first_available(
     response = client.update_change_request_first_available(
         change_request_sys_id=change_request_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2888,7 +2875,7 @@ def update_change_request_task(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Task:
+) -> Response:
     """
     Updates a task for a change request in ServiceNow with new details.
     """
@@ -2905,7 +2892,7 @@ def update_change_request_task(
         change_request_task_sys_id=change_request_task_sys_id,
         name_value_pairs=name_value_pairs,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -2948,7 +2935,7 @@ def delete_change_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Deletes a change request from ServiceNow by sys_id and type.
     """
@@ -2963,7 +2950,7 @@ def delete_change_request(
     response = client.delete_change_request(
         change_request_sys_id=change_request_sys_id, change_type=change_type
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3006,7 +2993,7 @@ def delete_change_request_task(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Task:
+) -> Response:
     """
     Deletes a task associated with a change request in ServiceNow.
     """
@@ -3021,7 +3008,7 @@ def delete_change_request_task(
     response = client.delete_change_request_task(
         change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3064,7 +3051,7 @@ def delete_change_request_conflict_scan(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ChangeRequest:
+) -> Response:
     """
     Deletes a conflict scan for a change request in ServiceNow.
     """
@@ -3079,7 +3066,7 @@ def delete_change_request_conflict_scan(
     response = client.delete_change_request_conflict_scan(
         change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
     )
-    return response
+    return response.result
 
 
 # Import Set Tools
@@ -3123,7 +3110,7 @@ def get_import_set(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ImportSet:
+) -> Response:
     """
     Retrieves details of a specific import set record from a ServiceNow instance.
     """
@@ -3136,7 +3123,7 @@ def get_import_set(
         verify=verify,
     )
     response = client.get_import_set(table=table, import_set_sys_id=import_set_sys_id)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3181,7 +3168,7 @@ def insert_import_set(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> ImportSet:
+) -> Response:
     """
     Inserts a new record into a specified import set on a ServiceNow instance.
     """
@@ -3194,7 +3181,7 @@ def insert_import_set(
         verify=verify,
     )
     response = client.insert_import_set(table=table, data=data)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3239,7 +3226,7 @@ def insert_multiple_import_sets(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[ImportSet]:
+) -> Response:
     """
     Inserts multiple records into a specified import set on a ServiceNow instance.
     """
@@ -3252,7 +3239,7 @@ def insert_multiple_import_sets(
         verify=verify,
     )
     response = client.insert_multiple_import_sets(table=table, data=data)
-    return response
+    return response.result
 
 
 # Incident Tools
@@ -3296,7 +3283,7 @@ def get_incidents(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[Incident]:
+) -> Response:
     """
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
@@ -3312,7 +3299,7 @@ def get_incidents(
         response = client.get_incident(incident_id=incident_id)
     else:
         response = client.get_incidents()
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3354,7 +3341,7 @@ def create_incident(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Incident:
+) -> Response:
     """
     Creates a new incident record on a ServiceNow instance with provided details.
     """
@@ -3367,7 +3354,7 @@ def create_incident(
         verify=verify,
     )
     response = client.create_incident(data=data)
-    return response
+    return response.result
 
 
 # Knowledge Management Tools
@@ -3436,7 +3423,7 @@ def get_knowledge_articles(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[Article]:
+) -> Response:
     """
     Get all Knowledge Base articles from a ServiceNow instance.
     """
@@ -3458,7 +3445,7 @@ def get_knowledge_articles(
         kb=kb,
         language=language,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3538,7 +3525,7 @@ def get_knowledge_article(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Article:
+) -> Response:
     """
     Get a specific Knowledge Base article from a ServiceNow instance.
     """
@@ -3564,7 +3551,7 @@ def get_knowledge_article(
         kb=kb,
         language=language,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3605,7 +3592,7 @@ def get_knowledge_article_attachment(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Attachment:
+) -> Response:
     """
     Get a Knowledge Base article attachment from a ServiceNow instance.
     """
@@ -3620,7 +3607,7 @@ def get_knowledge_article_attachment(
     response = client.get_knowledge_article_attachment(
         article_sys_id=article_sys_id, attachment_sys_id=attachment_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3678,7 +3665,7 @@ def get_featured_knowledge_article(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[Article]:
+) -> Response:
     """
     Get featured Knowledge Base articles from a ServiceNow instance.
     """
@@ -3697,7 +3684,7 @@ def get_featured_knowledge_article(
         kb=kb,
         language=language,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3755,7 +3742,7 @@ def get_most_viewed_knowledge_articles(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[Article]:
+) -> Response:
     """
     Get most viewed Knowledge Base articles from a ServiceNow instance.
     """
@@ -3774,7 +3761,7 @@ def get_most_viewed_knowledge_articles(
         kb=kb,
         language=language,
     )
-    return response
+    return response.result
 
 
 # Table API Tools
@@ -3818,7 +3805,7 @@ def delete_table_record(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Table:
+) -> Response:
     """
     Delete a record from the specified table on a ServiceNow instance.
     """
@@ -3833,7 +3820,7 @@ def delete_table_record(
     response = client.delete_table_record(
         table=table, table_record_sys_id=table_record_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3913,7 +3900,7 @@ def get_table(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> List[Table]:
+) -> Response:
     """
     Get records from the specified table on a ServiceNow instance.
     """
@@ -3940,7 +3927,7 @@ def get_table(
         sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
         sysparm_view=sysparm_view,
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -3983,7 +3970,7 @@ def get_table_record(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Table:
+) -> Response:
     """
     Get a specific record from the specified table on a ServiceNow instance.
     """
@@ -3998,7 +3985,7 @@ def get_table_record(
     response = client.get_table_record(
         table=table, table_record_sys_id=table_record_sys_id
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -4044,7 +4031,7 @@ def patch_table_record(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Table:
+) -> Response:
     """
     Partially update a record in the specified table on a ServiceNow instance.
     """
@@ -4059,7 +4046,7 @@ def patch_table_record(
     response = client.patch_table_record(
         table=table, table_record_sys_id=table_record_sys_id, data=data
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -4105,7 +4092,7 @@ def update_table_record(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Table:
+) -> Response:
     """
     Fully update a record in the specified table on a ServiceNow instance.
     """
@@ -4120,7 +4107,7 @@ def update_table_record(
     response = client.update_table_record(
         table=table, table_record_sys_id=table_record_sys_id, data=data
     )
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -4163,7 +4150,7 @@ def add_table_record(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Table:
+) -> Response:
     """
     Add a new record to the specified table on a ServiceNow instance.
     """
@@ -4176,7 +4163,7 @@ def add_table_record(
         verify=verify,
     )
     response = client.add_table_record(table=table, data=data)
-    return response
+    return response.result
 
 
 @mcp.tool(
@@ -4215,7 +4202,7 @@ def refresh_auth_token(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> Authentication:
+) -> Response:
     """
     Refreshes the authentication token for the ServiceNow client.
     """
@@ -4228,7 +4215,7 @@ def refresh_auth_token(
         verify=verify,
     )
     response = client.refresh_auth_token()
-    return response
+    return response.result
 
 
 # Custom API Tools
@@ -4279,7 +4266,7 @@ def api_request(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-) -> requests.Response:
+) -> Response:
     """
     Make a custom API request to a ServiceNow instance.
     """
@@ -4294,7 +4281,7 @@ def api_request(
     response = client.api_request(
         method=method, endpoint=endpoint, data=data, json=json
     )
-    return response
+    return response.result
 
 
 def get_servicenow_client() -> Api:
@@ -4331,7 +4318,7 @@ def get_instance_config() -> dict:
 
 
 @mcp.resource("data://incident_categories")
-def get_incident_categories() -> List[str]:
+def get_incident_categories() -> Any:
     """
     Retrieves unique incident categories from ServiceNow.
     """
@@ -4340,7 +4327,7 @@ def get_incident_categories() -> List[str]:
         table="incident", sysparm_fields="category", sysparm_limit=1000
     )
     categories = set(r.get("category") for r in response if r.get("category"))
-    return list(categories)
+    return categories
 
 
 # Prompts

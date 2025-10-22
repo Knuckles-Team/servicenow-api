@@ -1,4 +1,6 @@
-from typing import Union, List, Dict, Optional, Any
+from typing import Union, List, Dict, Optional, Any, TypeVar
+
+import requests
 from pydantic import (
     BaseModel,
     Field,
@@ -2303,3 +2305,22 @@ class Authentication(BaseModel):
         "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
+
+
+T = TypeVar("T")
+
+
+class Response:
+    """
+    A wrapper class to hold the original requests.Response along with the parsed Pydantic result.
+    This allows access to response metadata (e.g., status_code, headers) while providing
+    the parsed result in Pydantic models.
+    """
+
+    def __init__(
+        self,
+        response: requests.Response,
+        result: Optional[Union[T, List[T]]] = None,
+    ):
+        self.response = response
+        self.result = result
