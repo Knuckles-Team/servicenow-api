@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.3.1*
+*Version: 1.3.2*
 
 ServiceNow API Python Wrapper
 
@@ -216,6 +216,7 @@ docker run -d \
   -e SERVICENOW_PASSWORD=pass \
   -e SERVICENOW_CLIENT_ID=client_id \
   -e SERVICENOW_CLIENT_SECRET=client_secret \
+  -e SERVICENOW_RETURN_LIMIT="20"
   -e SERVICENOW_VERIFY=False \
   knucklessg1/servicenow:latest
 ```
