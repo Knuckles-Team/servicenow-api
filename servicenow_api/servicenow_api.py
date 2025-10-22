@@ -1484,10 +1484,6 @@ class Api(object):
         try:
             change_request = ChangeManagementModel(**kwargs)
             standard_change_templates = []
-            if change_request.change_type:
-                change_type = f"/{change_request.change_type}"
-            else:
-                change_type = ""
 
             if change_request.sysparm_offset and change_request.sysparm_limit:
                 response = self._session.get(

@@ -30,6 +30,7 @@ repos:
     rev: v0.14.1
     hooks:
       - id: ruff
+        exclude: tests
         types_or: [ python, pyi, jupyter ]
         args: ["--fix", "--ignore=E402"]
   - repo: https://github.com/codespell-project/codespell
