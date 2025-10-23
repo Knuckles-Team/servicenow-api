@@ -31,6 +31,7 @@ local = threading.local()
 logger = get_logger(name="ServiceNow.TokenMiddleware")
 logger.setLevel(logging.DEBUG)
 
+
 def to_integer(string: Union[str, int] = None) -> int:
     if isinstance(string, int):
         return string
@@ -60,27 +61,32 @@ def to_boolean(string: Union[str, bool] = None) -> bool:
 
 # Global config dictionary for delegation settings
 config = {
-    'enable_delegation': to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
-    'servicenow_audience': os.environ.get("SERVICENOW_AUDIENCE", None),
-    'delegated_scopes': os.environ.get("DELEGATED_SCOPES", "api"),
-    'token_endpoint': None,  # Will be fetched dynamically from OIDC config
-    'oidc_client_id': os.environ.get("OIDC_CLIENT_ID", None),
-    'oidc_client_secret': os.environ.get("OIDC_CLIENT_SECRET", None),
-    'oidc_config_url': os.environ.get("OIDC_CONFIG_URL", None),
+    "enable_delegation": to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
+    "servicenow_audience": os.environ.get("SERVICENOW_AUDIENCE", None),
+    "delegated_scopes": os.environ.get("DELEGATED_SCOPES", "api"),
+    "token_endpoint": None,  # Will be fetched dynamically from OIDC config
+    "oidc_client_id": os.environ.get("OIDC_CLIENT_ID", None),
+    "oidc_client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
+    "oidc_config_url": os.environ.get("OIDC_CONFIG_URL", None),
 }
+
 
 class UserTokenMiddleware(Middleware):
     """
     Middleware to extract and store the Bearer token from incoming requests for OIDC delegation.
     Uses server-side logging with fastmcp.utilities.logging.get_logger().
     """
+
     async def on_request(self, context: MiddlewareContext, call_next):
         """
         Extract Bearer token from request headers and store it in thread-local storage.
         """
-        if config['enable_delegation']:
-            headers = getattr(context.message, 'headers', {})
-            logger.debug("Checking for Authorization header", extra={"headers": list(headers.keys())})
+        if config["enable_delegation"]:
+            headers = getattr(context.message, "headers", {})
+            logger.debug(
+                "Checking for Authorization header",
+                extra={"headers": list(headers.keys())},
+            )
 
             auth = headers.get("Authorization")
             if auth and auth.startswith("Bearer "):
@@ -88,38 +94,42 @@ class UserTokenMiddleware(Middleware):
                 local.user_token = token
                 logger.info(
                     "Successfully extracted Bearer token",
-                    extra={"token_length": len(token)}
+                    extra={"token_length": len(token)},
                 )
             else:
                 logger.error(
                     "Missing or invalid Authorization header",
-                    extra={"headers_available": bool(headers)}
+                    extra={"headers_available": bool(headers)},
                 )
                 raise ValueError("Missing or invalid Authorization header")
 
         return await call_next(context)
 
+
 def get_client(
-        servicenow_instance: str,
-        username: str,
-        password: str,
-        client_id: Optional[str],
-        client_secret: Optional[str],
-        verify: bool,
+    servicenow_instance: str,
+    username: str,
+    password: str,
+    client_id: Optional[str],
+    client_secret: Optional[str],
+    verify: bool,
 ) -> Api:
     """
     Factory function to create the Api client, either with fixed credentials or delegated token.
     Uses server-side logging for visibility into token exchange process.
     """
-    if config['enable_delegation']:
-        user_token = getattr(local, 'user_token', None)
+    if config["enable_delegation"]:
+        user_token = getattr(local, "user_token", None)
         if not user_token:
             logger.error("No user token available for delegation")
             raise ValueError("No user token available for delegation")
 
         logger.info(
             "Initiating OAuth token exchange",
-            extra={"audience": config['servicenow_audience'], "scopes": config['delegated_scopes']}
+            extra={
+                "audience": config["servicenow_audience"],
+                "scopes": config["delegated_scopes"],
+            },
         )
 
         # Perform token exchange
@@ -128,19 +138,23 @@ def get_client(
             "subject_token": user_token,
             "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
             "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "audience": config['servicenow_audience'],
-            "scope": config['delegated_scopes'],
+            "audience": config["servicenow_audience"],
+            "scope": config["delegated_scopes"],
         }
-        auth = (config['oidc_client_id'], config['oidc_client_secret'])
+        auth = (config["oidc_client_id"], config["oidc_client_secret"])
         try:
-            response = requests.post(config['token_endpoint'], data=exchange_data, auth=auth)
+            response = requests.post(
+                config["token_endpoint"], data=exchange_data, auth=auth
+            )
             response.raise_for_status()
             new_token = response.json()["access_token"]
-            logger.info("Token exchange successful", extra={"new_token_length": len(new_token)})
+            logger.info(
+                "Token exchange successful", extra={"new_token_length": len(new_token)}
+            )
         except Exception as e:
             logger.error(
                 "Token exchange failed",
-                extra={"error_type": type(e).__name__, "error_message": str(e)}
+                extra={"error_type": type(e).__name__, "error_message": str(e)},
             )
             raise RuntimeError(f"Token exchange failed: {str(e)}")
 
@@ -4613,40 +4627,58 @@ def servicenow_mcp():
         sys.exit(1)
 
     # Update config with CLI arguments
-    config['enable_delegation'] = args.enable_delegation
-    config['servicenow_audience'] = args.servicenow_audience or config['servicenow_audience']
-    config['delegated_scopes'] = args.delegated_scopes or config['delegated_scopes']
-    config['oidc_config_url'] = args.oidc_config_url or config['oidc_config_url']
-    config['oidc_client_id'] = args.oidc_client_id or config['oidc_client_id']
-    config['oidc_client_secret'] = args.oidc_client_secret or config['oidc_client_secret']
+    config["enable_delegation"] = args.enable_delegation
+    config["servicenow_audience"] = (
+        args.servicenow_audience or config["servicenow_audience"]
+    )
+    config["delegated_scopes"] = args.delegated_scopes or config["delegated_scopes"]
+    config["oidc_config_url"] = args.oidc_config_url or config["oidc_config_url"]
+    config["oidc_client_id"] = args.oidc_client_id or config["oidc_client_id"]
+    config["oidc_client_secret"] = (
+        args.oidc_client_secret or config["oidc_client_secret"]
+    )
 
     # Configure delegation if enabled
-    if config['enable_delegation']:
+    if config["enable_delegation"]:
         if args.auth_type != "oidc-proxy":
             logger.error("Token delegation requires auth-type=oidc-proxy")
             sys.exit(1)
-        if not config['servicenow_audience']:
+        if not config["servicenow_audience"]:
             logger.error("servicenow-audience is required for delegation")
             sys.exit(1)
-        if not all([config['oidc_config_url'], config['oidc_client_id'], config['oidc_client_secret']]):
-            logger.error("Delegation requires complete OIDC configuration (oidc-config-url, oidc-client-id, oidc-client-secret)")
+        if not all(
+            [
+                config["oidc_config_url"],
+                config["oidc_client_id"],
+                config["oidc_client_secret"],
+            ]
+        ):
+            logger.error(
+                "Delegation requires complete OIDC configuration (oidc-config-url, oidc-client-id, oidc-client-secret)"
+            )
             sys.exit(1)
 
         # Fetch OIDC configuration to get token_endpoint
         try:
-            logger.info("Fetching OIDC configuration", extra={"oidc_config_url": config['oidc_config_url']})
-            oidc_config_resp = requests.get(config['oidc_config_url'])
+            logger.info(
+                "Fetching OIDC configuration",
+                extra={"oidc_config_url": config["oidc_config_url"]},
+            )
+            oidc_config_resp = requests.get(config["oidc_config_url"])
             oidc_config_resp.raise_for_status()
             oidc_config = oidc_config_resp.json()
-            config['token_endpoint'] = oidc_config.get('token_endpoint')
-            if not config['token_endpoint']:
+            config["token_endpoint"] = oidc_config.get("token_endpoint")
+            if not config["token_endpoint"]:
                 logger.error("No token_endpoint found in OIDC configuration")
                 raise ValueError("No token_endpoint found in OIDC configuration")
-            logger.info("OIDC configuration fetched successfully", extra={"token_endpoint": config['token_endpoint']})
+            logger.info(
+                "OIDC configuration fetched successfully",
+                extra={"token_endpoint": config["token_endpoint"]},
+            )
         except Exception as e:
             logger.error(
                 "Failed to fetch OIDC configuration",
-                extra={"error_type": type(e).__name__, "error_message": str(e)}
+                extra={"error_type": type(e).__name__, "error_message": str(e)},
             )
             sys.exit(1)
 
@@ -4671,7 +4703,11 @@ def servicenow_mcp():
         if not (args.token_jwks_uri and args.token_issuer and args.token_audience):
             logger.error(
                 "jwt requires token-jwks-uri, token-issuer, token-audience",
-                extra={"jwks_uri": args.token_jwks_uri, "issuer": args.token_issuer, "audience": args.token_audience}
+                extra={
+                    "jwks_uri": args.token_jwks_uri,
+                    "issuer": args.token_issuer,
+                    "audience": args.token_audience,
+                },
             )
             sys.exit(1)
         auth = JWTVerifier(
@@ -4681,14 +4717,14 @@ def servicenow_mcp():
         )
     elif args.auth_type == "oauth-proxy":
         if not (
-                args.oauth_upstream_auth_endpoint
-                and args.oauth_upstream_token_endpoint
-                and args.oauth_upstream_client_id
-                and args.oauth_upstream_client_secret
-                and args.oauth_base_url
-                and args.token_jwks_uri
-                and args.token_issuer
-                and args.token_audience
+            args.oauth_upstream_auth_endpoint
+            and args.oauth_upstream_token_endpoint
+            and args.oauth_upstream_client_id
+            and args.oauth_upstream_client_secret
+            and args.oauth_base_url
+            and args.token_jwks_uri
+            and args.token_issuer
+            and args.token_audience
         ):
             logger.error(
                 "oauth-proxy requires oauth-upstream-auth-endpoint, oauth-upstream-token-endpoint, oauth-upstream-client-id, oauth-upstream-client-secret, oauth-base-url, token-jwks-uri, token-issuer, token-audience",
@@ -4699,8 +4735,8 @@ def servicenow_mcp():
                     "base_url": args.oauth_base_url,
                     "jwks_uri": args.token_jwks_uri,
                     "issuer": args.token_issuer,
-                    "audience": args.token_audience
-                }
+                    "audience": args.token_audience,
+                },
             )
             sys.exit(1)
         token_verifier = JWTVerifier(
@@ -4719,18 +4755,18 @@ def servicenow_mcp():
         )
     elif args.auth_type == "oidc-proxy":
         if not (
-                args.oidc_config_url
-                and args.oidc_client_id
-                and args.oidc_client_secret
-                and args.oidc_base_url
+            args.oidc_config_url
+            and args.oidc_client_id
+            and args.oidc_client_secret
+            and args.oidc_base_url
         ):
             logger.error(
                 "oidc-proxy requires oidc-config-url, oidc-client-id, oidc-client-secret, oidc-base-url",
                 extra={
                     "config_url": args.oidc_config_url,
                     "client_id": args.oidc_client_id,
-                    "base_url": args.oidc_base_url
-                }
+                    "base_url": args.oidc_base_url,
+                },
             )
             sys.exit(1)
         auth = OIDCProxy(
@@ -4742,11 +4778,11 @@ def servicenow_mcp():
         )
     elif args.auth_type == "remote-oauth":
         if not (
-                args.remote_auth_servers
-                and args.remote_base_url
-                and args.token_jwks_uri
-                and args.token_issuer
-                and args.token_audience
+            args.remote_auth_servers
+            and args.remote_base_url
+            and args.token_jwks_uri
+            and args.token_issuer
+            and args.token_audience
         ):
             logger.error(
                 "remote-oauth requires remote-auth-servers, remote-base-url, token-jwks-uri, token-issuer, token-audience",
@@ -4755,8 +4791,8 @@ def servicenow_mcp():
                     "base_url": args.remote_base_url,
                     "jwks_uri": args.token_jwks_uri,
                     "issuer": args.token_issuer,
-                    "audience": args.token_audience
-                }
+                    "audience": args.token_audience,
+                },
             )
             sys.exit(1)
         auth_servers = [url.strip() for url in args.remote_auth_servers.split(",")]
@@ -4773,10 +4809,14 @@ def servicenow_mcp():
     mcp.auth = auth
 
     # Add middleware in logical order
-    if config['enable_delegation']:
+    if config["enable_delegation"]:
         mcp.add_middleware(UserTokenMiddleware())
-    mcp.add_middleware(ErrorHandlingMiddleware(include_traceback=True, transform_errors=True))
-    mcp.add_middleware(RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20))
+    mcp.add_middleware(
+        ErrorHandlingMiddleware(include_traceback=True, transform_errors=True)
+    )
+    mcp.add_middleware(
+        RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20)
+    )
     mcp.add_middleware(TimingMiddleware())
     mcp.add_middleware(LoggingMiddleware())
 
