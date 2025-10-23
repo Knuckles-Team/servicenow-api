@@ -48,6 +48,7 @@ class Api(object):
         password: Optional[str] = None,
         client_id: Optional[str] = None,
         client_secret: Optional[str] = None,
+        token: Optional[str] = None,
         grant_type: Optional[str] = "password",
         proxies: Optional[dict] = None,
         verify: Optional[bool] = True,
@@ -70,7 +71,13 @@ class Api(object):
         if self.verify is False:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        if username and password and client_id and client_secret:
+        if token:
+            self.token = token
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            }
+        elif username and password and client_id and client_secret:
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {
                 "grant_type": grant_type,

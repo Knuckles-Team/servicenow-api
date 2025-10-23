@@ -49,6 +49,7 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 - **Eunomia Authorization**: Optional policy-based authorization with embedded or remote Eunomia server integration.
 - **Resources**: Provides `instance_config` and `incident_categories` for ServiceNow configuration and data.
 - **Prompts**: Includes `create_incident_prompt` and `query_table_prompt` for AI-driven interactions.
+- **OIDC Token Delegation**: Supports token exchange for ServiceNow API calls, enabling user-specific authentication via OIDC.
 
 <details>
   <summary><b>Usage:</b></summary>
@@ -80,6 +81,9 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 |            | --eunomia-type                     | Eunomia authorization type: 'none', 'embedded', 'remote' (default: none)   |
 |            | --eunomia-policy-file              | Policy file for embedded Eunomia (default: mcp_policies.json)              |
 |            | --eunomia-remote-url               | URL for remote Eunomia server                                              |
+|            | --enable-delegation                | Enable OIDC token delegation to ServiceNow (default: False)                |
+|            | --servicenow-audience              | Audience for the delegated ServiceNow token                                |
+|            | --delegated-scopes                 | Scopes for the delegated ServiceNow token (space-separated)                |
 
 ### Using as an MCP Server
 
@@ -102,7 +106,7 @@ servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
 ```python
 #!/usr/bin/python
 # coding: utf-8
-import servicenow_api
+from servicenow_api.servicenow_api import Api
 
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
@@ -110,7 +114,7 @@ client_id = "<SERVICENOW CLIENT_ID>"
 client_secret = "<SERVICENOW_CLIENT_SECRET>"
 servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(
+client = Api(
     url=servicenow_url,
     username=username,
     password=password,
@@ -127,13 +131,13 @@ print(f"Table: {table.model_dump()}")
 ```python
 #!/usr/bin/python
 # coding: utf-8
-import servicenow_api
+from servicenow_api.servicenow_api import Api
 
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 servicenow_url = "<SERVICENOW_URL>"
 
-client = servicenow_api.Api(
+client = Api(
     url=servicenow_url,
     username=username,
     password=password
@@ -148,7 +152,7 @@ print(f"Table: {table.model_dump()}")
 ```python
 #!/usr/bin/python
 # coding: utf-8
-import servicenow_api
+from servicenow_api.servicenow_api import Api
 
 username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
@@ -156,7 +160,7 @@ servicenow_url = "<SERVICENOW_URL>"
 
 proxy = "https://proxy.net"
 
-client = servicenow_api.Api(
+client = Api(
     url=servicenow_url,
     username=username,
     password=password,
@@ -194,7 +198,7 @@ docker run -d \
   knucklessg1/servicenow:latest
 ```
 
-For advanced authentication (e.g., JWT, OAuth Proxy, OIDC Proxy, Remote OAuth) or Eunomia, add the relevant environment variables:
+For advanced authentication (e.g., OIDC Proxy with token delegation) or Eunomia, add the relevant environment variables:
 
 ```bash
 docker run -d \
@@ -209,6 +213,9 @@ docker run -d \
   -e OIDC_CLIENT_SECRET=your-client-secret \
   -e OIDC_BASE_URL=https://your-server.com \
   -e ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/* \
+  -e ENABLE_DELEGATION=True \
+  -e SERVICENOW_AUDIENCE=https://yourinstance.servicenow.com \
+  -e DELEGATED_SCOPES="api user_impersonation" \
   -e EUNOMIA_TYPE=embedded \
   -e EUNOMIA_POLICY_FILE=/app/mcp_policies.json \
   -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
@@ -216,7 +223,6 @@ docker run -d \
   -e SERVICENOW_PASSWORD=pass \
   -e SERVICENOW_CLIENT_ID=client_id \
   -e SERVICENOW_CLIENT_SECRET=client_secret \
-  -e SERVICENOW_RETURN_LIMIT="20"
   -e SERVICENOW_VERIFY=False \
   knucklessg1/servicenow:latest
 ```
@@ -245,7 +251,7 @@ services:
       - 8004:8004
 ```
 
-For advanced setups with authentication and Eunomia:
+For advanced setups with authentication, token delegation, and Eunomia:
 
 ```yaml
 services:
@@ -261,6 +267,9 @@ services:
       - OIDC_CLIENT_SECRET=your-client-secret
       - OIDC_BASE_URL=https://your-server.com
       - ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/*
+      - ENABLE_DELEGATION=True
+      - SERVICENOW_AUDIENCE=https://yourinstance.servicenow.com
+      - DELEGATED_SCOPES='api user_impersonation'
       - EUNOMIA_TYPE=embedded
       - EUNOMIA_POLICY_FILE=/app/mcp_policies.json
       - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
@@ -306,7 +315,13 @@ For Testing Only: Plain text storage will also work, although **not** recommende
         "--auth-type",
         "${AUTH_TYPE}",
         "--eunomia-type",
-        "${EUNOMIA_TYPE}"
+        "${EUNOMIA_TYPE}",
+        "--enable-delegation",
+        "${ENABLE_DELEGATION}",
+        "--servicenow-audience",
+        "${SERVICENOW_AUDIENCE}",
+        "--delegated-scopes",
+        "${DELEGATED_SCOPES}"
       ],
       "env": {
         "SERVICENOW_INSTANCE": "https://yourinstance.servicenow.com",
@@ -332,7 +347,10 @@ For Testing Only: Plain text storage will also work, although **not** recommende
         "ALLOWED_CLIENT_REDIRECT_URIS": "${ALLOWED_CLIENT_REDIRECT_URIS}",
         "EUNOMIA_TYPE": "${EUNOMIA_TYPE}",
         "EUNOMIA_POLICY_FILE": "${EUNOMIA_POLICY_FILE}",
-        "EUNOMIA_REMOTE_URL": "${EUNOMIA_REMOTE_URL}"
+        "EUNOMIA_REMOTE_URL": "${EUNOMIA_REMOTE_URL}",
+        "ENABLE_DELEGATION": "${ENABLE_DELEGATION}",
+        "SERVICENOW_AUDIENCE": "${SERVICENOW_AUDIENCE}",
+        "DELEGATED_SCOPES": "${DELEGATED_SCOPES}"
       },
       "timeout": 200000
     }
@@ -366,6 +384,9 @@ The `servicenow-mcp` command supports the following CLI options for configuratio
 - `--eunomia-type`: Eunomia authorization type (`none`, `embedded`, `remote`) [default: `none`]
 - `--eunomia-policy-file`: Policy file for embedded Eunomia [default: `mcp_policies.json`]
 - `--eunomia-remote-url`: URL for remote Eunomia server
+- `--enable-delegation`: Enable OIDC token delegation to ServiceNow [default: `False`]
+- `--servicenow-audience`: Audience for the delegated ServiceNow token
+- `--delegated-scopes`: Scopes for the delegated ServiceNow token (space-separated)
 
 #### Middleware
 
@@ -375,6 +396,7 @@ The MCP server includes the following built-in middleware for enhanced functiona
 - **RateLimitingMiddleware**: Limits request frequency with a token bucket algorithm (10 requests/second, burst capacity of 20).
 - **TimingMiddleware**: Tracks execution time of requests.
 - **LoggingMiddleware**: Logs all requests and responses for observability.
+- **UserTokenMiddleware**: Extracts Bearer tokens for OIDC token delegation to ServiceNow (enabled with `--enable-delegation`).
 
 #### Eunomia Authorization
 
@@ -413,8 +435,8 @@ python -m pip install servicenow-api eunomia-mcp
 ```bash
 python ./test/test_servicenow_models.py
 ```
-</details>
 
+</details>
 
 <img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
 
