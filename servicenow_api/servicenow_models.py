@@ -2419,7 +2419,7 @@ class Response(BaseModel, Generic[T]):
     """
     A wrapper class to hold the original requests.Response along with the parsed Pydantic data.
     This allows access to response metadata (e.g., status_code, headers) while providing
-    the parsed data in Pydantic models.
+    the parsed result in Pydantic models.
     """
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
@@ -2427,6 +2427,6 @@ class Response(BaseModel, Generic[T]):
     response: requests.Response = Field(
         default=None, description="The original requests.Response object", exclude=True
     )
-    data: Optional[Union[T, List[T]]] = Field(
+    result: Optional[Union[T, List[T]]] = Field(
         default=None, description="The Pydantic models converted from the response"
     )
