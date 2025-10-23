@@ -656,7 +656,7 @@ class IncidentModel(BaseModel):
         default=None, description="Table dictionary value to insert"
     )
 
-    @field_validator("table", "table_record_sys_id")
+    @field_validator("incident_id")
     def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
