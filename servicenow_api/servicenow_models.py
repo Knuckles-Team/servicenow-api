@@ -1705,6 +1705,21 @@ class Task(BaseModel):
         description="Specifies users who receive notifications when work notes are added to the record.",
     )
 
+class ReferenceField(BaseModel):
+    """
+    Model for ServiceNow choice fields (e.g., state, priority).
+    Handles dictionary structure with value, link, and optional display_value.
+    """
+    model_config = ConfigDict(extra="allow")
+    value: Optional[str] = Field(
+        default=None, description="Internal value of the choice"
+    )
+    link: Optional[str] = Field(
+        default=None, description="API URL to the choice definition"
+    )
+    display_value: Optional[str] = Field(
+        default=None, description="Human-readable label of the choice (when sysparm_display_value=true)"
+    )
 
 class Incident(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -1716,12 +1731,12 @@ class Incident(BaseModel):
     number: Optional[str] = Field(
         default=None, description="Incident number (e.g., INC0012345)"
     )
-    state: Optional[str] = Field(
+    state: Optional[ReferenceField] = Field(
         default=None,
-        description="State of the incident (e.g., New, In Progress, Resolved)",
+        description="State of the incident (e.g., {value: '1', display_value: 'New'})"
     )
-    priority: Optional[str] = Field(
-        default=None, description="Priority level (e.g., 1 - Critical, 2 - High)"
+    priority: Optional[ReferenceField] = Field(
+        default=None, description="Priority level (e.g., {value: '3', display_value: 'Moderate'})"
     )
     short_description: Optional[str] = Field(
         default=None, description="Brief description of the incident"
@@ -1729,11 +1744,11 @@ class Incident(BaseModel):
     description: Optional[str] = Field(
         default=None, description="Detailed description of the incident"
     )
-    impact: Optional[str] = Field(
-        default=None, description="Impact level (e.g., 1 - High, 2 - Medium)"
+    impact: Optional[ReferenceField] = Field(
+        default=None, description="Impact level (e.g., {value: '2', display_value: 'Medium'})"
     )
-    urgency: Optional[str] = Field(
-        default=None, description="Urgency level (e.g., 1 - High, 2 - Medium)"
+    urgency: Optional[ReferenceField] = Field(
+        default=None, description="Urgency level (e.g., {value: '2', display_value: 'Medium'})"
     )
     category: Optional[str] = Field(
         default=None, description="Category of the incident (e.g., Hardware, Software)"
@@ -1741,18 +1756,20 @@ class Incident(BaseModel):
     subcategory: Optional[str] = Field(
         default=None, description="Subcategory of the incident"
     )
-    caller_id: Optional[str] = Field(default=None, description="Sys ID of the caller")
-    assigned_to: Optional[str] = Field(
-        default=None, description="Sys ID of the assigned user"
+    caller_id: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the caller (sys_user)"
     )
-    assignment_group: Optional[str] = Field(
-        default=None, description="Sys ID of the assignment group"
+    assigned_to: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the assigned user (sys_user)"
+    )
+    assignment_group: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the assignment group (sys_user_group)"
     )
     opened_at: Optional[str] = Field(
         default=None, description="Timestamp when the incident was opened"
     )
-    opened_by: Optional[str] = Field(
-        default=None, description="Sys ID of the user who opened the incident"
+    opened_by: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the user who opened the incident (sys_user)"
     )
     closed_at: Optional[str] = Field(
         default=None, description="Timestamp when the incident was closed"
@@ -1763,7 +1780,7 @@ class Incident(BaseModel):
     close_notes: Optional[str] = Field(
         default=None, description="Notes provided upon incident closure"
     )
-    incident_state: Optional[str] = Field(
+    incident_state: Optional[ReferenceField] = Field(
         default=None, description="Detailed incident state"
     )
     sys_created_on: Optional[str] = Field(
@@ -1778,18 +1795,20 @@ class Incident(BaseModel):
     sys_created_by: Optional[str] = Field(
         default=None, description="User who created the record"
     )
-    company: Optional[str] = Field(
-        default=None, description="Sys ID of the associated company"
+    company: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the associated company (core_company)"
     )
-    location: Optional[str] = Field(default=None, description="Sys ID of the location")
-    cmdb_ci: Optional[str] = Field(
-        default=None, description="Sys ID of the related configuration item"
+    location: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the location (cmn_location)"
     )
-    problem_id: Optional[str] = Field(
-        default=None, description="Sys ID of the related problem"
+    cmdb_ci: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the related configuration item (cmdb_ci)"
     )
-    change_request: Optional[str] = Field(
-        default=None, description="Sys ID of the related change request"
+    problem_id: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the related problem (problem)"
+    )
+    change_request: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the related change request (change_request)"
     )
     comments: Optional[str] = Field(
         default=None, description="Additional comments added to the incident"
@@ -1800,21 +1819,23 @@ class Incident(BaseModel):
     active: Optional[bool] = Field(
         default=None, description="Whether the incident is active"
     )
-    severity: Optional[str] = Field(
+    severity: Optional[ReferenceField] = Field(
         default=None, description="Severity level of the incident"
     )
-    notify: Optional[str] = Field(default=None, description="Notification preference")
+    notify: Optional[str] = Field(
+        default=None, description="Notification preference"
+    )
     contact_type: Optional[str] = Field(
         default=None, description="How the incident was reported (e.g., phone, email)"
     )
-    parent: Optional[str] = Field(
-        default=None, description="Sys ID of the parent incident, if any"
+    parent: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the parent incident, if any (incident)"
     )
-    escalation: Optional[str] = Field(
+    escalation: Optional[ReferenceField] = Field(
         default=None, description="Escalation level of the incident"
     )
-    sys_domain: Optional[str] = Field(
-        default=None, description="Sys ID of the domain for domain separation"
+    sys_domain: Optional[ReferenceField] = Field(
+        default=None, description="Reference to the domain for domain separation (sys_domain)"
     )
     sys_mod_count: Optional[int] = Field(
         default=None, description="Number of times the record was modified"
@@ -1823,6 +1844,9 @@ class Incident(BaseModel):
         default_factory=dict,
         description="Dictionary for custom fields (e.g., u_custom_field)",
     )
+
+    def __hash__(self):
+        return object.__hash__(self)
 
 
 class ConfigurationItem(BaseModel):
