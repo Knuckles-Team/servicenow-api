@@ -5,8 +5,11 @@ import os
 import argparse
 import sys
 import logging
+import threading
 from typing import Optional, List, Dict, Any, Union
 
+import requests
+from fastmcp.server.middleware import MiddlewareContext, Middleware
 from pydantic import Field
 from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
@@ -17,11 +20,16 @@ from fastmcp.server.middleware.timing import TimingMiddleware
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.exceptions import ResourceError
+from fastmcp.utilities.logging import get_logger
 from servicenow_api.servicenow_api import Api
 from servicenow_api.servicenow_models import Response
 
 mcp = FastMCP("ServiceNow")
 
+# Thread-local storage for user token
+local = threading.local()
+logger = get_logger(name="ServiceNow.TokenMiddleware")
+logger.setLevel(logging.DEBUG)
 
 def to_integer(string: Union[str, int] = None) -> int:
     if isinstance(string, int):
@@ -48,6 +56,109 @@ def to_boolean(string: Union[str, bool] = None) -> bool:
         return False
     else:
         raise ValueError(f"Cannot convert '{string}' to boolean")
+
+
+# Global config dictionary for delegation settings
+config = {
+    'enable_delegation': to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
+    'servicenow_audience': os.environ.get("SERVICENOW_AUDIENCE", None),
+    'delegated_scopes': os.environ.get("DELEGATED_SCOPES", "api"),
+    'token_endpoint': None,  # Will be fetched dynamically from OIDC config
+    'oidc_client_id': os.environ.get("OIDC_CLIENT_ID", None),
+    'oidc_client_secret': os.environ.get("OIDC_CLIENT_SECRET", None),
+    'oidc_config_url': os.environ.get("OIDC_CONFIG_URL", None),
+}
+
+class UserTokenMiddleware(Middleware):
+    """
+    Middleware to extract and store the Bearer token from incoming requests for OIDC delegation.
+    Uses server-side logging with fastmcp.utilities.logging.get_logger().
+    """
+    async def on_request(self, context: MiddlewareContext, call_next):
+        """
+        Extract Bearer token from request headers and store it in thread-local storage.
+        """
+        if config['enable_delegation']:
+            headers = getattr(context.message, 'headers', {})
+            logger.debug("Checking for Authorization header", extra={"headers": list(headers.keys())})
+
+            auth = headers.get("Authorization")
+            if auth and auth.startswith("Bearer "):
+                token = auth.split(" ")[1]
+                local.user_token = token
+                logger.info(
+                    "Successfully extracted Bearer token",
+                    extra={"token_length": len(token)}
+                )
+            else:
+                logger.error(
+                    "Missing or invalid Authorization header",
+                    extra={"headers_available": bool(headers)}
+                )
+                raise ValueError("Missing or invalid Authorization header")
+
+        return await call_next(context)
+
+def get_client(
+        servicenow_instance: str,
+        username: str,
+        password: str,
+        client_id: Optional[str],
+        client_secret: Optional[str],
+        verify: bool,
+) -> Api:
+    """
+    Factory function to create the Api client, either with fixed credentials or delegated token.
+    Uses server-side logging for visibility into token exchange process.
+    """
+    if config['enable_delegation']:
+        user_token = getattr(local, 'user_token', None)
+        if not user_token:
+            logger.error("No user token available for delegation")
+            raise ValueError("No user token available for delegation")
+
+        logger.info(
+            "Initiating OAuth token exchange",
+            extra={"audience": config['servicenow_audience'], "scopes": config['delegated_scopes']}
+        )
+
+        # Perform token exchange
+        exchange_data = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token": user_token,
+            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "audience": config['servicenow_audience'],
+            "scope": config['delegated_scopes'],
+        }
+        auth = (config['oidc_client_id'], config['oidc_client_secret'])
+        try:
+            response = requests.post(config['token_endpoint'], data=exchange_data, auth=auth)
+            response.raise_for_status()
+            new_token = response.json()["access_token"]
+            logger.info("Token exchange successful", extra={"new_token_length": len(new_token)})
+        except Exception as e:
+            logger.error(
+                "Token exchange failed",
+                extra={"error_type": type(e).__name__, "error_message": str(e)}
+            )
+            raise RuntimeError(f"Token exchange failed: {str(e)}")
+
+        return Api(
+            url=servicenow_instance,
+            token=new_token,
+            verify=verify,
+        )
+    else:
+        logger.info("Using fixed credentials for ServiceNow API")
+        return Api(
+            url=servicenow_instance,
+            username=username,
+            password=password,
+            client_id=client_id,
+            client_secret=client_secret,
+            verify=verify,
+        )
 
 
 # Application Service Tools
@@ -94,8 +205,8 @@ def get_application(
     """
     Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -150,8 +261,8 @@ def get_cmdb(
     """
     Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -206,8 +317,8 @@ def batch_install_result(
     """
     Retrieves the result of a batch installation process in ServiceNow by result ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -261,8 +372,8 @@ def instance_scan_progress(
     """
     Gets the progress status of an instance scan in ServiceNow by progress ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -314,8 +425,8 @@ def progress(
     """
     Retrieves the progress status of a specified process in ServiceNow by progress ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -371,8 +482,8 @@ def batch_install(
     """
     Initiates a batch installation of specified packages in ServiceNow with optional notes.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -424,8 +535,8 @@ def batch_rollback(
     """
     Performs a rollback of a batch installation in ServiceNow using the rollback ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -489,8 +600,8 @@ def app_repo_install(
     """
     Installs an application from a repository in ServiceNow with specified parameters.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -557,8 +668,8 @@ def app_repo_publish(
     """
     Publishes an application to a repository in ServiceNow with development notes and version.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -618,8 +729,8 @@ def app_repo_rollback(
     """
     Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -672,8 +783,8 @@ def full_scan(
     """
     Initiates a full scan of the ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -726,8 +837,8 @@ def point_scan(
     """
     Performs a targeted scan on a specific instance and table in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -779,8 +890,8 @@ def combo_suite_scan(
     """
     Executes a scan on a combination of suites in ServiceNow by combo sys_id.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -838,8 +949,8 @@ def suite_scan(
     """
     Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -894,8 +1005,8 @@ def activate_plugin(
     """
     Activates a specified plugin in ServiceNow by plugin ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -947,8 +1058,8 @@ def rollback_plugin(
     """
     Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1009,8 +1120,8 @@ def apply_remote_source_control_changes(
     """
     Applies changes from a remote source control branch to a ServiceNow application.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1081,8 +1192,8 @@ def import_repository(
     """
     Imports a repository into ServiceNow with specified credentials and branch.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1155,8 +1266,8 @@ def run_test_suite(
     """
     Executes a test suite in ServiceNow with specified browser and OS configurations.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1224,8 +1335,8 @@ def update_set_create(
     """
     Creates a new update set in ServiceNow with a given name, scope, and description.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1298,8 +1409,8 @@ def update_set_retrieve(
     """
     Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1359,8 +1470,8 @@ def update_set_preview(
     """
     Previews an update set in ServiceNow by its remote sys_id.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1416,8 +1527,8 @@ def update_set_commit(
     """
     Commits an update set in ServiceNow with an option to force commit.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1477,8 +1588,8 @@ def update_set_commit_multiple(
     """
     Commits multiple update sets in ServiceNow in the specified order.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1536,8 +1647,8 @@ def update_set_back_out(
     """
     Backs out an update set in ServiceNow with an option to rollback installations.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1613,8 +1724,8 @@ def get_change_requests(
     """
     Retrieves change requests from ServiceNow with optional filtering and pagination.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1674,8 +1785,8 @@ def get_change_request_nextstate(
     """
     Gets the next state for a specific change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1729,8 +1840,8 @@ def get_change_request_schedule(
     """
     Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1801,8 +1912,8 @@ def get_change_request_tasks(
     """
     Fetches tasks associated with a change request in ServiceNow with optional filtering.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1865,8 +1976,8 @@ def get_change_request(
     """
     Retrieves details of a specific change request in ServiceNow by sys_id and type.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1920,8 +2031,8 @@ def get_change_request_ci(
     """
     Gets Configuration Items (CIs) associated with a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1973,8 +2084,8 @@ def get_change_request_conflict(
     """
     Checks for conflicts in a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2046,8 +2157,8 @@ def get_standard_change_request_templates(
     """
     Retrieves standard change request templates from ServiceNow with optional filtering.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2127,8 +2238,8 @@ def get_change_request_models(
     """
     Fetches change request models from ServiceNow with optional filtering and type.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2190,8 +2301,8 @@ def get_standard_change_request_model(
     """
     Retrieves a specific standard change request model in ServiceNow by sys_id.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2245,8 +2356,8 @@ def get_standard_change_request_template(
     """
     Gets a specific standard change request template in ServiceNow by sys_id.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2300,8 +2411,8 @@ def get_change_request_worker(
     """
     Retrieves details of a change request worker in ServiceNow by sys_id.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2362,8 +2473,8 @@ def create_change_request(
     """
     Creates a new change request in ServiceNow with specified details and type.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2422,8 +2533,8 @@ def create_change_request_task(
     """
     Creates a task for a change request in ServiceNow with provided details.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2487,8 +2598,8 @@ def create_change_request_ci_association(
     """
     Associates Configuration Items (CIs) with a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2547,8 +2658,8 @@ def calculate_standard_change_request_risk(
     """
     Calculates the risk for a standard change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2602,8 +2713,8 @@ def check_change_request_conflict(
     """
     Checks for conflicts in a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2657,8 +2768,8 @@ def refresh_change_request_impacted_services(
     """
     Refreshes the impacted services for a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2715,8 +2826,8 @@ def approve_change_request(
     """
     Approves or rejects a change request in ServiceNow by setting its state.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2776,8 +2887,8 @@ def update_change_request(
     """
     Updates a change request in ServiceNow with new details and type.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2833,8 +2944,8 @@ def update_change_request_first_available(
     """
     Updates a change request to the first available state in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2894,8 +3005,8 @@ def update_change_request_task(
     """
     Updates a task for a change request in ServiceNow with new details.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2954,8 +3065,8 @@ def delete_change_request(
     """
     Deletes a change request from ServiceNow by sys_id and type.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3012,8 +3123,8 @@ def delete_change_request_task(
     """
     Deletes a task associated with a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3070,8 +3181,8 @@ def delete_change_request_conflict_scan(
     """
     Deletes a conflict scan for a change request in ServiceNow.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3129,8 +3240,8 @@ def get_import_set(
     """
     Retrieves details of a specific import set record from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3187,8 +3298,8 @@ def insert_import_set(
     """
     Inserts a new record into a specified import set on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3245,8 +3356,8 @@ def insert_multiple_import_sets(
     """
     Inserts multiple records into a specified import set on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3302,8 +3413,8 @@ def get_incidents(
     """
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3360,8 +3471,8 @@ def create_incident(
     """
     Creates a new incident record on a ServiceNow instance with provided details.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3443,8 +3554,8 @@ def get_knowledge_articles(
     """
     Get all Knowledge Base articles from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3546,8 +3657,8 @@ def get_knowledge_article(
     """
     Get a specific Knowledge Base article from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3613,8 +3724,8 @@ def get_knowledge_article_attachment(
     """
     Get a Knowledge Base article attachment from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3687,8 +3798,8 @@ def get_featured_knowledge_article(
     """
     Get featured Knowledge Base articles from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3765,8 +3876,8 @@ def get_most_viewed_knowledge_articles(
     """
     Get most viewed Knowledge Base articles from a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3828,8 +3939,8 @@ def delete_table_record(
     """
     Delete a record from the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3924,8 +4035,8 @@ def get_table(
     """
     Get records from the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3994,8 +4105,8 @@ def get_table_record(
     """
     Get a specific record from the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4055,8 +4166,8 @@ def patch_table_record(
     """
     Partially update a record in the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4116,8 +4227,8 @@ def update_table_record(
     """
     Fully update a record in the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4174,8 +4285,8 @@ def add_table_record(
     """
     Add a new record to the specified table on a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4226,8 +4337,8 @@ def refresh_auth_token(
     """
     Refreshes the authentication token for the ServiceNow client.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4290,8 +4401,8 @@ def api_request(
     """
     Make a custom API request to a ServiceNow instance.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4379,7 +4490,7 @@ def query_table_prompt(
 
 
 def servicenow_mcp():
-    parser = argparse.ArgumentParser(description="ServiceNow API MCP Runner")
+    parser = argparse.ArgumentParser(description="ServiceNow MCP Server")
     parser.add_argument(
         "-t",
         "--transport",
@@ -4477,12 +4588,67 @@ def servicenow_mcp():
     parser.add_argument(
         "--eunomia-remote-url", default=None, help="URL for remote Eunomia server"
     )
+    # Delegation params
+    parser.add_argument(
+        "--enable-delegation",
+        action="store_true",
+        default=to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
+        help="Enable OIDC token delegation to ServiceNow",
+    )
+    parser.add_argument(
+        "--servicenow-audience",
+        default=os.environ.get("SERVICENOW_AUDIENCE", None),
+        help="Audience for the delegated ServiceNow token",
+    )
+    parser.add_argument(
+        "--delegated-scopes",
+        default=os.environ.get("DELEGATED_SCOPES", "api"),
+        help="Scopes for the delegated ServiceNow token (space-separated)",
+    )
 
     args = parser.parse_args()
 
     if args.port < 0 or args.port > 65535:
         print(f"Error: Port {args.port} is out of valid range (0-65535).")
         sys.exit(1)
+
+    # Update config with CLI arguments
+    config['enable_delegation'] = args.enable_delegation
+    config['servicenow_audience'] = args.servicenow_audience or config['servicenow_audience']
+    config['delegated_scopes'] = args.delegated_scopes or config['delegated_scopes']
+    config['oidc_config_url'] = args.oidc_config_url or config['oidc_config_url']
+    config['oidc_client_id'] = args.oidc_client_id or config['oidc_client_id']
+    config['oidc_client_secret'] = args.oidc_client_secret or config['oidc_client_secret']
+
+    # Configure delegation if enabled
+    if config['enable_delegation']:
+        if args.auth_type != "oidc-proxy":
+            logger.error("Token delegation requires auth-type=oidc-proxy")
+            sys.exit(1)
+        if not config['servicenow_audience']:
+            logger.error("servicenow-audience is required for delegation")
+            sys.exit(1)
+        if not all([config['oidc_config_url'], config['oidc_client_id'], config['oidc_client_secret']]):
+            logger.error("Delegation requires complete OIDC configuration (oidc-config-url, oidc-client-id, oidc-client-secret)")
+            sys.exit(1)
+
+        # Fetch OIDC configuration to get token_endpoint
+        try:
+            logger.info("Fetching OIDC configuration", extra={"oidc_config_url": config['oidc_config_url']})
+            oidc_config_resp = requests.get(config['oidc_config_url'])
+            oidc_config_resp.raise_for_status()
+            oidc_config = oidc_config_resp.json()
+            config['token_endpoint'] = oidc_config.get('token_endpoint')
+            if not config['token_endpoint']:
+                logger.error("No token_endpoint found in OIDC configuration")
+                raise ValueError("No token_endpoint found in OIDC configuration")
+            logger.info("OIDC configuration fetched successfully", extra={"token_endpoint": config['token_endpoint']})
+        except Exception as e:
+            logger.error(
+                "Failed to fetch OIDC configuration",
+                extra={"error_type": type(e).__name__, "error_message": str(e)}
+            )
+            sys.exit(1)
 
     # Set auth based on type
     auth = None
@@ -4495,7 +4661,6 @@ def servicenow_mcp():
     if args.auth_type == "none":
         auth = None
     elif args.auth_type == "static":
-        # Internal static tokens (hardcoded example)
         auth = StaticTokenVerifier(
             tokens={
                 "test-token": {"client_id": "test-user", "scopes": ["read", "write"]},
@@ -4504,8 +4669,9 @@ def servicenow_mcp():
         )
     elif args.auth_type == "jwt":
         if not (args.token_jwks_uri and args.token_issuer and args.token_audience):
-            print(
-                "Error: jwt requires --token-jwks-uri, --token-issuer, --token-audience"
+            logger.error(
+                "jwt requires token-jwks-uri, token-issuer, token-audience",
+                extra={"jwks_uri": args.token_jwks_uri, "issuer": args.token_issuer, "audience": args.token_audience}
             )
             sys.exit(1)
         auth = JWTVerifier(
@@ -4515,17 +4681,26 @@ def servicenow_mcp():
         )
     elif args.auth_type == "oauth-proxy":
         if not (
-            args.oauth_upstream_auth_endpoint
-            and args.oauth_upstream_token_endpoint
-            and args.oauth_upstream_client_id
-            and args.oauth_upstream_client_secret
-            and args.oauth_base_url
-            and args.token_jwks_uri
-            and args.token_issuer
-            and args.token_audience
+                args.oauth_upstream_auth_endpoint
+                and args.oauth_upstream_token_endpoint
+                and args.oauth_upstream_client_id
+                and args.oauth_upstream_client_secret
+                and args.oauth_base_url
+                and args.token_jwks_uri
+                and args.token_issuer
+                and args.token_audience
         ):
-            print(
-                "Error: oauth-proxy requires --oauth-upstream-auth-endpoint, --oauth-upstream-token-endpoint, --oauth-upstream-client-id, --oauth-upstream-client-secret, --oauth-base-url, --token-jwks-uri, --token-issuer, --token-audience"
+            logger.error(
+                "oauth-proxy requires oauth-upstream-auth-endpoint, oauth-upstream-token-endpoint, oauth-upstream-client-id, oauth-upstream-client-secret, oauth-base-url, token-jwks-uri, token-issuer, token-audience",
+                extra={
+                    "auth_endpoint": args.oauth_upstream_auth_endpoint,
+                    "token_endpoint": args.oauth_upstream_token_endpoint,
+                    "client_id": args.oauth_upstream_client_id,
+                    "base_url": args.oauth_base_url,
+                    "jwks_uri": args.token_jwks_uri,
+                    "issuer": args.token_issuer,
+                    "audience": args.token_audience
+                }
             )
             sys.exit(1)
         token_verifier = JWTVerifier(
@@ -4544,13 +4719,18 @@ def servicenow_mcp():
         )
     elif args.auth_type == "oidc-proxy":
         if not (
-            args.oidc_config_url
-            and args.oidc_client_id
-            and args.oidc_client_secret
-            and args.oidc_base_url
+                args.oidc_config_url
+                and args.oidc_client_id
+                and args.oidc_client_secret
+                and args.oidc_base_url
         ):
-            print(
-                "Error: oidc-proxy requires --oidc-config-url, --oidc-client-id, --oidc-client-secret, --oidc-base-url"
+            logger.error(
+                "oidc-proxy requires oidc-config-url, oidc-client-id, oidc-client-secret, oidc-base-url",
+                extra={
+                    "config_url": args.oidc_config_url,
+                    "client_id": args.oidc_client_id,
+                    "base_url": args.oidc_base_url
+                }
             )
             sys.exit(1)
         auth = OIDCProxy(
@@ -4562,14 +4742,21 @@ def servicenow_mcp():
         )
     elif args.auth_type == "remote-oauth":
         if not (
-            args.remote_auth_servers
-            and args.remote_base_url
-            and args.token_jwks_uri
-            and args.token_issuer
-            and args.token_audience
+                args.remote_auth_servers
+                and args.remote_base_url
+                and args.token_jwks_uri
+                and args.token_issuer
+                and args.token_audience
         ):
-            print(
-                "Error: remote-oauth requires --remote-auth-servers, --remote-base-url, --token-jwks-uri, --token-issuer, --token-audience"
+            logger.error(
+                "remote-oauth requires remote-auth-servers, remote-base-url, token-jwks-uri, token-issuer, token-audience",
+                extra={
+                    "auth_servers": args.remote_auth_servers,
+                    "base_url": args.remote_base_url,
+                    "jwks_uri": args.token_jwks_uri,
+                    "issuer": args.token_issuer,
+                    "audience": args.token_audience
+                }
             )
             sys.exit(1)
         auth_servers = [url.strip() for url in args.remote_auth_servers.split(",")]
@@ -4584,33 +4771,16 @@ def servicenow_mcp():
             base_url=args.remote_base_url,
         )
     mcp.auth = auth
-    if args.eunomia_type != "none":
-        from eunomia_mcp import create_eunomia_middleware
 
-        if args.eunomia_type == "embedded":
-            if not args.eunomia_policy_file:
-                print("Error: embedded Eunomia requires --eunomia-policy-file")
-                sys.exit(1)
-            middleware = create_eunomia_middleware(policy_file=args.eunomia_policy_file)
-            mcp.add_middleware(middleware)
-        elif args.eunomia_type == "remote":
-            if not args.eunomia_remote_url:
-                print("Error: remote Eunomia requires --eunomia-remote-url")
-                sys.exit(1)
-            middleware = create_eunomia_middleware(
-                use_remote_eunomia=args.eunomia_remote_url
-            )
-            mcp.add_middleware(middleware)
-
-    mcp.add_middleware(
-        ErrorHandlingMiddleware(include_traceback=True, transform_errors=True)
-    )
-    mcp.add_middleware(
-        RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20)
-    )
+    # Add middleware in logical order
+    if config['enable_delegation']:
+        mcp.add_middleware(UserTokenMiddleware())
+    mcp.add_middleware(ErrorHandlingMiddleware(include_traceback=True, transform_errors=True))
+    mcp.add_middleware(RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20))
     mcp.add_middleware(TimingMiddleware())
     mcp.add_middleware(LoggingMiddleware())
 
+    # Run the server
     if args.transport == "stdio":
         mcp.run(transport="stdio")
     elif args.transport == "http":
@@ -4618,8 +4788,7 @@ def servicenow_mcp():
     elif args.transport == "sse":
         mcp.run(transport="sse", host=args.host, port=args.port)
     else:
-        logger = logging.getLogger("ServiceNow")
-        logger.error("Transport not supported")
+        logger.error("Transport not supported", extra={"transport": args.transport})
         sys.exit(1)
 
 
