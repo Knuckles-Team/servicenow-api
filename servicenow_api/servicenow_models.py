@@ -1724,6 +1724,22 @@ class ReferenceField(BaseModel):
         description="Human-readable label of the choice (when sysparm_display_value=true)",
     )
 
+    @field_validator("value")
+    @classmethod
+    def coerce_value(cls, v):
+        if isinstance(v,(str,int)):
+            return v
+        elif isinstance(v, dict):
+            return v.get('value')
+        return v
+    @classmethod
+    def validate(cls, value):
+        if isinstance(value,(str,int)):
+            return cls(value=value)
+        elif isinstance(value, dict):
+            return cls(**value)
+        return value
+
 
 class Incident(BaseModel):
     model_config = ConfigDict(extra="allow")
