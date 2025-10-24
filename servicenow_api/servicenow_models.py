@@ -1735,11 +1735,11 @@ class Incident(BaseModel):
     number: Optional[str] = Field(
         default=None, description="Incident number (e.g., INC0012345)"
     )
-    state: Optional[str] = Field(
+    state: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="State of the incident (e.g., {value: '1', display_value: 'New'})",
     )
-    priority: Optional[str] = Field(
+    priority: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Priority level (e.g., {value: '3', display_value: 'Moderate'})",
     )
@@ -1749,11 +1749,11 @@ class Incident(BaseModel):
     description: Optional[str] = Field(
         default=None, description="Detailed description of the incident"
     )
-    impact: Optional[str] = Field(
+    impact: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Impact level (e.g., {value: '2', display_value: 'Medium'})",
     )
-    urgency: Optional[str] = Field(
+    urgency: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Urgency level (e.g., {value: '2', display_value: 'Medium'})",
     )
@@ -1763,19 +1763,19 @@ class Incident(BaseModel):
     subcategory: Optional[str] = Field(
         default=None, description="Subcategory of the incident"
     )
-    caller_id: Optional[str] = Field(
+    caller_id: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the caller (sys_user)"
     )
-    assigned_to: Optional[str] = Field(
+    assigned_to: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the assigned user (sys_user)"
     )
-    assignment_group: Optional[ReferenceField] = Field(
+    assignment_group: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the assignment group (sys_user_group)"
     )
     opened_at: Optional[str] = Field(
         default=None, description="Timestamp when the incident was opened"
     )
-    opened_by: Optional[ReferenceField] = Field(
+    opened_by: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Reference to the user who opened the incident (sys_user)",
     )
@@ -1788,7 +1788,7 @@ class Incident(BaseModel):
     close_notes: Optional[str] = Field(
         default=None, description="Notes provided upon incident closure"
     )
-    incident_state: Optional[str] = Field(
+    incident_state: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Detailed incident state"
     )
     sys_created_on: Optional[str] = Field(
@@ -1803,20 +1803,20 @@ class Incident(BaseModel):
     sys_created_by: Optional[str] = Field(
         default=None, description="User who created the record"
     )
-    company: Optional[ReferenceField] = Field(
+    company: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the associated company (core_company)"
     )
-    location: Optional[str] = Field(
+    location: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the location (cmn_location)"
     )
-    cmdb_ci: Optional[ReferenceField] = Field(
+    cmdb_ci: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Reference to the related configuration item (cmdb_ci)",
     )
-    problem_id: Optional[str] = Field(
+    problem_id: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the related problem (problem)"
     )
-    change_request: Optional[ReferenceField] = Field(
+    change_request: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Reference to the related change request (change_request)",
     )
@@ -1829,20 +1829,20 @@ class Incident(BaseModel):
     active: Optional[bool] = Field(
         default=None, description="Whether the incident is active"
     )
-    severity: Optional[str] = Field(
+    severity: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Severity level of the incident"
     )
     notify: Optional[str] = Field(default=None, description="Notification preference")
     contact_type: Optional[str] = Field(
         default=None, description="How the incident was reported (e.g., phone, email)"
     )
-    parent: Optional[str] = Field(
+    parent: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Reference to the parent incident, if any (incident)"
     )
-    escalation: Optional[str] = Field(
+    escalation: Optional[Union[ReferenceField, str]] = Field(
         default=None, description="Escalation level of the incident"
     )
-    sys_domain: Optional[ReferenceField] = Field(
+    sys_domain: Optional[Union[ReferenceField, str]] = Field(
         default=None,
         description="Reference to the domain for domain separation (sys_domain)",
     )
