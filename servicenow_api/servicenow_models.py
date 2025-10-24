@@ -1724,22 +1724,6 @@ class ReferenceField(BaseModel):
         description="Human-readable label of the choice (when sysparm_display_value=true)",
     )
 
-    @field_validator("value")
-    @classmethod
-    def coerce_value(cls, v):
-        if isinstance(v,(str,int)):
-            return v
-        elif isinstance(v, dict):
-            return v.get('value')
-        return v
-    @classmethod
-    def validate(cls, value):
-        if isinstance(value,(str,int)):
-            return cls(value=value)
-        elif isinstance(value, dict):
-            return cls(**value)
-        return value
-
 
 class Incident(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -1751,11 +1735,11 @@ class Incident(BaseModel):
     number: Optional[str] = Field(
         default=None, description="Incident number (e.g., INC0012345)"
     )
-    state: Optional[ReferenceField] = Field(
+    state: Optional[str] = Field(
         default=None,
         description="State of the incident (e.g., {value: '1', display_value: 'New'})",
     )
-    priority: Optional[ReferenceField] = Field(
+    priority: Optional[str] = Field(
         default=None,
         description="Priority level (e.g., {value: '3', display_value: 'Moderate'})",
     )
@@ -1765,11 +1749,11 @@ class Incident(BaseModel):
     description: Optional[str] = Field(
         default=None, description="Detailed description of the incident"
     )
-    impact: Optional[ReferenceField] = Field(
+    impact: Optional[str] = Field(
         default=None,
         description="Impact level (e.g., {value: '2', display_value: 'Medium'})",
     )
-    urgency: Optional[ReferenceField] = Field(
+    urgency: Optional[str] = Field(
         default=None,
         description="Urgency level (e.g., {value: '2', display_value: 'Medium'})",
     )
@@ -1779,10 +1763,10 @@ class Incident(BaseModel):
     subcategory: Optional[str] = Field(
         default=None, description="Subcategory of the incident"
     )
-    caller_id: Optional[ReferenceField] = Field(
+    caller_id: Optional[str] = Field(
         default=None, description="Reference to the caller (sys_user)"
     )
-    assigned_to: Optional[ReferenceField] = Field(
+    assigned_to: Optional[str] = Field(
         default=None, description="Reference to the assigned user (sys_user)"
     )
     assignment_group: Optional[ReferenceField] = Field(
@@ -1804,7 +1788,7 @@ class Incident(BaseModel):
     close_notes: Optional[str] = Field(
         default=None, description="Notes provided upon incident closure"
     )
-    incident_state: Optional[ReferenceField] = Field(
+    incident_state: Optional[str] = Field(
         default=None, description="Detailed incident state"
     )
     sys_created_on: Optional[str] = Field(
@@ -1822,14 +1806,14 @@ class Incident(BaseModel):
     company: Optional[ReferenceField] = Field(
         default=None, description="Reference to the associated company (core_company)"
     )
-    location: Optional[ReferenceField] = Field(
+    location: Optional[str] = Field(
         default=None, description="Reference to the location (cmn_location)"
     )
     cmdb_ci: Optional[ReferenceField] = Field(
         default=None,
         description="Reference to the related configuration item (cmdb_ci)",
     )
-    problem_id: Optional[ReferenceField] = Field(
+    problem_id: Optional[str] = Field(
         default=None, description="Reference to the related problem (problem)"
     )
     change_request: Optional[ReferenceField] = Field(
@@ -1845,17 +1829,17 @@ class Incident(BaseModel):
     active: Optional[bool] = Field(
         default=None, description="Whether the incident is active"
     )
-    severity: Optional[ReferenceField] = Field(
+    severity: Optional[str] = Field(
         default=None, description="Severity level of the incident"
     )
     notify: Optional[str] = Field(default=None, description="Notification preference")
     contact_type: Optional[str] = Field(
         default=None, description="How the incident was reported (e.g., phone, email)"
     )
-    parent: Optional[ReferenceField] = Field(
+    parent: Optional[str] = Field(
         default=None, description="Reference to the parent incident, if any (incident)"
     )
-    escalation: Optional[ReferenceField] = Field(
+    escalation: Optional[str] = Field(
         default=None, description="Escalation level of the incident"
     )
     sys_domain: Optional[ReferenceField] = Field(
