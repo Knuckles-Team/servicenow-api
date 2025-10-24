@@ -3423,6 +3423,47 @@ def get_incidents(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
+    name_value_pairs: Optional[Dict[str, str]] = Field(
+        default=None, description="Dictionary of name-value pairs for filtering records"
+    ),
+    sysparm_display_value: Optional[str] = Field(
+        default=None,
+        description="Display values for reference fields ('true', 'false', or 'all')",
+    ),
+    sysparm_exclude_reference_link: Optional[bool] = Field(
+        default=None, description="Exclude reference links in the response"
+    ),
+    sysparm_fields: Optional[str] = Field(
+        default=None,
+        description="Comma-separated list of field names to include in the response",
+    ),
+    sysparm_limit: Optional[int] = Field(
+        default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+        description="Maximum number of records to return",
+    ),
+    sysparm_no_count: Optional[bool] = Field(
+        default=None,
+        description="Do not include the total number of records in the response",
+    ),
+    sysparm_offset: Optional[int] = Field(
+        default=None,
+        description="Number of records to skip before starting the retrieval",
+    ),
+    sysparm_query: Optional[str] = Field(
+        default=None, description="Encoded query string for filtering records"
+    ),
+    sysparm_query_category: Optional[str] = Field(
+        default=None, description="Category to which the query belongs"
+    ),
+    sysparm_query_no_domain: Optional[bool] = Field(
+        default=None, description="Exclude records based on domain separation"
+    ),
+    sysparm_suppress_pagination_header: Optional[bool] = Field(
+        default=None, description="Suppress pagination headers in the response"
+    ),
+    sysparm_view: Optional[str] = Field(
+        default=None, description="Display style ('desktop', 'mobile', or 'both')"
+    ),
 ) -> Response:
     """
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
@@ -3438,7 +3479,20 @@ def get_incidents(
     if incident_id:
         response = client.get_incident(incident_id=incident_id)
     else:
-        response = client.get_incidents()
+        response = client.get_incidents(
+            name_value_pairs=name_value_pairs,
+            sysparm_display_value=sysparm_display_value,
+            sysparm_exclude_reference_link=sysparm_exclude_reference_link,
+            sysparm_fields=sysparm_fields,
+            sysparm_limit=sysparm_limit,
+            sysparm_no_count=sysparm_no_count,
+            sysparm_offset=sysparm_offset,
+            sysparm_query=sysparm_query,
+            sysparm_query_category=sysparm_query_category,
+            sysparm_query_no_domain=sysparm_query_no_domain,
+            sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
+            sysparm_view=sysparm_view,
+        )
     return response.result
 
 

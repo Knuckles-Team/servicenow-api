@@ -2476,13 +2476,36 @@ class Api(object):
         """
         Retrieve details of incident records.
 
-        :param kwargs: Keyword arguments to initialize an IncidentModel instance.
-        :type kwargs: dict
+        :param name_value_pairs: Dictionary of name-value pairs for filtering records.
+        :type name_value_pairs: dict
+        :param sysparm_display_value: Display values for reference fields ('True', 'False', or 'all').
+        :type sysparm_display_value: str
+        :param sysparm_exclude_reference_link: Exclude reference links in the response.
+        :type sysparm_exclude_reference_link: bool
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_no_count: Do not include the total number of records in the response.
+        :type sysparm_no_count: bool
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param sysparm_query: Encoded query string for filtering records.
+        :type sysparm_query: str
+        :param sysparm_query_category: Category to which the query belongs.
+        :type sysparm_query_category: str
+        :param sysparm_query_no_domain: Exclude records based on domain separation.
+        :type sysparm_query_no_domain: bool
+        :param sysparm_suppress_pagination_header: Suppress pagination headers in the response.
+        :type sysparm_suppress_pagination_header: bool
+        :param sysparm_view: Display style ('desktop', 'mobile', or 'both').
+        :type sysparm_view: str
 
-        :return: Response containing list of parsed Pydantic models with information about the incident records.
+        :return: Response containing list of parsed Pydantic models with information about the retrieved records.
         :rtype: Response
 
-        :raises ParameterError: If validation of parameters fails.
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
         """
         try:
             incident = IncidentModel(**kwargs)
@@ -2513,11 +2536,36 @@ class Api(object):
         :param incident_id: The sys_id of the incident record.
         :type incident_id: str
 
-        :return: Response containing parsed Pydantic model with information about the incident record.
+        :param name_value_pairs: Dictionary of name-value pairs for filtering records.
+        :type name_value_pairs: dict
+        :param sysparm_display_value: Display values for reference fields ('True', 'False', or 'all').
+        :type sysparm_display_value: str
+        :param sysparm_exclude_reference_link: Exclude reference links in the response.
+        :type sysparm_exclude_reference_link: bool
+        :param sysparm_fields: Comma-separated list of field names to include in the response.
+        :type sysparm_fields: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int
+        :param sysparm_no_count: Do not include the total number of records in the response.
+        :type sysparm_no_count: bool
+        :param sysparm_offset: Number of records to skip before starting the retrieval.
+        :type sysparm_offset: int
+        :param sysparm_query: Encoded query string for filtering records.
+        :type sysparm_query: str
+        :param sysparm_query_category: Category to which the query belongs.
+        :type sysparm_query_category: str
+        :param sysparm_query_no_domain: Exclude records based on domain separation.
+        :type sysparm_query_no_domain: bool
+        :param sysparm_suppress_pagination_header: Suppress pagination headers in the response.
+        :type sysparm_suppress_pagination_header: bool
+        :param sysparm_view: Display style ('desktop', 'mobile', or 'both').
+        :type sysparm_view: str
+
+        :return: Response containing list of parsed Pydantic models with information about the retrieved records.
         :rtype: Response
 
-        :raises MissingParameterError: If the incident_id is not provided.
-        :raises ParameterError: If validation of parameters fails.
+        :raises MissingParameterError: If table is not provided.
+        :raises ParameterError: If input parameters are invalid.
         """
         try:
             incident = IncidentModel(**kwargs)
@@ -2525,6 +2573,7 @@ class Api(object):
                 raise MissingParameterError
             response = self._session.get(
                 url=f"{self.url}/now/table/incident/{incident.incident_id}",
+                params=incident.api_parameters,
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,
