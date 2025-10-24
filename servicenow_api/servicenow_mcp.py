@@ -81,6 +81,7 @@ class UserTokenMiddleware(Middleware):
         """
         Extract Bearer token from request headers and store it in thread-local storage.
         """
+        logger.debug(f"Delegation enabled: {config['enable_delegation']}")
         if config["enable_delegation"]:
             headers = getattr(context.message, "headers", {})
             logger.debug(
@@ -1757,7 +1758,7 @@ def get_change_requests(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    logging.info("Getting Incidents...")
+    logging.info("Getting Change Requests...")
     return response
 
 
