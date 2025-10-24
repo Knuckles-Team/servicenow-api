@@ -3479,8 +3479,8 @@ def get_incidents(
     """
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
-    client = get_client(
-        servicenow_instance=servicenow_instance,
+    client = Api(
+        url=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
