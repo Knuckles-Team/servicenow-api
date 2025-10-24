@@ -48,7 +48,7 @@ ENV EUNOMIA_REMOTE_URL=${EUNOMIA_REMOTE_URL}
 ENV PATH="/usr/local/bin:${PATH}"
 
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api>=1.3.13
+    && uv pip install --system --upgrade servicenow-api>=1.3.14
 
 ENTRYPOINT exec servicenow-mcp \
     --transport "${TRANSPORT}" \
