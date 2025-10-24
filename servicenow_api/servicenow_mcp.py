@@ -71,40 +71,40 @@ config = {
 }
 
 
-# class UserTokenMiddleware(Middleware):
-#     """
-#     Middleware to extract and store the Bearer token from incoming requests for OIDC delegation.
-#     Uses server-side logging with fastmcp.utilities.logging.get_logger().
-#     """
-#
-#     async def on_request(self, context: MiddlewareContext, call_next):
-#         """
-#         Extract Bearer token from request headers and store it in thread-local storage.
-#         """
-#         logger.debug(f"Delegation enabled: {config['enable_delegation']}")
-#         if config["enable_delegation"]:
-#             headers = getattr(context.message, "headers", {})
-#             logger.debug(
-#                 "Checking for Authorization header",
-#                 extra={"headers": list(headers.keys())},
-#             )
-#
-#             auth = headers.get("Authorization")
-#             if auth and auth.startswith("Bearer "):
-#                 token = auth.split(" ")[1]
-#                 local.user_token = token
-#                 logger.info(
-#                     "Successfully extracted Bearer token",
-#                     extra={"token_length": len(token)},
-#                 )
-#             else:
-#                 logger.error(
-#                     "Missing or invalid Authorization header",
-#                     extra={"headers_available": bool(headers)},
-#                 )
-#                 raise ValueError("Missing or invalid Authorization header")
-#
-#         return await call_next(context)
+class UserTokenMiddleware(Middleware):
+    """
+    Middleware to extract and store the Bearer token from incoming requests for OIDC delegation.
+    Uses server-side logging with fastmcp.utilities.logging.get_logger().
+    """
+
+    async def on_request(self, context: MiddlewareContext, call_next):
+        """
+        Extract Bearer token from request headers and store it in thread-local storage.
+        """
+        logger.debug(f"Delegation enabled: {config['enable_delegation']}")
+        if config["enable_delegation"]:
+            headers = getattr(context.message, "headers", {})
+            logger.debug(
+                "Checking for Authorization header",
+                extra={"headers": list(headers.keys())},
+            )
+
+            auth = headers.get("Authorization")
+            if auth and auth.startswith("Bearer "):
+                token = auth.split(" ")[1]
+                local.user_token = token
+                logger.info(
+                    "Successfully extracted Bearer token",
+                    extra={"token_length": len(token)},
+                )
+            else:
+                logger.error(
+                    "Missing or invalid Authorization header",
+                    extra={"headers_available": bool(headers)},
+                )
+                raise ValueError("Missing or invalid Authorization header")
+
+        return await call_next(context)
 
 
 def get_client(
@@ -3479,8 +3479,8 @@ def get_incidents(
     """
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
-    client = Api(
-        url=servicenow_instance,
+    client = get_client(
+        servicenow_instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4879,8 +4879,8 @@ def servicenow_mcp():
     mcp.auth = auth
 
     # Add middleware in logical order
-    # if config["enable_delegation"]:
-    #     mcp.add_middleware(UserTokenMiddleware())
+    if config["enable_delegation"]:
+        mcp.add_middleware(UserTokenMiddleware())
     mcp.add_middleware(
         ErrorHandlingMiddleware(include_traceback=True, transform_errors=True)
     )
