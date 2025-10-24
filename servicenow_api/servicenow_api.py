@@ -1142,7 +1142,7 @@ class Api(object):
         :param order: Ordering parameter for sorting results.
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1312,7 +1312,7 @@ class Api(object):
         :param order: Ordering parameter for sorting results.
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1514,7 +1514,7 @@ class Api(object):
         :param order: Ordering parameter for sorting results.
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1601,7 +1601,7 @@ class Api(object):
         :param order: Ordering parameter for sorting results.
         :type order: str or None
         :param name_value_pairs: Additional name-value pairs for filtering.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param sysparm_query: Query parameter for filtering results.
         :type sysparm_query: str or None
         :param text_search: Text search parameter for searching results.
@@ -1799,7 +1799,7 @@ class Api(object):
         Create a new change request.
 
         :param name_value_pairs: Name-value pairs providing details for the new change request.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param change_type: Type of change (emergency, normal, standard).
         :type change_type: str or None
         :param standard_change_template_id: Sys ID of the standard change request template (if applicable).
@@ -2099,7 +2099,7 @@ class Api(object):
         :param change_request_sys_id: Sys ID of the change request.
         :type change_request_sys_id: str or None
         :param name_value_pairs: New name-value pairs providing updated details for the change request.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
         :param change_type: Type of change (emergency, normal, standard, model).
         :type change_type: str or None
 
@@ -2187,7 +2187,7 @@ class Api(object):
         :param change_request_task_sys_id: Sys ID of the change request task.
         :type change_request_task_sys_id: str or None
         :param name_value_pairs: New name-value pairs providing updated details for the task.
-        :type name_value_pairs: dict or None
+        :type name_value_pairs: str or None
 
         :return: Response containing parsed Pydantic model with information about the updated task.
         :rtype: Response
@@ -2477,7 +2477,7 @@ class Api(object):
         Retrieve details of incident records.
 
         :param name_value_pairs: Dictionary of name-value pairs for filtering records.
-        :type name_value_pairs: dict
+        :type name_value_pairs: str
         :param sysparm_display_value: Display values for reference fields ('True', 'False', or 'all').
         :type sysparm_display_value: str
         :param sysparm_exclude_reference_link: Exclude reference links in the response.
@@ -2899,7 +2899,7 @@ class Api(object):
         :param table: The name of the table.
         :type table: str
         :param name_value_pairs: Dictionary of name-value pairs for filtering records.
-        :type name_value_pairs: dict
+        :type name_value_pairs: str
         :param sysparm_display_value: Display values for reference fields ('True', 'False', or 'all').
         :type sysparm_display_value: str
         :param sysparm_exclude_reference_link: Exclude reference links in the response.
