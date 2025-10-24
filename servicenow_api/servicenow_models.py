@@ -708,7 +708,7 @@ class IncidentModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_view' is not a valid view.
         """
-        if v not in ["desktop", "mobile", "both"]:
+        if v not in ["desktop", "mobile", "both", None]:
             raise ParameterError
         return v
 
@@ -726,7 +726,7 @@ class IncidentModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_display_value' is not a valid display value.
         """
-        if v not in [True, False, "all"]:
+        if v not in [True, False, "all", None]:
             raise ParameterError
         return v
 
@@ -919,7 +919,7 @@ class TableModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_view' is not a valid view.
         """
-        if v not in ["desktop", "mobile", "both"]:
+        if v not in ["desktop", "mobile", "both", None]:
             raise ParameterError
         return v
 
@@ -937,7 +937,7 @@ class TableModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_display_value' is not a valid display value.
         """
-        if v not in [True, False, "all"]:
+        if v not in [True, False, "all", None]:
             raise ParameterError
         return v
 
