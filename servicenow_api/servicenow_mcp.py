@@ -6,6 +6,7 @@ import argparse
 import sys
 import logging
 import threading
+import ast
 from typing import Optional, List, Dict, Any, Union
 
 import requests
@@ -1695,8 +1696,9 @@ def get_change_requests(
     order: Optional[str] = Field(
         default=None, description="Ordering parameter for sorting results"
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Additional name-value pairs for filtering"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_query: Optional[str] = Field(
         default=None, description="Query parameter for filtering results"
@@ -1746,6 +1748,8 @@ def get_change_requests(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.get_change_requests(
         order=order,
         name_value_pairs=name_value_pairs,
@@ -1886,8 +1890,9 @@ def get_change_request_tasks(
     order: Optional[str] = Field(
         default=None, description="Ordering parameter for sorting results"
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Additional name-value pairs for filtering"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_query: Optional[str] = Field(
         default=None, description="Query parameter for filtering results"
@@ -1934,6 +1939,8 @@ def get_change_request_tasks(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.get_change_request_tasks(
         change_request_sys_id=change_request_sys_id,
         order=order,
@@ -2131,8 +2138,9 @@ def get_standard_change_request_templates(
     order: Optional[str] = Field(
         default=None, description="Ordering parameter for sorting results"
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Additional name-value pairs for filtering"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_query: Optional[str] = Field(
         default=None, description="Query parameter for filtering results"
@@ -2179,6 +2187,8 @@ def get_standard_change_request_templates(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.get_standard_change_request_templates(
         order=order,
         name_value_pairs=name_value_pairs,
@@ -2209,8 +2219,9 @@ def get_change_request_models(
     order: Optional[str] = Field(
         default=None, description="Ordering parameter for sorting results"
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Additional name-value pairs for filtering"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_query: Optional[str] = Field(
         default=None, description="Query parameter for filtering results"
@@ -2260,6 +2271,8 @@ def get_change_request_models(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.get_change_request_models(
         order=order,
         name_value_pairs=name_value_pairs,
@@ -2449,8 +2462,9 @@ def get_change_request_worker(
     tags={"change_management"},
 )
 def create_change_request(
-    name_value_pairs: Dict[str, str] = Field(
-        description="Name-value pairs providing details for the new change request"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     servicenow_instance: str = Field(
         default=os.environ.get("SERVICENOW_INSTANCE", None),
@@ -2495,6 +2509,8 @@ def create_change_request(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.create_change_request(
         name_value_pairs=name_value_pairs,
         change_type=change_type,
@@ -2867,8 +2883,9 @@ def approve_change_request(
 )
 def update_change_request(
     change_request_sys_id: str = Field(description="Sys ID of the change request"),
-    name_value_pairs: Dict[str, str] = Field(
-        description="New name-value pairs providing updated details for the change request"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     servicenow_instance: str = Field(
         default=os.environ.get("SERVICENOW_INSTANCE", None),
@@ -2909,6 +2926,8 @@ def update_change_request(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.update_change_request(
         change_request_sys_id=change_request_sys_id,
         name_value_pairs=name_value_pairs,
@@ -2988,8 +3007,9 @@ def update_change_request_task(
     change_request_task_sys_id: str = Field(
         description="Sys ID of the change request task"
     ),
-    name_value_pairs: Dict[str, str] = Field(
-        description="New name-value pairs providing updated details for the task"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     servicenow_instance: str = Field(
         default=os.environ.get("SERVICENOW_INSTANCE", None),
@@ -3027,6 +3047,8 @@ def update_change_request_task(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.update_change_request_task(
         change_request_sys_id=change_request_sys_id,
         change_request_task_sys_id=change_request_task_sys_id,
@@ -3423,8 +3445,9 @@ def get_incidents(
         default=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
         description="Whether to verify SSL certificates",
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Dictionary of name-value pairs for filtering records"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_display_value: Optional[str] = Field(
         default=None,
@@ -3479,6 +3502,8 @@ def get_incidents(
     if incident_id:
         response = client.get_incident(incident_id=incident_id)
     else:
+        if name_value_pairs and isinstance(name_value_pairs, str):
+            name_value_pairs = ast.literal_eval(name_value_pairs)
         response = client.get_incidents(
             name_value_pairs=name_value_pairs,
             sysparm_display_value=sysparm_display_value,
@@ -4038,8 +4063,9 @@ def get_table(
         default=os.environ.get("SERVICENOW_INSTANCE", None),
         description="The URL of the ServiceNow instance (e.g., https://yourinstance.servicenow.com)",
     ),
-    name_value_pairs: Optional[Dict[str, str]] = Field(
-        default=None, description="Dictionary of name-value pairs for filtering records"
+    name_value_pairs: Optional[str] = Field(
+        default=None,
+        description="Dictionary of name-value pairs for filtering records entered as a string",
     ),
     sysparm_display_value: Optional[str] = Field(
         default=None,
@@ -4111,6 +4137,8 @@ def get_table(
         client_secret=client_secret,
         verify=verify,
     )
+    if name_value_pairs and isinstance(name_value_pairs, str):
+        name_value_pairs = ast.literal_eval(name_value_pairs)
     response = client.get_table(
         table=table,
         name_value_pairs=name_value_pairs,
