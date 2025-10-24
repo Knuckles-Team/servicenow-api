@@ -228,7 +228,7 @@ def get_application(
         verify=verify,
     )
     response = client.get_application(application_id=application_id)
-    return response.result
+    return response
 
 
 # CMDB Tools
@@ -284,7 +284,7 @@ def get_cmdb(
         verify=verify,
     )
     response = client.get_cmdb(cmdb_id=cmdb_id)
-    return response.result
+    return response
 
 
 # CI/CD Tools
@@ -340,7 +340,7 @@ def batch_install_result(
         verify=verify,
     )
     response = client.batch_install_result(result_id=result_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -395,7 +395,7 @@ def instance_scan_progress(
         verify=verify,
     )
     response = client.instance_scan_progress(progress_id=progress_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -448,7 +448,7 @@ def progress(
         verify=verify,
     )
     response = client.progress(progress_id=progress_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -505,7 +505,7 @@ def batch_install(
         verify=verify,
     )
     response = client.batch_install(name=name, packages=packages, notes=notes)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -558,7 +558,7 @@ def batch_rollback(
         verify=verify,
     )
     response = client.batch_rollback(rollback_id=rollback_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -629,7 +629,7 @@ def app_repo_install(
         base_app_version=base_app_version,
         version=version,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -693,7 +693,7 @@ def app_repo_publish(
     response = client.app_repo_publish(
         app_sys_id=app_sys_id, scope=scope, dev_notes=dev_notes, version=version
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -754,7 +754,7 @@ def app_repo_rollback(
     response = client.app_repo_rollback(
         app_sys_id=app_sys_id, scope=scope, version=version
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -806,7 +806,7 @@ def full_scan(
         verify=verify,
     )
     response = client.full_scan()
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -860,7 +860,7 @@ def point_scan(
         verify=verify,
     )
     response = client.point_scan(target_sys_id=target_sys_id, target_table=target_table)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -913,7 +913,7 @@ def combo_suite_scan(
         verify=verify,
     )
     response = client.combo_suite_scan(combo_sys_id=combo_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -974,7 +974,7 @@ def suite_scan(
     response = client.suite_scan(
         suite_sys_id=suite_sys_id, sys_ids=sys_ids, scan_type=scan_type
     )
-    return response.result
+    return response
 
 
 # Plugin and Update Set Tools
@@ -1028,7 +1028,7 @@ def activate_plugin(
         verify=verify,
     )
     response = client.activate_plugin(plugin_id=plugin_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1081,7 +1081,7 @@ def rollback_plugin(
         verify=verify,
     )
     response = client.rollback_plugin(plugin_id=plugin_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1148,7 +1148,7 @@ def apply_remote_source_control_changes(
         branch_name=branch_name,
         auto_upgrade_base_app=auto_upgrade_base_app,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1221,7 +1221,7 @@ def import_repository(
         branch_name=branch_name,
         auto_upgrade_base_app=auto_upgrade_base_app,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1296,7 +1296,7 @@ def run_test_suite(
         os_name=os_name,
         os_version=os_version,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1363,7 +1363,7 @@ def update_set_create(
         scope=scope,
         sys_id=sys_id,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1438,7 +1438,7 @@ def update_set_retrieve(
         auto_preview=auto_preview,
         cleanup_retrieved=cleanup_retrieved,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1493,7 +1493,7 @@ def update_set_preview(
         verify=verify,
     )
     response = client.update_set_preview(remote_update_set_id=remote_update_set_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1552,7 +1552,7 @@ def update_set_commit(
     response = client.update_set_commit(
         remote_update_set_id=remote_update_set_id, force_commit=force_commit
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1613,7 +1613,7 @@ def update_set_commit_multiple(
     response = client.update_set_commit_multiple(
         remote_update_set_ids=remote_update_set_ids, force_commit=force_commit
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1672,7 +1672,7 @@ def update_set_back_out(
     response = client.update_set_back_out(
         update_set_id=update_set_id, rollback_installs=rollback_installs
     )
-    return response.result
+    return response
 
 
 # Change Management Tools
@@ -1755,7 +1755,7 @@ def get_change_requests(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1810,7 +1810,7 @@ def get_change_request_nextstate(
     response = client.get_change_request_nextstate(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1863,7 +1863,7 @@ def get_change_request_schedule(
         verify=verify,
     )
     response = client.get_change_request_schedule(cmdb_ci_sys_id=cmdb_ci_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -1943,7 +1943,7 @@ def get_change_request_tasks(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2001,7 +2001,7 @@ def get_change_request(
     response = client.get_change_request(
         change_request_sys_id=change_request_sys_id, change_type=change_type
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2054,7 +2054,7 @@ def get_change_request_ci(
         verify=verify,
     )
     response = client.get_change_request_ci(change_request_sys_id=change_request_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2109,7 +2109,7 @@ def get_change_request_conflict(
     response = client.get_change_request_conflict(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2187,7 +2187,7 @@ def get_standard_change_request_templates(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2269,7 +2269,7 @@ def get_change_request_models(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2324,7 +2324,7 @@ def get_standard_change_request_model(
         verify=verify,
     )
     response = client.get_standard_change_request_model(model_sys_id=model_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2381,7 +2381,7 @@ def get_standard_change_request_template(
     response = client.get_standard_change_request_template(
         template_sys_id=template_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2434,7 +2434,7 @@ def get_change_request_worker(
         verify=verify,
     )
     response = client.get_change_request_worker(worker_sys_id=worker_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2500,7 +2500,7 @@ def create_change_request(
         change_type=change_type,
         standard_change_template_id=standard_change_template_id,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2558,7 +2558,7 @@ def create_change_request_task(
     response = client.create_change_request_task(
         change_request_sys_id=change_request_sys_id, data=data
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2626,7 +2626,7 @@ def create_change_request_ci_association(
         association_type=association_type,
         refresh_impacted_services=refresh_impacted_services,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2683,7 +2683,7 @@ def calculate_standard_change_request_risk(
     response = client.calculate_standard_change_request_risk(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2738,7 +2738,7 @@ def check_change_request_conflict(
     response = client.check_change_request_conflict(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2793,7 +2793,7 @@ def refresh_change_request_impacted_services(
     response = client.refresh_change_request_impacted_services(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2851,7 +2851,7 @@ def approve_change_request(
     response = client.approve_change_request(
         change_request_sys_id=change_request_sys_id, state=state
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2914,7 +2914,7 @@ def update_change_request(
         name_value_pairs=name_value_pairs,
         change_type=change_type,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -2969,7 +2969,7 @@ def update_change_request_first_available(
     response = client.update_change_request_first_available(
         change_request_sys_id=change_request_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3032,7 +3032,7 @@ def update_change_request_task(
         change_request_task_sys_id=change_request_task_sys_id,
         name_value_pairs=name_value_pairs,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3090,7 +3090,7 @@ def delete_change_request(
     response = client.delete_change_request(
         change_request_sys_id=change_request_sys_id, change_type=change_type
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3148,7 +3148,7 @@ def delete_change_request_task(
     response = client.delete_change_request_task(
         change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3206,7 +3206,7 @@ def delete_change_request_conflict_scan(
     response = client.delete_change_request_conflict_scan(
         change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
     )
-    return response.result
+    return response
 
 
 # Import Set Tools
@@ -3263,7 +3263,7 @@ def get_import_set(
         verify=verify,
     )
     response = client.get_import_set(table=table, import_set_sys_id=import_set_sys_id)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3321,7 +3321,7 @@ def insert_import_set(
         verify=verify,
     )
     response = client.insert_import_set(table=table, data=data)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3379,7 +3379,7 @@ def insert_multiple_import_sets(
         verify=verify,
     )
     response = client.insert_multiple_import_sets(table=table, data=data)
-    return response.result
+    return response
 
 
 # Incident Tools
@@ -3493,7 +3493,7 @@ def get_incidents(
             sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
             sysparm_view=sysparm_view,
         )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3548,7 +3548,7 @@ def create_incident(
         verify=verify,
     )
     response = client.create_incident(data=data)
-    return response.result
+    return response
 
 
 # Knowledge Management Tools
@@ -3640,7 +3640,7 @@ def get_knowledge_articles(
         kb=kb,
         language=language,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3747,7 +3747,7 @@ def get_knowledge_article(
         kb=kb,
         language=language,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3803,7 +3803,7 @@ def get_knowledge_article_attachment(
     response = client.get_knowledge_article_attachment(
         article_sys_id=article_sys_id, attachment_sys_id=attachment_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3881,7 +3881,7 @@ def get_featured_knowledge_article(
         kb=kb,
         language=language,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -3959,7 +3959,7 @@ def get_most_viewed_knowledge_articles(
         kb=kb,
         language=language,
     )
-    return response.result
+    return response
 
 
 # Table API Tools
@@ -4018,7 +4018,7 @@ def delete_table_record(
     response = client.delete_table_record(
         table=table, table_record_sys_id=table_record_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4126,7 +4126,7 @@ def get_table(
         sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
         sysparm_view=sysparm_view,
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4184,7 +4184,7 @@ def get_table_record(
     response = client.get_table_record(
         table=table, table_record_sys_id=table_record_sys_id
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4245,7 +4245,7 @@ def patch_table_record(
     response = client.patch_table_record(
         table=table, table_record_sys_id=table_record_sys_id, data=data
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4306,7 +4306,7 @@ def update_table_record(
     response = client.update_table_record(
         table=table, table_record_sys_id=table_record_sys_id, data=data
     )
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4362,7 +4362,7 @@ def add_table_record(
         verify=verify,
     )
     response = client.add_table_record(table=table, data=data)
-    return response.result
+    return response
 
 
 @mcp.tool(
@@ -4414,7 +4414,7 @@ def refresh_auth_token(
         verify=verify,
     )
     response = client.refresh_auth_token()
-    return response.result
+    return response
 
 
 # Custom API Tools
@@ -4480,7 +4480,7 @@ def api_request(
     response = client.api_request(
         method=method, endpoint=endpoint, data=data, json=json
     )
-    return response.result
+    return response
 
 
 def get_servicenow_client() -> Api:
