@@ -65,6 +65,7 @@ def to_dictionary(string: Union[str, dict] = None) -> dict:
         return string
     if not string:
         return {}
+    logging.info(f"to_dictionary: {string}")
     if string and isinstance(string, str):
         try:
             string = ast.literal_eval(string)
@@ -72,6 +73,7 @@ def to_dictionary(string: Union[str, dict] = None) -> dict:
             raise ValueError(
                 "Invalid format for name_value_pairs; must be a valid dict string."
             )
+    logging.info(f"final processing of string: {string}")
     return string
 
 
@@ -1763,6 +1765,7 @@ def get_change_requests(
         client_secret=client_secret,
         verify=verify,
     )
+    logging.info("Getting Change Requests...")
     response = client.get_change_requests(
         order=order,
         name_value_pairs=to_dictionary(string=name_value_pairs),
@@ -1772,6 +1775,7 @@ def get_change_requests(
         sysparm_offset=sysparm_offset,
         sysparm_limit=sysparm_limit,
     )
+    logging.info("Getting Incidents...")
     return response
 
 
@@ -3501,9 +3505,11 @@ def get_incidents(
         verify=verify,
     )
     if incident_id:
+        logging.info("Getting Incident...")
         response = client.get_incident(incident_id=incident_id)
+        logging.info(f"Response: {response}")
     else:
-        logging.debug("Getting Incidents...")
+        logging.info("Getting Incidents...")
         response = client.get_incidents(
             name_value_pairs=to_dictionary(string=name_value_pairs),
             sysparm_display_value=sysparm_display_value,
@@ -3518,6 +3524,7 @@ def get_incidents(
             sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
             sysparm_view=sysparm_view,
         )
+        logging.info(f"Response: {response}")
     return response
 
 
