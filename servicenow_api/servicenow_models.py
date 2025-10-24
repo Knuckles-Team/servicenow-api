@@ -413,7 +413,7 @@ class ChangeManagementModel(BaseModel):
     - cmdb_ci_sys_id (Optional[str]): Configuration Item (CI) system identifier.
     - association_type (Optional[str]): Type of association.
     - refresh_impacted_services (Optional[bool]): Flag indicating whether to refresh impacted services.
-    - name_value_pairs (Optional[Dict]): Dictionary containing name-value pairs.
+    - name_value_pairs (Optional[str]): String containing name-value pairs. &active=true&assigned_to=john.smith
     - sysparm_query (Optional[str]): Sysparm query.
     - text_search (Optional[str]): Text search query.
     - change_model_sys_id (Optional[str]): Identifier for the model.
@@ -639,7 +639,7 @@ class IncidentModel(BaseModel):
 
     model_config = ConfigDict(validate_assignment=True)
     incident_id: Union[int, str] = None
-    name_value_pairs: Optional[Dict] = None
+    name_value_pairs: Optional[str] = None
     sysparm_display_value: Optional[str] = None
     sysparm_exclude_reference_link: Optional[bool] = None
     sysparm_fields: Optional[str] = None
@@ -829,7 +829,7 @@ class TableModel(BaseModel):
     Attributes:
     - table (str): Name of the table.
     - table_record_sys_id (Optional[str]): System identifier for the table record.
-    - name_value_pairs (Optional[Dict]]): Dictionary containing name-value pairs.
+    - name_value_pairs (Optional[str]]): Dictionary containing name-value pairs.
     - sysparm_display_value (Optional[str]): Sysparm display value.
     - sysparm_exclude_reference_link (Optional[bool]): Flag indicating whether to exclude reference link.
     - sysparm_fields (Optional[str]): Sysparm fields.
@@ -850,7 +850,7 @@ class TableModel(BaseModel):
 
     table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
-    name_value_pairs: Optional[Dict] = None
+    name_value_pairs: Optional[str] = None
     sysparm_display_value: Optional[str] = None
     sysparm_exclude_reference_link: Optional[bool] = None
     sysparm_fields: Optional[str] = None
