@@ -9,12 +9,12 @@ import threading
 from typing import Optional, List, Dict, Any, Union
 
 import requests
-from fastmcp.server.middleware import MiddlewareContext, Middleware
 from pydantic import Field
 from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
 from fastmcp.server.auth import OAuthProxy, RemoteAuthProvider
 from fastmcp.server.auth.providers.jwt import JWTVerifier, StaticTokenVerifier
+from fastmcp.server.middleware import MiddlewareContext, Middleware
 from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.timing import TimingMiddleware
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
@@ -62,7 +62,7 @@ def to_boolean(string: Union[str, bool] = None) -> bool:
 # Global config dictionary for delegation settings
 config = {
     "enable_delegation": to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
-    "servicenow_audience": os.environ.get("SERVICENOW_AUDIENCE", None),
+    "audience": os.environ.get("SERVICENOW_AUDIENCE", None),
     "delegated_scopes": os.environ.get("DELEGATED_SCOPES", "api"),
     "token_endpoint": None,  # Will be fetched dynamically from OIDC config
     "oidc_client_id": os.environ.get("OIDC_CLIENT_ID", None),
@@ -108,7 +108,7 @@ class UserTokenMiddleware(Middleware):
 
 
 def get_client(
-    servicenow_instance: str,
+    instance: str,
     username: str,
     password: str,
     client_id: Optional[str],
@@ -128,7 +128,7 @@ def get_client(
         logger.info(
             "Initiating OAuth token exchange",
             extra={
-                "audience": config["servicenow_audience"],
+                "audience": config["audience"],
                 "scopes": config["delegated_scopes"],
             },
         )
@@ -139,7 +139,7 @@ def get_client(
             "subject_token": user_token,
             "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
             "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "audience": config["servicenow_audience"],
+            "audience": config["audience"],
             "scope": config["delegated_scopes"],
         }
         auth = (config["oidc_client_id"], config["oidc_client_secret"])
@@ -160,14 +160,14 @@ def get_client(
             raise RuntimeError(f"Token exchange failed: {str(e)}")
 
         return Api(
-            url=servicenow_instance,
+            url=instance,
             token=new_token,
             verify=verify,
         )
     else:
-        logger.info("Using fixed credentials for ServiceNow API")
+        logger.info("Using fixed credentials for API")
         return Api(
-            url=servicenow_instance,
+            url=instance,
             username=username,
             password=password,
             client_id=client_id,
@@ -221,7 +221,7 @@ def get_application(
     Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -277,7 +277,7 @@ def get_cmdb(
     Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -333,7 +333,7 @@ def batch_install_result(
     Retrieves the result of a batch installation process in ServiceNow by result ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -388,7 +388,7 @@ def instance_scan_progress(
     Gets the progress status of an instance scan in ServiceNow by progress ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -441,7 +441,7 @@ def progress(
     Retrieves the progress status of a specified process in ServiceNow by progress ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -498,7 +498,7 @@ def batch_install(
     Initiates a batch installation of specified packages in ServiceNow with optional notes.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -551,7 +551,7 @@ def batch_rollback(
     Performs a rollback of a batch installation in ServiceNow using the rollback ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -616,7 +616,7 @@ def app_repo_install(
     Installs an application from a repository in ServiceNow with specified parameters.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -684,7 +684,7 @@ def app_repo_publish(
     Publishes an application to a repository in ServiceNow with development notes and version.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -745,7 +745,7 @@ def app_repo_rollback(
     Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -799,7 +799,7 @@ def full_scan(
     Initiates a full scan of the ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -853,7 +853,7 @@ def point_scan(
     Performs a targeted scan on a specific instance and table in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -906,7 +906,7 @@ def combo_suite_scan(
     Executes a scan on a combination of suites in ServiceNow by combo sys_id.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -965,7 +965,7 @@ def suite_scan(
     Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1021,7 +1021,7 @@ def activate_plugin(
     Activates a specified plugin in ServiceNow by plugin ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1074,7 +1074,7 @@ def rollback_plugin(
     Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1136,7 +1136,7 @@ def apply_remote_source_control_changes(
     Applies changes from a remote source control branch to a ServiceNow application.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1208,7 +1208,7 @@ def import_repository(
     Imports a repository into ServiceNow with specified credentials and branch.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1282,7 +1282,7 @@ def run_test_suite(
     Executes a test suite in ServiceNow with specified browser and OS configurations.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1351,7 +1351,7 @@ def update_set_create(
     Creates a new update set in ServiceNow with a given name, scope, and description.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1425,7 +1425,7 @@ def update_set_retrieve(
     Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1486,7 +1486,7 @@ def update_set_preview(
     Previews an update set in ServiceNow by its remote sys_id.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1543,7 +1543,7 @@ def update_set_commit(
     Commits an update set in ServiceNow with an option to force commit.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1604,7 +1604,7 @@ def update_set_commit_multiple(
     Commits multiple update sets in ServiceNow in the specified order.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1663,7 +1663,7 @@ def update_set_back_out(
     Backs out an update set in ServiceNow with an option to rollback installations.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1741,7 +1741,7 @@ def get_change_requests(
     Retrieves change requests from ServiceNow with optional filtering and pagination.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1804,7 +1804,7 @@ def get_change_request_nextstate(
     Gets the next state for a specific change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1859,7 +1859,7 @@ def get_change_request_schedule(
     Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1932,7 +1932,7 @@ def get_change_request_tasks(
     Fetches tasks associated with a change request in ServiceNow with optional filtering.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -1996,7 +1996,7 @@ def get_change_request(
     Retrieves details of a specific change request in ServiceNow by sys_id and type.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2051,7 +2051,7 @@ def get_change_request_ci(
     Gets Configuration Items (CIs) associated with a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2104,7 +2104,7 @@ def get_change_request_conflict(
     Checks for conflicts in a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2178,7 +2178,7 @@ def get_standard_change_request_templates(
     Retrieves standard change request templates from ServiceNow with optional filtering.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2260,7 +2260,7 @@ def get_change_request_models(
     Fetches change request models from ServiceNow with optional filtering and type.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2323,7 +2323,7 @@ def get_standard_change_request_model(
     Retrieves a specific standard change request model in ServiceNow by sys_id.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2378,7 +2378,7 @@ def get_standard_change_request_template(
     Gets a specific standard change request template in ServiceNow by sys_id.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2433,7 +2433,7 @@ def get_change_request_worker(
     Retrieves details of a change request worker in ServiceNow by sys_id.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2496,7 +2496,7 @@ def create_change_request(
     Creates a new change request in ServiceNow with specified details and type.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2556,7 +2556,7 @@ def create_change_request_task(
     Creates a task for a change request in ServiceNow with provided details.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2621,7 +2621,7 @@ def create_change_request_ci_association(
     Associates Configuration Items (CIs) with a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2681,7 +2681,7 @@ def calculate_standard_change_request_risk(
     Calculates the risk for a standard change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2736,7 +2736,7 @@ def check_change_request_conflict(
     Checks for conflicts in a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2791,7 +2791,7 @@ def refresh_change_request_impacted_services(
     Refreshes the impacted services for a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2849,7 +2849,7 @@ def approve_change_request(
     Approves or rejects a change request in ServiceNow by setting its state.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2911,7 +2911,7 @@ def update_change_request(
     Updates a change request in ServiceNow with new details and type.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -2968,7 +2968,7 @@ def update_change_request_first_available(
     Updates a change request to the first available state in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3030,7 +3030,7 @@ def update_change_request_task(
     Updates a task for a change request in ServiceNow with new details.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3090,7 +3090,7 @@ def delete_change_request(
     Deletes a change request from ServiceNow by sys_id and type.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3148,7 +3148,7 @@ def delete_change_request_task(
     Deletes a task associated with a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3206,7 +3206,7 @@ def delete_change_request_conflict_scan(
     Deletes a conflict scan for a change request in ServiceNow.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3265,7 +3265,7 @@ def get_import_set(
     Retrieves details of a specific import set record from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3323,7 +3323,7 @@ def insert_import_set(
     Inserts a new record into a specified import set on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3381,7 +3381,7 @@ def insert_multiple_import_sets(
     Inserts multiple records into a specified import set on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3480,7 +3480,7 @@ def get_incidents(
     Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3555,7 +3555,7 @@ def create_incident(
     Creates a new incident record on a ServiceNow instance with provided details.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3638,7 +3638,7 @@ def get_knowledge_articles(
     Get all Knowledge Base articles from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3741,7 +3741,7 @@ def get_knowledge_article(
     Get a specific Knowledge Base article from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3808,7 +3808,7 @@ def get_knowledge_article_attachment(
     Get a Knowledge Base article attachment from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3882,7 +3882,7 @@ def get_featured_knowledge_article(
     Get featured Knowledge Base articles from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -3960,7 +3960,7 @@ def get_most_viewed_knowledge_articles(
     Get most viewed Knowledge Base articles from a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4023,7 +4023,7 @@ def delete_table_record(
     Delete a record from the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4120,7 +4120,7 @@ def get_table(
     Get records from the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4190,7 +4190,7 @@ def get_table_record(
     Get a specific record from the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4251,7 +4251,7 @@ def patch_table_record(
     Partially update a record in the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4312,7 +4312,7 @@ def update_table_record(
     Fully update a record in the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4370,7 +4370,7 @@ def add_table_record(
     Add a new record to the specified table on a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4422,7 +4422,7 @@ def refresh_auth_token(
     Refreshes the authentication token for the ServiceNow client.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4486,7 +4486,7 @@ def api_request(
     Make a custom API request to a ServiceNow instance.
     """
     client = get_client(
-        servicenow_instance=servicenow_instance,
+        instance=servicenow_instance,
         username=username,
         password=password,
         client_id=client_id,
@@ -4497,28 +4497,6 @@ def api_request(
         method=method, endpoint=endpoint, data=data, json=json
     )
     return response
-
-
-def get_servicenow_client() -> Api:
-    """Helper to create ServiceNow API client with environment variables."""
-    servicenow_instance = os.environ.get("SERVICENOW_INSTANCE")
-    username = os.environ.get("SERVICENOW_USERNAME")
-    password = os.environ.get("SERVICENOW_PASSWORD")
-    client_id = os.environ.get("SERVICENOW_CLIENT_ID")
-    client_secret = os.environ.get("SERVICENOW_CLIENT_SECRET")
-    verify = to_boolean(os.environ.get("SERVICENOW_VERIFY", "True"))
-
-    if not all([servicenow_instance, username, password]):
-        raise ResourceError("ServiceNow credentials not configured")
-
-    return Api(
-        url=servicenow_instance,
-        username=username,
-        password=password,
-        client_id=client_id,
-        client_secret=client_secret,
-        verify=verify,
-    )
 
 
 @mcp.resource("data://instance_config")
@@ -4537,7 +4515,16 @@ def get_incident_categories() -> Any:
     """
     Retrieves unique incident categories from ServiceNow.
     """
-    client = get_servicenow_client()
+    client = get_client(
+        instance=os.environ.get("SERVICENOW_INSTANCE"),
+        username=os.environ.get("SERVICENOW_USERNAME"),
+        password=os.environ.get("SERVICENOW_PASSWORD"),
+        client_id=os.environ.get("SERVICENOW_CLIENT_ID"),
+        client_secret=os.environ.get("SERVICENOW_CLIENT_SECRET"),
+        verify=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+    )
+    if not client:
+        raise ResourceError("ServiceNow credentials not configured")
     response = client.get_table(
         table="incident", sysparm_fields="category", sysparm_limit=1000
     )
@@ -4680,7 +4667,7 @@ def servicenow_mcp():
         help="Enable OIDC token delegation to ServiceNow",
     )
     parser.add_argument(
-        "--servicenow-audience",
+        "--audience",
         default=os.environ.get("SERVICENOW_AUDIENCE", None),
         help="Audience for the delegated ServiceNow token",
     )
@@ -4698,9 +4685,7 @@ def servicenow_mcp():
 
     # Update config with CLI arguments
     config["enable_delegation"] = args.enable_delegation
-    config["servicenow_audience"] = (
-        args.servicenow_audience or config["servicenow_audience"]
-    )
+    config["audience"] = args.audience or config["audience"]
     config["delegated_scopes"] = args.delegated_scopes or config["delegated_scopes"]
     config["oidc_config_url"] = args.oidc_config_url or config["oidc_config_url"]
     config["oidc_client_id"] = args.oidc_client_id or config["oidc_client_id"]
@@ -4713,8 +4698,8 @@ def servicenow_mcp():
         if args.auth_type != "oidc-proxy":
             logger.error("Token delegation requires auth-type=oidc-proxy")
             sys.exit(1)
-        if not config["servicenow_audience"]:
-            logger.error("servicenow-audience is required for delegation")
+        if not config["audience"]:
+            logger.error("audience is required for delegation")
             sys.exit(1)
         if not all(
             [
