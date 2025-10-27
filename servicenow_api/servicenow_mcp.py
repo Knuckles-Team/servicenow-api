@@ -4550,14 +4550,44 @@ def create_incident_prompt(
 
 
 @mcp.prompt
-def query_table_prompt(
-    table: str,
-    query: str,
+def get_incident_with_fields_prompt(sysparm_fields: str) -> str:
+    """
+    Generates a prompt for getting ServiceNow Incidents with certain fields
+    """
+    return (
+        f"Get the incidents from ServiceNow and display them with the following fields: "
+        f"[{sysparm_fields}] in a table format"
+    )
+
+
+@mcp.prompt
+def get_incident_by_number_prompt(incident_number: str) -> str:
+    """
+    Generates a prompt for getting a ServiceNow Incident by number
+    """
+    return f"Get the incident with sysparm_query='number={incident_number}'"
+
+
+@mcp.prompt
+def get_change_by_number_prompt(change_number: str) -> str:
+    """
+    Generates a prompt for getting a ServiceNow Change by number
+    """
+    return f"Get the change request with sysparm_query='number={change_number}'"
+
+
+@mcp.prompt
+def query_table_prompt_prompt(
+    table: str, sysparm_fields: str, sysparm_query: str
 ) -> str:
     """
     Generates a prompt for querying a ServiceNow table.
     """
-    return f"Query the ServiceNow table '{table}' with filter: '{query}'. Use the get_table tool with appropriate parameters."
+    return (
+        f"Query the ServiceNow table '{table}' "
+        f"with sysparm_query: '{sysparm_query}' and sysparm_fields: '{sysparm_fields}'. "
+        f"Use the get_table tool with appropriate parameters."
+    )
 
 
 def servicenow_mcp():
