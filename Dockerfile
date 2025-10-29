@@ -48,10 +48,10 @@ ENV EUNOMIA_POLICY_FILE=${EUNOMIA_POLICY_FILE}
 ENV EUNOMIA_REMOTE_URL=${EUNOMIA_REMOTE_URL}
 ENV OPENAPI_FILE=${OPENAPI_FILE}
 ENV PATH="/usr/local/bin:${PATH}"
-ENV UV_HTTP_TIMEOUT=600
+ENV UV_HTTP_TIMEOUT=3600
 
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api>=1.3.26
+    && uv pip install --system --upgrade servicenow-api>=1.3.27
 
 ENTRYPOINT exec servicenow-mcp \
     --transport "${TRANSPORT}" \
