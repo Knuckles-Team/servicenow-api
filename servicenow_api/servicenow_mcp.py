@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
-
+import asyncio
+import json
 import os
 import argparse
 import sys
@@ -8,7 +9,10 @@ import logging
 import threading
 from typing import Optional, List, Dict, Any, Union
 
+import httpx
 import requests
+from fastmcp.resources import Resource
+from fastmcp.tools import Tool
 from pydantic import Field
 from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
@@ -4706,6 +4710,16 @@ def servicenow_mcp():
         default=os.environ.get("DELEGATED_SCOPES", "api"),
         help="Scopes for the delegated ServiceNow token (space-separated)",
     )
+    parser.add_argument(
+        "--openapi-file",
+        default=None,
+        help="Path to the OpenAPI JSON file to import additional tools from",
+    )
+    parser.add_argument(
+        "--openapi-base-url",
+        default=None,
+        help="Base URL for the OpenAPI client (overrides ServiceNow instance URL)",
+    )
 
     args = parser.parse_args()
 
@@ -4892,6 +4906,54 @@ def servicenow_mcp():
             base_url=args.remote_base_url,
         )
     mcp.auth = auth
+
+    if args.openapi_file:
+        if config["enable_delegation"]:
+            raise ValueError("OpenAPI import not supported with delegation enabled")
+
+        with open(args.openapi_file, "r") as f:
+            spec = json.load(f)
+
+        async def _setup_openapi() -> tuple[dict[str, Tool], dict[str, Resource]]:
+            temp_api = get_client(
+                instance=os.environ.get("SERVICENOW_INSTANCE", None),
+                username=os.environ.get("SERVICENOW_USERNAME", None),
+                password=os.environ.get("SERVICENOW_PASSWORD", None),
+                client_id=os.environ.get("SERVICENOW_CLIENT_ID", None),
+                client_secret=os.environ.get("SERVICENOW_CLIENT_SECRET", None),
+                verify=to_boolean(os.environ.get("SERVICENOW_VERIFY", "True")),
+            )
+            base_url = args.openapi_base_url or temp_api.url
+
+            async with httpx.AsyncClient(
+                base_url=base_url,
+                headers=temp_api.headers,
+                verify=temp_api.verify,
+            ) as client:
+                openapi_mcp = FastMCP.from_openapi(
+                    openapi_spec=spec, client=client, name="OpenAPI Tools"
+                )
+
+                imported_tools: Dict[str, Tool] = await openapi_mcp.get_tools()
+                imported_resources: Dict[str, Resource] = (
+                    await openapi_mcp.get_resources()
+                )
+                return imported_tools, imported_resources
+
+        try:
+            tools, resources = asyncio.run(_setup_openapi())
+
+            for tool in tools.values():
+                mcp.add_tool(tool)
+
+            for resource in resources.values():
+                mcp.add_resource(resource)
+        except Exception as exc:
+            logger.error(
+                "Failed to initialise OpenAPI tools",
+                extra={"error": str(exc)},
+            )
+            sys.exit(1)
 
     # Add middleware in logical order
     if config["enable_delegation"]:
