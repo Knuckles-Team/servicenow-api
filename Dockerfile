@@ -22,6 +22,7 @@ ARG ALLOWED_CLIENT_REDIRECT_URIS=""
 ARG EUNOMIA_TYPE="none"
 ARG EUNOMIA_POLICY_FILE="mcp_policies.json"
 ARG EUNOMIA_REMOTE_URL=""
+ENV OPENAPI_FILE=""
 
 ENV HOST=${HOST}
 ENV PORT=${PORT}
@@ -45,10 +46,11 @@ ENV ALLOWED_CLIENT_REDIRECT_URIS=${ALLOWED_CLIENT_REDIRECT_URIS}
 ENV EUNOMIA_TYPE=${EUNOMIA_TYPE}
 ENV EUNOMIA_POLICY_FILE=${EUNOMIA_POLICY_FILE}
 ENV EUNOMIA_REMOTE_URL=${EUNOMIA_REMOTE_URL}
+ENV OPENAPI_FILE=${OPENAPI_FILE}
 ENV PATH="/usr/local/bin:${PATH}"
 
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api>=1.3.24
+    && uv pip install --system --upgrade servicenow-api>=1.3.25
 
 ENTRYPOINT exec servicenow-mcp \
     --transport "${TRANSPORT}" \
@@ -72,4 +74,5 @@ ENTRYPOINT exec servicenow-mcp \
     $( [ -n "${ALLOWED_CLIENT_REDIRECT_URIS}" ] && echo "--allowed-client-redirect-uris ${ALLOWED_CLIENT_REDIRECT_URIS}" ) \
     $( [ -n "${EUNOMIA_TYPE}" ] && echo "--eunomia-type ${EUNOMIA_TYPE}" ) \
     $( [ -n "${EUNOMIA_POLICY_FILE}" ] && echo "--eunomia-policy-file ${EUNOMIA_POLICY_FILE}" ) \
-    $( [ -n "${EUNOMIA_REMOTE_URL}" ] && echo "--eunomia-remote-url ${EUNOMIA_REMOTE_URL}" )
+    $( [ -n "${EUNOMIA_REMOTE_URL}" ] && echo "--eunomia-remote-url ${EUNOMIA_REMOTE_URL}" ) \
+    $( [ -n "${OPENAPI_FILE}" ] && echo "--openapi-file ${OPENAPI_FILE}" )

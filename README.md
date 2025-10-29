@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.3.24*
+*Version: 1.3.25*
 
 ServiceNow API Python Wrapper
 
@@ -50,40 +50,43 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 - **Resources**: Provides `instance_config` and `incident_categories` for ServiceNow configuration and data.
 - **Prompts**: Includes `create_incident_prompt` and `query_table_prompt` for AI-driven interactions.
 - **OIDC Token Delegation**: Supports token exchange for ServiceNow API calls, enabling user-specific authentication via OIDC.
+- **OpenAPI JSON Tool Import**: Import custom ServiceNow API Endpoints through the OpenAPI JSON generated.
 
 <details>
   <summary><b>Usage:</b></summary>
 
 ### MCP CLI
 
-| Short Flag | Long Flag                          | Description                                                                 |
-|------------|------------------------------------|-----------------------------------------------------------------------------|
-| -h         | --help                             | Display help information                                                    |
-| -t         | --transport                        | Transport method: 'stdio', 'http', or 'sse' [legacy] (default: stdio)       |
-| -s         | --host                             | Host address for HTTP transport (default: 0.0.0.0)                          |
-| -p         | --port                             | Port number for HTTP transport (default: 8000)                              |
-|            | --auth-type                        | Authentication type: 'none', 'static', 'jwt', 'oauth-proxy', 'oidc-proxy', 'remote-oauth' (default: none) |
-|            | --token-jwks-uri                   | JWKS URI for JWT verification                                              |
-|            | --token-issuer                     | Issuer for JWT verification                                                |
-|            | --token-audience                   | Audience for JWT verification                                              |
-|            | --oauth-upstream-auth-endpoint     | Upstream authorization endpoint for OAuth Proxy                             |
-|            | --oauth-upstream-token-endpoint    | Upstream token endpoint for OAuth Proxy                                    |
-|            | --oauth-upstream-client-id         | Upstream client ID for OAuth Proxy                                         |
-|            | --oauth-upstream-client-secret     | Upstream client secret for OAuth Proxy                                     |
-|            | --oauth-base-url                   | Base URL for OAuth Proxy                                                   |
-|            | --oidc-config-url                  | OIDC configuration URL                                                     |
-|            | --oidc-client-id                   | OIDC client ID                                                             |
-|            | --oidc-client-secret               | OIDC client secret                                                         |
-|            | --oidc-base-url                    | Base URL for OIDC Proxy                                                    |
-|            | --remote-auth-servers              | Comma-separated list of authorization servers for Remote OAuth             |
-|            | --remote-base-url                  | Base URL for Remote OAuth                                                  |
-|            | --allowed-client-redirect-uris     | Comma-separated list of allowed client redirect URIs                       |
-|            | --eunomia-type                     | Eunomia authorization type: 'none', 'embedded', 'remote' (default: none)   |
-|            | --eunomia-policy-file              | Policy file for embedded Eunomia (default: mcp_policies.json)              |
-|            | --eunomia-remote-url               | URL for remote Eunomia server                                              |
-|            | --enable-delegation                | Enable OIDC token delegation to ServiceNow (default: False)                |
-|            | --servicenow-audience              | Audience for the delegated ServiceNow token                                |
-|            | --delegated-scopes                 | Scopes for the delegated ServiceNow token (space-separated)                |
+| Short Flag | Long Flag                       | Description                                                                                               |
+|------------|---------------------------------|-----------------------------------------------------------------------------------------------------------|
+| -h         | --help                          | Display help information                                                                                  |
+| -t         | --transport                     | Transport method: 'stdio', 'http', or 'sse' [legacy] (default: stdio)                                     |
+| -s         | --host                          | Host address for HTTP transport (default: 0.0.0.0)                                                        |
+| -p         | --port                          | Port number for HTTP transport (default: 8000)                                                            |
+|            | --auth-type                     | Authentication type: 'none', 'static', 'jwt', 'oauth-proxy', 'oidc-proxy', 'remote-oauth' (default: none) |
+|            | --token-jwks-uri                | JWKS URI for JWT verification                                                                             |
+|            | --token-issuer                  | Issuer for JWT verification                                                                               |
+|            | --token-audience                | Audience for JWT verification                                                                             |
+|            | --oauth-upstream-auth-endpoint  | Upstream authorization endpoint for OAuth Proxy                                                           |
+|            | --oauth-upstream-token-endpoint | Upstream token endpoint for OAuth Proxy                                                                   |
+|            | --oauth-upstream-client-id      | Upstream client ID for OAuth Proxy                                                                        |
+|            | --oauth-upstream-client-secret  | Upstream client secret for OAuth Proxy                                                                    |
+|            | --oauth-base-url                | Base URL for OAuth Proxy                                                                                  |
+|            | --oidc-config-url               | OIDC configuration URL                                                                                    |
+|            | --oidc-client-id                | OIDC client ID                                                                                            |
+|            | --oidc-client-secret            | OIDC client secret                                                                                        |
+|            | --oidc-base-url                 | Base URL for OIDC Proxy                                                                                   |
+|            | --remote-auth-servers           | Comma-separated list of authorization servers for Remote OAuth                                            |
+|            | --remote-base-url               | Base URL for Remote OAuth                                                                                 |
+|            | --allowed-client-redirect-uris  | Comma-separated list of allowed client redirect URIs                                                      |
+|            | --eunomia-type                  | Eunomia authorization type: 'none', 'embedded', 'remote' (default: none)                                  |
+|            | --eunomia-policy-file           | Policy file for embedded Eunomia (default: mcp_policies.json)                                             |
+|            | --eunomia-remote-url            | URL for remote Eunomia server                                                                             |
+|            | --enable-delegation             | Enable OIDC token delegation to ServiceNow (default: False)                                               |
+|            | --servicenow-audience           | Audience for the delegated ServiceNow token                                                               |
+|            | --delegated-scopes              | Scopes for the delegated ServiceNow token (space-separated)                                               |
+|            | --openapi-file                  | Path to OpenAPI JSON spec to import tools/resources from                                                  |
+|            | --openapi-base-url              | Base URL for the OpenAPI client (defaults to ServiceNow instance URL)                                     |
 
 ### Using as an MCP Server
 
@@ -200,6 +203,7 @@ docker run -d \
 
 For advanced authentication (e.g., OIDC Proxy with token delegation) or Eunomia, add the relevant environment variables:
 
+For Additional OpenAPI Tool Import, include OPENAPI_FILE.
 ```bash
 docker run -d \
   --name servicenow-mcp \
@@ -224,6 +228,7 @@ docker run -d \
   -e SERVICENOW_CLIENT_ID=client_id \
   -e SERVICENOW_CLIENT_SECRET=client_secret \
   -e SERVICENOW_VERIFY=False \
+  -e OPENAPI_FILE=/app/servicenow_openapi.json \
   knucklessg1/servicenow:latest
 ```
 
@@ -387,6 +392,7 @@ The `servicenow-mcp` command supports the following CLI options for configuratio
 - `--enable-delegation`: Enable OIDC token delegation to ServiceNow [default: `False`]
 - `--servicenow-audience`: Audience for the delegated ServiceNow token
 - `--delegated-scopes`: Scopes for the delegated ServiceNow token (space-separated)
+-
 
 #### Middleware
 
