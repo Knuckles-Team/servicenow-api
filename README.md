@@ -102,6 +102,53 @@ servicenow-mcp --transport "stdio"
 servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
 ```
 
+#### Run in Production:
+
+
+**Embedded Eunomia:**
+
+`mcp_policies.json`
+
+```json
+{
+  "policies": [
+    {
+      "id": "servicenow_read_policy",
+      "description": "Allow read-only tools if user has read scope",
+      "allow": true,
+      "conditions": [
+        {
+          "tool": ["get_application", "get_cmdb", "batch_install_result"],  // Per-tool targeting
+          "scopes": ["servicenow.read", "servicenow.full"]  // Like your PRODUCT_READ_SCOPE
+        }
+      ]
+    },
+    {
+      "id": "servicenow_write_policy",
+      "description": "Allow write tools if user has write scope and is admin",
+      "allow": true,
+      "conditions": [
+        {
+          "tool": ["batch_install", "batch_rollback", "app_repo_install"],  // Write tools
+          "scopes": ["servicenow.write", "servicenow.full"],  // Like your PRODUCT_WRITE_SCOPE
+          "claims": {"role": "admin"}  // Extra claim check (from JWT)
+        }
+      ]
+    },
+    {
+      "id": "default_deny",
+      "description": "Deny all other access",
+      "allow": false
+    }
+  ]
+}
+```
+
+Run command:
+```bash
+servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000" --auth-type "jwt" --token-jwks-uri "https://example.com/jwks" --token-issuer "<issuer>" --token-audience "<audience>" --eunomia-type "embedded" --eunomia-policy-file "mcp_policies.json"
+```
+
 ### Basic API Usage
 
 **OAuth Authentication**
@@ -202,6 +249,7 @@ docker run -d \
 ```
 
 For advanced authentication (e.g., OIDC Proxy with token delegation) or Eunomia, add the relevant environment variables:
+
 
 For Additional OpenAPI Tool Import, include OPENAPI_FILE.
 ```bash
@@ -363,37 +411,6 @@ For Testing Only: Plain text storage will also work, although **not** recommende
 }
 ```
 
-#### CLI Parameters
-
-The `servicenow-mcp` command supports the following CLI options for configuration:
-
-- `--transport`: Transport method (`stdio`, `http`, `sse`) [default: `http`]
-- `--host`: Host address for HTTP transport [default: `0.0.0.0`]
-- `--port`: Port number for HTTP transport [default: `8000`]
-- `--auth-type`: Authentication type (`none`, `static`, `jwt`, `oauth-proxy`, `oidc-proxy`, `remote-oauth`) [default: `none`]
-- `--token-jwks-uri`: JWKS URI for JWT verification
-- `--token-issuer`: Issuer for JWT verification
-- `--token-audience`: Audience for JWT verification
-- `--oauth-upstream-auth-endpoint`: Upstream authorization endpoint for OAuth Proxy
-- `--oauth-upstream-token-endpoint`: Upstream token endpoint for OAuth Proxy
-- `--oauth-upstream-client-id`: Upstream client ID for OAuth Proxy
-- `--oauth-upstream-client-secret`: Upstream client secret for OAuth Proxy
-- `--oauth-base-url`: Base URL for OAuth Proxy
-- `--oidc-config-url`: OIDC configuration URL
-- `--oidc-client-id`: OIDC client ID
-- `--oidc-client-secret`: OIDC client secret
-- `--oidc-base-url`: Base URL for OIDC Proxy
-- `--remote-auth-servers`: Comma-separated list of authorization servers for Remote OAuth
-- `--remote-base-url`: Base URL for Remote OAuth
-- `--allowed-client-redirect-uris`: Comma-separated list of allowed client redirect URIs
-- `--eunomia-type`: Eunomia authorization type (`none`, `embedded`, `remote`) [default: `none`]
-- `--eunomia-policy-file`: Policy file for embedded Eunomia [default: `mcp_policies.json`]
-- `--eunomia-remote-url`: URL for remote Eunomia server
-- `--enable-delegation`: Enable OIDC token delegation to ServiceNow [default: `False`]
-- `--servicenow-audience`: Audience for the delegated ServiceNow token
-- `--delegated-scopes`: Scopes for the delegated ServiceNow token (space-separated)
--
-
 #### Middleware
 
 The MCP server includes the following built-in middleware for enhanced functionality:
@@ -413,6 +430,45 @@ The server supports optional Eunomia authorization for policy-based access contr
 - **Remote (`remote`)**: Connects to an external Eunomia server for centralized policy decisions.
 
 To configure Eunomia policies:
+
+**Embedded Eunomia:**
+
+`mcp_policies.json`
+
+```json
+{
+  "policies": [
+    {
+      "id": "servicenow_read_policy",
+      "description": "Allow read-only tools if user has read scope",
+      "allow": true,
+      "conditions": [
+        {
+          "tool": ["get_application", "get_cmdb", "batch_install_result"],  // Per-tool targeting
+          "scopes": ["servicenow.read", "servicenow.full"]  // Like your PRODUCT_READ_SCOPE
+        }
+      ]
+    },
+    {
+      "id": "servicenow_write_policy",
+      "description": "Allow write tools if user has write scope and is admin",
+      "allow": true,
+      "conditions": [
+        {
+          "tool": ["batch_install", "batch_rollback", "app_repo_install"],  // Write tools
+          "scopes": ["servicenow.write", "servicenow.full"],  // Like your PRODUCT_WRITE_SCOPE
+          "claims": {"role": "admin"}  // Extra claim check (from JWT)
+        }
+      ]
+    },
+    {
+      "id": "default_deny",
+      "description": "Deny all other access",
+      "allow": false
+    }
+  ]
+}
+```
 
 ```bash
 # Initialize a default policy file
