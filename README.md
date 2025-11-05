@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.3.27*
+*Version: 1.3.28*
 
 ServiceNow API Python Wrapper
 
@@ -67,6 +67,10 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 |            | --token-jwks-uri                | JWKS URI for JWT verification                                                                             |
 |            | --token-issuer                  | Issuer for JWT verification                                                                               |
 |            | --token-audience                | Audience for JWT verification                                                                             |
+|            | --token-algorithm               | JWT signing algorithm (e.g., HS256, RS256). Required for HMAC or static keys. Auto-detected for JWKS.     |
+|            | --token-secret                  | Shared secret for HMAC (HS*) verification. Used with --token-algorithm.                                   |
+|            | --token-public-key              | Path to PEM public key file or inline PEM string for static asymmetric verification.                      |
+|            | --required-scopes               | Comma-separated required scopes (e.g., servicenow.read,servicenow.write). Enforced by JWTVerifier.        |
 |            | --oauth-upstream-auth-endpoint  | Upstream authorization endpoint for OAuth Proxy                                                           |
 |            | --oauth-upstream-token-endpoint | Upstream token endpoint for OAuth Proxy                                                                   |
 |            | --oauth-upstream-client-id      | Upstream client ID for OAuth Proxy                                                                        |
@@ -103,6 +107,7 @@ servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
 ```
 
 #### Run in Production:
+
 
 
 **Embedded Eunomia:**
@@ -144,9 +149,98 @@ servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
 }
 ```
 
-Run command:
+Run command examples:
 ```bash
-servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000" --auth-type "jwt" --token-jwks-uri "https://example.com/jwks" --token-issuer "<issuer>" --token-audience "<audience>" --eunomia-type "embedded" --eunomia-policy-file "mcp_policies.json"
+export IDENTITY_JWKS_URI="https://your-identity-provider.com/.well-known/jwks.json"
+export API_IDENTIFIER="servicenow-mcp"
+export PRODUCT_READ_SCOPE="mcpserverapi.product.read"
+export INVENTORY_READ_SCOPE="mcpserverapi.inventory.read"
+servicenow-mcp \
+--transport "http"  \
+--host "0.0.0.0" \
+--port "8000" \
+--auth-type "jwt" \
+--token-jwks-uri "${IDENTITY_JWKS_URI}" \
+--token-issuer "https://your-identity-provider.com" \
+--token-audience "${API_IDENTIFIER}" \
+--required-scopes "$PRODUCT_READ_SCOPE,$INVENTORY_READ_SCOPE" \
+--eunomia-type "embedded" \
+--eunomia-policy-file "mcp_policies.json"
+```
+
+```bash
+# 1. JWKS (Production, RS256)
+servicenow-mcp --auth-type jwt \
+  --token-jwks-uri https://auth.example.com/.well-known/jwks.json \
+  --token-issuer https://auth.example.com \
+  --token-audience servicenow-mcp \
+  --required-scopes servicenow.read,servicenow.write
+```
+
+```bash
+# 2. HMAC (Internal, HS256)
+servicenow-mcp --auth-type jwt \
+  --token-secret "your-256-bit-secret-here-min-32-chars" \
+  --token-algorithm HS256 \
+  --token-issuer internal-auth \
+  --token-audience mcp-api
+```
+
+```bash
+# 3. Static RSA Key (Dev)
+servicenow-mcp --auth-type jwt \
+  --token-public-key ./public_key.pem \
+  --token-issuer test-issuer \
+  --token-audience test-mcp
+```
+
+```bash
+# 4. With Delegation
+--enable-delegation --auth-type jwt ... (uses JWT as subject_token)
+```
+
+```bash
+#5 JWKS (Production, Asymmetric RS256)
+servicenow-mcp --transport "http" --auth-type "jwt" \
+  --token-jwks-uri "https://auth.example.com/.well-known/jwks.json" \
+  --token-issuer "https://auth.example.com" \
+  --token-audience "servicenow-mcp" \
+  --required-scopes "servicenow.read,servicenow.write"
+```
+
+```bash
+#6 HMAC (Internal/Microservices, HS256)
+servicenow-mcp --transport "http" --auth-type "jwt" \
+  --token-secret "your-256-bit-secret-min-32-chars" \
+  --token-algorithm "HS256" \
+  --token-issuer "internal-auth" \
+  --token-audience "mcp-api"
+```
+
+```bash
+#7 Static Public Key (Dev/Testing, RS256)
+servicenow-mcp --transport "http" --auth-type "jwt" \
+  --token-public-key "/path/to/public_key.pem" \
+  --token-issuer "test-issuer" \
+  --token-audience "test-mcp"
+```
+
+Native Fast MCP Arguments
+```bash
+# Enable JWT verification
+export FASTMCP_SERVER_AUTH=fastmcp.server.auth.providers.jwt.JWTVerifier
+
+# For asymmetric verification with JWKS endpoint:
+export FASTMCP_SERVER_AUTH_JWT_JWKS_URI="https://auth.company.com/.well-known/jwks.json"
+export FASTMCP_SERVER_AUTH_JWT_ISSUER="https://auth.company.com"
+export FASTMCP_SERVER_AUTH_JWT_AUDIENCE="mcp-production-api"
+export FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES="read:data,write:data"
+
+# OR for symmetric key verification (HMAC):
+export FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY="your-shared-secret-key-minimum-32-chars"
+export FASTMCP_SERVER_AUTH_JWT_ALGORITHM="HS256"  # or HS384, HS512
+export FASTMCP_SERVER_AUTH_JWT_ISSUER="internal-auth-service"
+export FASTMCP_SERVER_AUTH_JWT_AUDIENCE="mcp-internal-api"
 ```
 
 ### Basic API Usage
@@ -260,6 +354,9 @@ docker run -d \
   -e PORT=8004 \
   -e TRANSPORT=http \
   -e AUTH_TYPE=oidc-proxy \
+  -e FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256 \
+  -e FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY="your-shared-secret" \
+  -e FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES="servicenow.read,servicenow.write" \
   -e OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration \
   -e OIDC_CLIENT_ID=your-client-id \
   -e OIDC_CLIENT_SECRET=your-client-secret \
@@ -331,6 +428,9 @@ services:
       - SERVICENOW_CLIENT_ID=client_id
       - SERVICENOW_CLIENT_SECRET=client_secret
       - SERVICENOW_VERIFY=False
+      - FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256
+      - FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=your-shared-secret
+      - FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=servicenow.read,servicenow.write
     ports:
       - 8004:8004
     volumes:
