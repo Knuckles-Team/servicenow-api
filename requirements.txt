@@ -2,3 +2,4 @@ requests>=2.8.1
 urllib3>=2.2.2
 pydantic[email]>=2.8.2
 fastmcp>=2.13.0.2
+eunomia-mcp>=0.3.10
