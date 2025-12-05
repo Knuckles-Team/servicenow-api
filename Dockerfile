@@ -80,7 +80,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=3600
 
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api>=1.3.28
+    && uv pip install --system --upgrade servicenow-api>=1.3.29
 
 ENTRYPOINT exec servicenow-mcp \
     --transport "${TRANSPORT}" \
