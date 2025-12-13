@@ -1,4 +1,4 @@
-# ServiceNow API
+# ServiceNow API - A2A & MCP Server
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/servicenow-api)
