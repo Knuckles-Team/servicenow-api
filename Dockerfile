@@ -85,7 +85,7 @@ WORKDIR /app
 COPY . /app
 
 RUN pip install uv \
-    && uv pip install --system --upgrade "servicenow-api[all]>=1.3.30"
+    && uv pip install --system --upgrade "servicenow-api[all]>=1.3.31"
 
 CMD ["servicenow-mcp"]
 ENTRYPOINT ["/entrypoint.sh"]

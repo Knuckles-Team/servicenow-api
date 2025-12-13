@@ -154,7 +154,7 @@ def create_orchestrator(
             )
             try:
                 result = await _agent.run(task_description)
-                return result.data
+                return result.output
             except Exception as e:
                 return f"Error executing task with {_tag} specialist: {str(e)}"
 
@@ -247,7 +247,7 @@ def agent_server():
 
     # Create A2A App
     cli_app = cli_agent.to_a2a(
-        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.30", skills=skills
+        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.31", skills=skills
     )
 
     uvicorn.run(
