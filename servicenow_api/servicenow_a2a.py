@@ -1,8 +1,8 @@
 import os
 import argparse
 import uvicorn
-from typing import List, Optional
-from pydantic_ai import Agent
+from typing import Optional, Dict
+from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
@@ -12,117 +12,206 @@ from fasta2a import Skill
 
 # Default Configuration
 DEFAULT_PROVIDER = "openai"
-DEFAULT_MODEL_ID = "qwen3:4b"
+DEFAULT_MODEL_ID = "qwen3:4b"  # Or "gpt-4o" if using OpenAI
 DEFAULT_OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "http://ollama.arpa/v1")
 DEFAULT_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "ollama")
-DEFAULT_MCP_URL = "http://media-downloader-mcp.arpa/mcp"
-DEFAULT_ALLOWED_TOOLS: List[str] = [
-    "download_media",
+DEFAULT_MCP_URL = "http://localhost:8000/mcp"
+
+# Detected tags from servicenow_mcp.py
+TAGS = [
+    "application",
+    "cmdb",
+    "cicd",
+    "plugins",
+    "source_control",
+    "testing",
+    "update_sets",
+    "change_management",
+    "import_sets",
+    "incidents",
+    "knowledge_management",
+    "table_api",
+    "auth",
+    "custom_api",
 ]
 
-AGENT_NAME = "MediaDownloaderAgent"
-AGENT_DESCRIPTION = "A specialist agent for downloading media content from the web."
-INSTRUCTIONS = (
-    "You are a friendly media retrieval expert specialized in downloading media files.\n\n"
-    "Your primary tool is 'download_media', which allows you to download videos or audio "
-    "from various platforms (e.g., YouTube). "
-    "By default, save downloaded files to the ~/Downloads directory "
-    "unless the user explicitly directs you to use a different directory.\n\n"
-    "Key capabilities:\n"
-    "- Download either full video or audio-only formats.\n"
-    "- Support batch downloading of multiple media files in a single request.\n\n"
-    "Always clearly state the full save path(s) of the downloaded file(s) in your final response.\n\n"
-    "Maintain a warm, friendly, and helpful tone in all interactions with the user.\n"
-    "Handle any errors gracefully: if a download fails, explain the issue politely and suggest alternatives if possible."
+AGENT_NAME = "ServiceNowOrchestrator"
+AGENT_DESCRIPTION = (
+    "A multi-agent system for managing ServiceNow tasks via delegated specialists."
 )
 
 
-def create_agent(
+def create_model(
+    provider: str,
+    model_id: str,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+):
+    if provider == "openai":
+        target_base_url = base_url or DEFAULT_OPENAI_BASE_URL
+        target_api_key = api_key or DEFAULT_OPENAI_API_KEY
+        # Set env vars for the specialized agents if needed by the model init
+        # (Though we pass them explicitly usually, some libs fallback to env)
+        if target_base_url:
+            os.environ["OPENAI_BASE_URL"] = target_base_url
+        if target_api_key:
+            os.environ["OPENAI_API_KEY"] = target_api_key
+        return OpenAIChatModel(model_id, provider="openai")
+
+    elif provider == "anthropic":
+        if api_key:
+            os.environ["ANTHROPIC_API_KEY"] = api_key
+        return AnthropicModel(model_id)
+
+    elif provider == "google":
+        if api_key:
+            os.environ["GEMINI_API_KEY"] = api_key
+            os.environ["GOOGLE_API_KEY"] = api_key
+        return GoogleModel(model_id)
+
+    elif provider == "huggingface":
+        if api_key:
+            os.environ["HF_TOKEN"] = api_key
+        return HuggingFaceModel(model_id)
+
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+
+def create_child_agent(
+    tag: str,
+    mcp_url: str,
+    provider: str,
+    model_id: str,
+    base_url: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> Agent:
+    """
+    Creates a specialized child agent for a specific tag.
+    """
+    model = create_model(provider, model_id, base_url, api_key)
+
+    # Create toolset and filter by tag
+    toolset = FastMCPToolset(client=mcp_url)
+
+    # filtered returns a new toolset with only tools that match the predicate
+    # The predicate receives (context, tool_definition)
+    # We check if the 'tag' is present in tool_definition.tags
+    filtered_toolset = toolset.filtered(
+        lambda ctx, tool_def: tag in (tool_def.tags or [])
+    )
+
+    system_prompt = (
+        f"You are a specialized ServiceNow agent focused on '{tag}' tasks. "
+        f"You have access to tools tagged with '{tag}'. "
+        "Use them to fulfill the user's request efficiently. "
+        "If a task is outside your scope, kindly indicate that."
+    )
+
+    return Agent(
+        model,
+        system_prompt=system_prompt,
+        name=f"ServiceNow_{tag}_Specialist",
+        toolsets=[filtered_toolset],
+    )
+
+
+def create_orchestrator(
     provider: str = DEFAULT_PROVIDER,
     model_id: str = DEFAULT_MODEL_ID,
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     mcp_url: str = DEFAULT_MCP_URL,
-    allowed_tools: List[str] = DEFAULT_ALLOWED_TOOLS,
 ) -> Agent:
     """
-    Factory function to create the AGENT_NAME with configuration.
+    Creates the parent Orchestrator agent with tools to delegate to children.
     """
-    # Define the model based on provider
-    model = None
+    # 1. Create all child agents
+    children: Dict[str, Agent] = {}
+    for tag in TAGS:
+        children[tag] = create_child_agent(
+            tag, mcp_url, provider, model_id, base_url, api_key
+        )
 
-    if provider == "openai":
-        # Configure environment for OpenAI compatible model (e.g. Ollama)
-        # Use defaults if not provided to ensure we point to the expected local server by default
-        target_base_url = base_url or DEFAULT_OPENAI_BASE_URL
-        target_api_key = api_key or DEFAULT_OPENAI_API_KEY
+    # 2. Create Model for Parent
+    model = create_model(provider, model_id, base_url, api_key)
 
-        if target_base_url:
-            os.environ["OPENAI_BASE_URL"] = target_base_url
-        if target_api_key:
-            os.environ["OPENAI_API_KEY"] = target_api_key
-        model = OpenAIChatModel(model_id, provider="openai")
+    # 3. Create Delegation Tools
+    # We create a list of callables that the parent can use as tools.
+    delegation_tools = []
 
-    elif provider == "anthropic":
-        if api_key:
-            os.environ["ANTHROPIC_API_KEY"] = api_key
-        model = AnthropicModel(model_id)
+    for tag, child_agent in children.items():
 
-    elif provider == "google":
-        if api_key:
-            # google-genai usually looks for GOOGLE_API_KEY or GEMINI_API_KEY
-            os.environ["GEMINI_API_KEY"] = api_key
-            os.environ["GOOGLE_API_KEY"] = api_key
-        model = GoogleModel(model_id)
+        # Define the tool function.
+        # CAUTION: Python closures capture variables by reference.
+        # We must bind 'child_agent' and 'tag' to the function scope using default args.
+        async def delegate_task(
+            ctx: RunContext, task_description: str, _agent=child_agent, _tag=tag
+        ) -> str:
+            # We don't have a docstring here yet, we'll set it below.
+            print(
+                f"[Orchestrator] Delegating task to {_tag} specialist: {task_description[:50]}..."
+            )
+            try:
+                result = await _agent.run(task_description)
+                return result.data
+            except Exception as e:
+                return f"Error executing task with {_tag} specialist: {str(e)}"
 
-    elif provider == "huggingface":
-        if api_key:
-            os.environ["HF_TOKEN"] = api_key
-        model = HuggingFaceModel(model_id)
+        # Set metadata for the tool
+        delegate_task.__name__ = f"delegate_to_{tag}"
+        delegate_task.__doc__ = (
+            f"Delegate a task related to '{tag}' (e.g., {tag} management, queries) "
+            f"to the dedicated {tag} specialist agent. "
+            f"Provide a clear, self-contained description of the subtask."
+        )
 
-    else:
-        raise ValueError(f"Unsupported provider: {provider}")
+        delegation_tools.append(delegate_task)
 
-    # Define the toolset using FastMCPToolset with the streamable HTTP URL
-    # and filter for allowed tools only
-    toolset = FastMCPToolset(client=mcp_url)
-    filtered_toolset = toolset.filtered(
-        lambda ctx, tool_def: tool_def.name in allowed_tools
+    # 4. Create Parent Agent
+    system_prompt = (
+        "You are the ServiceNow Orchestrator Agent. "
+        "Your goal is to assist the user by delegating tasks to specialized child agents. "
+        "Analyze the user's request and determine which domain(s) it falls into "
+        "(e.g., incidents, change_management, cmdb). "
+        "Then, call the appropriate delegation tool(s) with a specific task description. "
+        "Synthesize the results from the child agents into a final helpful response. "
+        "Do not attempt to perform ServiceNow actions directly; always delegate."
     )
 
-    # Define the agent
-    agent_definition = Agent(
+    orchestrator = Agent(
         model,
-        system_prompt=INSTRUCTIONS,
+        system_prompt=system_prompt,
         name=AGENT_NAME,
-        toolsets=[filtered_toolset],
+        tools=delegation_tools,  # Register the wrapper functions as tools
     )
 
-    return agent_definition
+    return orchestrator
 
 
-# Expose as A2A server (Default instance for ASGI runners)
-agent = create_agent()
+# Create the default instance for A2A
+agent = create_orchestrator()
 
-# Define skills for the Agent Card
-skills = [
-    Skill(
-        id="download_media",
-        name="Download Media",
-        description="Download videos or audio from various platforms (YouTube, Twitter, etc.) to the local filesystem.",
-        tags=["media", "video", "audio", "download"],
-        examples=["Download this youtube video: https://youtu.be/example"],
-        input_modes=["text"],
-        output_modes=["text"],
+# Define Skills for Agent Card (High-level capabilities)
+skills = []
+for tag in TAGS:
+    skills.append(
+        Skill(
+            id=f"servicenow_{tag}",
+            name=f"ServiceNow {tag.replace('_', ' ').title()}",
+            description=f"Manage and query ServiceNow {tag.replace('_', ' ')}.",
+            tags=[tag, "servicenow"],
+            input_modes=["text"],
+            output_modes=["text"],
+        )
     )
-]
 
 
 def agent_server():
     parser = argparse.ArgumentParser(description=f"Run the {AGENT_NAME} A2A Server")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind the server to")
     parser.add_argument(
-        "--port", type=int, default=8000, help="Port to bind the server to"
+        "--port", type=int, default=9000, help="Port to bind the server to"
     )
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
 
@@ -140,38 +229,25 @@ def agent_server():
     )
     parser.add_argument("--api-key", default=None, help="LLM API Key")
     parser.add_argument("--mcp-url", default=DEFAULT_MCP_URL, help="MCP Server URL")
-    parser.add_argument(
-        "--allowed-tools",
-        nargs="*",
-        default=DEFAULT_ALLOWED_TOOLS,
-        help="List of allowed MCP tools",
-    )
 
     args = parser.parse_args()
-
-    base_url = args.base_url
-    api_key = args.api_key
-
-    if args.provider == "openai":
-        if base_url is None:
-            base_url = DEFAULT_OPENAI_BASE_URL
-        if api_key is None:
-            api_key = DEFAULT_OPENAI_API_KEY
 
     print(
         f"Starting {AGENT_NAME} with provider={args.provider}, model={args.model_id}, mcp={args.mcp_url}"
     )
 
-    cli_agent = create_agent(
+    # Create the agent with CLI args
+    cli_agent = create_orchestrator(
         provider=args.provider,
         model_id=args.model_id,
-        base_url=base_url,
-        api_key=api_key,
+        base_url=args.base_url,
+        api_key=args.api_key,
         mcp_url=args.mcp_url,
-        allowed_tools=args.allowed_tools,
     )
+
+    # Create A2A App
     cli_app = cli_agent.to_a2a(
-        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.29", skills=skills
+        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.30", skills=skills
     )
 
     uvicorn.run(
