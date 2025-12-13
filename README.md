@@ -20,11 +20,13 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.3.29*
+*Version: 1.3.30*
 
-ServiceNow API Python Wrapper
+ServiceNow API + MCP Server + A2A
 
-This repository is actively maintained and will continue adding more API calls. It includes a Model Context Protocol (MCP) server for Agentic AI, enhanced with various authentication mechanisms, middleware for observability and control, and optional Eunomia authorization for policy-based access control.
+This repository is actively maintained and will continue adding more API calls. It includes a Model Context Protocol (MCP) server and an out of the box Agent2Agent (A2A) agent
+
+The MCP Server is enhanced with various authentication mechanisms, middleware for observability and control, and optional Eunomia authorization for policy-based access control.
 
 Contributions are welcome!
 
@@ -91,6 +93,20 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 |            | --delegated-scopes              | Scopes for the delegated ServiceNow token (space-separated)                                               |
 |            | --openapi-file                  | Path to OpenAPI JSON spec to import tools/resources from                                                  |
 |            | --openapi-base-url              | Base URL for the OpenAPI client (defaults to ServiceNow instance URL)                                     |
+
+### A2A CLI
+
+| Short Flag | Long Flag         | Description                                                            |
+|------------|-------------------|------------------------------------------------------------------------|
+| -h         | --help            | Display help information                                               |
+|            | --host            | Host to bind the server to (default: 0.0.0.0)                          |
+|            | --port            | Port to bind the server to (default: 9000)                             |
+|            | --reload          | Enable auto-reload                                                     |
+|            | --provider        | LLM Provider: 'openai', 'anthropic', 'google', 'huggingface'           |
+|            | --model-id        | LLM Model ID (default: qwen3:4b)                                       |
+|            | --base-url        | LLM Base URL (for OpenAI compatible providers)                         |
+|            | --api-key         | LLM API Key                                                            |
+|            | --mcp-url         | MCP Server URL (default: http://localhost:8000/mcp)                    |
 
 ### Using as an MCP Server
 
@@ -242,6 +258,34 @@ export FASTMCP_SERVER_AUTH_JWT_ALGORITHM="HS256"  # or HS384, HS512
 export FASTMCP_SERVER_AUTH_JWT_ISSUER="internal-auth-service"
 export FASTMCP_SERVER_AUTH_JWT_AUDIENCE="mcp-internal-api"
 ```
+
+### Using as an A2A Agent
+
+The `servicenow-a2a` tool hosts an Agent-to-Agent (A2A) server that orchestrates specialized child agents for different ServiceNow domains.
+
+#### Run in CLI mode:
+
+```bash
+servicenow-a2a --port 9000 --provider openai --model-id gpt-4o
+```
+
+#### Run in Docker:
+
+You can run the A2A server using the same Docker image by overriding the command.
+
+```bash
+docker run -d \
+  -p 9000:9000 \
+  -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
+  -e SERVICENOW_USERNAME=user \
+  -e SERVICENOW_PASSWORD=pass \
+  knucklessg1/servicenow:latest \
+  servicenow-a2a \
+  --port 9000 \
+  --mcp-url http://host.docker.internal:8000/mcp
+```
+
+> **Note:** The A2A agent requires a running MCP server to function. In the example above, `host.docker.internal` allows the container to talk to an MCP server running on your host machine. If you are running both in the same network or compose stack, use the service name.
 
 ### Basic API Usage
 
