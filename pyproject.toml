@@ -21,17 +21,28 @@ dependencies = [
     "requests>=2.8.1",
     "urllib3>=2.2.2",
     "pydantic[email]>=2.8.2",
+]
+
+[project.optional-dependencies]
+mcp = [
     "fastmcp>=2.13.0.2",
     "eunomia-mcp>=0.3.10"
 ]
 
-[project.optional-dependencies]
-eunomia-mcp = [
-    "eunomia-mcp>=0.3.9",
+a2a = [
+    "pydantic-ai-slim[fastmcp,openai,anthropic,google,huggingface,a2a]>=1.32.0"
+]
+
+all = [
+
+    "fastmcp>=2.13.0.2",
+    "eunomia-mcp>=0.3.10",
+    "pydantic-ai-slim[fastmcp,openai,anthropic,google,huggingface,a2a]>=1.32.0"
 ]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.servicenow_mcp:servicenow_mcp"
+servicenow-a2a = "servicenow_api.servicenow_a2a:agent_server"
 
 [tool.setuptools.packages.find]
 where = ["."]

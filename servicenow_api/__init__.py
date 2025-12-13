@@ -8,6 +8,7 @@ import inspect
 MODULES = [
     "servicenow_api.servicenow_api",
     "servicenow_api.servicenow_mcp",
+    "servicenow_api.servicenow_a2a",
     "servicenow_api.servicenow_models",
     "servicenow_api.decorators",
     "servicenow_api.exceptions",
