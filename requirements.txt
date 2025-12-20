@@ -3,3 +3,5 @@ urllib3>=2.2.2
 pydantic[email]>=2.8.2
 fastmcp>=2.13.0.2
 eunomia-mcp>=0.3.10
+pydantic-ai-slim[fastmcp,openai,anthropic,google,huggingface,a2a]>=1.32.0
+graphiti-core[kuzu,falkordb,anthropic,groq,google-genai]>=0.24.3
