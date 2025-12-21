@@ -168,26 +168,26 @@ The script initializes the graph on startup (ingesting docs if needed), creates 
 
 ```mermaid
 graph TD
-    A[User Query] --> B[Orchestrator Agent]
-    B --> C{Delegate by Tag}
-    C --> D1[Child Agent: incidents]
-    C --> D2[Child Agent: cmdb]
-    C --> D3[Child Agent: change_management]
-    C --> Dn[... Other Child Agents]
-    D1 --> E1[Filtered MCP Tools - incidents]
-    D1 --> F[Graphiti Knowledge Graph]
-    D2 --> E2[Filtered MCP Tools - cmdb]
-    D2 --> F
-    D3 --> E3[Filtered MCP Tools - change_management]
-    D3 --> F
-    Dn --> En[Filtered MCP Tools]
-    Dn --> F
+    A[User Query] --> B[A2A Server - Uvicorn/FastAPI]
+    B --> C[Orchestrator Agent]
+    C --> D{Delegate by Tag}
+    D --> E1[Child Agent: incidents]
+    D --> E2[Child Agent: cmdb]
+    D --> E3[Child Agent: change_management]
+    D --> En[... Other Child Agents]
+    E1 --> F1[Filtered MCP Tools - incidents]
+    E1 --> G[Graphiti Knowledge Graph]
+    E2 --> F2[Filtered MCP Tools - cmdb]
+    E2 --> G
+    E3 --> F3[Filtered MCP Tools - change_management]
+    E3 --> G
+    Dn --> Fn[Filtered MCP Tools]
+    Dn --> G
     F --> G[Ingested ServiceNow Docs Corpus]
-    E1 --> H[ServiceNow APIs via MCP]
-    E2 --> H
-    E3 --> H
-    En --> H
-    B --> I[A2A Server - Uvicorn/FastAPI]
+    F1 --> H[ServiceNow APIs via MCP]
+    F2 --> H
+    F3 --> H
+    Fn --> H
     subgraph "Initialization"
         J[Initialize Graphiti DB] --> G
     end
