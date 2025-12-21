@@ -2,7 +2,7 @@ import os
 import argparse
 import requests
 import uvicorn
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -191,8 +191,8 @@ class ServiceNowAPICallTemplate(BaseModel):
 
     endpoint: str
     method: str
-    params: Optional[Dict[str, any]] = None
-    body: Optional[Dict[str, any]] = None
+    params: Optional[Dict[str, Any]] = None
+    body: Optional[Dict[str, Any]] = None
     headers: Optional[Dict[str, str]] = None
     examples: Optional[list[str]] = None
     error_handlers: Optional[Dict[str, str]] = None  # e.g., {"401": "Retry auth"}
@@ -311,6 +311,7 @@ def create_orchestrator(
         password=graphiti_pass,
         host=graphiti_host,
         port=graphiti_port,
+        database="servicenow_graphiti",
         force_reinit=graphiti_force_reinit,
     )
 
@@ -498,7 +499,7 @@ def agent_server():
 
     # Create A2A App
     cli_app = cli_agent.to_a2a(
-        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.31", skills=skills
+        name=AGENT_NAME, description=AGENT_DESCRIPTION, version="1.3.32", skills=skills
     )
 
     uvicorn.run(
