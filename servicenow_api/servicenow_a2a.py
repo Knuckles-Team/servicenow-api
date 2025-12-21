@@ -3,7 +3,6 @@ import argparse
 import requests
 import uvicorn
 from typing import Optional, Dict
-
 from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
@@ -14,11 +13,11 @@ from pydantic_ai.toolsets.fastmcp import FastMCPToolset
 from fasta2a import Skill
 
 os.getenv("GRAPHITI_TELEMETRY_ENABLED", "false")
-from graphiti_core import GraphitiClient
-from graphiti_core.drivers.kuzu import KuzuConfig
-from graphiti_core.drivers.neo4j import Neo4jConfig
-from graphiti_core.drivers.falkordb import FalkorDBConfig
-from servicenow_api.utils import to_integer, to_boolean
+from graphiti_core import Graphiti
+from graphiti_core.driver.kuzu_driver import KuzuDriver
+from graphiti_core.driver.neo4j_driver import Neo4jDriver
+from graphiti_core.driver.falkordb_driver import FalkorDriver
+from servicenow_api.utils import to_integer
 
 DEFAULT_PROVIDER = os.getenv("PROVIDER", "openai")
 DEFAULT_MODEL_ID = os.getenv("MODEL_ID", "qwen3:4b")
@@ -28,13 +27,15 @@ DEFAULT_MCP_URL = os.getenv("MCP_URL", "http://localhost:8000/mcp")
 DEFAULT_GRAPHITI_BACKEND = os.getenv("GRAPHITI_BACKEND", "kuzu")
 DEFAULT_GRAPHITI_DB_PATH = os.getenv("GRAPHITI_DB_PATH", "servicenow_graphiti.db")
 DEFAULT_GRAPHITI_MCP_URL = os.getenv("GRAPHITI_MCP_URL", "http://localhost:8001/mcp")
-DEFAULT_GRAPHITI_NEO4J_URI = os.getenv(
-    "DEFAULT_GRAPHITI_NEO4J_URI", "bolt://localhost:7687"
+DEFAULT_GRAPHITI_URI = os.getenv(
+    "DEFAULT_GRAPHITI_URI", "bolt://localhost:7687"
 )
-DEFAULT_GRAPHITI_NEO4J_USER = os.getenv("DEFAULT_GRAPHITI_NEO4J_USER", "neo4j")
-DEFAULT_GRAPHITI_NEO4J_PASS = os.getenv("DEFAULT_GRAPHITI_NEO4J_PASS", "password")
-DEFAULT_GRAPHITI_FALKOR_HOST = os.getenv("DEFAULT_GRAPHITI_FALKOR_HOST", "localhost")
-DEFAULT_GRAPHITI_FALKOR_PORT = to_integer(string=os.getenv("DEFAULT_GRAPHITI_FALKOR_PORT", "6379"))
+DEFAULT_GRAPHITI_USER = os.getenv("DEFAULT_GRAPHITI_USER", "neo4j")
+DEFAULT_GRAPHITI_PASS = os.getenv("DEFAULT_GRAPHITI_PASS", "password")
+DEFAULT_GRAPHITI_HOST = os.getenv("DEFAULT_GRAPHITI_HOST", "localhost")
+DEFAULT_GRAPHITI_PORT = to_integer(
+    string=os.getenv("DEFAULT_GRAPHITI_PORT", "6379")
+)
 
 # Initial ServiceNow doc URLs for ingestion
 INITIAL_DOC_URLS = [
@@ -122,28 +123,31 @@ def create_model(
 def initialize_graphiti_db(
     backend: str,
     db_path: str,
-    neo4j_uri: str,
-    neo4j_user: str,
-    neo4j_pass: str,
-    falkor_host: str,
-    falkor_port: int,
+    uri: str,
+    user: str,
+    password: str,
+    host: str,
+    port: int,
+    database: str,
     force_reinit: bool = False,
-) -> GraphitiClient:
+) -> Graphiti:
     """
     Initializes and returns a GraphitiClient for any backend.
     Optionally seeds with initial ServiceNow docs if empty or forced.
     """
     if backend == "kuzu":
-        config = KuzuConfig(path=db_path)
-        client = GraphitiClient(config)
+        driver = KuzuDriver(db=db_path)
+        client = Graphiti(graph_driver=driver)
         db_exists = os.path.exists(db_path) and os.path.getsize(db_path) > 0
     elif backend == "neo4j":
-        config = Neo4jConfig(uri=neo4j_uri, user=neo4j_user, password=neo4j_pass)
-        client = GraphitiClient(config)
+        driver = Neo4jDriver(uri=uri, user=user, password=password,
+                             database=database)
+        client = Graphiti(graph_driver=driver)
         db_exists = True  # Assume remote exists
     elif backend == "falkordb":
-        config = FalkorDBConfig(host=falkor_host, port=falkor_port)
-        client = GraphitiClient(config)
+        driver = FalkorDriver(host=host, port=port, username=user, password=password,
+                              database=database)
+        client = Graphiti(graph_driver=driver)
         db_exists = True
     else:
         raise ValueError(f"Unsupported backend: {backend}")
@@ -206,11 +210,11 @@ def create_child_agent(
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
     graphiti_backend: str = DEFAULT_GRAPHITI_BACKEND,
-    graphiti_client: Optional[GraphitiClient] = None,  # Passed if Kuzu (embedded)
+    graphiti_client: Optional[Graphiti] = None,  # Passed if Kuzu (embedded)
     graphiti_mcp_url: Optional[str] = None,  # For server backends
 ) -> Agent:
     """
-    Creates a specialized child agent for a specific tag, with Graphiti integration.
+    Creates a specialized child agent for a specific tag, with Graphiti integration and thin execution template layer.
     """
     model = create_model(provider, model_id, base_url, api_key)
 
@@ -260,7 +264,6 @@ def create_child_agent(
         query_graph.__doc__ = "Query the temporal knowledge graph for context (e.g., hybrid search on entities/relationships)."
 
         additional_tools.append(query_graph)
-
         system_prompt += (
             " Use ingest_to_graph and query_graph for knowledge graph interactions."
         )
@@ -274,7 +277,6 @@ def create_child_agent(
             lambda ctx, tool_def: tag in (tool_def.tags or [])
         )
         additional_toolsets.append(filtered_graphiti)
-
         system_prompt += " Use Graphiti MCP tools for querying/ingesting into the temporal knowledge graph."
 
     return Agent(
@@ -294,11 +296,11 @@ def create_orchestrator(
     mcp_url: str = DEFAULT_MCP_URL,
     graphiti_backend: str = DEFAULT_GRAPHITI_BACKEND,
     graphiti_db_path: str = DEFAULT_GRAPHITI_DB_PATH,
-    graphiti_neo4j_uri: str = DEFAULT_GRAPHITI_NEO4J_URI,
-    graphiti_neo4j_user: str = DEFAULT_GRAPHITI_NEO4J_USER,
-    graphiti_neo4j_pass: str = DEFAULT_GRAPHITI_NEO4J_PASS,
-    graphiti_falkor_host: str = DEFAULT_GRAPHITI_FALKOR_HOST,
-    graphiti_falkor_port: int = DEFAULT_GRAPHITI_FALKOR_PORT,
+    graphiti_uri: str = DEFAULT_GRAPHITI_URI,
+    graphiti_user: str = DEFAULT_GRAPHITI_USER,
+    graphiti_pass: str = DEFAULT_GRAPHITI_PASS,
+    graphiti_host: str = DEFAULT_GRAPHITI_HOST,
+    graphiti_port: int = DEFAULT_GRAPHITI_PORT,
     graphiti_mcp_url: str = DEFAULT_GRAPHITI_MCP_URL,
     graphiti_force_reinit: bool = False,
 ) -> Agent:
@@ -308,11 +310,11 @@ def create_orchestrator(
     graphiti_client = initialize_graphiti_db(
         backend=graphiti_backend,
         db_path=graphiti_db_path,
-        neo4j_uri=graphiti_neo4j_uri,
-        neo4j_user=graphiti_neo4j_user,
-        neo4j_pass=graphiti_neo4j_pass,
-        falkor_host=graphiti_falkor_host,
-        falkor_port=graphiti_falkor_port,
+        uri=graphiti_uri,
+        user=graphiti_user,
+        password=graphiti_pass,
+        host=graphiti_host,
+        port=graphiti_port,
         force_reinit=graphiti_force_reinit,
     )
 
@@ -440,27 +442,27 @@ def agent_server():
         help="Path to Kuzu DB file",
     )
     parser.add_argument(
-        "--graphiti-neo4j-uri", default=DEFAULT_GRAPHITI_NEO4J_URI, help="Neo4j URI"
+        "--graphiti-uri", default=DEFAULT_GRAPHITI_URI, help="Neo4j URI"
     )
     parser.add_argument(
-        "--graphiti-neo4j-user",
-        default=DEFAULT_GRAPHITI_NEO4J_USER,
+        "--graphiti-user",
+        default=DEFAULT_GRAPHITI_USER,
         help="Neo4j username",
     )
     parser.add_argument(
-        "--graphiti-neo4j-pass",
-        default=DEFAULT_GRAPHITI_NEO4J_PASS,
+        "--graphiti-pass",
+        default=DEFAULT_GRAPHITI_PASS,
         help="Neo4j password",
     )
     parser.add_argument(
-        "--graphiti-falkor-host",
-        default=DEFAULT_GRAPHITI_FALKOR_HOST,
+        "--graphiti-host",
+        default=DEFAULT_GRAPHITI_HOST,
         help="FalkorDB host",
     )
     parser.add_argument(
-        "--graphiti-falkor-port",
+        "--graphiti-port",
         type=int,
-        default=DEFAULT_GRAPHITI_FALKOR_PORT,
+        default=DEFAULT_GRAPHITI_PORT,
         help="FalkorDB port",
     )
     parser.add_argument(
@@ -489,11 +491,11 @@ def agent_server():
         mcp_url=args.mcp_url,
         graphiti_backend=args.graphiti_backend,
         graphiti_db_path=args.graphiti_db_path,
-        graphiti_neo4j_uri=args.graphiti_neo4j_uri,
-        graphiti_neo4j_user=args.graphiti_neo4j_user,
-        graphiti_neo4j_pass=args.graphiti_neo4j_pass,
-        graphiti_falkor_host=args.graphiti_falkor_host,
-        graphiti_falkor_port=args.graphiti_falkor_port,
+        graphiti_uri=args.graphiti_uri,
+        graphiti_user=args.graphiti_user,
+        graphiti_pass=args.graphiti_pass,
+        graphiti_host=args.graphiti_host,
+        graphiti_port=args.graphiti_port,
         graphiti_mcp_url=args.graphiti_mcp_url,
         graphiti_force_reinit=args.graphiti_force_reinit,
     )

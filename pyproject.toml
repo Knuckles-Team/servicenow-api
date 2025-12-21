@@ -31,7 +31,7 @@ mcp = [
 
 a2a = [
     "pydantic-ai-slim[fastmcp,openai,anthropic,google,huggingface,a2a]>=1.32.0",
-    "graphiti-core>=0.24.3",
+    "graphiti-core[kuzu,falkordb,anthropic,groq,google-genai]>=0.24.3",
 ]
 
 all = [
