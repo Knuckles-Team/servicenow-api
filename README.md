@@ -174,11 +174,11 @@ graph TD
     C --> D2[Child Agent: cmdb]
     C --> D3[Child Agent: change_management]
     C --> Dn[... Other Child Agents]
-    D1 --> E1[Filtered MCP Tools "incidents"]
+    D1 --> E1[Filtered MCP Tools - incidents]
     D1 --> F[Graphiti Knowledge Graph]
-    D2 --> E2[Filtered MCP Tools "cmdb"]
+    D2 --> E2[Filtered MCP Tools - cmdb]
     D2 --> F
-    D3 --> E3[Filtered MCP Tools "change_management"]
+    D3 --> E3[Filtered MCP Tools - change_management]
     D3 --> F
     Dn --> En[Filtered MCP Tools]
     Dn --> F
@@ -187,7 +187,7 @@ graph TD
     E2 --> H
     E3 --> H
     En --> H
-    B --> I[A2A Server "Uvicorn/FastAPI"]
+    B --> I[A2A Server - Uvicorn/FastAPI]
     subgraph "Initialization"
         J[Initialize Graphiti DB] --> G
     end
