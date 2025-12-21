@@ -183,11 +183,11 @@ graph TD
     E3 --> G
     Dn --> Fn[Filtered MCP Tools]
     Dn --> G
-    F --> G[Ingested ServiceNow Docs Corpus]
-    F1 --> H[ServiceNow APIs via MCP]
-    F2 --> H
-    F3 --> H
-    Fn --> H
+    G --> H[Ingested ServiceNow Docs Corpus]
+    F1 --> I[ServiceNow APIs via MCP]
+    F2 --> I
+    F3 --> I
+    Fn --> I
     subgraph "Initialization"
         J[Initialize Graphiti DB] --> G
     end
