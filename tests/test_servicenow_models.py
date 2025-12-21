@@ -4,7 +4,7 @@ import sys
 import pytest
 from conftest import reason
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     import servicenow_api
@@ -1659,6 +1659,20 @@ def test_servicenow_kb_article_responses():
     }
     response = Response(**example_data, status_code=200, json=example_data)
     assert response.result.base_type == "KnowledgeManagement"
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_servicenow_incident_with_bool_param():
+    incident_id = "test_sys_id"
+    incident = IncidentModel(
+        incident_id=incident_id, sysparm_query_no_domain=True, sysparm_no_count=False
+    )
+    assert incident.incident_id == incident_id
+    assert incident.sysparm_query_no_domain == "true"
+    assert incident.sysparm_no_count == "false"
 
 
 if __name__ == "__main__":

@@ -68,7 +68,7 @@ class ApplicationServiceModel(BaseModel):
         """
         if value is None:
             return None
-        return value.lower()
+        return str(value).lower()
 
     @field_validator("mode")
     def validate_mode(cls, v):
@@ -283,7 +283,7 @@ class CICDModel(BaseModel):
         - str: The value converted to lowercase.
         """
         if value is not None:
-            return value.lower()
+            return str(value).lower()
         return value
 
     @field_validator("browser_name")
@@ -488,7 +488,7 @@ class ChangeManagementModel(BaseModel):
         """
         if value is None:
             return None
-        return value.lower()
+        return str(value).lower()
 
     @field_validator("change_type")
     def validate_change_type(cls, v):
@@ -640,7 +640,7 @@ class IncidentModel(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
     incident_id: Union[int, str] = None
     name_value_pairs: Optional[str] = None
-    sysparm_display_value: Optional[str] = None
+    sysparm_display_value: Optional[Union[str, bool]] = None
     sysparm_exclude_reference_link: Optional[bool] = None
     sysparm_fields: Optional[str] = None
     sysparm_limit: Optional[Union[str, int]] = None
@@ -692,7 +692,7 @@ class IncidentModel(BaseModel):
         """
         if value is None:
             return None
-        return value.lower()
+        return str(value).lower()
 
     @field_validator("sysparm_view")
     def validate_sysparm_view(cls, v):
@@ -726,7 +726,7 @@ class IncidentModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_display_value' is not a valid display value.
         """
-        if v not in [True, False, "all", None]:
+        if v not in [True, False, "all", "true", "false", None]:
             raise ParameterError
         return v
 
@@ -851,7 +851,7 @@ class TableModel(BaseModel):
     table: Optional[str] = None
     table_record_sys_id: Optional[str] = None
     name_value_pairs: Optional[str] = None
-    sysparm_display_value: Optional[str] = None
+    sysparm_display_value: Optional[Union[str, bool]] = None
     sysparm_exclude_reference_link: Optional[bool] = None
     sysparm_fields: Optional[str] = None
     sysparm_limit: Optional[Union[str, int]] = None
@@ -903,7 +903,7 @@ class TableModel(BaseModel):
         """
         if value is None:
             return None
-        return value.lower()
+        return str(value).lower()
 
     @field_validator("sysparm_view")
     def validate_sysparm_view(cls, v):
@@ -937,7 +937,7 @@ class TableModel(BaseModel):
         Raises:
         - ParameterError: If 'sysparm_display_value' is not a valid display value.
         """
-        if v not in [True, False, "all", None]:
+        if v not in [True, False, "all", "true", "false", None]:
             raise ParameterError
         return v
 
