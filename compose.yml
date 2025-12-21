@@ -1,0 +1,113 @@
+---
+services:
+  servicenow-mcp:
+    image: docker.io/knucklessg1/servicenow:latest
+    container_name: servicenow-mcp
+    hostname: servicenow-mcp
+    command: |
+      servicenow-mcp
+    depends_on:
+      - ollama
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
+    environment:
+      - HOST=0.0.0.0 # Optional
+      - PORT=8004 # Optional
+      - TRANSPORT=http
+      - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
+      - SERVICENOW_USERNAME=user
+      - SERVICENOW_PASSWORD=pass
+      - SERVICENOW_CLIENT_ID=client_id # Optional
+      - SERVICENOW_CLIENT_SECRET=client_secret # Optional
+      - SERVICENOW_VERIFY=False # Optional
+#      - AUTH_TYPE=oidc-proxy # Optional
+#      - OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration # Optional
+#      - OIDC_CLIENT_ID=your-client-id # Optional
+#      - OIDC_CLIENT_SECRET=your-client-secret # Optional
+#      - OIDC_BASE_URL=https://your-server.com # Optional
+#      - ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/* # Optional
+#      - ENABLE_DELEGATION=True # Optional
+#      - SERVICENOW_AUDIENCE=https://yourinstance.servicenow.com # Optional
+#      - DELEGATED_SCOPES='api user_impersonation' # Optional
+#      - EUNOMIA_TYPE=embedded # Optional
+#      - EUNOMIA_POLICY_FILE=/app/mcp_policies.json # Optional
+#      - FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256 # Optional
+#      - FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=your-shared-secret # Optional
+#      - FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=servicenow.read,servicenow.write # Optional
+    ports:
+      - "8004:8004"
+
+  servicenow-a2a:
+    image: docker.io/knucklessg1/servicenow:latest
+    container_name: servicenow-a2a
+    hostname: servicenow-a2a
+    command: |
+      servicenow-a2a
+    depends_on:
+      - ollama
+      - servicenow-mcp
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
+    environment:
+      - "HOST=0.0.0.0"
+      - "PORT=9000"
+      - "MCP_URL=http://servicenow-mcp:8000/mcp"
+      - "PROVIDER=openai"
+      - "OPENAI_BASE_URL=http://ollama:11434/v1"
+      - "OPENAI_API_KEY=ollama"
+      - "MODEL_ID=qwen3:4b"
+    ports:
+      - "9000:9000"
+
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    hostname: ollama
+    container_name: ollama
+    restart: always
+    volumes:
+      - ./ollama:/root/.ollama
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        ollama serve &
+        pid=$$!
+        echo "Waiting for Ollama server to start..."
+        while ! ollama list > /dev/null 2>&1; do
+          sleep 1
+        done
+        echo "Ollama is ready!"
+        echo "Pulling qwen3:4b..."
+        ollama pull qwen3:4b
+        echo "🟢 Model pulled and server ready"
+        wait $$pid
+    ports:
+      - "11434:11434"
+    environment:
+      - "OLLAMA_HOST=0.0.0.0"
+      - "OLLAMA_KEEP_ALIVE=24h"
+      - "NVIDIA_VISIBLE_DEVICES=all"
+      - "NVIDIA_DRIVER_CAPABILITIES=all"
+
+  a2a-inspector:
+    build: https://github.com/a2aproject/a2a-inspector.git
+    container_name: a2a-inspector
+    ports:
+      - "8080:8080"
+
+  mcp-inspector:
+    image: ghcr.io/modelcontextprotocol/inspector:latest
+    container_name: mcp-inspector
+    environment:
+      - "HOST=0.0.0.0"
+    ports:
+      - "6274:6274"
+      - "6277:6277"

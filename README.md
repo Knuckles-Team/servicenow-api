@@ -22,17 +22,40 @@
 
 *Version: 1.3.31*
 
-ServiceNow API + MCP Server + A2A
+## Overview
 
-This repository is actively maintained and will continue adding more API calls. It includes a Model Context Protocol (MCP) server and an out of the box Agent2Agent (A2A) agent
+This project started out as a pyton wrapper for ServiceNow, but since the dawn of standards like 
+Model Context Protocol (MCP) and Agent2Agent (A2A) Agent,
+this repository has become a sandbox for some brand new and pretty cool features with respects to each of those. 
+The original APIs should remain stable,
+but please note, the latest features like A2A may still be unstable as it is under active development. 
 
-The MCP Server is enhanced with various authentication mechanisms, middleware for observability and control, and optional Eunomia authorization for policy-based access control.
+This project now includes an MCP server, which wraps all the original APIs you know and love in the base project. This
+allows any MCP capable LLM to leverage these tools and interact with ServiceNow. The MCP Server is enhanced with 
+various authentication mechanisms, middleware for observability and control, 
+and optional Eunomia authorization for policy-based access control.
+
+ServiceNow A2A implements a multi-agent system designed to manage and interact with ServiceNow tasks through a delegated,
+specialist-based architecture. Built using Python, it leverages libraries like `pydantic-ai` for agent creation,
+`FastMCPToolset` for integrating Model Context Protocol (MCP) tools, and `Graphiti`
+for building a temporal knowledge graph from official ServiceNow documentation. 
+The system runs as a FastAPI server via Uvicorn, exposing an Agent-to-Agent (A2A) interface for handling requests.
+`pydantic-ai` is able to expose your agent as an A2A agent out of the box with `.to_a2a()`. 
+This allows this agent to be integrated in
+any agentic framework like `Microsoft Agent Framework` (MAF) or `crew.ai`.
+The core idea is an orchestrator agent that analyzes user queries and delegates subtasks to specialized child agents,
+each focused on a specific domain (e.g., incidents, change management).
+Child agents have access to filtered MCP tools and a shared knowledge graph for reasoning over documentation,
+ensuring accurate and context-aware executions without direct access to the underlying APIs from the orchestrator.
+
+This architecture promotes modularity, scalability, and maintainability, making it suitable for enterprise
+integrations with platforms like ServiceNow.
 
 Contributions are welcome!
 
-All API Response objects are customized for the response call. You can access return values in a `parent.value.nested_value` format, or use `parent.model_dump()` to get the response as a dictionary.
+## API
 
-#### API Calls:
+### API Calls
 - Application Service
 - Change Management
 - CI/CD
@@ -45,6 +68,210 @@ All API Response objects are customized for the response call. You can access re
 
 If your API call isn't supported, you can use the `api_request` tool to perform GET/POST/PUT/DELETE requests to any ServiceNow endpoint.
 
+## MCP
+
+All the available API Calls above are wrapped in MCP Tools. You can find those below with their tool descriptions and associated tag.
+
+### MCP Tools
+
+| Function Name                              | Description                                                                                                                | Tag(s)                  |
+|--------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| get_application                            | Retrieves details of a specific application from a ServiceNow instance by its unique identifier.                           | application            |
+| get_cmdb                                   | Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier. | cmdb                   |
+| batch_install_result                       | Retrieves the result of a batch installation process in ServiceNow by result ID.                                           | cicd                   |
+| instance_scan_progress                     | Gets the progress status of an instance scan in ServiceNow by progress ID.                                                 | cicd                   |
+| progress                                   | Retrieves the progress status of a specified process in ServiceNow by progress ID.                                         | cicd                   |
+| batch_install                              | Initiates a batch installation of specified packages in ServiceNow with optional notes.                                    | cicd                   |
+| batch_rollback                             | Performs a rollback of a batch installation in ServiceNow using the rollback ID.                                           | cicd                   |
+| app_repo_install                           | Installs an application from a repository in ServiceNow with specified parameters.                                         | cicd                   |
+| app_repo_publish                           | Publishes an application to a repository in ServiceNow with development notes and version.                                 | cicd                   |
+| app_repo_rollback                          | Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.                               | cicd                   |
+| full_scan                                  | Initiates a full scan of the ServiceNow instance.                                                                          | cicd                   |
+| point_scan                                 | Performs a targeted scan on a specific instance and table in ServiceNow.                                                   | cicd                   |
+| combo_suite_scan                           | Executes a scan on a combination of suites in ServiceNow by combo sys_id.                                                  | cicd                   |
+| suite_scan                                 | Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.                                       | cicd                   |
+| activate_plugin                            | Activates a specified plugin in ServiceNow by plugin ID.                                                                   | plugins                |
+| rollback_plugin                            | Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.                                            | plugins                |
+| apply_remote_source_control_changes        | Applies changes from a remote source control branch to a ServiceNow application.                                           | source_control         |
+| import_repository                          | Imports a repository into ServiceNow with specified credentials and branch.                                                | source_control         |
+| run_test_suite                             | Executes a test suite in ServiceNow with specified browser and OS configurations.                                          | testing                |
+| update_set_create                          | Creates a new update set in ServiceNow with a given name, scope, and description.                                          | update_sets            |
+| update_set_retrieve                        | Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.                            | update_sets            |
+| update_set_preview                         | Previews an update set in ServiceNow by its remote sys_id.                                                                 | update_sets            |
+| update_set_commit                          | Commits an update set in ServiceNow with an option to force commit.                                                        | update_sets            |
+| update_set_commit_multiple                 | Commits multiple update sets in ServiceNow in the specified order.                                                         | update_sets            |
+| update_set_back_out                        | Backs out an update set in ServiceNow with an option to rollback installations.                                            | update_sets            |
+| get_change_requests                        | Retrieves change requests from ServiceNow with optional filtering and pagination.                                          | change_management      |
+| get_change_request_nextstate               | Gets the next state for a specific change request in ServiceNow.                                                           | change_management      |
+| get_change_request_schedule                | Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.                              | change_management      |
+| get_change_request_tasks                   | Fetches tasks associated with a change request in ServiceNow with optional filtering.                                      | change_management      |
+| get_change_request                         | Retrieves details of a specific change request in ServiceNow by sys_id and type.                                           | change_management      |
+| get_change_request_ci                      | Gets Configuration Items (CIs) associated with a change request in ServiceNow.                                             | change_management      |
+| get_change_request_conflict                | Checks for conflicts in a change request in ServiceNow.                                                                    | change_management      |
+| get_standard_change_request_templates      | Retrieves standard change request templates from ServiceNow with optional filtering.                                       | change_management      |
+| get_change_request_models                  | Fetches change request models from ServiceNow with optional filtering and type.                                            | change_management      |
+| get_standard_change_request_model          | Retrieves a specific standard change request model in ServiceNow by sys_id.                                                | change_management      |
+| get_standard_change_request_template       | Gets a specific standard change request template in ServiceNow by sys_id.                                                  | change_management      |
+| get_change_request_worker                  | Retrieves details of a change request worker in ServiceNow by sys_id.                                                      | change_management      |
+| create_change_request                      | Creates a new change request in ServiceNow with specified details and type.                                                | change_management      |
+| create_change_request_task                 | Creates a task for a change request in ServiceNow with provided details.                                                   | change_management      |
+| create_change_request_ci_association       | Associates Configuration Items (CIs) with a change request in ServiceNow.                                                  | change_management      |
+| calculate_standard_change_request_risk     | Calculates the risk for a standard change request in ServiceNow.                                                           | change_management      |
+| check_change_request_conflict              | Checks for conflicts in a change request in ServiceNow.                                                                    | change_management      |
+| refresh_change_request_impacted_services   | Refreshes the impacted services for a change request in ServiceNow.                                                        | change_management      |
+| approve_change_request                     | Approves or rejects a change request in ServiceNow by setting its state.                                                   | change_management      |
+| update_change_request                      | Updates a change request in ServiceNow with new details and type.                                                          | change_management      |
+| update_change_request_first_available      | Updates a change request to the first available state in ServiceNow.                                                       | change_management      |
+| update_change_request_task                 | Updates a task for a change request in ServiceNow with new details.                                                        | change_management      |
+| delete_change_request                      | Deletes a change request from ServiceNow by sys_id and type.                                                               | change_management      |
+| delete_change_request_task                 | Deletes a task associated with a change request in ServiceNow.                                                             | change_management      |
+| delete_change_request_conflict_scan        | Deletes a conflict scan for a change request in ServiceNow.                                                                | change_management      |
+| get_import_set                             | Retrieves details of a specific import set record from a ServiceNow instance.                                              | import_sets            |
+| insert_import_set                          | Inserts a new record into a specified import set on a ServiceNow instance.                                                 | import_sets            |
+| insert_multiple_import_sets                | Inserts multiple records into a specified import set on a ServiceNow instance.                                             | import_sets            |
+| get_incidents                              | Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.                                 | incidents              |
+| create_incident                            | Creates a new incident record on a ServiceNow instance with provided details.                                              | incidents              |
+| get_knowledge_articles                     | Get all Knowledge Base articles from a ServiceNow instance.                                                                | knowledge_management   |
+| get_knowledge_article                      | Get a specific Knowledge Base article from a ServiceNow instance.                                                          | knowledge_management   |
+| get_knowledge_article_attachment           | Get a Knowledge Base article attachment from a ServiceNow instance.                                                        | knowledge_management   |
+| get_featured_knowledge_article             | Get featured Knowledge Base articles from a ServiceNow instance.                                                           | knowledge_management   |
+| get_most_viewed_knowledge_articles         | Get most viewed Knowledge Base articles from a ServiceNow instance.                                                        | knowledge_management   |
+| delete_table_record                        | Delete a record from the specified table on a ServiceNow instance.                                                         | table_api              |
+| get_table                                  | Get records from the specified table on a ServiceNow instance.                                                             | table_api              |
+| get_table_record                           | Get a specific record from the specified table on a ServiceNow instance.                                                   | table_api              |
+| patch_table_record                         | Partially update a record in the specified table on a ServiceNow instance.                                                 | table_api              |
+| update_table_record                        | Fully update a record in the specified table on a ServiceNow instance.                                                     | table_api              |
+| add_table_record                           | Add a new record to the specified table on a ServiceNow instance.                                                          | table_api              |
+| refresh_auth_token                         | Refreshes the authentication token for the ServiceNow client.                                                              | auth                   |
+| api_request                                | Make a custom API request to a ServiceNow instance.                                                                        | custom_api             |
+
+## A2A Agent
+
+### Architecture Summary
+
+The system follows a hierarchical multi-agent design:
+- **Orchestrator Agent**: Acts as the entry point, parsing user requests and delegating to child agents based on domain tags.
+- **Child Agents**: Domain-specific specialists (one per tag, e.g., "cmdb", "incidents") that execute tasks using filtered MCP tools and query the knowledge graph for guidance from official docs.
+- **Knowledge Graph (Graphiti)**: A centralized, temporal graph database ingesting ServiceNow documentation, accessible by child agents for retrieval-augmented reasoning.
+- **MCP Tools**: Distributed via tags to ensure each child agent only accesses relevant tools, preventing overload and enhancing security.
+- **Server Layer**: Exposes the orchestrator as an A2A API using `pydantic-ai`'s `to_a2a` method and Uvicorn.
+
+Key integrations:
+- **Pydantic-AI**: Used for defining agents, models (e.g., OpenAI, Anthropic), and run contexts.
+- **A2A (Agent-to-Agent)**: Enables inter-agent communication through delegation tools.
+- **Graphiti**: Builds a corpus from URLs of official docs, supporting backends like Kuzu (local), Neo4j, or FalkorDB.
+- **FastMCPToolset**: Provides MCP wrappers for ServiceNow APIs, filtered by tags for distribution.
+
+The script initializes the graph on startup (ingesting docs if needed), creates child agents with tag-filtered tools and graph access, builds the orchestrator with delegation tools, and launches the server.
+
+### Architecture:
+
+```mermaid
+graph TD
+    A[User Query] --> B[Orchestrator Agent]
+    B --> C{Delegate by Tag}
+    C --> D1[Child Agent: incidents]
+    C --> D2[Child Agent: cmdb]
+    C --> D3[Child Agent: change_management]
+    C --> Dn[... Other Child Agents]
+    D1 --> E1[Filtered MCP Tools (incidents)]
+    D1 --> F[Graphiti Knowledge Graph]
+    D2 --> E2[Filtered MCP Tools (cmdb)]
+    D2 --> F
+    D3 --> E3[Filtered MCP Tools (change_management)]
+    D3 --> F
+    Dn --> En[Filtered MCP Tools]
+    Dn --> F
+    F --> G[Ingested ServiceNow Docs Corpus]
+    E1 --> H[ServiceNow APIs via MCP]
+    E2 --> H
+    E3 --> H
+    En --> H
+    B --> I[A2A Server (Uvicorn/FastAPI)]
+    subgraph "Initialization"
+        J[Initialize Graphiti DB] --> G
+    end
+```
+
+This diagram shows the flow from user input to delegation, tool execution, and knowledge retrieval. The orchestrator synthesizes results from children before responding.
+
+### Breakdown
+
+#### 1. Pydantic-AI Integration
+Pydantic-AI is the backbone for agent modeling and execution. Agents are created using the `Agent` class, which takes an LLM model (e.g., OpenAIChatModel), system prompt, tools/toolsets, and a name.
+
+- **Model Creation**: The `create_model` function supports multiple providers (OpenAI, Anthropic, Google, HuggingFace) via environment variables or CLI args.
+- **RunContext**: Used in tool functions for contextual execution.
+- **Agent Hierarchy**: Orchestrator has delegation tools (async functions wrapping child `agent.run()` calls). Children have MCP toolsets and Graphiti tools.
+
+This enables structured, type-safe agent interactions with Pydantic validation.
+
+### 2. A2A (Agent-to-Agent) Framework
+A2A facilitates communication between agents:
+- The orchestrator is converted to an A2A app via `agent.to_a2a()`, defining skills (high-level capabilities per tag).
+- Delegation tools are async callables named `delegate_to_{tag}`, allowing the orchestrator to invoke children dynamically.
+- This distributes workload, with the orchestrator synthesizing outputs for a cohesive response.
+
+### 3. Multiple Agents
+- **Orchestrator**: Analyzes queries to identify domains (tags), delegates via tools, and combines results. System prompt emphasizes delegation without direct action.
+- **Child Agents**: One per tag in `TAGS` list (e.g., "incidents", "cmdb"). Each has a focused system prompt, filtered tools, and Graphiti access.
+- **Creation Flow**: In `create_orchestrator`, children are instantiated in a loop, stored in a dict, and wrapped as tools for the parent.
+
+This multi-agent setup scales by adding tags/children without refactoring the core.
+
+### 4. Distribution of MCP Tools via Tags
+MCP tools (from `FastMCPToolset`) wrap ServiceNow APIs. Distribution:
+- Tools are tagged (e.g., "incidents" for incident-related endpoints).
+- In `create_child_agent`, the toolset is filtered: `filtered_toolset = toolset.filtered(lambda ctx, tool_def: tag in (tool_def.tags or []))`.
+- This ensures each child only sees relevant tools, reducing complexity and potential misuse.
+
+Example: The "incidents" child gets tools like incident creation/query, while "cmdb" gets CMDB-specific ones.
+
+### 5. Corpus of Knowledge from Official Documentation (Graphiti)
+- **Initialization**: `initialize_graphiti_db` creates a Graphiti instance with the chosen backend (Kuzu for local, Neo4j/FalkorDB for servers).
+- **Ingestion**: If the graph is empty or `--graphiti-force-reinit` is set, it fetches and adds episodes from `INITIAL_DOC_URLS` (ServiceNow API refs, guides).
+- **Temporal Aspect**: Graphiti's episodes preserve dates for version-aware queries.
+- **Access by Children**:
+    - For Kuzu (embedded): Custom tools `ingest_to_graph` and `query_graph` wrap Graphiti methods.
+    - For servers: Uses a separate `FastMCPToolset` for Graphiti MCP, filtered by tag.
+- **Usage**: Children query the graph (e.g., "Retrieve details for Table API") to inform tool calls, enabling retrieval-augmented generation (RAG) over docs.
+
+This creates a dynamic corpus, allowing agents to "understand" APIs without hardcoding.
+
+### Component Interaction Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Server as A2A Server
+    participant Orch as Orchestrator
+    participant Child as Child Agent
+    participant MCP as MCP Tools
+    participant Graph as Graphiti KG
+
+    User->>Server: Send Query
+    Server->>Orch: Invoke Orchestrator
+    Orch->>Orch: Analyze & Delegate
+    Orch->>Child: delegate_to_tag(task)
+    Child->>Graph: query_graph("API details...")
+    Graph-->>Child: Return Snippets/Entities
+    Child->>MCP: Invoke Filtered Tool
+    MCP-->>Child: API Response
+    Child-->>Orch: Return Result
+    Orch->>Orch: Synthesize
+    Orch-->>Server: Final Response
+    Server-->>User: Output
+```
+
+This sequence highlights delegation, knowledge retrieval, and tool execution.
+
+### Strengths
+- **Modularity & Scalability**: Tags allow easy addition of domains (e.g., new ServiceNow modules) by extending `TAGS` and MCP tools. Graphiti scales with more docs via incremental ingestion.
+- **Knowledge-Driven Reasoning**: By ingesting official docs, children can handle evolving APIs (e.g., Zurich bundle updates) without code changes—queries adapt to temporal data.
+- **Efficiency**: Tool filtering prevents overload; delegation parallelizes tasks (though sequential in code, extensible to async).
+- **Flexibility**: Supports multiple LLMs/backends via args/envs; A2A enables integration with other systems.
+- **Minimal Setup**: Graph auto-initializes; defaults make it runnable out-of-box (assuming MCP/Graphiti servers).
+
 #### Features:
 - **Authentication**: Supports multiple authentication types including none (disabled), static (internal tokens), JWT, OAuth Proxy, OIDC Proxy, and Remote OAuth for external identity providers.
 - **Middleware**: Includes logging, timing, rate limiting, and error handling for robust server operation.
@@ -54,10 +281,84 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 - **OIDC Token Delegation**: Supports token exchange for ServiceNow API calls, enabling user-specific authentication via OIDC.
 - **OpenAPI JSON Tool Import**: Import custom ServiceNow API Endpoints through the OpenAPI JSON generated.
 
-<details>
-  <summary><b>Usage:</b></summary>
+## Usage 
 
-### MCP CLI
+### API
+
+**OAuth Authentication**
+
+```python
+#!/usr/bin/python
+# coding: utf-8
+from servicenow_api.servicenow_api import Api
+
+username = "<SERVICENOW USERNAME>"
+password = "<SERVICENOW PASSWORD>"
+client_id = "<SERVICENOW CLIENT_ID>"
+client_secret = "<SERVICENOW_CLIENT_SECRET>"
+servicenow_url = "<SERVICENOW_URL>"
+
+client = Api(
+    url=servicenow_url,
+    username=username,
+    password=password,
+    client_id=client_id,
+    client_secret=client_secret
+)
+
+table = client.get_table(table="<TABLE NAME>")
+print(f"Table: {table.model_dump()}")
+```
+
+**Basic Authentication**
+
+```python
+#!/usr/bin/python
+# coding: utf-8
+from servicenow_api.servicenow_api import Api
+
+username = "<SERVICENOW USERNAME>"
+password = "<SERVICENOW PASSWORD>"
+servicenow_url = "<SERVICENOW_URL>"
+
+client = Api(
+    url=servicenow_url,
+    username=username,
+    password=password
+)
+
+table = client.get_table(table="<TABLE NAME>")
+print(f"Table: {table.model_dump()}")
+```
+
+**Proxy and SSL Verify**
+
+```python
+#!/usr/bin/python
+# coding: utf-8
+from servicenow_api.servicenow_api import Api
+
+username = "<SERVICENOW USERNAME>"
+password = "<SERVICENOW PASSWORD>"
+servicenow_url = "<SERVICENOW_URL>"
+
+proxy = "https://proxy.net"
+
+client = Api(
+    url=servicenow_url,
+    username=username,
+    password=password,
+    proxy=proxy,
+    verify=False
+)
+
+table = client.get_table(table="<TABLE NAME>")
+print(f"Table: {table.model_dump()}")
+```
+
+### MCP
+
+#### MCP CLI
 
 | Short Flag | Long Flag                       | Description                                                                                               |
 |------------|---------------------------------|-----------------------------------------------------------------------------------------------------------|
@@ -94,37 +395,21 @@ If your API call isn't supported, you can use the `api_request` tool to perform 
 |            | --openapi-file                  | Path to OpenAPI JSON spec to import tools/resources from                                                  |
 |            | --openapi-base-url              | Base URL for the OpenAPI client (defaults to ServiceNow instance URL)                                     |
 
-### A2A CLI
-
-| Short Flag | Long Flag         | Description                                                            |
-|------------|-------------------|------------------------------------------------------------------------|
-| -h         | --help            | Display help information                                               |
-|            | --host            | Host to bind the server to (default: 0.0.0.0)                          |
-|            | --port            | Port to bind the server to (default: 9000)                             |
-|            | --reload          | Enable auto-reload                                                     |
-|            | --provider        | LLM Provider: 'openai', 'anthropic', 'google', 'huggingface'           |
-|            | --model-id        | LLM Model ID (default: qwen3:4b)                                       |
-|            | --base-url        | LLM Base URL (for OpenAI compatible providers)                         |
-|            | --api-key         | LLM API Key                                                            |
-|            | --mcp-url         | MCP Server URL (default: http://localhost:8000/mcp)                    |
-
-### Using as an MCP Server
+#### Using as an MCP Server
 
 The MCP Server can be run in two modes: `stdio` (for local testing) or `http` (for networked access). To start the server, use the following commands:
 
-#### Run in stdio mode (default):
+Run in stdio mode (default):
 ```bash
 servicenow-mcp --transport "stdio"
 ```
 
-#### Run in HTTP mode:
+Run in HTTP mode:
 ```bash
 servicenow-mcp --transport "http"  --host "0.0.0.0"  --port "8000"
 ```
 
-#### Run in Production:
-
-
+Run in Production:
 
 **Embedded Eunomia:**
 
@@ -259,112 +544,13 @@ export FASTMCP_SERVER_AUTH_JWT_ISSUER="internal-auth-service"
 export FASTMCP_SERVER_AUTH_JWT_AUDIENCE="mcp-internal-api"
 ```
 
-### Using as an A2A Agent
+Deploy MCP Server as a Service:
 
-The `servicenow-a2a` tool hosts an Agent-to-Agent (A2A) server that orchestrates specialized child agents for different ServiceNow domains.
 
-#### Run in CLI mode:
+> **Note:** The ServiceNow MCP server can be deployed using Docker,
+> with configurable authentication, middleware, and Eunomia authorization.
 
-```bash
-servicenow-a2a --port 9000 --provider openai --model-id gpt-4o
-```
-
-#### Run in Docker:
-
-You can run the A2A server using the same Docker image by overriding the command.
-
-```bash
-docker run -d \
-  -p 9000:9000 \
-  -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
-  -e SERVICENOW_USERNAME=user \
-  -e SERVICENOW_PASSWORD=pass \
-  knucklessg1/servicenow:latest \
-  servicenow-a2a \
-  --port 9000 \
-  --mcp-url http://host.docker.internal:8000/mcp
-```
-
-> **Note:** The A2A agent requires a running MCP server to function. In the example above, `host.docker.internal` allows the container to talk to an MCP server running on your host machine. If you are running both in the same network or compose stack, use the service name.
-
-### Basic API Usage
-
-**OAuth Authentication**
-
-```python
-#!/usr/bin/python
-# coding: utf-8
-from servicenow_api.servicenow_api import Api
-
-username = "<SERVICENOW USERNAME>"
-password = "<SERVICENOW PASSWORD>"
-client_id = "<SERVICENOW CLIENT_ID>"
-client_secret = "<SERVICENOW_CLIENT_SECRET>"
-servicenow_url = "<SERVICENOW_URL>"
-
-client = Api(
-    url=servicenow_url,
-    username=username,
-    password=password,
-    client_id=client_id,
-    client_secret=client_secret
-)
-
-table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table.model_dump()}")
-```
-
-**Basic Authentication**
-
-```python
-#!/usr/bin/python
-# coding: utf-8
-from servicenow_api.servicenow_api import Api
-
-username = "<SERVICENOW USERNAME>"
-password = "<SERVICENOW PASSWORD>"
-servicenow_url = "<SERVICENOW_URL>"
-
-client = Api(
-    url=servicenow_url,
-    username=username,
-    password=password
-)
-
-table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table.model_dump()}")
-```
-
-**Proxy and SSL Verify**
-
-```python
-#!/usr/bin/python
-# coding: utf-8
-from servicenow_api.servicenow_api import Api
-
-username = "<SERVICENOW USERNAME>"
-password = "<SERVICENOW PASSWORD>"
-servicenow_url = "<SERVICENOW_URL>"
-
-proxy = "https://proxy.net"
-
-client = Api(
-    url=servicenow_url,
-    username=username,
-    password=password,
-    proxy=proxy,
-    verify=False
-)
-
-table = client.get_table(table="<TABLE NAME>")
-print(f"Table: {table.model_dump()}")
-```
-
-### Deploy MCP Server as a Service
-
-The ServiceNow MCP server can be deployed using Docker, with configurable authentication, middleware, and Eunomia authorization.
-
-#### Using Docker Run
+Docker Run:
 
 ```bash
 docker pull knucklessg1/servicenow:latest
@@ -421,73 +607,7 @@ docker run -d \
   knucklessg1/servicenow:latest
 ```
 
-#### Using Docker Compose
-
-Create a `docker-compose.yml` file:
-
-```yaml
-services:
-  servicenow-mcp:
-    image: knucklessg1/servicenow:latest
-    environment:
-      - HOST=0.0.0.0
-      - PORT=8004
-      - TRANSPORT=http
-      - AUTH_TYPE=none
-      - EUNOMIA_TYPE=none
-      - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
-      - SERVICENOW_USERNAME=user
-      - SERVICENOW_PASSWORD=pass
-      - SERVICENOW_CLIENT_ID=client_id
-      - SERVICENOW_CLIENT_SECRET=client_secret
-      - SERVICENOW_VERIFY=False
-    ports:
-      - 8004:8004
-```
-
-For advanced setups with authentication, token delegation, and Eunomia:
-
-```yaml
-services:
-  servicenow-mcp:
-    image: knucklessg1/servicenow:latest
-    environment:
-      - HOST=0.0.0.0
-      - PORT=8004
-      - TRANSPORT=http
-      - AUTH_TYPE=oidc-proxy
-      - OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration
-      - OIDC_CLIENT_ID=your-client-id
-      - OIDC_CLIENT_SECRET=your-client-secret
-      - OIDC_BASE_URL=https://your-server.com
-      - ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/*
-      - ENABLE_DELEGATION=True
-      - SERVICENOW_AUDIENCE=https://yourinstance.servicenow.com
-      - DELEGATED_SCOPES='api user_impersonation'
-      - EUNOMIA_TYPE=embedded
-      - EUNOMIA_POLICY_FILE=/app/mcp_policies.json
-      - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
-      - SERVICENOW_USERNAME=user
-      - SERVICENOW_PASSWORD=pass
-      - SERVICENOW_CLIENT_ID=client_id
-      - SERVICENOW_CLIENT_SECRET=client_secret
-      - SERVICENOW_VERIFY=False
-      - FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256
-      - FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=your-shared-secret
-      - FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=servicenow.read,servicenow.write
-    ports:
-      - 8004:8004
-    volumes:
-      - ./mcp_policies.json:/app/mcp_policies.json
-```
-
-Run the service:
-
-```bash
-docker-compose up -d
-```
-
-#### Configure `mcp.json` for AI Integration
+Configure `mcp.json` for AI Integration
 
 Recommended: Store secrets in environment variables with lookup in the JSON file.
 
@@ -555,7 +675,7 @@ For Testing Only: Plain text storage will also work, although **not** recommende
 }
 ```
 
-#### Middleware
+Middleware
 
 The MCP server includes the following built-in middleware for enhanced functionality:
 
@@ -565,7 +685,7 @@ The MCP server includes the following built-in middleware for enhanced functiona
 - **LoggingMiddleware**: Logs all requests and responses for observability.
 - **UserTokenMiddleware**: Extracts Bearer tokens for OIDC token delegation to ServiceNow (enabled with `--enable-delegation`).
 
-#### Eunomia Authorization
+Eunomia Authorization
 
 The server supports optional Eunomia authorization for policy-based access control:
 
@@ -614,6 +734,7 @@ To configure Eunomia policies:
 }
 ```
 
+On a dedicated server, run the following to initialize eunomia-mcp.
 ```bash
 # Initialize a default policy file
 eunomia-mcp init
@@ -622,27 +743,77 @@ eunomia-mcp init
 eunomia-mcp validate mcp_policies.json
 ```
 
-</details>
+### A2A
 
-<details>
-  <summary><b>Installation Instructions:</b></summary>
+#### A2A CLI
 
-Install Python Package
+| Short Flag | Long Flag         | Description                                                            |
+|------------|-------------------|------------------------------------------------------------------------|
+| -h         | --help            | Display help information                                               |
+|            | --host            | Host to bind the server to (default: 0.0.0.0)                          |
+|            | --port            | Port to bind the server to (default: 9000)                             |
+|            | --reload          | Enable auto-reload                                                     |
+|            | --provider        | LLM Provider: 'openai', 'anthropic', 'google', 'huggingface'           |
+|            | --model-id        | LLM Model ID (default: qwen3:4b)                                       |
+|            | --base-url        | LLM Base URL (for OpenAI compatible providers)                         |
+|            | --api-key         | LLM API Key                                                            |
+|            | --mcp-url         | MCP Server URL (default: http://localhost:8000/mcp)                    |
+
+
+#### Using as an A2A Agent
+
+The `servicenow-a2a` tool hosts an Agent-to-Agent (A2A) server that orchestrates specialized child agents for different ServiceNow domains.
+
+CLI mode:
 
 ```bash
-python -m pip install servicenow-api eunomia-mcp
+servicenow-a2a --port 9000 --provider openai --model-id gpt-4o
 ```
 
-</details>
+Docker:
 
-<details>
-  <summary><b>Tests:</b></summary>
+```bash
+docker run -d \
+  -p 9000:9000 \
+  -e SERVICENOW_INSTANCE=https://yourinstance.servicenow.com \
+  -e SERVICENOW_USERNAME=user \
+  -e SERVICENOW_PASSWORD=pass \
+  knucklessg1/servicenow:latest \
+  servicenow-a2a \
+  --port 9000 \
+  --mcp-url http://host.docker.internal:8000/mcp
+```
+
+> **Note:** The A2A agent requires a running MCP server to function. 
+> You can run the A2A server using the same Docker image by overriding the command.
+
+#### Compose
+
+Refer to the compose file within the repository for a great example how to get started with a fully local setup!
+
+Run the service:
+
+```bash
+docker compose up -d
+```
+or
+
+```bash
+podman compose up -d
+```
+
+## Install Python Package
+
+```bash
+python -m pip install servicenow-api[mcp,a2a,all]
+```
+
+## Tests
 
 ```bash
 python ./test/test_servicenow_models.py
 ```
 
-</details>
 
 <img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
 
