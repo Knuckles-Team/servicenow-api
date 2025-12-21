@@ -2,8 +2,7 @@ import os
 import argparse
 import requests
 import uvicorn
-from typing import Optional, Dict, Any
-from pydantic import BaseModel
+from typing import Optional, Dict
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -184,20 +183,6 @@ def initialize_graphiti_db(
     return client
 
 
-class ServiceNowAPICallTemplate(BaseModel):
-    """
-    Standardized template for ServiceNow API calls, populated from KG queries.
-    """
-
-    endpoint: str
-    method: str
-    params: Optional[Dict[str, Any]] = None
-    body: Optional[Dict[str, Any]] = None
-    headers: Optional[Dict[str, str]] = None
-    examples: Optional[list[str]] = None
-    error_handlers: Optional[Dict[str, str]] = None  # e.g., {"401": "Retry auth"}
-
-
 def create_child_agent(
     tag: str,
     mcp_url: str,
@@ -319,19 +304,21 @@ def create_orchestrator(
     children: Dict[str, Agent] = {}
     for tag in TAGS:
         children[tag] = create_child_agent(
-            tag,
-            mcp_url,
-            provider,
-            model_id,
-            base_url,
-            api_key,
+            tag=tag,
+            mcp_url=mcp_url,
+            provider=provider,
+            model_id=model_id,
+            base_url=base_url,
+            api_key=api_key,
             graphiti_backend=graphiti_backend,
             graphiti_client=graphiti_client,
             graphiti_mcp_url=graphiti_mcp_url,
         )
 
     # 2. Create Model for Parent
-    model = create_model(provider, model_id, base_url, api_key)
+    model = create_model(
+        provider=provider, model_id=model_id, base_url=base_url, api_key=api_key
+    )
 
     # 3. Create Delegation Tools
     # We create a list of callables that the parent can use as tools.
@@ -390,13 +377,13 @@ agent = create_orchestrator()
 
 # Define Skills for Agent Card (High-level capabilities)
 skills = []
-for tag in TAGS:
+for mcp_tag in TAGS:
     skills.append(
         Skill(
-            id=f"servicenow_{tag}",
-            name=f"ServiceNow {tag.replace('_', ' ').title()}",
-            description=f"Manage and query ServiceNow {tag.replace('_', ' ')}.",
-            tags=[tag, "servicenow"],
+            id=f"servicenow_{mcp_tag}",
+            name=f"ServiceNow {mcp_tag.replace('_', ' ').title()}",
+            description=f"Manage and query ServiceNow {mcp_tag.replace('_', ' ')}.",
+            tags=[mcp_tag, "servicenow"],
             input_modes=["text"],
             output_modes=["text"],
         )
