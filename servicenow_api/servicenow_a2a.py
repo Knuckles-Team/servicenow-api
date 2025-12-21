@@ -27,15 +27,11 @@ DEFAULT_MCP_URL = os.getenv("MCP_URL", "http://localhost:8000/mcp")
 DEFAULT_GRAPHITI_BACKEND = os.getenv("GRAPHITI_BACKEND", "kuzu")
 DEFAULT_GRAPHITI_DB_PATH = os.getenv("GRAPHITI_DB_PATH", "servicenow_graphiti.db")
 DEFAULT_GRAPHITI_MCP_URL = os.getenv("GRAPHITI_MCP_URL", "http://localhost:8001/mcp")
-DEFAULT_GRAPHITI_URI = os.getenv(
-    "DEFAULT_GRAPHITI_URI", "bolt://localhost:7687"
-)
+DEFAULT_GRAPHITI_URI = os.getenv("DEFAULT_GRAPHITI_URI", "bolt://localhost:7687")
 DEFAULT_GRAPHITI_USER = os.getenv("DEFAULT_GRAPHITI_USER", "neo4j")
 DEFAULT_GRAPHITI_PASS = os.getenv("DEFAULT_GRAPHITI_PASS", "password")
 DEFAULT_GRAPHITI_HOST = os.getenv("DEFAULT_GRAPHITI_HOST", "localhost")
-DEFAULT_GRAPHITI_PORT = to_integer(
-    string=os.getenv("DEFAULT_GRAPHITI_PORT", "6379")
-)
+DEFAULT_GRAPHITI_PORT = to_integer(string=os.getenv("DEFAULT_GRAPHITI_PORT", "6379"))
 
 # Initial ServiceNow doc URLs for ingestion
 INITIAL_DOC_URLS = [
@@ -140,13 +136,13 @@ def initialize_graphiti_db(
         client = Graphiti(graph_driver=driver)
         db_exists = os.path.exists(db_path) and os.path.getsize(db_path) > 0
     elif backend == "neo4j":
-        driver = Neo4jDriver(uri=uri, user=user, password=password,
-                             database=database)
+        driver = Neo4jDriver(uri=uri, user=user, password=password, database=database)
         client = Graphiti(graph_driver=driver)
         db_exists = True  # Assume remote exists
     elif backend == "falkordb":
-        driver = FalkorDriver(host=host, port=port, username=user, password=password,
-                              database=database)
+        driver = FalkorDriver(
+            host=host, port=port, username=user, password=password, database=database
+        )
         client = Graphiti(graph_driver=driver)
         db_exists = True
     else:

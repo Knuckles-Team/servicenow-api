@@ -24,23 +24,23 @@
 
 ## Overview
 
-This project started out as a pyton wrapper for ServiceNow, but since the dawn of standards like 
+This project started out as a python wrapper for ServiceNow, but since the dawn of standards like
 Model Context Protocol (MCP) and Agent2Agent (A2A) Agent,
-this repository has become a sandbox for some brand new and pretty cool features with respects to each of those. 
+this repository has become a sandbox for some brand new and pretty cool features with respects to each of those.
 The original APIs should remain stable,
-but please note, the latest features like A2A may still be unstable as it is under active development. 
+but please note, the latest features like A2A may still be unstable as it is under active development.
 
 This project now includes an MCP server, which wraps all the original APIs you know and love in the base project. This
-allows any MCP capable LLM to leverage these tools and interact with ServiceNow. The MCP Server is enhanced with 
-various authentication mechanisms, middleware for observability and control, 
+allows any MCP capable LLM to leverage these tools and interact with ServiceNow. The MCP Server is enhanced with
+various authentication mechanisms, middleware for observability and control,
 and optional Eunomia authorization for policy-based access control.
 
 ServiceNow A2A implements a multi-agent system designed to manage and interact with ServiceNow tasks through a delegated,
 specialist-based architecture. Built using Python, it leverages libraries like `pydantic-ai` for agent creation,
 `FastMCPToolset` for integrating Model Context Protocol (MCP) tools, and `Graphiti`
-for building a temporal knowledge graph from official ServiceNow documentation. 
+for building a temporal knowledge graph from official ServiceNow documentation.
 The system runs as a FastAPI server via Uvicorn, exposing an Agent-to-Agent (A2A) interface for handling requests.
-`pydantic-ai` is able to expose your agent as an A2A agent out of the box with `.to_a2a()`. 
+`pydantic-ai` is able to expose your agent as an A2A agent out of the box with `.to_a2a()`.
 This allows this agent to be integrated in
 any agentic framework like `Microsoft Agent Framework` (MAF) or `crew.ai`.
 The core idea is an orchestrator agent that analyzes user queries and delegates subtasks to specialized child agents,
@@ -281,7 +281,7 @@ This sequence highlights delegation, knowledge retrieval, and tool execution.
 - **OIDC Token Delegation**: Supports token exchange for ServiceNow API calls, enabling user-specific authentication via OIDC.
 - **OpenAPI JSON Tool Import**: Import custom ServiceNow API Endpoints through the OpenAPI JSON generated.
 
-## Usage 
+## Usage
 
 ### API
 
@@ -342,13 +342,13 @@ username = "<SERVICENOW USERNAME>"
 password = "<SERVICENOW PASSWORD>"
 servicenow_url = "<SERVICENOW_URL>"
 
-proxy = "https://proxy.net"
+proxies = {"https": "https://proxy.net"}
 
 client = Api(
     url=servicenow_url,
     username=username,
     password=password,
-    proxy=proxy,
+    proxies=proxies,
     verify=False
 )
 
@@ -424,8 +424,8 @@ Run in Production:
       "allow": true,
       "conditions": [
         {
-          "tool": ["get_application", "get_cmdb", "batch_install_result"],  // Per-tool targeting
-          "scopes": ["servicenow.read", "servicenow.full"]  // Like your PRODUCT_READ_SCOPE
+          "tool": ["get_application", "get_cmdb", "batch_install_result"],
+          "scopes": ["servicenow.read", "servicenow.full"]
         }
       ]
     },
@@ -435,9 +435,9 @@ Run in Production:
       "allow": true,
       "conditions": [
         {
-          "tool": ["batch_install", "batch_rollback", "app_repo_install"],  // Write tools
-          "scopes": ["servicenow.write", "servicenow.full"],  // Like your PRODUCT_WRITE_SCOPE
-          "claims": {"role": "admin"}  // Extra claim check (from JWT)
+          "tool": ["batch_install", "batch_rollback", "app_repo_install"],
+          "scopes": ["servicenow.write", "servicenow.full"],
+          "claims": {"role": "admin"}
         }
       ]
     },
@@ -708,8 +708,8 @@ To configure Eunomia policies:
       "allow": true,
       "conditions": [
         {
-          "tool": ["get_application", "get_cmdb", "batch_install_result"],  // Per-tool targeting
-          "scopes": ["servicenow.read", "servicenow.full"]  // Like your PRODUCT_READ_SCOPE
+          "tool": ["get_application", "get_cmdb", "batch_install_result"],
+          "scopes": ["servicenow.read", "servicenow.full"]
         }
       ]
     },
@@ -719,9 +719,18 @@ To configure Eunomia policies:
       "allow": true,
       "conditions": [
         {
-          "tool": ["batch_install", "batch_rollback", "app_repo_install"],  // Write tools
-          "scopes": ["servicenow.write", "servicenow.full"],  // Like your PRODUCT_WRITE_SCOPE
-          "claims": {"role": "admin"}  // Extra claim check (from JWT)
+          "tool": [
+            "batch_install",
+            "batch_rollback",
+            "app_repo_install"
+          ],
+          "scopes": [
+            "servicenow.write",
+            "servicenow.full"
+          ],
+          "claims": {
+            "role": "admin"
+          }
         }
       ]
     },
@@ -784,7 +793,7 @@ docker run -d \
   --mcp-url http://host.docker.internal:8000/mcp
 ```
 
-> **Note:** The A2A agent requires a running MCP server to function. 
+> **Note:** The A2A agent requires a running MCP server to function.
 > You can run the A2A server using the same Docker image by overriding the command.
 
 #### Compose
@@ -815,7 +824,7 @@ python ./test/test_servicenow_models.py
 ```
 
 
-<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
+<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true"  alt=""/>
 
 ![GitHub followers](https://img.shields.io/github/followers/Knucklessg1)
 
