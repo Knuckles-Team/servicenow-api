@@ -167,30 +167,32 @@ The script initializes the graph on startup (ingesting docs if needed), creates 
 ### Architecture:
 
 ```mermaid
-graph TD
-    A[User Query] --> B[A2A Server - Uvicorn/FastAPI]
-    B --> C[Orchestrator Agent]
-    C --> D{Delegate by Tag}
-    D --> E1[Child Agent: incidents]
-    D --> E2[Child Agent: cmdb]
-    D --> E3[Child Agent: change_management]
-    D --> En[... Other Child Agents]
-    E1 --> F1[Filtered MCP Tools - incidents]
-    E1 --> G[Graphiti Knowledge Graph]
-    E2 --> F2[Filtered MCP Tools - cmdb]
-    E2 --> G
-    E3 --> F3[Filtered MCP Tools - change_management]
-    E3 --> G
-    Dn --> Fn[Filtered MCP Tools]
-    Dn --> G
-    G --> H[Ingested ServiceNow Docs Corpus]
-    F1 --> I[ServiceNow APIs via MCP]
-    F2 --> I
-    F3 --> I
-    Fn --> I
-    subgraph "Initialization"
-        J[Initialize Graphiti DB] --> G
-    end
+---
+config:
+  layout: dagre
+---
+flowchart TB
+ subgraph subGraph0["Agent Capabilities"]
+        C["Agent"]
+        B["A2A Server - Uvicorn/FastAPI"]
+        D["MCP Tools"]
+        F["Agent Skills"]
+  end
+    C --> D & F
+    A["User Query"] --> B
+    B --> C
+    D --> E["Platform API"]
+
+     C:::agent
+     B:::server
+     A:::server
+    classDef server fill:#f9f,stroke:#333
+    classDef agent fill:#bbf,stroke:#333,stroke-width:2px
+    style B stroke:#000000,fill:#FFD600
+    style D stroke:#000000,fill:#BBDEFB
+    style F fill:#BBDEFB
+    style A fill:#C8E6C9
+    style subGraph0 fill:#FFF9C4
 ```
 
 This diagram shows the flow from user input to delegation, tool execution, and knowledge retrieval. The orchestrator synthesizes results from children before responding.
