@@ -1860,8 +1860,8 @@ def servicenow_mcp():
         "-t",
         "--transport",
         default="stdio",
-        choices=["stdio", "http", "sse"],
-        help="Transport method: 'stdio', 'http', or 'sse' [legacy] (default: stdio)",
+        choices=["stdio", "streamable-http", "sse"],
+        help="Transport method: 'stdio', 'streamable-http', or 'sse' [legacy] (default: stdio)",
     )
     parser.add_argument(
         "-s",
@@ -2445,8 +2445,8 @@ def servicenow_mcp():
 
     if args.transport == "stdio":
         mcp.run(transport="stdio")
-    elif args.transport == "http":
-        mcp.run(transport="http", host=args.host, port=args.port)
+    elif args.transport == "streamable-http":
+        mcp.run(transport="streamable-http", host=args.host, port=args.port)
     elif args.transport == "sse":
         mcp.run(transport="sse", host=args.host, port=args.port)
     else:
