@@ -79,13 +79,16 @@ ENV OPENAPI_FILE=${OPENAPI_FILE}
 ENV PATH="/usr/local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=3600
 
+# For local debugging
+#WORKDIR /app
+#COPY . /app
+#RUN pip install .[all]
+
+# For production
+RUN pip install uv \
+    && uv pip install --system --upgrade servicenow-api[all]>=1.4.0
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-WORKDIR /app
-COPY . /app
 
-RUN pip install uv \
-    && uv pip install --system --upgrade "servicenow-api[all]>=1.3.32"
-
-CMD ["servicenow-mcp"]
 ENTRYPOINT ["/entrypoint.sh"]
