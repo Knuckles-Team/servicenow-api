@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "gitlab": {
+      "url": "${MCP_URL:-http://localhost:8005/mcp}"
+    }
+  }
+}
