@@ -246,22 +246,18 @@ This creates a dynamic corpus, allowing agents to "understand" APIs without hard
 sequenceDiagram
     participant User
     participant Server as A2A Server
-    participant Orch as Orchestrator
-    participant Child as Child Agent
+    participant Agent as Agent
+    participant Skill as Agent Skills
     participant MCP as MCP Tools
-    participant Graph as Graphiti KG
 
     User->>Server: Send Query
-    Server->>Orch: Invoke Orchestrator
-    Orch->>Orch: Analyze & Delegate
-    Orch->>Child: delegate_to_tag(task)
-    Child->>Graph: query_graph("API details...")
-    Graph-->>Child: Return Snippets/Entities
-    Child->>MCP: Invoke Filtered Tool
-    MCP-->>Child: API Response
-    Child-->>Orch: Return Result
-    Orch->>Orch: Synthesize
-    Orch-->>Server: Final Response
+    Server->>Agent: Invoke Agent
+    Agent->>Skill: Analyze Skills Available
+    Skill->>Agent: Provide Guidance on Next Steps
+    Agent->>MCP: Invoke Tool
+    MCP-->>Agent: Tool Response Returned
+    Agent-->>Agent: Return Results Summarized
+    Agent-->>Server: Final Response
     Server-->>User: Output
 ```
 
