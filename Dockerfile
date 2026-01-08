@@ -86,7 +86,7 @@ ENV UV_HTTP_TIMEOUT=3600
 
 # For production
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api[all]>=1.4.0
+    && uv pip install --system --upgrade servicenow-api[all]>=1.4.1
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
