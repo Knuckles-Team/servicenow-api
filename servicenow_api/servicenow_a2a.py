@@ -56,10 +56,10 @@ AGENT_DESCRIPTION = "An agent built with Agent Skills and ServiceNow MCP tools t
 
 
 def create_model(
-    provider: str,
-    model_id: str,
-    base_url: Optional[str] = None,
-    api_key: Optional[str] = None,
+    provider: str = DEFAULT_PROVIDER,
+    model_id: str = DEFAULT_MODEL_ID,
+    base_url: Optional[str] = DEFAULT_OPENAI_BASE_URL,
+    api_key: Optional[str] = DEFAULT_OPENAI_API_KEY,
 ):
     if provider == "openai":
         target_base_url = base_url or DEFAULT_OPENAI_BASE_URL
