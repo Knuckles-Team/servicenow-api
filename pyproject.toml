@@ -45,7 +45,6 @@ all = [
 servicenow-mcp = "servicenow_api.servicenow_mcp:servicenow_mcp"
 servicenow-a2a = "servicenow_api.servicenow_a2a:agent_server"
 
-
 [tool.setuptools.package-data]
 servicenow_api = ["mcp_config.json", "skills/**"]
 
