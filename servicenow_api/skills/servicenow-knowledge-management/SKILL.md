@@ -1,6 +1,6 @@
 ---
 name: servicenow-knowledge-management
-description: Manages ServiceNow KB. Use for articles, attachments, featured/most viewed. Triggers: docs, self-help.
+description: Manages ServiceNow KB. Use for articles, attachments, featured/most viewed. Triggers - docs, self-help.
 ---
 
 ### Overview

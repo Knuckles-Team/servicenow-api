@@ -1,6 +1,6 @@
 ---
 name: servicenow-change-management
-description: Manages ServiceNow changes. Use for CRs, tasks, models, approvals. Triggers: ITIL changes, risks.
+description: "Manages ServiceNow changes. Use for CRs, tasks, models, approvals. Triggers - ITIL changes, risks."
 ---
 
 ### Overview

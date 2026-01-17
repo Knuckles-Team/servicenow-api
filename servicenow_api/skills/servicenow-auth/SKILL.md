@@ -1,6 +1,6 @@
 ---
 name: servicenow-auth
-description: Manages ServiceNow auth. Use for token refresh. Triggers: sessions, auth issues.
+description: Manages ServiceNow auth. Use for token refresh. Triggers - sessions, auth issues.
 ---
 
 ### Overview

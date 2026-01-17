@@ -18,7 +18,6 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
 from fastmcp.server.auth import OAuthProxy, RemoteAuthProvider
 from fastmcp.server.auth.providers.jwt import JWTVerifier, StaticTokenVerifier
-from fastmcp.server.middleware import MiddlewareContext, Middleware
 from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.timing import TimingMiddleware
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
@@ -27,11 +26,10 @@ from fastmcp.utilities.logging import get_logger
 from servicenow_api.servicenow_api import Api
 from servicenow_api.servicenow_models import Response
 from servicenow_api.utils import to_integer, to_boolean
+from servicenow_api.middlewares import UserTokenMiddleware, JWTClaimsLoggingMiddleware
 
 
-# Thread-local storage for user token
-local = local()
-logger = get_logger(name="ServiceNow.TokenMiddleware")
+logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
 
 config = {
@@ -50,48 +48,9 @@ config = {
     "jwt_required_scopes": os.getenv("FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES", None),
 }
 
-
-class UserTokenMiddleware(Middleware):
-    async def on_request(self, context: MiddlewareContext, call_next):
-        logger.debug(f"Delegation enabled: {config['enable_delegation']}")
-        if config["enable_delegation"]:
-            headers = getattr(context.message, "headers", {})
-            auth = headers.get("Authorization")
-            if auth and auth.startswith("Bearer "):
-                token = auth.split(" ")[1]
-                local.user_token = token
-                local.user_claims = None  # Will be populated by JWTVerifier
-
-                # Extract claims if JWTVerifier already validated
-                if hasattr(context, "auth") and hasattr(context.auth, "claims"):
-                    local.user_claims = context.auth.claims
-                    logger.info(
-                        "Stored JWT claims for delegation",
-                        extra={"subject": context.auth.claims.get("sub")},
-                    )
-                else:
-                    logger.debug("JWT claims not yet available (will be after auth)")
-
-                logger.info("Extracted Bearer token for delegation")
-            else:
-                logger.error("Missing or invalid Authorization header")
-                raise ValueError("Missing or invalid Authorization header")
-        return await call_next(context)
-
-
-class JWTClaimsLoggingMiddleware(Middleware):
-    async def on_response(self, context: MiddlewareContext, call_next):
-        response = await call_next(context)
-        logger.info(f"JWT Response: {response}")
-        if hasattr(context, "auth") and hasattr(context.auth, "claims"):
-            logger.info(
-                "JWT Authentication Success",
-                extra={
-                    "subject": context.auth.claims.get("sub"),
-                    "client_id": context.auth.claims.get("client_id"),
-                    "scopes": context.auth.claims.get("scope"),
-                },
-            )
+DEFAULT_TRANSPORT = os.getenv("TRANSPORT", "stdio")
+DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
+DEFAULT_PORT = to_integer(string=os.getenv("PORT", "8000"))
 
 
 def get_client(
@@ -182,7 +141,7 @@ def register_tools(mcp: FastMCP):
         application_id: str = Field(
             description="The unique identifier of the application to retrieve"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
@@ -197,7 +156,7 @@ def register_tools(mcp: FastMCP):
         cmdb_id: str = Field(
             description="The unique identifier of the CMDB record to retrieve"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
@@ -213,7 +172,7 @@ def register_tools(mcp: FastMCP):
         result_id: str = Field(
             description="The ID associated with the batch installation result"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves the result of a batch installation process in ServiceNow by result ID.
@@ -228,7 +187,7 @@ def register_tools(mcp: FastMCP):
         progress_id: str = Field(
             description="The ID associated with the instance scan progress"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Gets the progress status of an instance scan in ServiceNow by progress ID.
@@ -241,7 +200,7 @@ def register_tools(mcp: FastMCP):
     )
     def progress(
         progress_id: str = Field(description="The ID associated with the progress"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves the progress status of a specified process in ServiceNow by progress ID.
@@ -258,7 +217,7 @@ def register_tools(mcp: FastMCP):
         notes: Optional[str] = Field(
             default=None, description="Additional notes for the batch installation"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Initiates a batch installation of specified packages in ServiceNow with optional notes.
@@ -273,7 +232,7 @@ def register_tools(mcp: FastMCP):
         rollback_id: str = Field(
             description="The ID associated with the batch rollback"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Performs a rollback of a batch installation in ServiceNow using the rollback ID.
@@ -299,7 +258,7 @@ def register_tools(mcp: FastMCP):
         version: Optional[str] = Field(
             default=None, description="The version of the application to be installed"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Installs an application from a repository in ServiceNow with specified parameters.
@@ -327,7 +286,7 @@ def register_tools(mcp: FastMCP):
         version: Optional[str] = Field(
             default=None, description="The version of the application to be published"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Publishes an application to a repository in ServiceNow with development notes and version.
@@ -348,7 +307,7 @@ def register_tools(mcp: FastMCP):
         version: str = Field(
             description="The version of the application to be rolled back"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
@@ -362,7 +321,7 @@ def register_tools(mcp: FastMCP):
         tags={"cicd"},
     )
     def full_scan(
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Initiates a full scan of the ServiceNow instance.
@@ -376,7 +335,7 @@ def register_tools(mcp: FastMCP):
     def point_scan(
         target_sys_id: str = Field(description="The sys_id of the target instance"),
         target_table: str = Field(description="The table of the target instance"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Performs a targeted scan on a specific instance and table in ServiceNow.
@@ -391,7 +350,7 @@ def register_tools(mcp: FastMCP):
     )
     def combo_suite_scan(
         combo_sys_id: str = Field(description="The sys_id of the combo to be scanned"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Executes a scan on a combination of suites in ServiceNow by combo sys_id.
@@ -410,7 +369,7 @@ def register_tools(mcp: FastMCP):
         scan_type: str = Field(
             default="scoped_apps", description="Type of scan to be performed"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
@@ -426,7 +385,7 @@ def register_tools(mcp: FastMCP):
     )
     def activate_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be activated"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Activates a specified plugin in ServiceNow by plugin ID.
@@ -439,7 +398,7 @@ def register_tools(mcp: FastMCP):
     )
     def rollback_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be rolled back"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
@@ -462,7 +421,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag indicating whether to auto-upgrade the base app",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Applies changes from a remote source control branch to a ServiceNow application.
@@ -495,7 +454,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag indicating whether to auto-upgrade the base app",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Imports a repository into ServiceNow with specified credentials and branch.
@@ -533,7 +492,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="The version of the operating system for the test run",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Executes a test suite in ServiceNow with specified browser and OS configurations.
@@ -562,7 +521,7 @@ def register_tools(mcp: FastMCP):
         description: Optional[str] = Field(
             default=None, description="Description of the update set"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Creates a new update set in ServiceNow with a given name, scope, and description.
@@ -596,7 +555,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag that indicates whether to remove the existing retrieved update set from the instance",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
@@ -617,7 +576,7 @@ def register_tools(mcp: FastMCP):
         remote_update_set_id: str = Field(
             description="Sys_id of the update set to preview"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Previews an update set in ServiceNow by its remote sys_id.
@@ -636,7 +595,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag that indicates whether to force commit the update set",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Commits an update set in ServiceNow with an option to force commit.
@@ -657,7 +616,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag that indicates whether to force commit the update sets",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Commits multiple update sets in ServiceNow in the specified order.
@@ -676,7 +635,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag that indicates whether to rollback the batch installation performed during the update set commit",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Backs out an update set in ServiceNow with an option to rollback installations.
@@ -715,7 +674,7 @@ def register_tools(mcp: FastMCP):
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves change requests from ServiceNow with optional filtering and pagination.
@@ -737,7 +696,7 @@ def register_tools(mcp: FastMCP):
     )
     def get_change_request_nextstate(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Gets the next state for a specific change request in ServiceNow.
@@ -754,7 +713,7 @@ def register_tools(mcp: FastMCP):
         cmdb_ci_sys_id: str = Field(
             description="Sys ID of the CI (Configuration Item)"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
@@ -787,7 +746,7 @@ def register_tools(mcp: FastMCP):
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Fetches tasks associated with a change request in ServiceNow with optional filtering.
@@ -811,7 +770,7 @@ def register_tools(mcp: FastMCP):
         change_type: Optional[str] = Field(
             default=None, description="Type of change (emergency, normal, standard)"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves details of a specific change request in ServiceNow by sys_id and type.
@@ -826,7 +785,7 @@ def register_tools(mcp: FastMCP):
     )
     def get_change_request_ci(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Gets Configuration Items (CIs) associated with a change request in ServiceNow.
@@ -841,7 +800,7 @@ def register_tools(mcp: FastMCP):
     )
     def get_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Checks for conflicts in a change request in ServiceNow.
@@ -875,7 +834,7 @@ def register_tools(mcp: FastMCP):
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves standard change request templates from ServiceNow with optional filtering.
@@ -918,7 +877,7 @@ def register_tools(mcp: FastMCP):
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Fetches change request models from ServiceNow with optional filtering and type.
@@ -941,7 +900,7 @@ def register_tools(mcp: FastMCP):
         model_sys_id: str = Field(
             description="Sys ID of the standard change request model"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves a specific standard change request model in ServiceNow by sys_id.
@@ -956,7 +915,7 @@ def register_tools(mcp: FastMCP):
         template_sys_id: str = Field(
             description="Sys ID of the standard change request template"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Gets a specific standard change request template in ServiceNow by sys_id.
@@ -971,7 +930,7 @@ def register_tools(mcp: FastMCP):
     )
     def get_change_request_worker(
         worker_sys_id: str = Field(description="Sys ID of the change request worker"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves details of a change request worker in ServiceNow by sys_id.
@@ -994,7 +953,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Sys ID of the standard change request template (if applicable)",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Creates a new change request in ServiceNow with specified details and type.
@@ -1014,7 +973,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, str] = Field(
             description="Name-value pairs providing details for the new task"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Creates a task for a change request in ServiceNow with provided details.
@@ -1039,7 +998,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Flag to refresh impacted services (applicable for 'affected' association)",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Associates Configuration Items (CIs) with a change request in ServiceNow.
@@ -1059,7 +1018,7 @@ def register_tools(mcp: FastMCP):
         change_request_sys_id: str = Field(
             description="Sys ID of the standard change request"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Calculates the risk for a standard change request in ServiceNow.
@@ -1074,7 +1033,7 @@ def register_tools(mcp: FastMCP):
     )
     def check_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Checks for conflicts in a change request in ServiceNow.
@@ -1089,7 +1048,7 @@ def register_tools(mcp: FastMCP):
     )
     def refresh_change_request_impacted_services(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Refreshes the impacted services for a change request in ServiceNow.
@@ -1107,7 +1066,7 @@ def register_tools(mcp: FastMCP):
         state: str = Field(
             description="State to set the change request to (approved or rejected)"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Approves or rejects a change request in ServiceNow by setting its state.
@@ -1130,7 +1089,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Type of change (emergency, normal, standard, model)",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Updates a change request in ServiceNow with new details and type.
@@ -1147,7 +1106,7 @@ def register_tools(mcp: FastMCP):
     )
     def update_change_request_first_available(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Updates a change request to the first available state in ServiceNow.
@@ -1169,7 +1128,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Updates a task for a change request in ServiceNow with new details.
@@ -1189,7 +1148,7 @@ def register_tools(mcp: FastMCP):
         change_type: Optional[str] = Field(
             default=None, description="Type of change (emergency, normal, standard)"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Deletes a change request from ServiceNow by sys_id and type.
@@ -1207,7 +1166,7 @@ def register_tools(mcp: FastMCP):
         task_sys_id: str = Field(
             description="Sys ID of the task associated with the change request"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Deletes a task associated with a change request in ServiceNow.
@@ -1225,7 +1184,7 @@ def register_tools(mcp: FastMCP):
         task_sys_id: str = Field(
             description="Sys ID of the task associated with the change request"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Deletes a conflict scan for a change request in ServiceNow.
@@ -1246,7 +1205,7 @@ def register_tools(mcp: FastMCP):
         import_set_sys_id: str = Field(
             description="The sys_id of the import set record"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Retrieves details of a specific import set record from a ServiceNow instance.
@@ -1264,7 +1223,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, str] = Field(
             description="Dictionary containing the field values for the new import set record"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Inserts a new record into a specified import set on a ServiceNow instance.
@@ -1282,7 +1241,7 @@ def register_tools(mcp: FastMCP):
         data: List[Dict[str, str]] = Field(
             description="List of dictionaries containing field values for multiple new import set records"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Inserts multiple records into a specified import set on a ServiceNow instance.
@@ -1299,7 +1258,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="The sys_id of the incident record, if retrieving a specific incident",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
         name_value_pairs: Optional[str] = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
@@ -1374,7 +1333,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, str] = Field(
             description="Dictionary containing the field values for the new incident record"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Creates a new incident record on a ServiceNow instance with provided details.
@@ -1416,7 +1375,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get all Knowledge Base articles from a ServiceNow instance.
@@ -1481,7 +1440,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get a specific Knowledge Base article from a ServiceNow instance.
@@ -1510,7 +1469,7 @@ def register_tools(mcp: FastMCP):
             description="The sys_id of the Knowledge Base article"
         ),
         attachment_sys_id: str = Field(description="The sys_id of the attachment"),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get a Knowledge Base article attachment from a ServiceNow instance.
@@ -1544,7 +1503,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get featured Knowledge Base articles from a ServiceNow instance.
@@ -1582,7 +1541,7 @@ def register_tools(mcp: FastMCP):
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get most viewed Knowledge Base articles from a ServiceNow instance.
@@ -1605,7 +1564,7 @@ def register_tools(mcp: FastMCP):
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be deleted"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Delete a record from the specified table on a ServiceNow instance.
@@ -1662,7 +1621,7 @@ def register_tools(mcp: FastMCP):
         sysparm_view: Optional[str] = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get records from the specified table on a ServiceNow instance.
@@ -1692,7 +1651,7 @@ def register_tools(mcp: FastMCP):
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be retrieved"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Get a specific record from the specified table on a ServiceNow instance.
@@ -1713,7 +1672,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, Any] = Field(
             description="Dictionary containing the fields to be updated"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Partially update a record in the specified table on a ServiceNow instance.
@@ -1734,7 +1693,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, Any] = Field(
             description="Dictionary containing the fields to be updated"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Fully update a record in the specified table on a ServiceNow instance.
@@ -1752,7 +1711,7 @@ def register_tools(mcp: FastMCP):
         data: Dict[str, Any] = Field(
             description="Dictionary containing the field values for the new record"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Add a new record to the specified table on a ServiceNow instance.
@@ -1764,7 +1723,7 @@ def register_tools(mcp: FastMCP):
         tags={"auth"},
     )
     def refresh_auth_token(
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Refreshes the authentication token for the ServiceNow client.
@@ -1788,7 +1747,7 @@ def register_tools(mcp: FastMCP):
         json: Optional[Dict[str, Any]] = Field(
             default=None, description="JSON data to include in the request body"
         ),
-        _client: Api = Depends(get_client),
+        _client = Depends(get_client),
     ) -> Response:
         """
         Make a custom API request to a ServiceNow instance.
@@ -1859,21 +1818,21 @@ def servicenow_mcp():
     parser.add_argument(
         "-t",
         "--transport",
-        default="stdio",
+        default=DEFAULT_TRANSPORT,
         choices=["stdio", "streamable-http", "sse"],
         help="Transport method: 'stdio', 'streamable-http', or 'sse' [legacy] (default: stdio)",
     )
     parser.add_argument(
         "-s",
         "--host",
-        default="0.0.0.0",
+        default=DEFAULT_HOST,
         help="Host address for HTTP transport (default: 0.0.0.0)",
     )
     parser.add_argument(
         "-p",
         "--port",
         type=int,
-        default=8000,
+        default=DEFAULT_PORT,
         help="Port number for HTTP transport (default: 8000)",
     )
     parser.add_argument(
@@ -2404,7 +2363,7 @@ def servicenow_mcp():
         imported_tools, imported_resources = {}, {}
 
     if config["enable_delegation"] or args.auth_type == "jwt":
-        middlewares.insert(0, UserTokenMiddleware())  # Must be first
+        middlewares.insert(0, UserTokenMiddleware(config=config))  # Must be first
 
     if args.eunomia_type in ["embedded", "remote"]:
         try:

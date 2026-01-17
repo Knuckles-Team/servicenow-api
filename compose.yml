@@ -5,8 +5,7 @@ services:
     # build: . # Debug
     container_name: servicenow-mcp
     hostname: servicenow-mcp
-    command: |
-      servicenow-mcp
+    command: ["servicenow-mcp"]
     logging:
       driver: json-file
       options:
@@ -37,14 +36,15 @@ services:
 #      - FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256 # Optional
 #      - FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=your-shared-secret # Optional
 #      - FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=servicenow.read,servicenow.write # Optional
-    network_mode: "host"
+    ports:
+      - "8004:8004"
 
   servicenow-a2a:
     image: docker.io/knucklessg1/servicenow:latest
+    # build: . # Debug
     container_name: servicenow-a2a
     hostname: servicenow-a2a
-    command: |
-      servicenow-a2a
+    command: ["servicenow-a2a"]
     depends_on:
       - servicenow-mcp
     logging:
@@ -55,18 +55,12 @@ services:
     restart: always
     environment:
       - "HOST=0.0.0.0"
-      - "PORT=9000"
-      - "MCP_URL=http://localhost:8004/mcp"
+      - "PORT=9004"
+      - "MCP_URL=http://servicenow-mcp:8004/mcp"
       - "PROVIDER=openai"
       - "OPENAI_BASE_URL=http://localhost:1234/v1"
       - "OPENAI_API_KEY=llama"
       - "MODEL_ID=qwen/qwen3-8b"
     ports:
-      - "9000:9000"
+      - "9004:9004"
 
-  # Debug MCP Service
-  mcp-inspector:
-    image: mcpjam/mcp-inspector
-    container_name: mcp-inspector
-    ports:
-      - "6274:6274"

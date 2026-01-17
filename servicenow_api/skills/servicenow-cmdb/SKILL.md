@@ -1,6 +1,6 @@
 ---
 name: servicenow-cmdb
-description: Manages ServiceNow CMDB. Use for fetching CMDB records. Triggers: configuration items, CI queries.
+description: Manages ServiceNow CMDB. Use for fetching CMDB records. Triggers - configuration items, CI queries.
 ---
 
 ### Overview

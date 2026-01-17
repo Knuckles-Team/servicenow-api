@@ -1,6 +1,6 @@
 ---
 name: servicenow-update-sets
-description: Manages ServiceNow update sets. Use for creating, retrieving, previewing, committing. Triggers: customizations, deployments.
+description: Manages ServiceNow update sets. Use for creating, retrieving, previewing, committing. Triggers - customizations, deployments.
 ---
 
 ### Overview
