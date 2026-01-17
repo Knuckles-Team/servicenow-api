@@ -37,7 +37,7 @@ def _expose_members(module):
     """Expose public classes and functions from a module into globals and __all__."""
     for name, obj in inspect.getmembers(module):
         if (inspect.isclass(obj) or inspect.isfunction(obj)) and not name.startswith(
-                "_"
+            "_"
         ):
             globals()[name] = obj
             __all__.append(name)

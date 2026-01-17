@@ -15,7 +15,7 @@ async def main():
 
     questions = [
         "Can you list the incidents",
-        #"Can you create an incident with the description: Test, Title: Test, ...."
+        # "Can you create an incident with the description: Test, Title: Test, ...."
     ]
 
     async with httpx.AsyncClient(timeout=10000.0) as client:

@@ -1,6 +1,6 @@
 ---
 name: servicenow-import-sets
-description: Manages ServiceNow import sets. Use for getting/inserting records. Triggers: data imports, ETL.
+description: Manages ServiceNow import sets. Use for getting/inserting records. Triggers - data imports, ETL.
 ---
 
 ### Overview

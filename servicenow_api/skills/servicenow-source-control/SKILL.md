@@ -1,6 +1,6 @@
 ---
 name: servicenow-source-control
-description: Manages ServiceNow source control. Use for applying changes, importing repos. Triggers: git integration, SCM.
+description: Manages ServiceNow source control. Use for applying changes, importing repos. Triggers - git integration, SCM.
 ---
 
 ### Overview

@@ -1,6 +1,6 @@
 ---
 name: servicenow-application
-description: Manages ServiceNow applications. Use for retrieving application details. Triggers: app info, sys_id queries.
+description: Manages ServiceNow applications. Use for retrieving application details. Triggers - app info, sys_id queries.
 ---
 
 ### Overview

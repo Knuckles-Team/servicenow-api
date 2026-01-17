@@ -36,7 +36,7 @@ async def main():
         # Define sample questions
         questions = [
             "Can you list the incidents",
-            #"Can you create an incident with the description: Test, Title: Test, ...."
+            # "Can you create an incident with the description: Test, Title: Test, ...."
         ]
 
         print("\n--- Starting Sample Chat Validation ---\n")

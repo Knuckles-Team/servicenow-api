@@ -1,6 +1,6 @@
 ---
 name: servicenow-incidents
-description: Manages ServiceNow incidents. Use for getting/creating incidents. Triggers: tickets, issues.
+description: "Manages ServiceNow incidents. Use for getting/creating incidents. Triggers - tickets, issues."
 ---
 
 ### Overview
