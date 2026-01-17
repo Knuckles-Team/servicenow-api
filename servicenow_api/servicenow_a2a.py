@@ -5,8 +5,6 @@ import argparse
 import logging
 import uvicorn
 from typing import Optional, Any, List
-from pathlib import Path
-import yaml
 
 from fastmcp import Client
 from pydantic_ai import Agent
@@ -18,8 +16,13 @@ from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.huggingface import HuggingFaceModel
 from fasta2a import Skill
-from servicenow_api.utils import to_integer, to_boolean
-from importlib.resources import files, as_file
+from servicenow_api.utils import (
+    to_integer,
+    to_boolean,
+    get_mcp_config_path,
+    get_skills_path,
+    load_skills_from_directory,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -31,15 +34,6 @@ logging.getLogger("fastmcp").setLevel(logging.INFO)
 logging.getLogger("httpx").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-mcp_config_file = files("gitlab_api") / "mcp_config.json"
-with as_file(mcp_config_file) as path:
-    mcp_config_path = str(path)
-
-skills_dir = files("gitlab_api") / "skills"
-with as_file(skills_dir) as path:
-    skills_path = str(path)
-
 DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
 DEFAULT_PORT = to_integer(string=os.getenv("PORT", "9000"))
 DEFAULT_DEBUG = to_boolean(string=os.getenv("DEBUG", "False"))
@@ -48,8 +42,8 @@ DEFAULT_MODEL_ID = os.getenv("MODEL_ID", "qwen/qwen3-8b")
 DEFAULT_OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "http://127.0.0.1:1234/v1")
 DEFAULT_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "ollama")
 DEFAULT_MCP_URL = os.getenv("MCP_URL", None)
-DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", mcp_config_path)
-DEFAULT_SKILLS_DIRECTORY = os.getenv("SKILLS_DIRECTORY", skills_path)
+DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", get_mcp_config_path())
+DEFAULT_SKILLS_DIRECTORY = os.getenv("SKILLS_DIRECTORY", get_skills_path())
 
 AGENT_NAME = "ServiceNow"
 AGENT_DESCRIPTION = "An agent built with Agent Skills and ServiceNow MCP tools to maximize ServiceNow interactivity."
@@ -159,51 +153,6 @@ async def stream_chat(agent: Agent, prompt: str) -> None:
         print("\nDone!")  # optional
 
 
-def load_skills_from_directory(directory: str) -> List[Skill]:
-    skills = []
-    base_path = Path(directory)
-
-    if not base_path.exists():
-        logger.warning(f"Skills directory not found: {directory}")
-        return skills
-
-    for item in base_path.iterdir():
-        if item.is_dir():
-            skill_file = item / "SKILL.md"
-            if skill_file.exists():
-                try:
-                    with open(skill_file, "r") as f:
-                        # Extract frontmatter
-                        content = f.read()
-                        if content.startswith("---"):
-                            _, frontmatter, _ = content.split("---", 2)
-                            data = yaml.safe_load(frontmatter)
-
-                            skill_id = item.name
-                            skill_name = data.get("name", skill_id)
-                            skill_desc = data.get(
-                                "description", f"Access to {skill_name} tools"
-                            )
-
-                            tag_name = skill_id.replace("servicenow-", "")
-                            tags = ["servicenow", tag_name]
-
-                            skills.append(
-                                Skill(
-                                    id=skill_id,
-                                    name=skill_name,
-                                    description=skill_desc,
-                                    tags=tags,
-                                    input_modes=["text"],
-                                    output_modes=["text"],
-                                )
-                            )
-                except Exception as e:
-                    logger.error(f"Error loading skill from {skill_file}: {e}")
-
-    return skills
-
-
 def create_a2a_server(
     provider: str = DEFAULT_PROVIDER,
     model_id: str = DEFAULT_MODEL_ID,
@@ -248,7 +197,7 @@ def create_a2a_server(
     app = agent.to_a2a(
         name=AGENT_NAME,
         description=AGENT_DESCRIPTION,
-        version="1.4.3",
+        version="1.4.4",
         skills=skills,
         debug=debug,
     )

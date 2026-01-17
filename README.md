@@ -1,6 +1,7 @@
 # ServiceNow API - A2A & MCP Server
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
+![MCP Server](https://badge.mcpx.dev?type=server 'MCP Server')
 ![PyPI - Downloads](https://img.shields.io/pypi/dd/servicenow-api)
 ![GitHub Repo stars](https://img.shields.io/github/stars/Knuckles-Team/servicenow-api)
 ![GitHub forks](https://img.shields.io/github/forks/Knuckles-Team/servicenow-api)
@@ -20,7 +21,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.4.3*
+*Version: 1.4.4*
 
 ## Overview
 
