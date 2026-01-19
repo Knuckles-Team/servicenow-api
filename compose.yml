@@ -6,6 +6,8 @@ services:
     container_name: servicenow-mcp
     hostname: servicenow-mcp
     command: ["servicenow-mcp"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     logging:
       driver: json-file
       options:
@@ -39,12 +41,14 @@ services:
     ports:
       - "8004:8004"
 
-  servicenow-a2a:
+  servicenow-agent:
     image: docker.io/knucklessg1/servicenow:latest
     # build: . # Debug
-    container_name: servicenow-a2a
-    hostname: servicenow-a2a
-    command: ["servicenow-a2a"]
+    container_name: servicenow-agent
+    hostname: servicenow-agent
+    command: ["servicenow-agent"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - servicenow-mcp
     logging:
@@ -61,6 +65,7 @@ services:
       - "OPENAI_BASE_URL=http://localhost:1234/v1"
       - "OPENAI_API_KEY=llama"
       - "MODEL_ID=qwen/qwen3-8b"
+      - "DEBUG=False"
+      - "ENABLE_WEB_UI=True"
     ports:
       - "9004:9004"
-
