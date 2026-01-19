@@ -80,6 +80,6 @@ ENV PATH="/usr/local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=3600
 
 RUN pip install uv \
-    && uv pip install --system --upgrade servicenow-api[all]>=1.4.4
+    && uv pip install --system --upgrade servicenow-api[all]>=1.4.5
 
 CMD ["servicenow-mcp"]
