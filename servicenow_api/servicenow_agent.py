@@ -276,7 +276,7 @@ def create_agent_server(
         app,
         host=host,
         port=port,
-        timeout_keep_alive=1800, # 30 minute timeout
+        timeout_keep_alive=1800,  # 30 minute timeout
         timeout_graceful_shutdown=60,
         log_level="debug" if debug else "info",
     )
