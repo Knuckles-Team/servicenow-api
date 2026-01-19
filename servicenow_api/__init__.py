@@ -17,7 +17,7 @@ CORE_MODULES = [
 
 # Optional modules – only import if their dependencies are installed
 OPTIONAL_MODULES = {
-    "servicenow_api.servicenow_a2a": "a2a",
+    "servicenow_api.servicenow_agent": "a2a",
     "servicenow_api.servicenow_mcp": "mcp",
 }
 
@@ -62,7 +62,7 @@ for module_name, extra_name in OPTIONAL_MODULES.items():
 _MCP_AVAILABLE = OPTIONAL_MODULES.get("servicenow_api.servicenow_mcp") in [
     m.__name__ for m in globals().values() if hasattr(m, "__name__")
 ]
-_A2A_AVAILABLE = "servicenow_api.servicenow_a2a" in globals()
+_A2A_AVAILABLE = "servicenow_api.servicenow_agent" in globals()
 
 __all__.extend(["_MCP_AVAILABLE", "_A2A_AVAILABLE"])
 

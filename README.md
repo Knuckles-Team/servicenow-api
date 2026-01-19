@@ -1,4 +1,4 @@
-# ServiceNow API - A2A & MCP Server
+# ServiceNow API - A2A | AG-UI | MCP
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
 ![MCP Server](https://badge.mcpx.dev?type=server 'MCP Server')
@@ -753,6 +753,10 @@ eunomia-mcp validate mcp_policies.json
 
 
 ### A2A CLI
+#### Endpoints
+- **Web UI**: `http://localhost:8000/` (if enabled)
+- **A2A**: `http://localhost:8000/a2a` (Discovery: `/a2a/.well-known/agent.json`)
+- **AG-UI**: `http://localhost:8000/ag-ui` (POST)
 
 | Short Flag | Long Flag         | Description                                                            |
 |------------|-------------------|------------------------------------------------------------------------|
@@ -765,16 +769,18 @@ eunomia-mcp validate mcp_policies.json
 |            | --base-url        | LLM Base URL (for OpenAI compatible providers)                         |
 |            | --api-key         | LLM API Key                                                            |
 |            | --mcp-url         | MCP Server URL (default: http://localhost:8000/mcp)                    |
+|            | --web             | Enable Pydantic AI Web UI                                              | False (Env: ENABLE_WEB_UI) |
+
 
 
 #### Using as an A2A Agent
 
-The `servicenow-a2a` tool hosts an Agent-to-Agent (A2A) server that orchestrates specialized child agents for different ServiceNow domains.
+The `servicenow-agent` tool hosts an Agent-to-Agent (A2A) server that orchestrates specialized child agents for different ServiceNow domains.
 
 CLI mode:
 
 ```bash
-servicenow-a2a --port 9000 --provider openai --model-id gpt-4o
+servicenow-agent --port 9000 --provider openai --model-id gpt-4o
 ```
 
 Docker:
@@ -786,7 +792,7 @@ docker run -d \
   -e SERVICENOW_USERNAME=user \
   -e SERVICENOW_PASSWORD=pass \
   knucklessg1/servicenow:latest \
-  servicenow-a2a \
+  servicenow-agent \
   --port 9000 \
   --mcp-url http://host.docker.internal:8000/mcp
 ```

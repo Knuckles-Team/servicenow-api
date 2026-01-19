@@ -6,6 +6,7 @@ from fastmcp.utilities.logging import get_logger
 local = threading.local()
 logger = get_logger(name="TokenMiddleware")
 
+
 class UserTokenMiddleware(Middleware):
     def __init__(self, config: dict):
         self.config = config
