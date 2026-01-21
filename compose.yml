@@ -62,9 +62,9 @@ services:
       - "PORT=9004"
       - "MCP_URL=http://servicenow-mcp:8004/mcp"
       - "PROVIDER=openai"
-      - "OPENAI_BASE_URL=http://localhost:1234/v1"
+      - "OPENAI_BASE_URL=http://host.docker.internal:1234/v1"
       - "OPENAI_API_KEY=llama"
-      - "MODEL_ID=qwen/qwen3-8b"
+      - "MODEL_ID=qwen/qwen3-4b-2507"
       - "DEBUG=False"
       - "ENABLE_WEB_UI=True"
     ports:
