@@ -21,9 +21,9 @@ async def main():
     try:
         agent = create_agent(
             provider="openai",
-            model_id=os.getenv("MODEL_ID", "qwen/qwen3-8b"),
+            model_id=os.getenv("MODEL_ID", "qwen/qwen3-4b-2507"),
             base_url=os.getenv(
-                "OPENAI_BASE_URL", "http://localhost:1234/v1"
+                "OPENAI_BASE_URL", "http://host.docker.internal:1234/v1"
             ),  # 127.0.0.1
             api_key=os.getenv("OPENAI_API_KEY", "llama"),
             mcp_url=os.getenv("MCP_URL", "http://localhost:8005/mcp"),  # 127.0.0.1
