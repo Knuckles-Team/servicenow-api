@@ -46,8 +46,10 @@ DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
 DEFAULT_PORT = to_integer(string=os.getenv("PORT", "9000"))
 DEFAULT_DEBUG = to_boolean(string=os.getenv("DEBUG", "False"))
 DEFAULT_PROVIDER = os.getenv("PROVIDER", "openai")
-DEFAULT_MODEL_ID = os.getenv("MODEL_ID", "qwen/qwen3-8b")
-DEFAULT_OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "http://127.0.0.1:1234/v1")
+DEFAULT_MODEL_ID = os.getenv("MODEL_ID", "qwen/qwen3-4b-2507")
+DEFAULT_OPENAI_BASE_URL = os.getenv(
+    "OPENAI_BASE_URL", "http://host.docker.internal:1234/v1"
+)
 DEFAULT_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "ollama")
 DEFAULT_MCP_URL = os.getenv("MCP_URL", None)
 DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", get_mcp_config_path())
@@ -211,7 +213,7 @@ def create_agent_server(
     a2a_app = agent.to_a2a(
         name=AGENT_NAME,
         description=AGENT_DESCRIPTION,
-        version="1.4.5",
+        version="1.4.6",
         skills=skills,
         debug=debug,
     )
