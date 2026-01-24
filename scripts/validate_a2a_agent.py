@@ -5,17 +5,17 @@ import json
 import uuid
 
 # Configuration
-A2A_URL = (
-    "http://localhost:9000/"  # Discovered endpoint is POST / based on 405 on GET /
-)
+A2A_URL = "http://localhost:9004/a2a/"
 
 
 async def main():
     print(f"Validating A2A Agent at {A2A_URL}...")
 
     questions = [
-        "Can you list the incidents",
-        # "Can you create an incident with the description: Test, Title: Test, ...."
+        "Can you create an incident with the short description: 'Test Incident from AI', description: 'Test Again from AI'"
+        "Get the incidents",
+        "Can you create an change request with the short description: 'Test Change from AI', description: 'Test Again from AI', justification: 'We need this upgrade', test plan: 'Test the AI Agent'",
+        "Fetch the change requests",
     ]
 
     async with httpx.AsyncClient(timeout=10000.0) as client:

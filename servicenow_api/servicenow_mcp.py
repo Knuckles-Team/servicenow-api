@@ -12,7 +12,9 @@ from typing import Optional, List, Dict, Any, Union
 import httpx
 import requests
 from eunomia_mcp.middleware import EunomiaMcpMiddleware
-from fastapi import Depends
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from fastmcp.dependencies import Depends
 from pydantic import Field
 from fastmcp import FastMCP
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
@@ -52,39 +54,24 @@ DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
 DEFAULT_PORT = to_integer(string=os.getenv("PORT", "8000"))
 
 
-def get_client(
-    *,
-    token: Optional[str] = None,  # Optional: override from MCP context
-    username: Optional[str] = None,
-    password: Optional[str] = None,
-    client_id: Optional[str] = None,
-    client_secret: Optional[str] = None,
-    verify: bool = True,
-) -> Api:
+def get_client() -> Api:
     """
     Single entry point for ServiceNow clients.
 
     Auto-detects auth method:
-    1. `token` (passed) → Direct JWT/OIDC
-    2. Delegation → Exchanges MCP token
-    3. Basic auth → username/password (env fallback)
-
-    Usage:
-      - Tools: get_servicenow_client()  # auto-token
-      - CLI: get_servicenow_client(username="admin")  # override
+    1. Delegation → Exchanges MCP token
+    2. Basic auth → username/password (env fallback)
     """
     instance = os.getenv("SERVICENOW_INSTANCE")
     if not instance:
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 
-    # === 1. Use passed token ===
-    if token is not None:
-        return Api(url=instance, token=token, verify=verify)
+    verify = True
 
-    # === 2. Auto-extract MCP token ===
+    # === Auto-extract MCP token ===
     mcp_token = getattr(local, "user_token", None)
 
-    # === 3. Delegation ===
+    # === Delegation ===
     if config.get("enable_delegation", False) and mcp_token:
         logger.info("Delegating MCP token to ServiceNow")
         exchange_data = {
@@ -110,12 +97,13 @@ def get_client(
             logger.error("Delegation failed", extra={"error": str(e)})
             raise
 
-    # === 4. Basic auth (passed or env) ===
+    # === Basic auth (env) ===
+    username = os.getenv("SERVICENOW_USERNAME")
+    password = os.getenv("SERVICENOW_PASSWORD")
+    client_id = os.getenv("SERVICENOW_CLIENT_ID")
+    client_secret = os.getenv("SERVICENOW_CLIENT_SECRET")
+
     if username or password:
-        username = username or os.getenv("SERVICENOW_USERNAME")
-        password = password or os.getenv("SERVICENOW_PASSWORD")
-        client_id = client_id or os.getenv("SERVICENOW_CLIENT_ID")
-        client_secret = client_secret or os.getenv("SERVICENOW_CLIENT_SECRET")
         return Api(
             url=instance,
             username=username,
@@ -125,13 +113,17 @@ def get_client(
             verify=verify,
         )
 
-    # === 5. Error ===
+    # === Error ===
     raise ValueError(
         "No auth method: Provide token, enable delegation, or set SERVICENOW_USERNAME/PASSWORD"
     )
 
 
 def register_tools(mcp: FastMCP):
+    @mcp.custom_route("/health", methods=["GET"])
+    async def health_check(request: Request) -> JSONResponse:
+        return JSONResponse({"status": "OK"})
+
     # Application Service Tools
     @mcp.tool(
         tags={"application"},
@@ -946,7 +938,7 @@ def register_tools(mcp: FastMCP):
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
         change_type: Optional[str] = Field(
-            default=None, description="Type of change (emergency, normal, standard)"
+            default="normal", description="Type of change (emergency, normal, standard)"
         ),
         standard_change_template_id: Optional[str] = Field(
             default=None,
@@ -2359,7 +2351,7 @@ def servicenow_mcp():
             logger.error("OpenAPI import failed", extra={"error": str(exc)})
             sys.exit(1)
     else:
-        imported_tools, imported_resources = {}, {}
+        imported_tools, imported_resources = [], []
 
     if config["enable_delegation"] or args.auth_type == "jwt":
         middlewares.insert(0, UserTokenMiddleware(config=config))  # Must be first
@@ -2386,9 +2378,9 @@ def servicenow_mcp():
     register_tools(mcp)
     register_prompts(mcp)
 
-    for tool in imported_tools.values():
+    for tool in imported_tools:
         mcp.add_tool(tool)
-    for resource in imported_resources.values():
+    for resource in imported_resources:
         mcp.add_resource(resource)
 
     for mw in middlewares:
