@@ -1,10 +1,12 @@
 import pytest
 
+
 def test_get_change_request_models(api_client):
     """Test retrieving change request models."""
     response = api_client.get_change_request_models(sysparm_limit=5)
     assert response.result is not None
     assert isinstance(response.result, list)
+
 
 def test_create_standard_change_request(api_client):
     """

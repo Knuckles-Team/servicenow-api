@@ -120,6 +120,8 @@ def get_client() -> Api:
 
 
 def register_tools(mcp: FastMCP):
+    logger.info("DEBUG: Executing register_tools...")
+
     @mcp.custom_route("/health", methods=["GET"])
     async def health_check(request: Request) -> JSONResponse:
         return JSONResponse({"status": "OK"})
@@ -154,6 +156,174 @@ def register_tools(mcp: FastMCP):
         """
 
         return _client.get_cmdb(cmdb_id=cmdb_id)
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def delete_cmdb_relation(
+        className: str = Field(description="CMDB class name"),
+        sys_id: str = Field(description="Sys_id of the CI"),
+        rel_sys_id: str = Field(description="Sys_id of the relation to remove"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Deletes the relation for the specified configuration item (CI).
+        """
+        return _client.delete_cmdb_relation(
+            className=className, sys_id=sys_id, rel_sys_id=rel_sys_id
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def get_cmdb_instances(
+        className: str = Field(description="CMDB class name"),
+        sysparm_limit: Optional[str] = Field(
+            default="10000", description="Maximum number of records to return"
+        ),
+        sysparm_offset: Optional[str] = Field(
+            default="0", description="Starting record index"
+        ),
+        sysparm_query: Optional[str] = Field(
+            default=None, description="Encoded query used to filter the result set"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Returns the available configuration items (CI) for a specified CMDB class.
+        """
+        return _client.get_cmdb_instances(
+            className=className,
+            sysparm_limit=sysparm_limit,
+            sysparm_offset=sysparm_offset,
+            sysparm_query=sysparm_query,
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def get_cmdb_instance(
+        className: str = Field(description="CMDB class name"),
+        sys_id: str = Field(description="Sys_id of the CI record to retrieve"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Returns attributes and relationship information for a specified CI record.
+        """
+        return _client.get_cmdb_instance(className=className, sys_id=sys_id)
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def create_cmdb_instance(
+        className: str = Field(description="CMDB class name"),
+        source: str = Field(description="Discovery source"),
+        attributes: Optional[Dict] = Field(
+            default=None, description="Data attributes to define in the CI record"
+        ),
+        inbound_relations: Optional[List[Dict]] = Field(
+            default=None, description="List of inbound relations"
+        ),
+        outbound_relations: Optional[List[Dict]] = Field(
+            default=None, description="List of outbound relations"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Creates a single configuration item (CI).
+        """
+        return _client.create_cmdb_instance(
+            className=className,
+            source=source,
+            attributes=attributes,
+            inbound_relations=inbound_relations,
+            outbound_relations=outbound_relations,
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def update_cmdb_instance(
+        className: str = Field(description="CMDB class name"),
+        sys_id: str = Field(description="Sys_id of the CI"),
+        source: str = Field(description="Discovery source"),
+        attributes: Optional[Dict] = Field(
+            default=None, description="Data attributes to replace"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Updates the specified CI record (PUT).
+        """
+        return _client.update_cmdb_instance(
+            className=className,
+            sys_id=sys_id,
+            source=source,
+            attributes=attributes,
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def patch_cmdb_instance(
+        className: str = Field(description="CMDB class name"),
+        sys_id: str = Field(description="Sys_id of the CI"),
+        source: str = Field(description="Discovery source"),
+        attributes: Optional[Dict] = Field(
+            default=None, description="Data attributes to replace"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Replaces attributes in the specified CI record (PATCH).
+        """
+        return _client.patch_cmdb_instance(
+            className=className,
+            sys_id=sys_id,
+            source=source,
+            attributes=attributes,
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def create_cmdb_relation(
+        className: str = Field(description="CMDB class name"),
+        sys_id: str = Field(description="Sys_id of the CI"),
+        source: str = Field(description="Discovery source"),
+        inbound_relations: Optional[List[Dict]] = Field(
+            default=None, description="List of inbound relations"
+        ),
+        outbound_relations: Optional[List[Dict]] = Field(
+            default=None, description="List of outbound relations"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Adds an inbound and/or outbound relation to the specified CI.
+        """
+        return _client.create_cmdb_relation(
+            className=className,
+            sys_id=sys_id,
+            source=source,
+            inbound_relations=inbound_relations,
+            outbound_relations=outbound_relations,
+        )
+
+    @mcp.tool(
+        tags={"cmdb"},
+    )
+    def ingest_cmdb_data(
+        data_source_sys_id: str = Field(description="Sys_id of the data source record"),
+        records: List[Dict] = Field(description="Array of objects to ingest"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Inserts records into the Import Set table associated with the data source.
+        """
+        return _client.ingest_cmdb_data(
+            data_source_sys_id=data_source_sys_id, records=records
+        )
 
     # CI/CD Tools
     @mcp.tool(
@@ -636,6 +806,26 @@ def register_tools(mcp: FastMCP):
             update_set_id=update_set_id, rollback_installs=rollback_installs
         )
 
+    # Batch API Tools
+    @mcp.tool(
+        tags={"batch"},
+    )
+    def batch_request(
+        rest_requests: List[Dict] = Field(
+            description="List of requests to execute. Each item must correspond to BatchRequestItem model."
+        ),
+        batch_request_id: Optional[str] = Field(
+            default=None, description="Client provided batch ID"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Sends multiple REST API requests in a single call.
+        """
+        return _client.batch_request(
+            batch_request_id=batch_request_id, rest_requests=rest_requests
+        )
+
     # Change Management Tools
     @mcp.tool(
         tags={"change_management"},
@@ -757,19 +947,95 @@ def register_tools(mcp: FastMCP):
         tags={"change_management"},
     )
     def get_change_request(
-        change_request_sys_id: str = Field(description="Sys ID of the change request"),
+        change_request_id: str = Field(
+            description="Sys ID or change number (CHG#####) of the change request",
+            default=None,
+        ),
         change_type: Optional[str] = Field(
             default=None, description="Type of change (emergency, normal, standard)"
         ),
         _client=Depends(get_client),
+        name_value_pairs: Optional[str] = Field(
+            default=None,
+            description="Dictionary of name-value pairs for filtering records entered as a string",
+        ),
+        sysparm_display_value: Optional[str] = Field(
+            default=None,
+            description="Display values for reference fields ('true', 'false', or 'all')",
+        ),
+        sysparm_exclude_reference_link: Optional[bool] = Field(
+            default=None, description="Exclude reference links in the response"
+        ),
+        sysparm_fields: Optional[str] = Field(
+            default=None,
+            description="Comma-separated list of field names to include in the response",
+        ),
+        sysparm_limit: Optional[int] = Field(
+            default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
+            description="Maximum number of records to return",
+        ),
+        sysparm_no_count: Optional[bool] = Field(
+            default=None,
+            description="Do not include the total number of records in the response",
+        ),
+        sysparm_offset: Optional[int] = Field(
+            default=None,
+            description="Number of records to skip before starting the retrieval",
+        ),
+        sysparm_query: Optional[str] = Field(
+            default=None, description="Encoded query string for filtering records"
+        ),
+        sysparm_query_category: Optional[str] = Field(
+            default=None, description="Category to which the query belongs"
+        ),
+        sysparm_query_no_domain: Optional[bool] = Field(
+            default=None, description="Exclude records based on domain separation"
+        ),
+        sysparm_suppress_pagination_header: Optional[bool] = Field(
+            default=None, description="Suppress pagination headers in the response"
+        ),
+        sysparm_view: Optional[str] = Field(
+            default=None, description="Display style ('desktop', 'mobile', or 'both')"
+        ),
     ) -> Response:
         """
         Retrieves details of a specific change request in ServiceNow by sys_id and type.
         """
 
-        return _client.get_change_request(
-            change_request_sys_id=change_request_sys_id, change_type=change_type
-        )
+        if change_request_id:
+            # Smart check: if it looks like a number (starts with INC), treat as query
+            if (
+                change_request_id.upper().startswith("CHG")
+                and len(change_request_id) < 32
+            ):
+                logging.info(
+                    f"Treating change_id='{change_request_id}' as number query"
+                )
+                sysparm_query = f"number={change_request_id}"
+                change_request_id = None
+            else:
+                logging.info("Getting Change by sys_id...")
+                return _client.get_change_request(
+                    change_request_sys_id=change_request_id,
+                    change_type=change_type,
+                )
+
+        if not change_request_id:
+            logging.info("Getting Changes via query...")
+            return _client.get_change_requests(
+                name_value_pairs=name_value_pairs,
+                sysparm_display_value=sysparm_display_value,
+                sysparm_exclude_reference_link=sysparm_exclude_reference_link,
+                sysparm_fields=sysparm_fields,
+                sysparm_limit=sysparm_limit,
+                sysparm_no_count=sysparm_no_count,
+                sysparm_offset=sysparm_offset,
+                sysparm_query=sysparm_query,
+                sysparm_query_category=sysparm_query_category,
+                sysparm_query_no_domain=sysparm_query_no_domain,
+                sysparm_suppress_pagination_header=sysparm_suppress_pagination_header,
+                sysparm_view=sysparm_view,
+            )
 
     @mcp.tool(
         tags={"change_management"},
@@ -1185,6 +1451,106 @@ def register_tools(mcp: FastMCP):
             change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
         )
 
+    # CI Lifecycle Management Tools
+    @mcp.tool(
+        tags={"cilifecycle"},
+    )
+    def check_ci_lifecycle_compat_actions(
+        actionName: str = Field(description="Name of the CI action"),
+        otherActionName: str = Field(description="Name of the other CI action"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Determines whether two specified CI actions are compatible.
+        """
+        return _client.check_ci_lifecycle_compat_actions(
+            actionName=actionName, otherActionName=otherActionName
+        )
+
+    @mcp.tool(
+        tags={"cilifecycle"},
+    )
+    def register_ci_lifecycle_operator(
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Registers an operator for a non-workflow user.
+        """
+        return _client.register_ci_lifecycle_operator()
+
+    @mcp.tool(
+        tags={"cilifecycle"},
+    )
+    def unregister_ci_lifecycle_operator(
+        req_id: str = Field(description="Request ID needed to unregister"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Unregisters an operator for non-workflow users.
+        """
+        return _client.unregister_ci_lifecycle_operator(req_id=req_id)
+
+    # DevOps Tools
+    @mcp.tool(
+        tags={"devops"},
+    )
+    def check_devops_change_control(
+        toolId: str = Field(description="Tool ID"),
+        orchestrationTaskName: Optional[str] = Field(
+            default=None, description="Orchestration Task Name"
+        ),
+        toolType: str = Field(default="jenkins", description="Tool Type"),
+        orchestrationTaskURL: Optional[str] = Field(
+            default=None, description="Orchestration Task URL"
+        ),
+        testConnection: Optional[bool] = Field(
+            default=None, description="Test Connection"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Checks if the orchestration task is under change control.
+        """
+        return _client.check_devops_change_control(
+            toolId=toolId,
+            orchestrationTaskName=orchestrationTaskName,
+            toolType=toolType,
+            orchestrationTaskURL=orchestrationTaskURL,
+            testConnection=testConnection,
+        )
+
+    @mcp.tool(
+        tags={"devops"},
+    )
+    def register_devops_artifact(
+        artifacts: List[Dict] = Field(description="List of artifacts to register"),
+        orchestrationToolId: Optional[str] = Field(
+            default=None, description="Orchestration Tool ID"
+        ),
+        toolId: Optional[str] = Field(default=None, description="Artifact Tool ID"),
+        branchName: Optional[str] = Field(default=None, description="Branch Name"),
+        pipelineName: Optional[str] = Field(default=None, description="Pipeline Name"),
+        projectName: Optional[str] = Field(default=None, description="Project Name"),
+        stageName: Optional[str] = Field(default=None, description="Stage Name"),
+        taskExecutionNumber: Optional[str] = Field(
+            default=None, description="Task Execution Number"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """
+        Enables orchestration tools to register artifacts into a ServiceNow instance.
+        """
+        return _client.register_devops_artifact(
+            artifacts=artifacts,
+            orchestrationToolId=orchestrationToolId,
+            toolId=toolId,
+            branchName=branchName,
+            pipelineName=pipelineName,
+            projectName=projectName,
+            stageName=stageName,
+            taskExecutionNumber=taskExecutionNumber,
+        )
+
     # Import Set Tools
     @mcp.tool(
         tags={"import_sets"},
@@ -1241,13 +1607,15 @@ def register_tools(mcp: FastMCP):
         return _client.insert_multiple_import_sets(table=table, data=data)
 
     # Incident Tools
+    logger.info("DEBUG: Registering get_incidents...")
+
     @mcp.tool(
         tags={"incidents"},
     )
     def get_incidents(
         incident_id: Optional[str] = Field(
             default=None,
-            description="The sys_id of the incident record, if retrieving a specific incident",
+            description="The sys_id or the incident number (INC######) of the incident record, if retrieving a specific incident",
         ),
         _client=Depends(get_client),
         name_value_pairs: Optional[str] = Field(
@@ -1298,10 +1666,17 @@ def register_tools(mcp: FastMCP):
         """
 
         if incident_id:
-            logging.info("Getting Incident...")
-            return _client.get_incident(incident_id=incident_id)
-        else:
-            logging.info("Getting Incidents...")
+            # Smart check: if it looks like a number (starts with INC), treat as query
+            if incident_id.upper().startswith("INC") and len(incident_id) < 32:
+                logging.info(f"Treating incident_id='{incident_id}' as number query")
+                sysparm_query = f"number={incident_id}"
+                incident_id = None
+            else:
+                logging.info("Getting Incident by sys_id...")
+                return _client.get_incident(incident_id=incident_id)
+
+        if not incident_id:
+            logging.info("Getting Incidents via query...")
             return _client.get_incidents(
                 name_value_pairs=name_value_pairs,
                 sysparm_display_value=sysparm_display_value,
@@ -1747,6 +2122,240 @@ def register_tools(mcp: FastMCP):
         return _client.api_request(
             method=method, endpoint=endpoint, data=data, json=json
         )
+
+    # Email Tools
+    @mcp.tool(tags={"email"})
+    def send_email(
+        to: Union[str, List[str]] = Field(description="Recipient email addresses"),
+        subject: Optional[str] = Field(default=None, description="Email subject"),
+        text: Optional[str] = Field(default=None, description="Email body text"),
+        html: Optional[str] = Field(default=None, description="Email body HTML"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Sends an email via ServiceNow."""
+        return _client.send_email(to=to, subject=subject, text=text, html=html)
+
+    # Data Classification Tools
+    @mcp.tool(tags={"data_classification"})
+    def get_data_classification(
+        sys_id: Optional[str] = Field(
+            default=None, description="Classification record Sys ID"
+        ),
+        table_name: Optional[str] = Field(default=None, description="Table name"),
+        column_name: Optional[str] = Field(default=None, description="Column name"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves data classification information."""
+        return _client.get_data_classification(
+            sys_id=sys_id, table_name=table_name, column_name=column_name
+        )
+
+    # Attachment Tools
+    @mcp.tool(tags={"attachment"})
+    def get_attachment(
+        sys_id: str = Field(description="Attachment Sys ID"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves attachment metadata."""
+        return _client.get_attachment(sys_id=sys_id)
+
+    @mcp.tool(tags={"attachment"})
+    def upload_attachment(
+        file_path: str = Field(description="Absolute path to the file to upload"),
+        table_name: str = Field(
+            description="Table name associated with the attachment"
+        ),
+        table_sys_id: str = Field(description="Sys ID of the record in the table"),
+        file_name: str = Field(description="Name of the file"),
+        content_type: Optional[str] = Field(
+            default=None, description="MIME type of the file"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Uploads an attachment to a record."""
+        return _client.upload_attachment(
+            file_path=file_path,
+            table_name=table_name,
+            table_sys_id=table_sys_id,
+            file_name=file_name,
+            content_type=content_type,
+        )
+
+    @mcp.tool(tags={"attachment"})
+    def delete_attachment(
+        sys_id: str = Field(description="Attachment Sys ID"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Deletes an attachment."""
+        return _client.delete_attachment(sys_id=sys_id)
+
+    # Aggregate Tools
+    @mcp.tool(tags={"aggregate"})
+    def get_stats(
+        table_name: str = Field(description="Table name to aggregate on"),
+        query: Optional[str] = Field(default=None, description="Encoded query string"),
+        group_by: Optional[str] = Field(default=None, description="Field to group by"),
+        stats: Optional[str] = Field(default=None, description="Statistics function"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves aggregate statistics for a table."""
+        return _client.get_stats(
+            table_name=table_name, query=query, group_by=group_by, stats=stats
+        )
+
+    # Activity Subscriptions Tools
+    @mcp.tool(tags={"activity_subscriptions"})
+    def get_activity_subscriptions(
+        sys_id: Optional[str] = Field(
+            default=None, description="Activity Subscription Sys ID"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves activity subscriptions."""
+        return _client.get_activity_subscriptions(sys_id=sys_id)
+
+    # Account Tools
+    @mcp.tool(tags={"account"})
+    def get_account(
+        sys_id: Optional[str] = Field(default=None, description="Account Sys ID"),
+        name: Optional[str] = Field(default=None, description="Account name"),
+        number: Optional[str] = Field(default=None, description="Account number"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves CSM account information."""
+        return _client.get_account(sys_id=sys_id, name=name, number=number)
+
+    # HR Tools
+    @mcp.tool(tags={"hr"})
+    def get_hr_profile(
+        sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
+        user: Optional[str] = Field(default=None, description="User Sys ID"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves HR profile information."""
+        return _client.get_hr_profile(sys_id=sys_id, user=user)
+
+    # MetricBase Tools
+    @mcp.tool(tags={"metricbase"})
+    def metricbase_insert(
+        table_name: str = Field(description="Table name"),
+        sys_id: str = Field(description="Record Sys ID"),
+        metric_name: str = Field(description="Metric name"),
+        values: List[Any] = Field(description="Values to insert"),
+        start_time: Optional[str] = Field(default=None, description="Start time"),
+        end_time: Optional[str] = Field(default=None, description="End time"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Inserts time series data into MetricBase."""
+        return _client.metricbase_insert(
+            table_name=table_name,
+            sys_id=sys_id,
+            metric_name=metric_name,
+            values=values,
+            start_time=start_time,
+            end_time=end_time,
+        )
+
+    # Service Qualification Tools
+    @mcp.tool(tags={"service_qualification"})
+    def check_service_qualification(
+        description: Optional[str] = Field(default=None, description="Description"),
+        externalId: Optional[str] = Field(default=None, description="External ID"),
+        relatedParty: List[Dict[str, Any]] = Field(
+            default=[], description="List of related parties"
+        ),
+        serviceQualificationItem: List[Dict[str, Any]] = Field(
+            default=[], description="List of qualification items"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Creates a technical service qualification request."""
+        return _client.check_service_qualification(
+            description=description,
+            externalId=externalId,
+            relatedParty=relatedParty,
+            serviceQualificationItem=serviceQualificationItem,
+        )
+
+    @mcp.tool(tags={"service_qualification"})
+    def get_service_qualification(
+        id: Optional[str] = Field(default=None, description="Qualification Request ID"),
+        state: Optional[str] = Field(default=None, description="Filter by state"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves a service qualification request."""
+        return _client.get_service_qualification(id=id, state=state)
+
+    @mcp.tool(tags={"service_qualification"})
+    def process_service_qualification_result(
+        serviceQualificationItem: List[Dict[str, Any]] = Field(
+            description="Items to process"
+        ),
+        description: Optional[str] = Field(default=None, description="Description"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Processes a service qualification result."""
+        return _client.process_service_qualification_result(
+            serviceQualificationItem=serviceQualificationItem, description=description
+        )
+
+    # PPM Tools
+    @mcp.tool(tags={"ppm"})
+    def insert_cost_plans(
+        plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Creates cost plans."""
+        return _client.insert_cost_plans(plans=plans)
+
+    @mcp.tool(tags={"ppm"})
+    def insert_project_tasks(
+        short_description: str = Field(description="Short description"),
+        start_date: Optional[str] = Field(default=None, description="Start date"),
+        end_date: Optional[str] = Field(default=None, description="End date"),
+        child_tasks: Optional[List[Dict[str, Any]]] = Field(
+            default=None, description="Child tasks"
+        ),
+        dependencies: Optional[List[Dict[str, Any]]] = Field(
+            default=None, description="Dependencies"
+        ),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Creates a project and associated project tasks."""
+        return _client.insert_project_tasks(
+            short_description=short_description,
+            start_date=start_date,
+            end_date=end_date,
+            child_tasks=child_tasks,
+            dependencies=dependencies,
+        )
+
+    # Product Inventory Tools
+    @mcp.tool(tags={"product_inventory"})
+    def get_product_inventory(
+        customer: Optional[str] = Field(default=None, description="Customer Sys ID"),
+        place_id: Optional[str] = Field(default=None, description="Location ID"),
+        status: Optional[str] = Field(default=None, description="Status filter"),
+        limit: Optional[int] = Field(default=20, description="Limit"),
+        offset: Optional[int] = Field(default=0, description="Offset"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Retrieves product inventory."""
+        return _client.get_product_inventory(
+            customer=customer,
+            place_id=place_id,
+            status=status,
+            limit=limit,
+            offset=offset,
+        )
+
+    @mcp.tool(tags={"product_inventory"})
+    def delete_product_inventory(
+        id: str = Field(description="Product Inventory Sys ID"),
+        _client=Depends(get_client),
+    ) -> Response:
+        """Deletes a product inventory record."""
+        return _client.delete_product_inventory(id=id)
 
 
 def register_prompts(mcp: FastMCP):
