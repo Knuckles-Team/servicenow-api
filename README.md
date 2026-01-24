@@ -1,4 +1,4 @@
-# ServiceNow API - A2A | AG-UI | MCP
+# ServiceNow - API | MCP | A2A | AG-UI
 
 ![PyPI - Version](https://img.shields.io/pypi/v/servicenow-api)
 ![MCP Server](https://badge.mcpx.dev?type=server 'MCP Server')
@@ -21,13 +21,15 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.4.7*
+*Version: 1.5.0*
 
 ## Overview
 
 This project started out as a python wrapper for ServiceNow, but since the dawn of standards like
-Model Context Protocol (MCP) and Agent2Agent (A2A) Agent,
-this repository has become a sandbox for some brand new and pretty cool features with respects to each of those.
+Model Context Protocol (MCP) and Agent2Agent (A2A) Agent. This Agent has solved the issue with **tons** of MCP tools by distributing those tools to **child agents**.
+This allows you to run this entire agent on a small context window and maintain blazing speed! A 10K Context token minimum recommended, although I got away with 4K in some tests using qwen-4b on default settings.
+
+This repository has become a sandbox for some brand new and pretty cool features with respects to each of those.
 The original APIs should remain stable,
 but please note, the latest features like A2A may still be unstable as it is under active development.
 
@@ -44,10 +46,15 @@ The system runs as a FastAPI server via Uvicorn, exposing an Agent-to-Agent (A2A
 `pydantic-ai` is able to expose your agent as an A2A agent out of the box with `.to_a2a()`.
 This allows this agent to be integrated in
 any agentic framework like `Microsoft Agent Framework` (MAF) or `crew.ai`.
-The core idea is an orchestrator agent that analyzes user queries and delegates subtasks to specialized child agents,
+The core idea is a **Supervisor Agent** that acts as an intelligent router. It analyzes user queries and assigns tasks to specialized **child agents**,
 each focused on a specific domain (e.g., incidents, change management).
 Child agents have access to filtered MCP tools and a shared knowledge graph for reasoning over documentation,
 ensuring accurate and context-aware executions without direct access to the underlying APIs from the orchestrator.
+
+This architecture is optimized for:
+- **Speed**: Parallel execution potential and smaller context windows per agent.
+- **Context Usage**: Each agent only loads the tools and skills relevant to its domain, allowing the system to handle hundreds of MCP tools without exceeding token limits or confusing the LLM.
+- **Modularity**: New domains can be added as simple child agents without touching the core supervisor logic.
 
 This architecture promotes modularity, scalability, and maintainability, making it suitable for enterprise
 integrations with platforms like ServiceNow.
@@ -137,6 +144,12 @@ All the available API Calls above are wrapped in MCP Tools. You can find those b
 | get_knowledge_article_attachment           | Get a Knowledge Base article attachment from a ServiceNow instance.                                                        | knowledge_management   |
 | get_featured_knowledge_article             | Get featured Knowledge Base articles from a ServiceNow instance.                                                           | knowledge_management   |
 | get_most_viewed_knowledge_articles         | Get most viewed Knowledge Base articles from a ServiceNow instance.                                                        | knowledge_management   |
+| batch_request                              | Sends multiple REST API requests in a single call.                                                                         | batch                  |
+| check_ci_lifecycle_compat_actions          | Determines whether two specified CI actions are compatible.                                                                | cilifecycle            |
+| register_ci_lifecycle_operator             | Registers an operator for a non-workflow user.                                                                             | cilifecycle            |
+| unregister_ci_lifecycle_operator           | Unregisters an operator for non-workflow users.                                                                            | cilifecycle            |
+| check_devops_change_control                | Checks if the orchestration task is under change control.                                                                  | devops                 |
+| register_devops_artifact                   | Enables orchestration tools to register artifacts into a ServiceNow instance.                                              | devops                 |
 | delete_table_record                        | Delete a record from the specified table on a ServiceNow instance.                                                         | table_api              |
 | get_table                                  | Get records from the specified table on a ServiceNow instance.                                                             | table_api              |
 | get_table_record                           | Get a specific record from the specified table on a ServiceNow instance.                                                   | table_api              |
@@ -145,6 +158,23 @@ All the available API Calls above are wrapped in MCP Tools. You can find those b
 | add_table_record                           | Add a new record to the specified table on a ServiceNow instance.                                                          | table_api              |
 | refresh_auth_token                         | Refreshes the authentication token for the ServiceNow client.                                                              | auth                   |
 | api_request                                | Make a custom API request to a ServiceNow instance.                                                                        | custom_api             |
+| send_email                                 | Sends an email via ServiceNow.                                                                                             | email                  |
+| get_data_classification                    | Retrieves data classification information.                                                                                 | data_classification    |
+| get_attachment                             | Retrieves attachment metadata.                                                                                             | attachment             |
+| upload_attachment                          | Uploads an attachment to a record.                                                                                         | attachment             |
+| delete_attachment                          | Deletes an attachment.                                                                                                     | attachment             |
+| get_stats                                  | Retrieves aggregate statistics for a table.                                                                                | aggregate              |
+| get_activity_subscriptions                 | Retrieves activity subscriptions.                                                                                          | activity_subscriptions |
+| get_account                                | Retrieves CSM account information.                                                                                         | account                |
+| get_hr_profile                             | Retrieves HR profile information.                                                                                          | hr                     |
+| metricbase_insert                          | Inserts time series data into MetricBase.                                                                                  | metricbase             |
+| check_service_qualification                | Creates a technical service qualification request.                                                                         | service_qualification  |
+| get_service_qualification                  | Retrieves a technical qualification request by ID or list all.                                                             | service_qualification  |
+| process_service_qualification_result       | Processes a technical service qualification result.                                                                        | service_qualification  |
+| insert_cost_plans                          | Creates cost plans.                                                                                                        | ppm                    |
+| insert_project_tasks                       | Creates a project and associated project tasks.                                                                            | ppm                    |
+| get_product_inventory                      | Retrieves a list of all product inventories.                                                                               | product_inventory      |
+| delete_product_inventory                   | Deletes a specified product inventory record.                                                                              | product_inventory      |
 
 ## A2A Agent
 
@@ -163,7 +193,7 @@ Key integrations:
 - **Graphiti**: Builds a corpus from URLs of official docs, supporting backends like Kuzu (local), Neo4j, or FalkorDB.
 - **FastMCPToolset**: Provides MCP wrappers for ServiceNow APIs, filtered by tags for distribution.
 
-The script initializes the graph on startup (ingesting docs if needed), creates child agents with tag-filtered tools and graph access, builds the orchestrator with delegation tools, and launches the server.
+The script initializes the graph on startup (ingesting docs if needed), creates child agents with tag-filtered tools and graph access, builds the supervisor with delegation tools, and launches the server.
 
 ### Architecture:
 
@@ -174,21 +204,23 @@ config:
 ---
 flowchart TB
  subgraph subGraph0["Agent Capabilities"]
-        C["Agent"]
-        B["A2A Server - Uvicorn/FastAPI"]
         D["MCP Tools"]
         F["Agent Skills"]
+        C["Specialized Agents"]
   end
+    A["User Query"] --> B["A2A Server - Uvicorn/FastAPI"]
+    B --> G["Supervisor Agent"]
+    G -- "Assigns Task" --> C
     C --> D & F
-    A["User Query"] --> B
-    B --> C
     D --> E["Platform API"]
 
+     G:::supervisor
      C:::agent
      B:::server
      A:::server
     classDef server fill:#f9f,stroke:#333
     classDef agent fill:#bbf,stroke:#333,stroke-width:2px
+    classDef supervisor fill:#ff9,stroke:#333,stroke-width:2px
     style B stroke:#000000,fill:#FFD600
     style D stroke:#000000,fill:#BBDEFB
     style F fill:#BBDEFB
@@ -247,18 +279,20 @@ This creates a dynamic corpus, allowing agents to "understand" APIs without hard
 sequenceDiagram
     participant User
     participant Server as A2A Server
-    participant Agent as Agent
+    participant Supervisor as Supervisor Agent
+    participant Agent as Specialized Agent
     participant Skill as Agent Skills
     participant MCP as MCP Tools
 
     User->>Server: Send Query
-    Server->>Agent: Invoke Agent
+    Server->>Supervisor: Invoke Supervisor
+    Supervisor->>Agent: Assign Task (e.g. "Get Incident")
     Agent->>Skill: Analyze Skills Available
     Skill->>Agent: Provide Guidance on Next Steps
     Agent->>MCP: Invoke Tool
     MCP-->>Agent: Tool Response Returned
-    Agent-->>Agent: Return Results Summarized
-    Agent-->>Server: Final Response
+    Agent-->>Supervisor: Return Results Summarized
+    Supervisor-->>Server: Final Response
     Server-->>User: Output
 ```
 
@@ -798,6 +832,17 @@ docker run -d \
 ```
 
 > **Note:** The A2A agent requires a running MCP server to function.
+
+## Changelog
+
+### v1.4.7
+- **Multi-Agent Architecture**: Introduced a **Supervisor Agent** to orchestrate tasks across specialized domain agents (Application, CMDB, Incidents, etc.).
+- **Supervisor Routing**: The supervisor now intelligently "assigns" tasks rather than just delegating, using a clearer tool set.
+- **Tag-Based Tool Partitioning**: MCP tools are now strictly partitioned by tags, ensuring agents only access relevant tools. This optimization allows for handling a massive number of tools without context overflow.
+- **Robust Tool Filtering**: Enhanced name prefix handling in filters to ensuring tools like `servicenow_get_incidents` are correctly routed to the `incidents` agent.
+- **Smart Incident Lookup**: `get_incidents` now automatically detects if an input is a number (`INC...`) vs a `sys_id` and switches query modes accordingly.
+- **Cache Busting**: Improved Docker reliability with cache-busting mechanisms.
+
 > You can run the A2A server using the same Docker image by overriding the command.
 
 #### Compose

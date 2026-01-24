@@ -8,15 +8,10 @@ import uvicorn
 from typing import Optional, Any, List
 from contextlib import asynccontextmanager
 
-from fastmcp import Client
-from pydantic_ai import Agent, ModelSettings
-from pydantic_ai.mcp import load_mcp_servers
-from pydantic_ai.toolsets.fastmcp import FastMCPToolset
+
+from pydantic_ai import Agent, ModelSettings, RunContext
+from pydantic_ai.mcp import load_mcp_servers, MCPServerStreamableHTTP, MCPServerSSE
 from pydantic_ai_skills import SkillsToolset
-from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.models.anthropic import AnthropicModel
-from pydantic_ai.models.google import GoogleModel
-from pydantic_ai.models.huggingface import HuggingFaceModel
 from fasta2a import Skill
 from servicenow_api.utils import (
     to_integer,
@@ -24,6 +19,7 @@ from servicenow_api.utils import (
     get_mcp_config_path,
     get_skills_path,
     load_skills_from_directory,
+    create_model,
 )
 
 from fastapi import FastAPI, Request
@@ -59,46 +55,20 @@ DEFAULT_ENABLE_WEB_UI = to_boolean(os.getenv("ENABLE_WEB_UI", "False"))
 AGENT_NAME = "ServiceNow"
 AGENT_DESCRIPTION = "An agent built with Agent Skills and ServiceNow MCP tools to maximize ServiceNow interactivity."
 AGENT_SYSTEM_PROMPT = (
-    "You are the ServiceNow Orchestrator Agent. "
-    "Your goal is to assist the user by delegating tasks to specialized child agents. "
+    "You are the ServiceNow Supervisor Agent. "
+    "Your goal is to assist the user by assigning tasks to specialized child agents through your available toolset. "
     "Analyze the user's request and determine which domain(s) it falls into "
-    "(e.g., incidents, change_management, cmdb). "
-    "Then, call the appropriate delegation tool(s) with a specific task description. "
+    "(e.g., application, cmdb, cicd, plugins, source_control, testing, update_sets, "
+    "change_management, import_sets, incidents, knowledge_management, table_api, custom_api, auth, "
+    "batch, cilifecycle, devops, email, data_classification, attachment, aggregate, activity_subscriptions, "
+    "account, hr, metricbase, service_qualification, ppm, product_inventory). "
+    "Then, call the appropriate tool(s) with a specific task. You can modify the task to be within the scope of the agent if necessary. "
+    "You can invoke multiple tools in a single response, or you can invoke them sequentially depending on the task. "
     "Synthesize the results from the child agents into a final helpful response. "
-    "Do not attempt to perform ServiceNow actions directly; always delegate."
+    "Do not attempt to perform ServiceNow actions directly; always assign tasks and delegate to child agents."
+    "It is imperative to never respond to the user without first executing the correct relevant tool and then synthesizing the results."
+    "Always gather all tool results before synthesizing the final response to the user."
 )
-
-
-def create_model(
-    provider: str = DEFAULT_PROVIDER,
-    model_id: str = DEFAULT_MODEL_ID,
-    base_url: Optional[str] = DEFAULT_OPENAI_BASE_URL,
-    api_key: Optional[str] = DEFAULT_OPENAI_API_KEY,
-):
-    if provider == "openai":
-        target_base_url = base_url or DEFAULT_OPENAI_BASE_URL
-        target_api_key = api_key or DEFAULT_OPENAI_API_KEY
-        if target_base_url:
-            os.environ["OPENAI_BASE_URL"] = target_base_url
-        if target_api_key:
-            os.environ["OPENAI_API_KEY"] = target_api_key
-        return OpenAIChatModel(model_id, provider="openai")
-
-    elif provider == "anthropic":
-        if api_key:
-            os.environ["ANTHROPIC_API_KEY"] = api_key
-        return AnthropicModel(model_id)
-
-    elif provider == "google":
-        if api_key:
-            os.environ["GEMINI_API_KEY"] = api_key
-            os.environ["GOOGLE_API_KEY"] = api_key
-        return GoogleModel(model_id)
-
-    elif provider == "huggingface":
-        if api_key:
-            os.environ["HF_TOKEN"] = api_key
-        return HuggingFaceModel(model_id)
 
 
 def create_agent(
@@ -110,43 +80,516 @@ def create_agent(
     mcp_config: str = DEFAULT_MCP_CONFIG,
     skills_directory: str = DEFAULT_SKILLS_DIRECTORY,
 ) -> Agent:
-    agent_toolsets = []
+    """
+    Factory function that creates:
+    - Specialized sub-agents (workers) for ServiceNow domains
+    - An orchestrator agent (supervisor) that delegates to them
+
+    Returns the orchestrator agent, ready to run.
+    """
+    master_toolsets = []
 
     if mcp_config:
         mcp_toolset = load_mcp_servers(mcp_config)
-        agent_toolsets.extend(mcp_toolset)
+        master_toolsets.extend(mcp_toolset)
         logger.info(f"Connected to MCP Config JSON: {mcp_toolset}")
     elif mcp_url:
-        fastmcp_toolset = FastMCPToolset(Client[Any](mcp_url, timeout=3600))
-        agent_toolsets.append(fastmcp_toolset)
+        if "sse" in mcp_url.lower():
+            server = MCPServerSSE(mcp_url)
+        else:
+            server = MCPServerStreamableHTTP(mcp_url)
+        master_toolsets.append(server)
         logger.info(f"Connected to MCP Server: {mcp_url}")
 
-    if skills_directory and os.path.exists(skills_directory):
-        logger.debug(f"Loading skills {skills_directory}")
-        skills = SkillsToolset(directories=[str(skills_directory)])
-        agent_toolsets.append(skills)
-        logger.info(f"Loaded Skills at {skills_directory}")
-
-    # Create the Model
+    # Create Model for all agents
     model = create_model(provider, model_id, base_url, api_key)
-
-    logger.info("Initializing Agent...")
-
     settings = ModelSettings(timeout=3600.0)
 
-    return Agent(
+    logger.info(f"Master Toolsets Count: {len(master_toolsets)}")
+    for i, ts in enumerate(master_toolsets):
+        logger.info(f"Toolset {i}: {ts}")
+        # Try to inspect tools if possible
+        if hasattr(ts, "tools"):
+            logger.info(f"Toolset {i} tool count: {len(ts.tools)}")
+
+    # Create the Supervisor Agent
+    supervisor = Agent(
         model=model,
         system_prompt=AGENT_SYSTEM_PROMPT,
-        name="GitLab_Agent",
-        toolsets=agent_toolsets,
+        name=AGENT_NAME,
         deps_type=Any,
         model_settings=settings,
     )
 
+    child_agents = {}
+    tags_to_tools = {}
+    child_agent_system_prompts = {}
+
+    # List of tags to create specialized agents for
+    tags = [
+        "application",
+        "cmdb",
+        "cicd",
+        "plugins",
+        "source_control",
+        "testing",
+        "update_sets",
+        "change_management",
+        "import_sets",
+        "incidents",
+        "knowledge_management",
+        "table_api",
+        "custom_api",
+        "auth",
+        "batch",
+        "cilifecycle",
+        "devops",
+        "email",
+        "data_classification",
+        "attachment",
+        "aggregate",
+        "activity_subscriptions",
+        "account",
+        "hr",
+        "metricbase",
+        "service_qualification",
+        "ppm",
+        "product_inventory",
+    ]
+
+    child_agent_system_prompts["application"] = (
+        "You are a specialized ServiceNow agent for Application Management. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["cmdb"] = (
+        "You are a specialized ServiceNow agent for CMDB. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["cicd"] = (
+        "You are a specialized ServiceNow agent for CI/CD. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["plugins"] = (
+        "You are a specialized ServiceNow agent for Plugins. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["source_control"] = (
+        "You are a specialized ServiceNow agent for Source Control. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["testing"] = (
+        "You are a specialized ServiceNow agent for Testing. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["update_sets"] = (
+        "You are a specialized ServiceNow agent for Update Sets. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["change_management"] = (
+        "You are a specialized ServiceNow agent for Change Management. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities. When creating change requests, extrapolate the possible fields from the users request and populate the 'name_value_pairs' variable with a valid dictionary payload. Always provide values returned by ServiceNow, never assume values if they are empty or undefined, instead state that those values are empty. Ensure you build tool parameter payloads as defined by the tool definition."
+    )
+    child_agent_system_prompts["import_sets"] = (
+        "You are a specialized ServiceNow agent for Import Sets. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["incidents"] = (
+        "You are a specialized ServiceNow agent for Incidents. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["knowledge_management"] = (
+        "You are a specialized ServiceNow agent for Knowledge Management. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["table_api"] = (
+        "You are a specialized ServiceNow agent for Table API. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["custom_api"] = (
+        "You are a specialized ServiceNow agent for Custom API. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["auth"] = (
+        "You are a specialized ServiceNow agent for Authentication. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["batch"] = (
+        "You are a specialized ServiceNow agent for Batch. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["cilifecycle"] = (
+        "You are a specialized ServiceNow agent for CI Lifecycle. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["devops"] = (
+        "You are a specialized ServiceNow agent for DevOps. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["email"] = (
+        "You are a specialized ServiceNow agent for Email. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["data_classification"] = (
+        "You are a specialized ServiceNow agent for Data Classification. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["attachment"] = (
+        "You are a specialized ServiceNow agent for Attachment. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["aggregate"] = (
+        "You are a specialized ServiceNow agent for Aggregate. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["activity_subscriptions"] = (
+        "You are a specialized ServiceNow agent for Activity Subscriptions. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["account"] = (
+        "You are a specialized ServiceNow agent for Account. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["hr"] = (
+        "You are a specialized ServiceNow agent for HR. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["metricbase"] = (
+        "You are a specialized ServiceNow agent for MetricBase. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["service_qualification"] = (
+        "You are a specialized ServiceNow agent for Service Qualification. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["ppm"] = (
+        "You are a specialized ServiceNow agent for PPM. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+    child_agent_system_prompts["product_inventory"] = (
+        "You are a specialized ServiceNow agent for Product Inventory. You have access to tools and skills that can interact with the ServiceNow instance. Always use these tools and skills to fulfill the user's request. You can execute list_tools() and list_skills() in order to see your capabilities."
+    )
+
+    for tag in tags:
+        # Create filtered toolsets for this tag
+        tag_toolsets = []
+        logger.info(
+            f"Creating toolsets for tag: {tag} using master toolsets: {master_toolsets}"
+        )
+        for ts in master_toolsets:
+
+            def filter_func(ctx, tool_def, t=tag):
+                # Extract tags from metadata (enhanced to handle more variations)
+                metadata = tool_def.metadata or {}
+                # Try nested paths
+                meta = metadata.get("meta") or {}
+                fastmcp_meta = meta.get("_fastmcp") or {}
+                tags_list = fastmcp_meta.get("tags", [])
+
+                # Fallbacks: direct 'tags', or other common keys (add more if your tools use different structures)
+                if not tags_list:
+                    tags_list = (
+                        metadata.get("tags", [])
+                        or meta.get("tags", [])
+                        or fastmcp_meta.get("categories", [])
+                    )  # Added extra fallbacks
+
+                # General logging for all tags/tools (uncommented and made always active for debugging)
+                logger.info(
+                    f"Filter check: tool={tool_def.name} tags={tags_list} target={t} full_metadata={metadata}"
+                )
+
+                # Specific debug for problematic tags
+                if t in ["change_management", "incidents"]:
+                    logger.info(
+                        f"DEBUG FILTER: tool={tool_def.name} tags={tags_list} target={t}"
+                    )
+
+                # Generalized force-include logic (make it configurable or remove once tags are fixed in tool defs)
+                # For 'incidents': Check name patterns
+                if t == "incidents":
+                    target_tools = ["get_incidents", "create_incident", "get_incident"]
+                    if any(tool_def.name.endswith(name) for name in target_tools):
+                        logger.info(
+                            f"Force including {tool_def.name} for {t} (name match)"
+                        )
+                        return True
+
+                # For 'change_management': Check name patterns (uncommented the return True for now; remove after fixing tags)
+                if (
+                    t == "change_management"
+                    and "change_request" in tool_def.name.lower()
+                ):  # Made case-insensitive
+                    logger.info(
+                        f"Force including suspected tool {tool_def.name} for {t} (name match)"
+                    )
+                    return True  # Uncommented to force include; comment out once metadata is updated
+
+                # Core filter: Check if tag is in extracted tags_list
+                return t in tags_list
+
+            logger.info(f"Scanned toolset: {ts}")
+            if hasattr(ts, "filtered"):
+                filtered_ts = ts.filtered(filter_func)
+                tag_toolsets.append(filtered_ts)
+            else:
+                logger.warning(
+                    f"Toolset {ts} does not support filtering, skipping for tag {tag}"
+                )
+
+        # Load specialized skills (unchanged)
+        skill_dir_name = f"servicenow-{tag.replace('_', '-')}"
+        specific_skill_path = None
+        if skills_directory:
+            specific_skill_path = os.path.join(skills_directory, skill_dir_name)
+
+        if specific_skill_path and os.path.exists(specific_skill_path):
+            skills = SkillsToolset(directories=[str(specific_skill_path)])
+            tag_toolsets.append(skills)
+            logger.info(
+                f"Loaded specialized skills for {tag} from {specific_skill_path}"
+            )
+
+        # Create the child agent (unchanged, but now with verified toolsets)
+        child_agent = Agent(
+            model=model,
+            system_prompt=child_agent_system_prompts[tag],
+            name=f"ServiceNow_{tag.capitalize()}_Agent",
+            toolsets=tag_toolsets,
+            deps_type=Any,
+            model_settings=settings,
+        )
+
+        child_agents[tag] = child_agent
+
+    # After all tags, you can inspect/log the full grouping
+    logger.info(f"Final tool groupings by tag: {tags_to_tools}")
+
+    @supervisor.tool
+    async def assign_task_to_application_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Application agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["application"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_cmdb_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the CMDB agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["cmdb"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_cicd_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the CI/CD agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["cicd"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_plugins_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Plugins agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["plugins"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_source_control_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Source Control agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["source_control"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_testing_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Testing agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["testing"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_update_sets_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Update Sets agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["update_sets"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_change_management_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Change Management agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["change_management"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_import_sets_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Import Sets agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["import_sets"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_incidents_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Incidents agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["incidents"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_knowledge_management_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Knowledge Management agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["knowledge_management"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_table_api_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Table API agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["table_api"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_custom_api_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Custom API agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["custom_api"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_auth_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Auth agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["auth"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_batch_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Batch API agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["batch"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_cilifecycle_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the CI Lifecycle Management agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["cilifecycle"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_devops_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the DevOps agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["devops"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_email_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Email agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["email"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_data_classification_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Data Classification agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["data_classification"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_attachment_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Attachment agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["attachment"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_aggregate_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Aggregate agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["aggregate"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_activity_subscriptions_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Activity Subscriptions agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["activity_subscriptions"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_account_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the Account agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["account"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_hr_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the HR agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["hr"].run(task, usage=ctx.usage, deps=ctx.deps)
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_metricbase_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the MetricBase agent."""
+        logger.info(f"Assigning: {task}")
+        result = await child_agents["metricbase"].run(
+            task, usage=ctx.usage, deps=ctx.deps
+        )
+        return result.output
+
+    @supervisor.tool
+    async def assign_task_to_service_qualification_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Service Qualification agent."""
+        logger.info(f"Assigning: {task}")
+        return (
+            await child_agents["service_qualification"]
+            .run(task, usage=ctx.usage, deps=ctx.deps)
+            .output
+        )
+
+    @supervisor.tool
+    async def assign_task_to_ppm_agent(ctx: RunContext[Any], task: str) -> str:
+        """Assigns a task to the PPM agent."""
+        logger.info(f"Assigning: {task}")
+        return (
+            await child_agents["ppm"].run(task, usage=ctx.usage, deps=ctx.deps).output
+        )
+
+    @supervisor.tool
+    async def assign_task_to_product_inventory_agent(
+        ctx: RunContext[Any], task: str
+    ) -> str:
+        """Assigns a task to the Product Inventory agent."""
+        logger.info(f"Assigning: {task}")
+        return (
+            await child_agents["product_inventory"]
+            .run(task, usage=ctx.usage, deps=ctx.deps)
+            .output
+        )
+
+    return supervisor
+
 
 async def chat(agent: Agent, prompt: str):
     result = await agent.run(prompt)
-    print(f"Response:\n\n{result.output}")
+    logger.info(f"Response:\n\n{result.output}")
 
 
 async def node_chat(agent: Agent, prompt: str) -> List:
@@ -154,7 +597,7 @@ async def node_chat(agent: Agent, prompt: str) -> List:
     async with agent.iter(prompt) as agent_run:
         async for node in agent_run:
             nodes.append(node)
-            print(node)
+            logger.info(node)
     return nodes
 
 
@@ -164,8 +607,8 @@ async def stream_chat(agent: Agent, prompt: str) -> None:
         async for text_chunk in result.stream_text(
             delta=True
         ):  # ← streams partial text deltas
-            print(text_chunk, end="", flush=True)
-        print("\nDone!")  # optional
+            logger.info(text_chunk, end="", flush=True)
+        logger.info("\nDone!")  # optional
 
 
 def create_agent_server(
@@ -181,9 +624,10 @@ def create_agent_server(
     port: Optional[int] = DEFAULT_PORT,
     enable_web_ui: bool = DEFAULT_ENABLE_WEB_UI,
 ):
-    print(
+    logger.info(
         f"Starting {AGENT_NAME} with provider={provider}, model={model_id}, mcp={mcp_url} | {mcp_config}"
     )
+    # Use the orchestrator by default
     agent = create_agent(
         provider=provider,
         model_id=model_id,
@@ -213,24 +657,24 @@ def create_agent_server(
     a2a_app = agent.to_a2a(
         name=AGENT_NAME,
         description=AGENT_DESCRIPTION,
-        version="1.4.7",
+        version="1.5.0",
         skills=skills,
         debug=debug,
     )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        print("DEBUG: Entering lifespan")
+        logger.debug("DEBUG: Entering lifespan")
         # Trigger A2A (sub-app) startup/shutdown events
         # This is critical for TaskManager initialization in A2A
         if hasattr(a2a_app, "router"):
-            print("DEBUG: a2a_app has router, triggering lifespan_context")
+            logger.debug("DEBUG: a2a_app has router, triggering lifespan_context")
             async with a2a_app.router.lifespan_context(a2a_app):
-                print("DEBUG: a2a_app lifespan started")
+                logger.debug("DEBUG: a2a_app lifespan started")
                 yield
-                print("DEBUG: a2a_app lifespan ended")
+                logger.debug("DEBUG: a2a_app lifespan ended")
         else:
-            print("DEBUG: a2a_app DOES NOT have router")
+            logger.debug("DEBUG: a2a_app DOES NOT have router")
             yield
 
     # Create main FastAPI app
@@ -273,6 +717,7 @@ def create_agent_server(
         )
 
     # Mount Web UI if enabled
+    # Note: create_agent_orchestrator returns an Agent, so to_web works fine
     if enable_web_ui:
         web_ui = agent.to_web(instructions=AGENT_SYSTEM_PROMPT)
         app.mount("/", web_ui)
