@@ -213,19 +213,24 @@ def create_agent_server(
     a2a_app = agent.to_a2a(
         name=AGENT_NAME,
         description=AGENT_DESCRIPTION,
-        version="1.4.6",
+        version="1.4.7",
         skills=skills,
         debug=debug,
     )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        print("DEBUG: Entering lifespan")
         # Trigger A2A (sub-app) startup/shutdown events
         # This is critical for TaskManager initialization in A2A
         if hasattr(a2a_app, "router"):
+            print("DEBUG: a2a_app has router, triggering lifespan_context")
             async with a2a_app.router.lifespan_context(a2a_app):
+                print("DEBUG: a2a_app lifespan started")
                 yield
+                print("DEBUG: a2a_app lifespan ended")
         else:
+            print("DEBUG: a2a_app DOES NOT have router")
             yield
 
     # Create main FastAPI app
@@ -235,6 +240,10 @@ def create_agent_server(
         debug=debug,
         lifespan=lifespan,
     )
+
+    @app.get("/health")
+    async def health_check():
+        return {"status": "OK"}
 
     # Mount A2A as sub-app at /a2a
     app.mount("/a2a", a2a_app)
