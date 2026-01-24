@@ -3,11 +3,14 @@
 
 import os
 import pickle
-from pathlib import Path
-from typing import Any, Union, List
-from importlib.resources import files, as_file
-
 import yaml
+from pathlib import Path
+from typing import Any, Union, List, Optional
+from importlib.resources import files, as_file
+from pydantic_ai.models.openai import OpenAIChatModel
+from pydantic_ai.models.anthropic import AnthropicModel
+from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.models.huggingface import HuggingFaceModel
 from fasta2a import Skill
 
 
@@ -51,15 +54,49 @@ def load_model(file: str) -> Any:
     return model
 
 
+def retrieve_package_name() -> str:
+    """
+    Returns the top-level package name of the module that imported this utils.py.
+
+    Works reliably when utils.py is inside a proper package (with __init__.py or
+    implicit namespace package) and the caller does normal imports.
+    """
+    # Most common case: utils.py is imported as  package.utils
+    # __package__ is then 'package' or 'package.subpackage'
+    if __package__:
+        # Take only the top-level part
+        top = __package__.partition(".")[0]
+        if top and top != "__main__":
+            return top
+
+    # Fallback for scripts run directly or unusual import patterns
+    try:
+        file_path = Path(__file__).resolve()
+        # Walk up until we find a plausible top-level package folder
+        # (one that contains files like pyproject.toml, setup.py, README, or just assume 1–2 levels)
+        for parent in file_path.parents:
+            if (
+                (parent / "pyproject.toml").is_file()
+                or (parent / "setup.py").is_file()
+                or (parent / "__init__.py").is_file()
+            ):  # stop at namespace root
+                return parent.name
+    except Exception:
+        pass
+
+    # Last resort — usually wrong in packaged context, but better than crashing
+    return "unknown_package"
+
+
 def get_skills_path() -> str:
-    skills_dir = files("servicenow_api") / "skills"
+    skills_dir = files(retrieve_package_name()) / "skills"
     with as_file(skills_dir) as path:
         skills_path = str(path)
     return skills_path
 
 
 def get_mcp_config_path() -> str:
-    mcp_config_file = files("servicenow_api") / "mcp_config.json"
+    mcp_config_file = files(retrieve_package_name()) / "mcp_config.json"
     with as_file(mcp_config_file) as path:
         mcp_config_path = str(path)
     return mcp_config_path
@@ -90,16 +127,12 @@ def load_skills_from_directory(directory: str) -> List[Skill]:
                             skill_desc = data.get(
                                 "description", f"Access to {skill_name} tools"
                             )
-
-                            tag_name = skill_id.replace("servicenow-api-", "")
-                            tags = ["servicenow-api", tag_name]
-
                             skills.append(
                                 Skill(
                                     id=skill_id,
                                     name=skill_name,
                                     description=skill_desc,
-                                    tags=tags,
+                                    tags=[skill_id],
                                     input_modes=["text"],
                                     output_modes=["text"],
                                 )
@@ -108,3 +141,36 @@ def load_skills_from_directory(directory: str) -> List[Skill]:
                     print(f"Error loading skill from {skill_file}: {e}")
 
     return skills
+
+
+def create_model(
+    provider: str,
+    model_id: str,
+    base_url: Optional[str],
+    api_key: Optional[str],
+):
+    if provider == "openai":
+        target_base_url = base_url
+        target_api_key = api_key
+        if target_base_url:
+            os.environ["OPENAI_BASE_URL"] = target_base_url
+        if target_api_key:
+            os.environ["OPENAI_API_KEY"] = target_api_key
+        return OpenAIChatModel(model_name=model_id, provider="openai")
+
+    elif provider == "anthropic":
+        if api_key:
+            os.environ["ANTHROPIC_API_KEY"] = api_key
+        return AnthropicModel(model_name=model_id)
+
+    elif provider == "google":
+        if api_key:
+            os.environ["GEMINI_API_KEY"] = api_key
+            os.environ["GOOGLE_API_KEY"] = api_key
+        return GoogleModel(model_name=model_id)
+
+    elif provider == "huggingface":
+        if api_key:
+            os.environ["HF_TOKEN"] = api_key
+        return HuggingFaceModel(model_name=model_id)
+    return OpenAIChatModel(model_name=model_id, provider="openai")

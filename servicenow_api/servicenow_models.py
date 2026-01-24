@@ -120,6 +120,116 @@ class CMDBModel(BaseModel):
         return v
 
 
+class CMDBInstanceModel(BaseModel):
+    """
+    Pydantic model representing a CMDB Instance operation.
+
+    Attributes:
+    - className (Optional[str]): CMDB class name.
+    - sys_id (Optional[str]): Sys_id of the CI.
+    - rel_sys_id (Optional[str]): Sys_id of the relation to remove.
+    - sysparm_limit (Optional[Union[str, int]]): Maximum number of records to return.
+    - sysparm_offset (Optional[Union[str, int]]): Starting record index.
+    - sysparm_query (Optional[str]): Encoded query.
+    - attributes (Optional[Dict]): Data attributes for CI record.
+    - inbound_relations (Optional[List[Dict]]): List of inbound relations.
+    - outbound_relations (Optional[List[Dict]]): List of outbound relations.
+    - source (Optional[str]): Discovery source.
+    - api_parameters (Dict): API parameters.
+    - data (Dict): Payload data.
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+    className: Optional[str] = None
+    sys_id: Optional[str] = None
+    rel_sys_id: Optional[str] = None
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_offset: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    attributes: Optional[Dict] = None
+    inbound_relations: Optional[List[Dict]] = None
+    outbound_relations: Optional[List[Dict]] = None
+    source: Optional[str] = None
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
+    data: Optional[Dict] = None
+
+    @field_validator(
+        "className",
+        "sys_id",
+        "rel_sys_id",
+        "sysparm_query",
+        "source",
+    )
+    def validate_string_parameters(cls, v):
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    def model_post_init(self, __context):
+        """
+        Build the API parameters and data payload
+        """
+        self.api_parameters = {}
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+
+        data = {}
+        if self.attributes:
+            data["attributes"] = self.attributes
+        if self.inbound_relations:
+            data["inbound_relations"] = self.inbound_relations
+        if self.outbound_relations:
+            data["outbound_relations"] = self.outbound_relations
+        if self.source:
+            data["source"] = self.source
+
+        # Only set data if there are fields to send
+        if data:
+            self.data = data
+        else:
+            self.data = None
+
+
+class CMDBIngestModel(BaseModel):
+    """
+    Pydantic model representing a CMDB Data Ingestion operation.
+
+    Attributes:
+    - data_source_sys_id (Optional[str]): Sys_id of the data source record.
+    - records (Optional[List[Dict]]): Array of objects to ingest.
+    - data (Dict): Payload data.
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+    data_source_sys_id: Optional[str] = None
+    records: Optional[List[Dict]] = None
+    data: Optional[Dict] = None
+
+    @field_validator("data_source_sys_id")
+    def validate_string_parameters(cls, v):
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator("records")
+    def validate_list_parameters(cls, v):
+        if v is not None and not isinstance(v, list):
+            raise ValueError("Invalid optional params")
+        return v
+
+    def model_post_init(self, __context):
+        """
+        Build the data payload
+        """
+        self.data = {}
+        if self.records:
+            self.data["records"] = self.records
+
+
 class CICDModel(BaseModel):
     """
     Pydantic model representing a Continuous Integration/Continuous Deployment (CICD) entity.
@@ -2361,20 +2471,6 @@ class ServiceRelation(BaseModel):
     )
 
 
-class Service(BaseModel):
-    model_config = ConfigDict(extra="allow")
-    __hash__ = object.__hash__
-    base_type: str = Field(default="Service")
-    name: str = Field(default=None, description="Name of the application service.")
-    url: str = Field(
-        default=None, description="Relative path to the application service."
-    )
-    service_relations: Optional[List[ServiceRelation]] = Field(
-        default=None,
-        description="Hierarchy data for the CIs within the application service.",
-    )
-
-
 class Table(BaseModel):
     model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
@@ -2439,6 +2535,516 @@ class Authentication(BaseModel):
         "always return the current access token.",
     )
     format: str = Field(default=None, description="Output Format type. Always JSON")
+
+
+class BatchRequestItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(description="ID for identifying the request in the batch.")
+    method: str = Field(description="HTTP method (GET, POST, etc).")
+    url: str = Field(description="Relative URL of the endpoint.")
+    headers: Optional[List[Dict[str, str]]] = Field(
+        default=None, description="Request headers."
+    )
+    body: Optional[str] = Field(
+        default=None, description="Base64 encoded body for POST/PUT/PATCH."
+    )
+    exclude_response_headers: Optional[bool] = Field(
+        default=False, description="Exclude response headers."
+    )
+
+
+class BatchRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    batch_request_id: Optional[str] = Field(
+        default=None, description="Client provided batch ID."
+    )
+    rest_requests: List[BatchRequestItem] = Field(
+        description="List of requests to execute."
+    )
+
+
+class BatchResponseItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(description="Matching ID from request.")
+    status_code: int = Field(description="HTTP status code.")
+    status_text: Optional[str] = Field(default=None, description="HTTP status text.")
+    headers: Optional[List[Dict[str, str]]] = Field(
+        default=None, description="Response headers."
+    )
+    body: Optional[str] = Field(
+        default=None, description="Base64 encoded response body."
+    )
+    execution_time: Optional[int] = Field(
+        default=None, description="Execution time in ms."
+    )
+    error_message: Optional[str] = Field(
+        default=None, description="Error message if failed."
+    )
+
+
+class BatchResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    batch_request_id: Optional[str] = Field(
+        default=None, description="Matching batch ID."
+    )
+    serviced_requests: List[BatchResponseItem] = Field(
+        default=[], description="Processed requests."
+    )
+    unserviced_requests: Optional[List[str]] = Field(
+        default=None, description="IDs of unprocessed requests."
+    )
+
+
+class CILifecycleActionRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    actionName: str = Field(description="Name of the CI action.")
+    requestorId: str = Field(
+        description="Sys_id of workflow context or registered operator."
+    )
+    sysIds: Optional[str] = Field(
+        default=None, description="Comma-separated list of CI sys_ids."
+    )
+    leaseTime: Optional[str] = Field(
+        default=None, description="Lease duration HH:MM:SS."
+    )
+    oldActionNames: Optional[str] = Field(
+        default=None, description="Comma-separated list of old actions."
+    )
+    oldOpsLabels: Optional[str] = Field(
+        default=None, description="Comma-separated list of old ops labels."
+    )
+    opsLabel: Optional[str] = Field(
+        default=None, description="Operational state label."
+    )
+
+
+class CILifecycleResult(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    result: Union[bool, str, Dict] = Field(description="Result of the operation.")
+    errors: Optional[List[Dict[str, str]]] = Field(
+        default=None, description="Errors if any."
+    )
+    ciActions: Optional[Union[List[str], str]] = Field(
+        default=None, description="List of active actions."
+    )
+    operationalState: Optional[str] = Field(
+        default=None, description="Operational state."
+    )
+    requestorId: Optional[str] = Field(
+        default=None, description="Registered operator ID."
+    )
+
+
+class DevOpsSchemaRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    resource: str = Field(description="Type of resource schema to return.")
+    toolId: Optional[str] = Field(default=None, description="Tool ID.")
+
+
+class DevOpsOnboardingStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    code: Optional[str] = Field(default=None, description="HTTP status code.")
+    status: Optional[str] = Field(default=None, description="Status of onboarding.")
+    messageDetails: Optional[Dict] = Field(
+        default=None, description="Detailed status messages."
+    )
+
+
+class DevOpsChangeControlResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    changeControl: bool = Field(description="Flag indicating change control status.")
+
+
+class DevOpsArtifactRegistrationRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    artifacts: List[Dict[str, str]] = Field(
+        description="List of artifacts to register."
+    )
+    orchestrationToolId: Optional[str] = Field(
+        default=None, description="Orchestration tool ID."
+    )
+    toolId: Optional[str] = Field(default=None, description="Artifact tool ID.")
+    branchName: Optional[str] = Field(default=None, description="Branch name.")
+    pipelineName: Optional[str] = Field(default=None, description="Pipeline name.")
+    projectName: Optional[str] = Field(default=None, description="Project name.")
+    stageName: Optional[str] = Field(default=None, description="Stage name.")
+    taskExecutionNumber: Optional[str] = Field(
+        default=None, description="Task execution number."
+    )
+
+
+class EmailModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    to: Optional[Union[str, List[str]]] = Field(
+        default=None, description="Recipient email addresses."
+    )
+    subject: Optional[str] = Field(default=None, description="Email subject.")
+    text: Optional[str] = Field(default=None, description="Email body text.")
+    html: Optional[str] = Field(default=None, description="Email body HTML.")
+    sys_id: Optional[str] = Field(default=None, description="Email record Sys ID.")
+
+
+class DataClassificationModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    table_name: Optional[str] = Field(default=None, description="Table name.")
+    column_name: Optional[str] = Field(default=None, description="Column name.")
+    classification: Optional[str] = Field(
+        default=None, description="Classification level."
+    )
+    sys_id: Optional[str] = Field(
+        default=None, description="Classification record Sys ID."
+    )
+
+
+class AttachmentModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    table_name: Optional[str] = Field(
+        default=None, description="Table name associated with the attachment."
+    )
+    table_sys_id: Optional[str] = Field(
+        default=None, description="Sys ID of the record in the table."
+    )
+    file_name: Optional[str] = Field(default=None, description="Name of the file.")
+    content_type: Optional[str] = Field(
+        default=None, description="MIME type of the file."
+    )
+    sys_id: Optional[str] = Field(default=None, description="Attachment Sys ID.")
+    encryption_context: Optional[str] = Field(
+        default=None, description="Encryption context."
+    )
+
+
+class AggregateModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    table_name: str = Field(description="Table name to aggregate on.")
+    query: Optional[str] = Field(default=None, description="Encoded query string.")
+    groupby: Optional[str] = Field(default=None, description="Field to group by.")
+    stats: Optional[str] = Field(
+        default=None, description="Statistics function (e.g., COUNT, MIN, MAX)."
+    )
+    fields: Optional[str] = Field(default=None, description="Fields to include.")
+
+
+class ActivitySubscriptionModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    sys_id: Optional[str] = Field(
+        default=None, description="Activity Subscription Sys ID."
+    )
+    table_name: Optional[str] = Field(default=None, description="Table name.")
+    document_id: Optional[str] = Field(default=None, description="Document Sys ID.")
+
+
+class AccountModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    sys_id: Optional[str] = Field(default=None, description="Account Sys ID.")
+    name: Optional[str] = Field(default=None, description="Account name.")
+    number: Optional[str] = Field(default=None, description="Account number.")
+
+
+class HRProfileModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID.")
+    user: Optional[str] = Field(default=None, description="User Sys ID.")
+
+
+class MetricBaseTimeSeriesModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    table_name: Optional[str] = Field(default=None, description="Table name.")
+    sys_id: Optional[str] = Field(default=None, description="Record Sys ID.")
+    metric_name: Optional[str] = Field(default=None, description="Metric name.")
+    start_time: Optional[str] = Field(default=None, description="Start time for range.")
+    end_time: Optional[str] = Field(default=None, description="End time for range.")
+    values: Optional[List[Any]] = Field(default=None, description="Values to insert.")
+
+
+# Service Qualification Models
+
+
+class RelatedParty(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(description="Sys_id or external_id of the related party.")
+    name: Optional[str] = Field(default=None, description="Name of the party.")
+    referredType: str = Field(
+        alias="@referredType",
+        description="Type of related party (Customer, CustomerContact, Consumer).",
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class Place(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(description="Sys_id or external id of the location.")
+    name: Optional[str] = Field(default=None, description="Name of the location.")
+    referredType: Optional[str] = Field(
+        default=None,
+        alias="@referredType",
+        description="Type of location (e.g., GeographicSite).",
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class ServiceCharacteristic(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    name: str = Field(description="Name of the characteristic.")
+    value: Optional[str] = Field(
+        default=None, description="Value of the characteristic."
+    )
+    valueType: Optional[str] = Field(
+        default=None, description="Data type of the value."
+    )
+
+
+class ServiceSpecification(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(
+        description="External ID or Initial Version of the service specification."
+    )
+    name: Optional[str] = Field(
+        default=None, description="Name of the service specification."
+    )
+    version: Optional[str] = Field(default=None, description="External Version.")
+    internalVersion: Optional[str] = Field(
+        default=None, description="Internal Version."
+    )
+    internalId: Optional[str] = Field(default=None, description="Internal ID.")
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class Service(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    name: str = Field(default=None, description="Name of the application service.")
+    url: str = Field(
+        default=None, description="Relative path to the application service."
+    )
+    service_relations: Optional[List[ServiceRelation]] = Field(
+        default=None,
+        description="Hierarchy data for the CIs within the application service.",
+    )
+    place: Optional[List[Place]] = Field(
+        default=None, description="Location information."
+    )
+    serviceCharacteristic: Optional[List[ServiceCharacteristic]] = Field(
+        default=None, description="List of service characteristics."
+    )
+    serviceSpecification: Optional[ServiceSpecification] = Field(
+        default=None, description="Service specification details."
+    )
+    referenceServiceInventory: Optional[Dict[str, str]] = Field(
+        default=None, description="Reference to existing service inventory."
+    )
+    serviceInventory: Optional[Dict[str, str]] = Field(
+        default=None, description="Service inventory for upgrade/downgrade."
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class QualificationItemRelationship(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    relationshipType: str = Field(
+        description="Type of relationship (HasChild, HasParent)."
+    )
+    id: str = Field(description="ID of the target qualification item.")
+
+
+class AlternateServiceProposal(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: Optional[str] = Field(default=None, description="ID of the alternate proposal.")
+    alternateServiceAvailabilityDate: Optional[str] = Field(
+        default=None, description="Available date."
+    )
+    alternateService: Optional[Service] = Field(
+        default=None, description="Service info for alternate proposal."
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class EligibilityUnavailabilityReason(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    code: Optional[str] = Field(default=None, description="Reason code.")
+    label: str = Field(description="Reason label.")
+
+
+class ServiceQualificationItem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: str = Field(description="ID of the qualification item (external_id).")
+    action: Optional[str] = Field(default=None, description="Action (e.g., add).")
+    quantity: Optional[int] = Field(default=1, description="Quantity.")
+    qualificationResult: Optional[str] = Field(
+        default=None, description="Result (qualified, unqualified, etc.)."
+    )
+    state: Optional[str] = Field(default=None, description="State of the item.")
+    expectedServiceAvailabilityDate: Optional[str] = Field(
+        default=None, description="Expected availability date."
+    )
+    service: Optional[Service] = Field(
+        default=None, description="Service capabilities."
+    )
+    qualificationItemRelationship: Optional[List[QualificationItemRelationship]] = (
+        Field(default=None, description="Relationships to other items.")
+    )
+    alternateServiceProposal: Optional[
+        Union[List[AlternateServiceProposal], AlternateServiceProposal]
+    ] = Field(default=None, description="Alternate proposals.")
+    eligibilityUnavailabilityReason: Optional[List[EligibilityUnavailabilityReason]] = (
+        Field(default=None, description="Unavailability reasons.")
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+class CheckServiceQualificationRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    description: Optional[str] = Field(
+        default=None, description="Description of the request."
+    )
+    checkServiceQualificationDate: Optional[str] = Field(
+        default=None, description="Creation date."
+    )
+    effectiveQualificationDate: Optional[str] = Field(
+        default=None, description="Effective date."
+    )
+    expectedQualificationDate: Optional[str] = Field(
+        default=None, description="Expected date."
+    )
+    externalId: Optional[str] = Field(default=None, description="External ID.")
+    relatedParty: List[RelatedParty] = Field(description="List of related parties.")
+    serviceQualificationItem: List[ServiceQualificationItem] = Field(
+        description="List of qualification items."
+    )
+    type: Optional[str] = Field(
+        default=None, alias="@type", description="TMF Open API type annotation."
+    )
+
+
+# PPM Models
+
+
+class CostPlan(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    name: str = Field(description="Name of the cost plan.")
+    resource_type: str = Field(description="Sys_id of the resource type.")
+    start_fiscal_period: str = Field(
+        description="Sys_id of the starting fiscal period."
+    )
+    end_fiscal_period: str = Field(description="Sys_id of the ending fiscal period.")
+    task: str = Field(description="Sys_id of the project or demand.")
+    unit_cost: float = Field(description="Unit cost.")
+
+
+class ProjectTask(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    short_description: str = Field(description="Short description.")
+    external_id: Optional[str] = Field(default=None, description="External ID.")
+    start_date: Optional[str] = Field(default=None, description="Start date.")
+    end_date: Optional[str] = Field(default=None, description="End date.")
+    child_tasks: Optional[List["ProjectTask"]] = Field(
+        default=None, description="Recursive child tasks."
+    )
+    dependencies: Optional[List[Dict[str, Any]]] = Field(
+        default=None, description="Dependencies."
+    )
+
+
+# Product Inventory Models
+
+
+class ProductCharacteristic(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    name: str = Field(description="Name of the characteristic.")
+    value: str = Field(description="Value of the characteristic.")
+    valueType: Optional[str] = Field(
+        default=None, description="Type of characteristic value."
+    )
+
+
+class ProductOfferingRef(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: Optional[str] = Field(
+        default=None, description="Initial version or external ID."
+    )
+    internalId: Optional[str] = Field(default=None, description="Internal version.")
+    internalVersion: Optional[str] = Field(default=None, description="Version.")
+    name: Optional[str] = Field(default=None, description="Name.")
+    version: Optional[str] = Field(default=None, description="External version.")
+
+
+class ProductSpecificationRef(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: Optional[str] = Field(
+        default=None, description="Initial version or external ID."
+    )
+    internalId: Optional[str] = Field(default=None, description="Internal version.")
+    internalVersion: Optional[str] = Field(default=None, description="Version.")
+    version: Optional[str] = Field(default=None, description="External version.")
+
+
+class ProductRelationship(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    productId: str = Field(description="Sys_id of the related product.")
+    relationshipType: str = Field(description="Type of relationship.")
+
+
+class ProductInventory(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    id: Optional[str] = Field(
+        default=None, description="Sys_id of the product inventory."
+    )
+    name: Optional[str] = Field(
+        default=None, description="Name of the product inventory."
+    )
+    place: Optional[List[Place]] = Field(
+        default=None, description="Location of the product."
+    )
+    productCharacteristic: Optional[List[ProductCharacteristic]] = Field(
+        default=None, description="List of product characteristics."
+    )
+    productId: Optional[str] = Field(
+        default=None, description="Sys_id of the product model."
+    )
+    productOffering: Optional[ProductOfferingRef] = Field(
+        default=None, description="Product offering."
+    )
+    productRelationship: Optional[List[ProductRelationship]] = Field(
+        default=None, description="List of related products."
+    )
+    productSpecification: Optional[ProductSpecificationRef] = Field(
+        default=None, description="Product specification."
+    )
+    realizingResource: Optional[Dict[str, str]] = Field(
+        default=None, description="Realizing resource."
+    )
+    realizingService: Optional[Dict[str, str]] = Field(
+        default=None, description="Realizing service."
+    )
+    relatedParty: Optional[List[RelatedParty]] = Field(
+        default=None, description="List of related parties."
+    )
+    status: Optional[str] = Field(default=None, description="Status.")
+
+
+class ProductInventoryQueryParams(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    customer: Optional[str] = Field(
+        default=None, description="Filter by customer sys_id or external ID."
+    )
+    fields: Optional[str] = Field(default=None, description="List of fields to return.")
+    limit: Optional[int] = Field(
+        default=20, le=100, description="Max number of records."
+    )
+    offset: Optional[int] = Field(default=0, description="Pagination offset.")
+    place_id: Optional[str] = Field(default=None, description="Filter by location ID.")
+    status: Optional[str] = Field(default=None, description="Filter by status.")
 
 
 T = TypeVar("T")

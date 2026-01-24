@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 import requests
 import urllib3
@@ -11,6 +11,8 @@ from pydantic import ValidationError
 from servicenow_api.servicenow_models import (
     ApplicationServiceModel,
     CMDBModel,
+    CMDBInstanceModel,
+    CMDBIngestModel,
     CICDModel,
     ChangeManagementModel,
     IncidentModel,
@@ -26,9 +28,31 @@ from servicenow_api.servicenow_models import (
     ImportSet,
     Incident,
     Task,
-    Attachment,
-    Article,
+    CheckServiceQualificationRequest,
+    ServiceQualificationItem,
+    CostPlan,
+    ProjectTask,
+    ProductInventory,
+    ProductInventoryQueryParams,
     Response,
+    Article,
+    BatchRequest,
+    BatchResponse,
+    CILifecycleActionRequest,
+    CILifecycleResult,
+    DevOpsSchemaRequest,
+    DevOpsOnboardingStatusResponse,
+    DevOpsChangeControlResponse,
+    DevOpsArtifactRegistrationRequest,
+    EmailModel,
+    DataClassificationModel,
+    AttachmentModel,
+    Attachment,
+    AggregateModel,
+    ActivitySubscriptionModel,
+    AccountModel,
+    HRProfileModel,
+    MetricBaseTimeSeriesModel,
 )
 from servicenow_api.decorators import require_auth
 from servicenow_api.exceptions import (
@@ -230,6 +254,373 @@ class Api(object):
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
             print(f"Invalid parameters or response data: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def delete_cmdb_relation(self, **kwargs) -> Response:
+        """
+        Deletes the relation for the specified configuration item (CI).
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sys_id: Sys_id of the CI.
+        :type sys_id: str
+        :param rel_sys_id: Sys_id of the relation to remove.
+        :type rel_sys_id: str
+
+        :return: Response containing the operation result.
+        :rtype: Response
+
+        :raises MissingParameterError: If className, sys_id, or rel_sys_id is not provided.
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.sys_id is None or cmdb.rel_sys_id is None:
+                raise MissingParameterError
+
+            response = self._session.delete(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}/relation/{cmdb.rel_sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+
+            # Delete usually returns 204 No Content, check if there is content to parse
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                # No specific response model for delete, likely just success confirmation
+                return Response(response=response, result=result_data)
+            return Response(response=response, result={"status": "deleted"})
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_cmdb_instances(self, **kwargs) -> Response:
+        """
+        Returns the available configuration items (CI) for a specified CMDB class.
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sysparm_limit: Maximum number of records to return.
+        :type sysparm_limit: int or str
+        :param sysparm_offset: Starting record index.
+        :type sysparm_offset: int or str
+        :param sysparm_query: Encoded query used to filter the result set.
+        :type sysparm_query: str
+
+        :return: Response containing list of CIs.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}",
+                params=cmdb.api_parameters,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            # Response is a list of simple dicts usually (sys_id, name)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_cmdb_instance(self, **kwargs) -> Response:
+        """
+        Returns attributes and relationship information for a specified CI record.
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sys_id: Sys_id of the CI record to retrieve.
+        :type sys_id: str
+
+        :return: Response containing parsed Pydantic model with CI information.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.sys_id is None:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def create_cmdb_instance(self, **kwargs) -> Response:
+        """
+        Creates a single configuration item (CI).
+
+        :param className: CMDB class name.
+        :type className: str
+        :param attributes: Data attributes to define in the CI record.
+        :type attributes: dict
+        :param source: Discovery source.
+        :type source: str
+        :param inbound_relations: List of inbound relations.
+        :type inbound_relations: list
+        :param outbound_relations: List of outbound relations.
+        :type outbound_relations: list
+
+        :return: Response containing created CI.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.source is None:
+                raise MissingParameterError
+
+            response = self._session.post(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}",
+                headers=self.headers,
+                json=cmdb.data,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def update_cmdb_instance(self, **kwargs) -> Response:
+        """
+        Updates the specified CI record (PUT).
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sys_id: Sys_id of the CI.
+        :type sys_id: str
+        :param attributes: Data attributes to replace.
+        :type attributes: dict
+        :param source: Discovery source.
+        :type source: str
+
+        :return: Response containing updated CI.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.sys_id is None or cmdb.source is None:
+                raise MissingParameterError
+
+            response = self._session.put(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
+                headers=self.headers,
+                json=cmdb.data,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def patch_cmdb_instance(self, **kwargs) -> Response:
+        """
+        Replaces attributes in the specified CI record (PATCH).
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sys_id: Sys_id of the CI.
+        :type sys_id: str
+        :param attributes: Data attributes to replace.
+        :type attributes: dict
+        :param source: Discovery source.
+        :type source: str
+
+        :return: Response containing updated CI.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.sys_id is None or cmdb.source is None:
+                raise MissingParameterError
+
+            response = self._session.patch(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
+                headers=self.headers,
+                json=cmdb.data,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def create_cmdb_relation(self, **kwargs) -> Response:
+        """
+        Adds an inbound and/or outbound relation to the specified CI.
+
+        :param className: CMDB class name.
+        :type className: str
+        :param sys_id: Sys_id of the CI.
+        :type sys_id: str
+        :param inbound_relations: List of inbound relations.
+        :type inbound_relations: list
+        :param outbound_relations: List of outbound relations.
+        :type outbound_relations: list
+        :param source: Discovery source.
+        :type source: str
+
+        :return: Response containing updated CI relations.
+        :rtype: Response
+        """
+        try:
+            cmdb = CMDBInstanceModel(**kwargs)
+            if cmdb.className is None or cmdb.sys_id is None or cmdb.source is None:
+                raise MissingParameterError
+
+            response = self._session.post(
+                url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}/relation",
+                headers=self.headers,
+                json=cmdb.data,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                           CMDB Data Ingestion API                                                #
+    ####################################################################################################################
+    @require_auth
+    def ingest_cmdb_data(self, **kwargs) -> Response:
+        """
+        Inserts records into the Import Set table associated with the data source.
+
+        :param data_source_sys_id: Sys_id of the data source record.
+        :type data_source_sys_id: str
+        :param records: Array of objects to ingest.
+        :type records: list
+
+        :return: Response containing ingestion result.
+        :rtype: Response
+        """
+        try:
+            ingest = CMDBIngestModel(**kwargs)
+            if ingest.data_source_sys_id is None or ingest.records is None:
+                raise MissingParameterError
+
+            response = self._session.post(
+                url=f"{self.url}/now/cmdb/ingest/{ingest.data_source_sys_id}",
+                headers=self.headers,
+                json=ingest.data,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            # Status codes 201 and 202 are success
+            if response.status_code not in [201, 202]:
+                response.raise_for_status()
+
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            return Response(response=response, result=result_data)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                                  Batch API                                                       #
+    ####################################################################################################################
+    @require_auth
+    def batch_request(self, **kwargs) -> Response:
+        """
+        Sends multiple REST API requests in a single call.
+
+        :param batch_request_id: ID that identifies the batch of requests.
+        :type batch_request_id: str
+        :param rest_requests: List of request objects to include in the batch request.
+        :type rest_requests: list
+
+        :return: Response containing the batch results.
+        :rtype: Response
+        """
+        try:
+            batch = BatchRequest(**kwargs)
+            if batch.rest_requests is None:
+                raise MissingParameterError
+
+            response = self._session.post(
+                url=f"{self.url}/api/now/v1/batch",
+                headers=self.headers,
+                json=batch.model_dump(exclude_none=True),
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            # The response body for batch is at the root, not inside 'result'
+            return Response(
+                response=response, result=BatchResponse.model_validate(json_response)
+            )
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
             raise
         except Exception as e:
             print(f"Error during API call: {e}")
@@ -1130,8 +1521,394 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-        ####################################################################################################################
+    ####################################################################################################################
+    #                                           CI Lifecycle Management API                                            #
+    ####################################################################################################################
+    @require_auth
+    def delete_ci_lifecycle_action(self, **kwargs) -> Response:
+        """
+        Removes a configuration item (CI) action for a list of CIs.
+        """
+        try:
+            req = CILifecycleActionRequest(**kwargs)
+            if not req.actionName or not req.requestorId or not req.sysIds:
+                raise MissingParameterError
 
+            params = {
+                "actionName": req.actionName,
+                "requestorId": req.requestorId,
+                "sysIds": req.sysIds,
+            }
+            response = self._session.delete(
+                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def unregister_ci_lifecycle_operator(self, **kwargs) -> Response:
+        """
+        Unregisters an operator for non-workflow users.
+        """
+        try:
+            req_id = kwargs.get("req_id")
+            if not req_id:
+                raise MissingParameterError
+
+            response = self._session.delete(
+                url=f"{self.url}/api/now/cilifecyclemgmt/operators/{req_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_ci_lifecycle_active_actions(self, **kwargs) -> Response:
+        """
+        Returns a list of active CI actions for the specified CI.
+        """
+        try:
+            sys_id = kwargs.get("sys_id")
+            if not sys_id:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/actions/{sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_ci_lifecycle_compat_actions(self, **kwargs) -> Response:
+        """
+        Determines whether two specified CI actions are compatible.
+        """
+        try:
+            actionName = kwargs.get("actionName")
+            otherActionName = kwargs.get("otherActionName")
+            if not actionName or not otherActionName:
+                raise MissingParameterError
+
+            params = {"actionName": actionName, "otherActionName": otherActionName}
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/compatActions",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_ci_lifecycle_lease_expired(self, **kwargs) -> Response:
+        """
+        Determines whether the lease has expired for the requester.
+        """
+        try:
+            sys_id = kwargs.get("sys_id")
+            actionName = kwargs.get("actionName")
+            requestorId = kwargs.get("requestorId")
+            if not sys_id or not actionName or not requestorId:
+                raise MissingParameterError
+
+            params = {"actionName": actionName, "requestorId": requestorId}
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}/expired",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_ci_lifecycle_not_allowed_action(self, **kwargs) -> Response:
+        """
+        Determines whether a specified CI action is not allowed.
+        """
+        try:
+            actionName = kwargs.get("actionName")
+            ciClass = kwargs.get("ciClass")
+            opsLabel = kwargs.get("opsLabel")
+            if not actionName or not ciClass or not opsLabel:
+                raise MissingParameterError
+
+            params = {
+                "actionName": actionName,
+                "ciClass": ciClass,
+                "opsLabel": opsLabel,
+            }
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedAction",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_ci_lifecycle_not_allowed_ops_transition(self, **kwargs) -> Response:
+        """
+        Determines whether an operational state transition is allowed.
+        """
+        try:
+            ciClass = kwargs.get("ciClass")
+            opsLabel = kwargs.get("opsLabel")
+            transitionOpsLabel = kwargs.get("transitionOpsLabel")
+            if not ciClass or not opsLabel or not transitionOpsLabel:
+                raise MissingParameterError
+
+            params = {
+                "ciClass": ciClass,
+                "opsLabel": opsLabel,
+                "transitionOpsLabel": transitionOpsLabel,
+            }
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedOpsTransition",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_ci_lifecycle_requestor_valid(self, **kwargs) -> Response:
+        """
+        Determines whether the specified user is a valid requester.
+        """
+        try:
+            req_id = kwargs.get("req_id")
+            if not req_id:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/requestors/{req_id}/valid",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_ci_lifecycle_status(self, **kwargs) -> Response:
+        """
+        Returns the current operational state for the specified CI.
+        """
+        try:
+            sys_id = kwargs.get("sys_id")
+            if not sys_id:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/api/now/cilifecyclemgmt/statuses/{sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def extend_ci_lifecycle_lease(self, **kwargs) -> Response:
+        """
+        Extends the specified CI action's lease expiration time.
+        """
+        try:
+            req = CILifecycleActionRequest(**kwargs)
+            # The sys_id, actionName, leaseTime, requestorId are needed
+            # For patch sys_id is usually a path param, but here it's about the lease for a CI sys_id
+            sys_id = kwargs.get("sys_id")
+            if (
+                not sys_id
+                or not req.actionName
+                or not req.leaseTime
+                or not req.requestorId
+            ):
+                raise MissingParameterError
+
+            params = {
+                "actionName": req.actionName,
+                "leaseTime": req.leaseTime,
+                "requestorId": req.requestorId,
+            }
+            response = self._session.patch(
+                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def add_ci_lifecycle_action(self, **kwargs) -> Response:
+        """
+        Adds a specified CI action to a specified list of CIs.
+        """
+        try:
+            req = CILifecycleActionRequest(**kwargs)
+            if not req.actionName or not req.requestorId or not req.sysIds:
+                raise MissingParameterError
+
+            params = {
+                "actionName": req.actionName,
+                "requestorId": req.requestorId,
+                "sysIds": req.sysIds,
+            }
+            if req.leaseTime:
+                params["leaseTime"] = req.leaseTime
+            if req.oldActionNames:
+                params["oldActionNames"] = req.oldActionNames
+
+            response = self._session.post(
+                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def register_ci_lifecycle_operator(self, **kwargs) -> Response:
+        """
+        Registers an operator for a non-workflow user.
+        """
+        try:
+            response = self._session.post(
+                url=f"{self.url}/api/now/cilifecyclemgmt/operators",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def set_ci_lifecycle_status(self, **kwargs) -> Response:
+        """
+        Sets the operational state for a specified list of CIs.
+        """
+        try:
+            req = CILifecycleActionRequest(**kwargs)
+            if not req.opsLabel or not req.requestorId or not req.sysIds:
+                raise MissingParameterError
+
+            params = {
+                "opsLabel": req.opsLabel,
+                "requestorId": req.requestorId,
+                "sysIds": req.sysIds,
+            }
+            if req.oldOpsLabels:
+                params["oldOpsLabels"] = req.oldOpsLabels
+
+            response = self._session.post(
+                url=f"{self.url}/api/now/cilifecyclemgmt/statuses",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CILifecycleResult.model_validate(response.json()),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
     #                                        Change Management API                                                     #
     ####################################################################################################################
     @require_auth
@@ -3119,6 +3896,528 @@ class Api(object):
             raise
 
     ####################################################################################################################
+    #                                                  DevOps API                                                      #
+    ####################################################################################################################
+    @require_auth
+    def get_devops_code_schema(self, **kwargs) -> Response:
+        """
+        Returns the schema object for a specified code resource.
+        """
+        try:
+            req = DevOpsSchemaRequest(**kwargs)
+            if not req.resource:
+                raise MissingParameterError
+
+            params = {"resource": req.resource}
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/code/schema",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json())
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_devops_onboarding_status(self, **kwargs) -> Response:
+        """
+        Returns the current status of the specified onboarding event.
+        """
+        try:
+            id_ = kwargs.get("id")
+            if not id_:
+                raise MissingParameterError
+
+            params = {"id": id_}
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/onboarding/status",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=DevOpsOnboardingStatusResponse.model_validate(
+                    response.json().get("result", {})
+                ),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_devops_change_control(self, **kwargs) -> Response:
+        """
+        Checks if the orchestration task is under change control.
+        """
+        try:
+            toolId = kwargs.get("toolId")
+            orchestrationTaskName = kwargs.get("orchestrationTaskName")
+            if not toolId:
+                raise MissingParameterError
+
+            params = {
+                "toolId": toolId,
+                "toolType": kwargs.get(
+                    "toolType", "jenkins"
+                ),  # Default to jenkins if not provided? Spec says toolType valid value jenkins
+            }
+            if orchestrationTaskName:
+                params["orchestrationTaskName"] = orchestrationTaskName
+            if "testConnection" in kwargs:
+                params["testConnection"] = str(kwargs.get("testConnection")).lower()
+            if "orchestrationTaskURL" in kwargs:
+                params["orchestrationTaskURL"] = kwargs.get("orchestrationTaskURL")
+
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/orchestration/changeControl",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=DevOpsChangeControlResponse.model_validate(
+                    response.json().get("result", {})
+                ),
+            )
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_devops_change_info(self, **kwargs) -> Response:
+        """
+        Retrieves change request details for a specified orchestration pipeline execution.
+        """
+        try:
+            toolId = kwargs.get("toolId")
+            buildNumber = kwargs.get("buildNumber")
+            if not toolId or not buildNumber:
+                raise MissingParameterError
+
+            params = {"toolId": toolId, "buildNumber": buildNumber}
+            if "stageName" in kwargs:
+                params["stageName"] = kwargs.get("stageName")
+            if "pipelineName" in kwargs:
+                params["pipelineName"] = kwargs.get("pipelineName")
+            if "projectName" in kwargs:
+                params["projectName"] = kwargs.get("projectName")
+            if "branchName" in kwargs:
+                params["branchName"] = kwargs.get("branchName")
+
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/orchestration/changeInfo",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result", {}))
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_devops_orchestration_schema(self, **kwargs) -> Response:
+        """
+        Returns the schema object for a specified orchestration resource.
+        """
+        try:
+            resource = kwargs.get("resource")
+            if not resource:
+                raw_req = DevOpsSchemaRequest(**kwargs)  # Try to use model
+                resource = raw_req.resource
+
+            if not resource:
+                raise MissingParameterError
+
+            params = {"resource": resource}
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/orchestration/schema",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json())
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def check_devops_step_mapping(self, **kwargs) -> Response:
+        """
+        Verifies that the information being passed is valid for the creation of an orchestration task.
+        """
+        try:
+            toolId = kwargs.get("toolId")
+            orchestrationTaskName = kwargs.get("orchestrationTaskName")
+            orchestrationTaskURL = kwargs.get("orchestrationTaskURL")
+            toolType = kwargs.get("toolType", "jenkins")
+
+            if not toolId or not orchestrationTaskName or not orchestrationTaskURL:
+                raise MissingParameterError
+
+            params = {
+                "toolId": toolId,
+                "orchestrationTaskName": orchestrationTaskName,
+                "orchestrationTaskURL": orchestrationTaskURL,
+                "toolType": toolType,
+            }
+            # Add optional params
+            for k in [
+                "branchName",
+                "isMultiBranch",
+                "parentStageName",
+                "parentStageURL",
+                "testConnection",
+            ]:
+                if k in kwargs:
+                    params[k] = kwargs[k]
+
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/orchestration/stepMapping",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result", {}))
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_devops_plan_schema(self, **kwargs) -> Response:
+        """
+        Returns the schema object for a specific plan.
+        """
+        try:
+            resource = kwargs.get("resource")
+            if not resource:
+                raise MissingParameterError
+
+            params = {"resource": resource}
+            response = self._session.get(
+                url=f"{self.url}/api/sn_devops/devops/plan/schema",
+                params=params,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json())
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def register_devops_artifact(self, **kwargs) -> Response:
+        """
+        Enables orchestration tools to register artifacts into a ServiceNow instance.
+        """
+        try:
+            req = DevOpsArtifactRegistrationRequest(**kwargs)
+            if not req.artifacts:
+                raise MissingParameterError
+
+            params = {}
+            if req.orchestrationToolId:
+                params["orchestrationToolId"] = req.orchestrationToolId
+            if req.toolId:
+                params["toolId"] = req.toolId
+
+            response = self._session.post(
+                url=f"{self.url}/api/sn_devops/devops/artifact/registration",
+                params=params,
+                headers=self.headers,
+                json=req.model_dump(exclude_none=True),
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result", {}))
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                             Email API                                                            #
+    ####################################################################################################################
+    @require_auth
+    def send_email(self, **kwargs) -> Response:
+        try:
+            email = EmailModel(**kwargs)
+            response = self._session.post(
+                url=f"{self.url}/now/email",
+                headers=self.headers,
+                json=email.model_dump(exclude_none=True),
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                       Data Classification API                                                    #
+    ####################################################################################################################
+    @require_auth
+    def get_data_classification(self, **kwargs) -> Response:
+        try:
+            dc = DataClassificationModel(**kwargs)
+            url = f"{self.url}/now/data_classification/classification"
+            if dc.sys_id:
+                url = f"{url}/{dc.sys_id}"
+
+            response = self._session.get(
+                url=url,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                           Attachment API                                                         #
+    ####################################################################################################################
+    @require_auth
+    def get_attachment(self, **kwargs) -> Response:
+        try:
+            att = AttachmentModel(**kwargs)
+            if not att.sys_id:
+                raise MissingParameterError
+
+            response = self._session.get(
+                url=f"{self.url}/now/attachment/{att.sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=Attachment.model_validate(response.json().get("result")),
+            )
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def upload_attachment(self, file_path: str, **kwargs) -> Response:
+        try:
+            att = AttachmentModel(**kwargs)
+            if not att.table_name or not att.table_sys_id or not att.file_name:
+                raise MissingParameterError
+
+            with open(file_path, "rb") as f:
+                headers = self.headers.copy()
+                headers.pop("Content-Type", None)
+
+                params = {
+                    "table_name": att.table_name,
+                    "table_sys_id": att.table_sys_id,
+                    "file_name": att.file_name,
+                }
+
+                response = self._session.post(
+                    url=f"{self.url}/now/attachment/file",
+                    headers=headers,
+                    params=params,
+                    data=f,
+                    verify=self.verify,
+                    proxies=self.proxies,
+                )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=Attachment.model_validate(response.json().get("result")),
+            )
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def delete_attachment(self, **kwargs) -> Response:
+        try:
+            att = AttachmentModel(**kwargs)
+            if not att.sys_id:
+                raise MissingParameterError
+
+            response = self._session.delete(
+                url=f"{self.url}/now/attachment/{att.sys_id}",
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result={"status": "deleted"})
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                           Aggregate API                                                          #
+    ####################################################################################################################
+    @require_auth
+    def get_stats(self, **kwargs) -> Response:
+        try:
+            agg = AggregateModel(**kwargs)
+            params = {}
+            if agg.query:
+                params["sysparm_query"] = agg.query
+            if agg.groupby:
+                params["sysparm_group_by"] = agg.groupby
+            if agg.stats:
+                params["sysparm_count"] = "true"
+
+            response = self._session.get(
+                url=f"{self.url}/now/stats/{agg.table_name}",
+                headers=self.headers,
+                params=params,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                      Activity Subscriptions API                                                  #
+    ####################################################################################################################
+    @require_auth
+    def get_activity_subscriptions(self, **kwargs) -> Response:
+        try:
+            sub = ActivitySubscriptionModel(**kwargs)
+            response = self._session.get(
+                url=f"{self.url}/now/ui/activity_subscription",
+                headers=self.headers,
+                params=sub.api_parameters,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                            Account API                                                           #
+    ####################################################################################################################
+    @require_auth
+    def get_account(self, **kwargs) -> Response:
+        try:
+            acc = AccountModel(**kwargs)
+            url = f"{self.url}/now/csm/account"
+            if acc.sys_id:
+                url = f"{url}/{acc.sys_id}"
+            response = self._session.get(
+                url=url,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                               HR API                                                             #
+    ####################################################################################################################
+    @require_auth
+    def get_hr_profile(self, **kwargs) -> Response:
+        try:
+            hr = HRProfileModel(**kwargs)
+            url = f"{self.url}/now/hr/profile"
+            if hr.sys_id:
+                url = f"{url}/{hr.sys_id}"
+
+            response = self._session.get(
+                url=url,
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                       MetricBase Time Series API                                                 #
+    ####################################################################################################################
+    @require_auth
+    def metricbase_insert(self, **kwargs) -> Response:
+        try:
+            mb = MetricBaseTimeSeriesModel(**kwargs)
+            response = self._session.post(
+                url=f"{self.url}/now/metricbase/insert",
+                headers=self.headers,
+                json=mb.model_dump(exclude_none=True),
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
     #                                                 Custom API                                                       #
     ####################################################################################################################
     @require_auth
@@ -3153,4 +4452,284 @@ class Api(object):
             raise ParameterError(f"Invalid parameters: {e.errors()}")
         except Exception as e:
             print(f"Request Error: {str(e)}")
+            raise
+
+    ####################################################################################################################
+    #                                     Technical Service Qualification Open API                                     #
+    ####################################################################################################################
+    @require_auth
+    def check_service_qualification(self, **kwargs) -> Response:
+        """
+        Creates a technical service qualification request.
+        """
+        try:
+            req = CheckServiceQualificationRequest(**kwargs)
+            # dump payload excluding None to avoid sending nulls
+            payload = req.model_dump(exclude_none=True, by_alias=True)
+
+            response = self._session.post(
+                url=f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification",
+                headers=self.headers,
+                json=payload,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+
+            # The response body for create is CheckServiceQualificationRequest structure (with ID etc)
+            return Response(
+                response=response,
+                result=CheckServiceQualificationRequest.model_validate(response.json()),
+            )
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def get_service_qualification(self, **kwargs) -> Response:
+        """
+        Retrieves a technical qualification request by ID or list all.
+        """
+        try:
+            # Reusing CheckServiceQualificationRequest to hold params like externalId or just passing id as arg
+            # But here we might just need 'id' or query params.
+            # Let's support 'id' in kwargs for specific fetch, else list.
+            sys_id = kwargs.get("id") or kwargs.get("sys_id")
+
+            if sys_id:
+                url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/{sys_id}"
+                params = {}
+            else:
+                url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification"
+                # Support filtering params from kwargs
+                params = {
+                    k: v
+                    for k, v in kwargs.items()
+                    if k
+                    in [
+                        "state",
+                        "description",
+                        "qualificationResult",
+                        "limit",
+                        "offset",
+                    ]
+                }
+
+            response = self._session.get(
+                url=url,
+                headers=self.headers,
+                params=params,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+
+            data = response.json()
+            # If list, it returns a list. If single, returns object.
+            if isinstance(data, list):
+                result = [
+                    CheckServiceQualificationRequest.model_validate(item)
+                    for item in data
+                ]
+            else:
+                result = CheckServiceQualificationRequest.model_validate(data)
+
+            return Response(response=response, result=result)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def process_service_qualification_result(self, **kwargs) -> Response:
+        """
+        Processes a technical service qualification result.
+        """
+        try:
+            # This endpoint takes 'serviceQualificationItem' list in body.
+            # Reuse CheckServiceQualificationRequest partially or just construct body.
+            # The requirement says "Request body parameters: serviceQualificationItem"
+
+            items = kwargs.get("serviceQualificationItem")
+            if not items:
+                raise MissingParameterError("serviceQualificationItem is required")
+
+            # Validate items using the model
+            valid_items = [
+                ServiceQualificationItem(**item) if isinstance(item, dict) else item
+                for item in items
+            ]
+
+            payload = {
+                "serviceQualificationItem": [
+                    item.model_dump(exclude_none=True, by_alias=True)
+                    for item in valid_items
+                ],
+                "description": kwargs.get("description"),
+                "@type": "CheckServiceQualification",
+            }
+            # Add description if present
+
+            response = self._session.post(
+                url=f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/processResult",
+                headers=self.headers,
+                json=payload,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(
+                response=response,
+                result=CheckServiceQualificationRequest.model_validate(response.json()),
+            )
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                     Project Portfolio Management (PPM) API                                       #
+    ####################################################################################################################
+    @require_auth
+    def insert_cost_plans(self, plans: List[Dict[str, Any]], **kwargs) -> Response:
+        """
+        Creates cost plans.
+        """
+        try:
+            # Validate list of plans
+            valid_plans = [CostPlan(**p) for p in plans]
+            payload = [p.model_dump() for p in valid_plans]
+
+            response = self._session.post(
+                url=f"{self.url}/api/now/ppm/insert_cost_plans",
+                headers=self.headers,
+                json=payload,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def insert_project_tasks(self, **kwargs) -> Response:
+        """
+        Creates a project and associated project tasks.
+        """
+        try:
+            # Top level is project properties + child_tasks
+            # Validate using ProjectTask model (assuming top level structure matches or is similar)
+            # The API doc says: start_date, end_date, short_description, external_id, child_tasks.
+            # ProjectTask model covers this.
+            project = ProjectTask(**kwargs)
+
+            response = self._session.post(
+                url=f"{self.url}/api/now/ppm/insert_project_tasks",
+                headers=self.headers,
+                json=project.model_dump(exclude_none=True),
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result=response.json().get("result"))
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    ####################################################################################################################
+    #                                     Product Inventory Open API                                                   #
+    ####################################################################################################################
+    @require_auth
+    def get_product_inventory(self, **kwargs) -> Response:
+        """
+        Retrieves a list of all product inventories.
+        """
+        try:
+            qp = ProductInventoryQueryParams(**kwargs)
+            params = qp.model_dump(exclude_none=True)
+            # 'place' in params is an Object in doc "place": {"id": "String"}, but requests params need flattening or specific format
+            # if place_id is passed, we might need to format it as place.id or check how SN expects it.
+            # Query parameters section says:
+            # place: Filter by location. "place": { "id": "String" }
+            # Usually in SN API, objects in query params are stringified JSON or dot notation.
+            # Doc says Data type: Object.
+
+            if qp.place_id:
+                # Constructing the object structure if needed, or maybe it expects sysparm_query
+                # But here it describes specific query parameters.
+                # Let's try to pass it as direct param if library supports it, or stringified json.
+                # Common SN pattern for object params in GET is often not standard.
+                # However, the doc "Supported request parameters" lists `place` as a query parameter of type Object.
+                # We will handle it by excluding place_id from direct params and adding 'place'
+                params.pop("place_id")
+                params["place"] = str({"id": qp.place_id}).replace(
+                    "'", '"'
+                )  # Primitive JSON stringify
+
+            response = self._session.get(
+                url=f"{self.url}/api/sn_prd_invt/product",
+                headers=self.headers,
+                params=params,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+
+            # Returns list of ProductInventory
+            # Handle pagination headers if needed, but for now return parsed body.
+            # Body itself is a list? Doc says "Response body parameters (JSON)" lists fields like href, id...
+            # Usually "Retrieves a list" implies a JSON array.
+            data = response.json()
+            if isinstance(data, list):
+                result = [ProductInventory.model_validate(item) for item in data]
+            else:
+                result = ProductInventory.model_validate(data)
+
+            return Response(response=response, result=result)
+        except ValidationError as ve:
+            print(f"Invalid parameters: {ve.errors()}")
+            raise
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            raise
+
+    @require_auth
+    def delete_product_inventory(self, **kwargs) -> Response:
+        """
+        Deletes a specified product inventory record.
+        """
+        try:
+            sys_id = kwargs.get("id") or kwargs.get("sys_id")
+            if not sys_id:
+                raise MissingParameterError("product inventory id is required")
+
+            response = self._session.delete(
+                url=f"{self.url}/api/sn_prd_invt/order/product/{sys_id}",  # Doc says /api/sn_prd_invt/order/product/{id} AND /api/sn_prd_invt/product/{id} in example?
+                # "Product Inventory Open API – DELETE /sn_prd_invt/order/product/{id}" -> Header
+                # "Default URL: /api/sn_prd_invt/order/product/{id}"
+                # "cURL request ... DELETE ... /api/sn_prd_invt/product/..." -> Example URL is different!
+                # I will trust the Default URL header: /api/sn_prd_invt/order/product/{id}
+                headers=self.headers,
+                verify=self.verify,
+                proxies=self.proxies,
+            )
+            response.raise_for_status()
+            return Response(response=response, result={"status": "deleted"})
+        except Exception as e:
+            print(f"Error during API call: {e}")
             raise

@@ -1,10 +1,10 @@
 ---
 services:
   servicenow-mcp:
-    # image: docker.io/knucklessg1/servicenow:latest
-    build:
-      context: . # Debug
-      dockerfile: debug.Dockerfile
+    image: docker.io/knucklessg1/servicenow:latest
+    # build:
+    #   context: . # Debug
+    #   dockerfile: debug.Dockerfile
     container_name: servicenow-mcp
     hostname: servicenow-mcp
     command: [ "servicenow-mcp" ]
@@ -55,10 +55,10 @@ services:
       start_period: 10s
 
   servicenow-agent:
-    # image: docker.io/knucklessg1/servicenow:latest
-    build:
-      context: . # Debug
-      dockerfile: debug.Dockerfile
+    image: docker.io/knucklessg1/servicenow:latest
+    # build:
+    #   context: . # Debug
+    #   dockerfile: debug.Dockerfile
     container_name: servicenow-agent
     hostname: servicenow-agent
     command: [ "servicenow-agent" ]
