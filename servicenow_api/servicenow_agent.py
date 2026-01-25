@@ -20,6 +20,7 @@ from servicenow_api.utils import (
     get_skills_path,
     load_skills_from_directory,
     create_model,
+    tool_in_tag,
 )
 
 from fastapi import FastAPI, Request
@@ -65,9 +66,13 @@ AGENT_SYSTEM_PROMPT = (
     "Then, call the appropriate tool(s) with a specific task. You can modify the task to be within the scope of the agent if necessary. "
     "You can invoke multiple tools in a single response, or you can invoke them sequentially depending on the task. "
     "Synthesize the results from the child agents into a final helpful response. "
-    "Do not attempt to perform ServiceNow actions directly; always assign tasks and delegate to child agents."
-    "It is imperative to never respond to the user without first executing the correct relevant tool and then synthesizing the results."
-    "Always gather all tool results before synthesizing the final response to the user."
+    "Do not attempt to perform ServiceNow actions directly; always assign tasks and delegate to child agents. "
+    "It is imperative to never respond to the user without first executing the correct relevant tool and then synthesizing the results. "
+    "Always gather all tool results before synthesizing the final response to the user. "
+    "The final response should contain all the relevant information from the tool executions. Never leave out any relevant information or leave it to the user to find it. "
+    "You are the final authority on the user's request and the final communicator to the user. Present information as logically and concisely as possible. "
+    "Explore using organized output with headers, sections, lists, and tables to make the information easy to navigate. "
+    "If there are gaps in the information, clearly state that information is missing. Do not make assumptions or invent placeholder information, only use the information which is available."
 )
 
 
@@ -251,54 +256,7 @@ def create_agent(
         for ts in master_toolsets:
 
             def filter_func(ctx, tool_def, t=tag):
-                # Extract tags from metadata (enhanced to handle more variations)
-                metadata = tool_def.metadata or {}
-                # Try nested paths
-                meta = metadata.get("meta") or {}
-                fastmcp_meta = meta.get("_fastmcp") or {}
-                tags_list = fastmcp_meta.get("tags", [])
-
-                # Fallbacks: direct 'tags', or other common keys (add more if your tools use different structures)
-                if not tags_list:
-                    tags_list = (
-                        metadata.get("tags", [])
-                        or meta.get("tags", [])
-                        or fastmcp_meta.get("categories", [])
-                    )  # Added extra fallbacks
-
-                # General logging for all tags/tools (uncommented and made always active for debugging)
-                logger.info(
-                    f"Filter check: tool={tool_def.name} tags={tags_list} target={t} full_metadata={metadata}"
-                )
-
-                # Specific debug for problematic tags
-                if t in ["change_management", "incidents"]:
-                    logger.info(
-                        f"DEBUG FILTER: tool={tool_def.name} tags={tags_list} target={t}"
-                    )
-
-                # Generalized force-include logic (make it configurable or remove once tags are fixed in tool defs)
-                # For 'incidents': Check name patterns
-                if t == "incidents":
-                    target_tools = ["get_incidents", "create_incident", "get_incident"]
-                    if any(tool_def.name.endswith(name) for name in target_tools):
-                        logger.info(
-                            f"Force including {tool_def.name} for {t} (name match)"
-                        )
-                        return True
-
-                # For 'change_management': Check name patterns (uncommented the return True for now; remove after fixing tags)
-                if (
-                    t == "change_management"
-                    and "change_request" in tool_def.name.lower()
-                ):  # Made case-insensitive
-                    logger.info(
-                        f"Force including suspected tool {tool_def.name} for {t} (name match)"
-                    )
-                    return True  # Uncommented to force include; comment out once metadata is updated
-
-                # Core filter: Check if tag is in extracted tags_list
-                return t in tags_list
+                return tool_in_tag(tool_def, t)
 
             logger.info(f"Scanned toolset: {ts}")
             if hasattr(ts, "filtered"):
@@ -657,7 +615,7 @@ def create_agent_server(
     a2a_app = agent.to_a2a(
         name=AGENT_NAME,
         description=AGENT_DESCRIPTION,
-        version="1.5.0",
+        version="1.5.1",
         skills=skills,
         debug=debug,
     )
