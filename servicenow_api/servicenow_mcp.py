@@ -130,7 +130,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"application"},
     )
-    def get_application(
+    async def get_application(
         application_id: str = Field(
             description="The unique identifier of the application to retrieve"
         ),
@@ -145,7 +145,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def get_cmdb(
+    async def get_cmdb(
         cmdb_id: str = Field(
             description="The unique identifier of the CMDB record to retrieve"
         ),
@@ -160,7 +160,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def delete_cmdb_relation(
+    async def delete_cmdb_relation(
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         rel_sys_id: str = Field(description="Sys_id of the relation to remove"),
@@ -176,7 +176,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def get_cmdb_instances(
+    async def get_cmdb_instances(
         className: str = Field(description="CMDB class name"),
         sysparm_limit: Optional[str] = Field(
             default="10000", description="Maximum number of records to return"
@@ -202,7 +202,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def get_cmdb_instance(
+    async def get_cmdb_instance(
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI record to retrieve"),
         _client=Depends(get_client),
@@ -215,7 +215,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def create_cmdb_instance(
+    async def create_cmdb_instance(
         className: str = Field(description="CMDB class name"),
         source: str = Field(description="Discovery source"),
         attributes: Optional[Dict] = Field(
@@ -243,18 +243,25 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def update_cmdb_instance(
+    async def update_cmdb_instance(
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
         attributes: Optional[Dict] = Field(
             default=None, description="Data attributes to replace"
         ),
+        ctx: Context = None,
         _client=Depends(get_client),
     ) -> Response:
         """
         Updates the specified CI record (PUT).
         """
+        if ctx:
+            message = f"Are you sure you want to UPDATE CI {sys_id} ({className}) with source {source}?"
+            result = await ctx.elicit(message, response_type=bool)
+            if result.action != "accept" or not result.data:
+                return "Operation cancelled by user."
+
         return _client.update_cmdb_instance(
             className=className,
             sys_id=sys_id,
@@ -265,18 +272,25 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def patch_cmdb_instance(
+    async def patch_cmdb_instance(
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
         attributes: Optional[Dict] = Field(
             default=None, description="Data attributes to replace"
         ),
+        ctx: Context = None,
         _client=Depends(get_client),
     ) -> Response:
         """
         Replaces attributes in the specified CI record (PATCH).
         """
+        if ctx:
+            message = f"Are you sure you want to PATCH CI {sys_id} ({className}) with source {source}?"
+            result = await ctx.elicit(message, response_type=bool)
+            if result.action != "accept" or not result.data:
+                return "Operation cancelled by user."
+
         return _client.patch_cmdb_instance(
             className=className,
             sys_id=sys_id,
@@ -287,7 +301,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def create_cmdb_relation(
+    async def create_cmdb_relation(
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
@@ -313,7 +327,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
-    def ingest_cmdb_data(
+    async def ingest_cmdb_data(
         data_source_sys_id: str = Field(description="Sys_id of the data source record"),
         records: List[Dict] = Field(description="Array of objects to ingest"),
         _client=Depends(get_client),
@@ -329,7 +343,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def batch_install_result(
+    async def batch_install_result(
         result_id: str = Field(
             description="The ID associated with the batch installation result"
         ),
@@ -344,7 +358,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def instance_scan_progress(
+    async def instance_scan_progress(
         progress_id: str = Field(
             description="The ID associated with the instance scan progress"
         ),
@@ -359,7 +373,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def progress(
+    async def progress(
         progress_id: str = Field(description="The ID associated with the progress"),
         _client=Depends(get_client),
     ) -> Response:
@@ -372,7 +386,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def batch_install(
+    async def batch_install(
         name: str = Field(description="The name of the batch installation"),
         packages: str = Field(description="The packages to be installed in the batch"),
         notes: Optional[str] = Field(
@@ -389,7 +403,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def batch_rollback(
+    async def batch_rollback(
         rollback_id: str = Field(
             description="The ID associated with the batch rollback"
         ),
@@ -404,7 +418,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def app_repo_install(
+    async def app_repo_install(
         app_sys_id: str = Field(
             description="The sys_id of the application to be installed"
         ),
@@ -436,7 +450,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def app_repo_publish(
+    async def app_repo_publish(
         app_sys_id: str = Field(
             description="The sys_id of the application to be published"
         ),
@@ -460,7 +474,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def app_repo_rollback(
+    async def app_repo_rollback(
         app_sys_id: str = Field(
             description="The sys_id of the application to be rolled back"
         ),
@@ -481,7 +495,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def full_scan(
+    async def full_scan(
         _client=Depends(get_client),
     ) -> Response:
         """
@@ -493,7 +507,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def point_scan(
+    async def point_scan(
         target_sys_id: str = Field(description="The sys_id of the target instance"),
         target_table: str = Field(description="The table of the target instance"),
         _client=Depends(get_client),
@@ -509,7 +523,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def combo_suite_scan(
+    async def combo_suite_scan(
         combo_sys_id: str = Field(description="The sys_id of the combo to be scanned"),
         _client=Depends(get_client),
     ) -> Response:
@@ -522,7 +536,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
-    def suite_scan(
+    async def suite_scan(
         suite_sys_id: str = Field(description="The sys_id of the suite to be scanned"),
         sys_ids: List[str] = Field(
             description="List of sys_ids representing app_scope_sys_ids for the suite scan"
@@ -544,7 +558,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"plugins"},
     )
-    def activate_plugin(
+    async def activate_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be activated"),
         _client=Depends(get_client),
     ) -> Response:
@@ -557,7 +571,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"plugins"},
     )
-    def rollback_plugin(
+    async def rollback_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be rolled back"),
         _client=Depends(get_client),
     ) -> Response:
@@ -570,7 +584,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"source_control"},
     )
-    def apply_remote_source_control_changes(
+    async def apply_remote_source_control_changes(
         app_sys_id: str = Field(
             description="The sys_id of the application for which changes should be applied"
         ),
@@ -598,7 +612,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"source_control"},
     )
-    def import_repository(
+    async def import_repository(
         repo_url: str = Field(description="The URL of the repository to be imported"),
         credential_sys_id: Optional[str] = Field(
             default=None,
@@ -632,7 +646,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"testing"},
     )
-    def run_test_suite(
+    async def run_test_suite(
         test_suite_sys_id: str = Field(
             description="The sys_id of the test suite to be run"
         ),
@@ -671,7 +685,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_create(
+    async def update_set_create(
         update_set_name: str = Field(description="Name to give the update set"),
         scope: str = Field(
             description="The scope name of the application in which to create the new update set"
@@ -698,7 +712,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_retrieve(
+    async def update_set_retrieve(
         update_set_id: str = Field(
             description="Sys_id of the update set on the source instance from where the update set was retrieved"
         ),
@@ -733,7 +747,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_preview(
+    async def update_set_preview(
         remote_update_set_id: str = Field(
             description="Sys_id of the update set to preview"
         ),
@@ -748,7 +762,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_commit(
+    async def update_set_commit(
         remote_update_set_id: str = Field(
             description="Sys_id of the update set to commit"
         ),
@@ -769,7 +783,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_commit_multiple(
+    async def update_set_commit_multiple(
         remote_update_set_ids: List[str] = Field(
             description="List of sys_ids associated with update sets to commit. Sys_ids are committed in the order given"
         ),
@@ -790,7 +804,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
-    def update_set_back_out(
+    async def update_set_back_out(
         update_set_id: str = Field(description="Sys_id of the update set"),
         rollback_installs: Optional[bool] = Field(
             default=None,
@@ -810,7 +824,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"batch"},
     )
-    def batch_request(
+    async def batch_request(
         rest_requests: List[Dict] = Field(
             description="List of requests to execute. Each item must correspond to BatchRequestItem model."
         ),
@@ -830,7 +844,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_requests(
+    async def get_change_requests(
         order: Optional[str] = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
@@ -875,7 +889,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_nextstate(
+    async def get_change_request_nextstate(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -890,7 +904,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_schedule(
+    async def get_change_request_schedule(
         cmdb_ci_sys_id: str = Field(
             description="Sys ID of the CI (Configuration Item)"
         ),
@@ -905,7 +919,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_tasks(
+    async def get_change_request_tasks(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         order: Optional[str] = Field(
             default=None, description="Ordering parameter for sorting results"
@@ -946,7 +960,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request(
+    async def get_change_request(
         change_request_id: str = Field(
             description="Sys ID or change number (CHG#####) of the change request",
             default=None,
@@ -1040,7 +1054,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_ci(
+    async def get_change_request_ci(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1055,7 +1069,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_conflict(
+    async def get_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1070,7 +1084,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_standard_change_request_templates(
+    async def get_standard_change_request_templates(
         order: Optional[str] = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
@@ -1109,7 +1123,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_models(
+    async def get_change_request_models(
         order: Optional[str] = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
@@ -1153,7 +1167,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_standard_change_request_model(
+    async def get_standard_change_request_model(
         model_sys_id: str = Field(
             description="Sys ID of the standard change request model"
         ),
@@ -1168,7 +1182,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_standard_change_request_template(
+    async def get_standard_change_request_template(
         template_sys_id: str = Field(
             description="Sys ID of the standard change request template"
         ),
@@ -1185,7 +1199,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def get_change_request_worker(
+    async def get_change_request_worker(
         worker_sys_id: str = Field(description="Sys ID of the change request worker"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1198,7 +1212,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def create_change_request(
+    async def create_change_request(
         name_value_pairs: Optional[str] = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
@@ -1225,7 +1239,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def create_change_request_task(
+    async def create_change_request_task(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         data: Dict[str, str] = Field(
             description="Name-value pairs providing details for the new task"
@@ -1243,7 +1257,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def create_change_request_ci_association(
+    async def create_change_request_ci_association(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         cmdb_ci_sys_ids: List[str] = Field(
             description="List of Sys IDs of CIs to associate with the change request"
@@ -1271,7 +1285,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def calculate_standard_change_request_risk(
+    async def calculate_standard_change_request_risk(
         change_request_sys_id: str = Field(
             description="Sys ID of the standard change request"
         ),
@@ -1288,7 +1302,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def check_change_request_conflict(
+    async def check_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1303,7 +1317,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def refresh_change_request_impacted_services(
+    async def refresh_change_request_impacted_services(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1318,7 +1332,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def approve_change_request(
+    async def approve_change_request(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         state: str = Field(
             description="State to set the change request to (approved or rejected)"
@@ -1336,7 +1350,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def update_change_request(
+    async def update_change_request(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         name_value_pairs: Optional[str] = Field(
             default=None,
@@ -1361,7 +1375,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def update_change_request_first_available(
+    async def update_change_request_first_available(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1376,7 +1390,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def update_change_request_task(
+    async def update_change_request_task(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         change_request_task_sys_id: str = Field(
             description="Sys ID of the change request task"
@@ -1400,7 +1414,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def delete_change_request(
+    async def delete_change_request(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         change_type: Optional[str] = Field(
             default=None, description="Type of change (emergency, normal, standard)"
@@ -1418,7 +1432,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def delete_change_request_task(
+    async def delete_change_request_task(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         task_sys_id: str = Field(
             description="Sys ID of the task associated with the change request"
@@ -1436,7 +1450,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
-    def delete_change_request_conflict_scan(
+    async def delete_change_request_conflict_scan(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         task_sys_id: str = Field(
             description="Sys ID of the task associated with the change request"
@@ -1455,7 +1469,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cilifecycle"},
     )
-    def check_ci_lifecycle_compat_actions(
+    async def check_ci_lifecycle_compat_actions(
         actionName: str = Field(description="Name of the CI action"),
         otherActionName: str = Field(description="Name of the other CI action"),
         _client=Depends(get_client),
@@ -1470,7 +1484,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cilifecycle"},
     )
-    def register_ci_lifecycle_operator(
+    async def register_ci_lifecycle_operator(
         _client=Depends(get_client),
     ) -> Response:
         """
@@ -1481,7 +1495,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cilifecycle"},
     )
-    def unregister_ci_lifecycle_operator(
+    async def unregister_ci_lifecycle_operator(
         req_id: str = Field(description="Request ID needed to unregister"),
         _client=Depends(get_client),
     ) -> Response:
@@ -1494,7 +1508,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"devops"},
     )
-    def check_devops_change_control(
+    async def check_devops_change_control(
         toolId: str = Field(description="Tool ID"),
         orchestrationTaskName: Optional[str] = Field(
             default=None, description="Orchestration Task Name"
@@ -1522,7 +1536,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"devops"},
     )
-    def register_devops_artifact(
+    async def register_devops_artifact(
         artifacts: List[Dict] = Field(description="List of artifacts to register"),
         orchestrationToolId: Optional[str] = Field(
             default=None, description="Orchestration Tool ID"
@@ -1555,7 +1569,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"import_sets"},
     )
-    def get_import_set(
+    async def get_import_set(
         table: str = Field(
             description="The name of the table associated with the import set"
         ),
@@ -1573,7 +1587,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"import_sets"},
     )
-    def insert_import_set(
+    async def insert_import_set(
         table: str = Field(
             description="The name of the table associated with the import set"
         ),
@@ -1591,7 +1605,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"import_sets"},
     )
-    def insert_multiple_import_sets(
+    async def insert_multiple_import_sets(
         table: str = Field(
             description="The name of the table associated with the import set"
         ),
@@ -1612,7 +1626,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"incidents"},
     )
-    def get_incidents(
+    async def get_incidents(
         incident_id: Optional[str] = Field(
             default=None,
             description="The sys_id or the incident number (INC######) of the incident record, if retrieving a specific incident",
@@ -1695,7 +1709,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"incidents"},
     )
-    def create_incident(
+    async def create_incident(
         data: Dict[str, str] = Field(
             description="Dictionary containing the field values for the new incident record"
         ),
@@ -1710,7 +1724,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
-    def get_knowledge_articles(
+    async def get_knowledge_articles(
         filter: Optional[str] = Field(
             default=None,
             description="Encoded query to filter the result set (e.g., =, !=, ^, ^OR, LIKE, STARTSWITH, ENDSWITH)",
@@ -1761,7 +1775,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
-    def get_knowledge_article(
+    async def get_knowledge_article(
         article_sys_id: str = Field(
             description="The sys_id of the Knowledge Base article"
         ),
@@ -1830,7 +1844,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
-    def get_knowledge_article_attachment(
+    async def get_knowledge_article_attachment(
         article_sys_id: str = Field(
             description="The sys_id of the Knowledge Base article"
         ),
@@ -1848,7 +1862,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
-    def get_featured_knowledge_article(
+    async def get_featured_knowledge_article(
         sysparm_fields: Optional[str] = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
@@ -1886,7 +1900,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
-    def get_most_viewed_knowledge_articles(
+    async def get_most_viewed_knowledge_articles(
         sysparm_fields: Optional[str] = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
@@ -1925,7 +1939,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def delete_table_record(
+    async def delete_table_record(
         table: str = Field(description="The name of the table"),
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be deleted"
@@ -1943,7 +1957,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def get_table(
+    async def get_table(
         table: str = Field(description="The name of the table"),
         name_value_pairs: Optional[str] = Field(
             default=None,
@@ -2012,7 +2026,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def get_table_record(
+    async def get_table_record(
         table: str = Field(description="The name of the table"),
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be retrieved"
@@ -2030,7 +2044,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def patch_table_record(
+    async def patch_table_record(
         table: str = Field(description="The name of the table"),
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be updated"
@@ -2051,7 +2065,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def update_table_record(
+    async def update_table_record(
         table: str = Field(description="The name of the table"),
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be updated"
@@ -2072,7 +2086,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
-    def add_table_record(
+    async def add_table_record(
         table: str = Field(description="The name of the table"),
         data: Dict[str, Any] = Field(
             description="Dictionary containing the field values for the new record"
@@ -2088,7 +2102,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"auth"},
     )
-    def refresh_auth_token(
+    async def refresh_auth_token(
         _client=Depends(get_client),
     ) -> Response:
         """
@@ -2101,7 +2115,7 @@ def register_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"custom_api"},
     )
-    def api_request(
+    async def api_request(
         method: str = Field(
             description="The HTTP method to use ('GET', 'POST', 'PUT', 'DELETE')"
         ),
@@ -2125,7 +2139,7 @@ def register_tools(mcp: FastMCP):
 
     # Email Tools
     @mcp.tool(tags={"email"})
-    def send_email(
+    async def send_email(
         to: Union[str, List[str]] = Field(description="Recipient email addresses"),
         subject: Optional[str] = Field(default=None, description="Email subject"),
         text: Optional[str] = Field(default=None, description="Email body text"),
@@ -2137,7 +2151,7 @@ def register_tools(mcp: FastMCP):
 
     # Data Classification Tools
     @mcp.tool(tags={"data_classification"})
-    def get_data_classification(
+    async def get_data_classification(
         sys_id: Optional[str] = Field(
             default=None, description="Classification record Sys ID"
         ),
@@ -2152,7 +2166,7 @@ def register_tools(mcp: FastMCP):
 
     # Attachment Tools
     @mcp.tool(tags={"attachment"})
-    def get_attachment(
+    async def get_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
         _client=Depends(get_client),
     ) -> Response:
@@ -2160,7 +2174,7 @@ def register_tools(mcp: FastMCP):
         return _client.get_attachment(sys_id=sys_id)
 
     @mcp.tool(tags={"attachment"})
-    def upload_attachment(
+    async def upload_attachment(
         file_path: str = Field(description="Absolute path to the file to upload"),
         table_name: str = Field(
             description="Table name associated with the attachment"
@@ -2182,7 +2196,7 @@ def register_tools(mcp: FastMCP):
         )
 
     @mcp.tool(tags={"attachment"})
-    def delete_attachment(
+    async def delete_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
         _client=Depends(get_client),
     ) -> Response:
@@ -2191,7 +2205,7 @@ def register_tools(mcp: FastMCP):
 
     # Aggregate Tools
     @mcp.tool(tags={"aggregate"})
-    def get_stats(
+    async def get_stats(
         table_name: str = Field(description="Table name to aggregate on"),
         query: Optional[str] = Field(default=None, description="Encoded query string"),
         group_by: Optional[str] = Field(default=None, description="Field to group by"),
@@ -2205,7 +2219,7 @@ def register_tools(mcp: FastMCP):
 
     # Activity Subscriptions Tools
     @mcp.tool(tags={"activity_subscriptions"})
-    def get_activity_subscriptions(
+    async def get_activity_subscriptions(
         sys_id: Optional[str] = Field(
             default=None, description="Activity Subscription Sys ID"
         ),
@@ -2216,7 +2230,7 @@ def register_tools(mcp: FastMCP):
 
     # Account Tools
     @mcp.tool(tags={"account"})
-    def get_account(
+    async def get_account(
         sys_id: Optional[str] = Field(default=None, description="Account Sys ID"),
         name: Optional[str] = Field(default=None, description="Account name"),
         number: Optional[str] = Field(default=None, description="Account number"),
@@ -2227,7 +2241,7 @@ def register_tools(mcp: FastMCP):
 
     # HR Tools
     @mcp.tool(tags={"hr"})
-    def get_hr_profile(
+    async def get_hr_profile(
         sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
         user: Optional[str] = Field(default=None, description="User Sys ID"),
         _client=Depends(get_client),
@@ -2237,7 +2251,7 @@ def register_tools(mcp: FastMCP):
 
     # MetricBase Tools
     @mcp.tool(tags={"metricbase"})
-    def metricbase_insert(
+    async def metricbase_insert(
         table_name: str = Field(description="Table name"),
         sys_id: str = Field(description="Record Sys ID"),
         metric_name: str = Field(description="Metric name"),
@@ -2258,7 +2272,7 @@ def register_tools(mcp: FastMCP):
 
     # Service Qualification Tools
     @mcp.tool(tags={"service_qualification"})
-    def check_service_qualification(
+    async def check_service_qualification(
         description: Optional[str] = Field(default=None, description="Description"),
         externalId: Optional[str] = Field(default=None, description="External ID"),
         relatedParty: List[Dict[str, Any]] = Field(
@@ -2278,7 +2292,7 @@ def register_tools(mcp: FastMCP):
         )
 
     @mcp.tool(tags={"service_qualification"})
-    def get_service_qualification(
+    async def get_service_qualification(
         id: Optional[str] = Field(default=None, description="Qualification Request ID"),
         state: Optional[str] = Field(default=None, description="Filter by state"),
         _client=Depends(get_client),
@@ -2287,7 +2301,7 @@ def register_tools(mcp: FastMCP):
         return _client.get_service_qualification(id=id, state=state)
 
     @mcp.tool(tags={"service_qualification"})
-    def process_service_qualification_result(
+    async def process_service_qualification_result(
         serviceQualificationItem: List[Dict[str, Any]] = Field(
             description="Items to process"
         ),
@@ -2301,7 +2315,7 @@ def register_tools(mcp: FastMCP):
 
     # PPM Tools
     @mcp.tool(tags={"ppm"})
-    def insert_cost_plans(
+    async def insert_cost_plans(
         plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
         _client=Depends(get_client),
     ) -> Response:
@@ -2309,7 +2323,7 @@ def register_tools(mcp: FastMCP):
         return _client.insert_cost_plans(plans=plans)
 
     @mcp.tool(tags={"ppm"})
-    def insert_project_tasks(
+    async def insert_project_tasks(
         short_description: str = Field(description="Short description"),
         start_date: Optional[str] = Field(default=None, description="Start date"),
         end_date: Optional[str] = Field(default=None, description="End date"),
@@ -2332,7 +2346,7 @@ def register_tools(mcp: FastMCP):
 
     # Product Inventory Tools
     @mcp.tool(tags={"product_inventory"})
-    def get_product_inventory(
+    async def get_product_inventory(
         customer: Optional[str] = Field(default=None, description="Customer Sys ID"),
         place_id: Optional[str] = Field(default=None, description="Location ID"),
         status: Optional[str] = Field(default=None, description="Status filter"),
@@ -2350,7 +2364,7 @@ def register_tools(mcp: FastMCP):
         )
 
     @mcp.tool(tags={"product_inventory"})
-    def delete_product_inventory(
+    async def delete_product_inventory(
         id: str = Field(description="Product Inventory Sys ID"),
         _client=Depends(get_client),
     ) -> Response:
