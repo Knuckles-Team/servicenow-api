@@ -77,7 +77,9 @@ ENV HOST=${HOST} \
 # For local debugging
 WORKDIR /app
 COPY . /app
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+RUN apt-get update \
+   && apt-get install -y curl nano \
+   && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && uv pip install --system --upgrade --verbose --no-cache --break-system-packages .[all]
 
 CMD ["servicenow-mcp"]
