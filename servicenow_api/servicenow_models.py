@@ -544,6 +544,8 @@ class ChangeManagementModel(BaseModel):
     state: Optional[str] = None
     cmdb_ci_sys_ids: Optional[List[str]] = None
     cmdb_ci_sys_id: Optional[str] = None
+    task_sys_id: Optional[str] = None
+    model_sys_id: Optional[str] = None
     association_type: Optional[str] = None
     refresh_impacted_services: Optional[bool] = None
     name_value_pairs: Optional[str] = None
@@ -2730,8 +2732,58 @@ class ActivitySubscriptionModel(BaseModel):
     sys_id: Optional[str] = Field(
         default=None, description="Activity Subscription Sys ID."
     )
+    name_value_pairs: Optional[str] = None
+    sysparm_display_value: Optional[Union[str, bool]] = None
+    sysparm_exclude_reference_link: Optional[bool] = None
+    sysparm_fields: Optional[str] = None
+    sysparm_limit: Optional[Union[str, int]] = None
+    sysparm_no_count: Optional[bool] = None
+    sysparm_offset: Optional[Union[str, int]] = None
+    sysparm_query: Optional[str] = None
+    sysparm_query_category: Optional[str] = None
+    sysparm_query_no_domain: Optional[bool] = None
+    sysparm_suppress_pagination_header: Optional[bool] = None
+    sysparm_view: Optional[str] = None
     table_name: Optional[str] = Field(default=None, description="Table name.")
     document_id: Optional[str] = Field(default=None, description="Document Sys ID.")
+    api_parameters: Optional[Dict] = Field(description="API Parameters", default=None)
+    data: Optional[Dict] = Field(
+        default=None, description="Table dictionary value to insert"
+    )
+
+    def model_post_init(self, __context):
+        """
+        Build the API parameters
+        """
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.sysparm_display_value:
+            self.api_parameters["sysparm_display_value"] = self.sysparm_display_value
+        if self.sysparm_exclude_reference_link:
+            self.api_parameters["sysparm_exclude_reference_link"] = (
+                self.sysparm_exclude_reference_link
+            )
+        if self.sysparm_fields:
+            self.api_parameters["sysparm_fields"] = self.sysparm_fields
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_query_category:
+            self.api_parameters["sysparm_query_category"] = self.sysparm_query_category
+        if self.sysparm_query_no_domain:
+            self.api_parameters["sysparm_query_no_domain"] = (
+                self.sysparm_query_no_domain
+            )
+        if self.sysparm_suppress_pagination_header:
+            self.api_parameters["sysparm_suppress_pagination_header"] = (
+                self.sysparm_suppress_pagination_header
+            )
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_no_count:
+            self.api_parameters["sysparm_no_count"] = self.sysparm_no_count
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
 class AccountModel(BaseModel):
