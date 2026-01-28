@@ -16,7 +16,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastmcp.dependencies import Depends
 from pydantic import Field
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Context
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
 from fastmcp.server.auth import OAuthProxy, RemoteAuthProvider
 from fastmcp.server.auth.providers.jwt import JWTVerifier, StaticTokenVerifier
@@ -252,7 +252,7 @@ def register_tools(mcp: FastMCP):
         ),
         ctx: Context = None,
         _client=Depends(get_client),
-    ) -> Response:
+    ) -> Response | str:
         """
         Updates the specified CI record (PUT).
         """
@@ -281,7 +281,7 @@ def register_tools(mcp: FastMCP):
         ),
         ctx: Context = None,
         _client=Depends(get_client),
-    ) -> Response:
+    ) -> Response | str:
         """
         Replaces attributes in the specified CI record (PATCH).
         """
@@ -1011,7 +1011,7 @@ def register_tools(mcp: FastMCP):
         sysparm_view: Optional[str] = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
-    ) -> Response:
+    ) -> Response | None:
         """
         Retrieves details of a specific change request in ServiceNow by sys_id and type.
         """
@@ -1674,7 +1674,7 @@ def register_tools(mcp: FastMCP):
         sysparm_view: Optional[str] = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
-    ) -> Response:
+    ) -> Response | None:
         """
         Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
         """
@@ -2276,10 +2276,10 @@ def register_tools(mcp: FastMCP):
         description: Optional[str] = Field(default=None, description="Description"),
         externalId: Optional[str] = Field(default=None, description="External ID"),
         relatedParty: List[Dict[str, Any]] = Field(
-            default=[], description="List of related parties"
+            default=None, description="List of related parties"
         ),
-        serviceQualificationItem: List[Dict[str, Any]] = Field(
-            default=[], description="List of qualification items"
+        service_qualitification_item: List[Dict[str, Any]] = Field(
+            default=None, description="List of qualification items"
         ),
         _client=Depends(get_client),
     ) -> Response:
@@ -2288,7 +2288,7 @@ def register_tools(mcp: FastMCP):
             description=description,
             externalId=externalId,
             relatedParty=relatedParty,
-            serviceQualificationItem=serviceQualificationItem,
+            service_qualitification_item=service_qualitification_item,
         )
 
     @mcp.tool(tags={"service_qualification"})
@@ -2302,7 +2302,7 @@ def register_tools(mcp: FastMCP):
 
     @mcp.tool(tags={"service_qualification"})
     async def process_service_qualification_result(
-        serviceQualificationItem: List[Dict[str, Any]] = Field(
+        service_qualitification_item: List[Dict[str, Any]] = Field(
             description="Items to process"
         ),
         description: Optional[str] = Field(default=None, description="Description"),
@@ -2310,7 +2310,8 @@ def register_tools(mcp: FastMCP):
     ) -> Response:
         """Processes a service qualification result."""
         return _client.process_service_qualification_result(
-            serviceQualificationItem=serviceQualificationItem, description=description
+            service_qualitification_item=service_qualitification_item,
+            description=description,
         )
 
     # PPM Tools
@@ -2941,13 +2942,7 @@ def servicenow_mcp():
                 if not instance:
                     raise ValueError("SERVICENOW_INSTANCE required")
 
-                api = get_client(
-                    token=token,
-                    username=username,
-                    password=password,
-                    client_id=client_id,
-                    client_secret=client_secret,
-                )
+                api = get_client()
 
                 base_url = args.openapi_base_url or api.url
 
