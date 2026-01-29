@@ -30,6 +30,8 @@ from servicenow_api.servicenow_models import Response
 from servicenow_api.utils import to_integer, to_boolean
 from servicenow_api.middlewares import UserTokenMiddleware, JWTClaimsLoggingMiddleware
 
+__version__ = "1.5.6"
+
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
 
@@ -2429,6 +2431,7 @@ def register_prompts(mcp: FastMCP):
 
 
 def servicenow_mcp():
+    print(f"servicenow_mcp v{__version__}")
     parser = argparse.ArgumentParser(description="ServiceNow MCP Server")
     parser.add_argument(
         "-t",
