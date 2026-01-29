@@ -5,6 +5,8 @@ import json
 import uuid
 import time
 
+__version__ = "0.1.0"
+
 print("Starting A2A Agent Validation and waiting for server initialization...")
 time.sleep(30)
 

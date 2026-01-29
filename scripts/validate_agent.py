@@ -6,6 +6,8 @@ from servicenow_api.servicenow_agent import stream_chat, chat, node_chat
 # Attempt to import assuming dependencies are installed
 import os
 
+__version__ = "0.1.0"
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 try:
