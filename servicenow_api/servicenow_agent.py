@@ -28,7 +28,7 @@ from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
 
-__version__ = "1.5.8"
+__version__ = "1.5.9"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -511,21 +511,22 @@ def create_agent(
             )
 
         child_agent = Agent(
-            model=model,
-            system_prompt=system_prompt,
             name=agent_name,
-            toolsets=tag_toolsets,
+            system_prompt=system_prompt,
+            model=model,
             model_settings=settings,
+            toolsets=tag_toolsets,
+            tool_timeout=32400.0,
         )
         child_agents[tag] = child_agent
 
     # Create the Supervisor Agent
     supervisor = Agent(
-        model=model,
-        system_prompt=SUPERVISOR_SYSTEM_PROMPT,
         name=AGENT_NAME,
-        deps_type=Any,
+        system_prompt=SUPERVISOR_SYSTEM_PROMPT,
+        model=model,
         model_settings=settings,
+        deps_type=Any,
     )
 
     @supervisor.tool
