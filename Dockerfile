@@ -77,6 +77,6 @@ ENV HOST=${HOST} \
 RUN apt-get update \
    && apt-get install -y curl nano \
    && curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.5.9
+    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.5.10
 
 CMD ["servicenow-mcp"]

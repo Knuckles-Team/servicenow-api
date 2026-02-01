@@ -15,11 +15,15 @@ from fasta2a import Skill
 from servicenow_api.utils import (
     to_integer,
     to_boolean,
+    to_float,
+    to_list,
+    to_dict,
     get_mcp_config_path,
     get_skills_path,
     load_skills_from_directory,
     create_model,
     tool_in_tag,
+    prune_large_messages,
 )
 
 from fastapi import FastAPI, Request
@@ -28,7 +32,7 @@ from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
 
-__version__ = "1.5.9"
+__version__ = "1.5.10"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,6 +57,21 @@ DEFAULT_MCP_URL = os.getenv("MCP_URL", None)
 DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", get_mcp_config_path())
 DEFAULT_SKILLS_DIRECTORY = os.getenv("SKILLS_DIRECTORY", get_skills_path())
 DEFAULT_ENABLE_WEB_UI = to_boolean(os.getenv("ENABLE_WEB_UI", "False"))
+
+# Model Settings
+DEFAULT_MAX_TOKENS = to_integer(os.getenv("MAX_TOKENS", "8192"))
+DEFAULT_TEMPERATURE = to_float(os.getenv("TEMPERATURE", "0.7"))
+DEFAULT_TOP_P = to_float(os.getenv("TOP_P", "1.0"))
+DEFAULT_TIMEOUT = to_float(os.getenv("TIMEOUT", "32400.0"))
+DEFAULT_TOOL_TIMEOUT = to_float(os.getenv("TOOL_TIMEOUT", "32400.0"))
+DEFAULT_PARALLEL_TOOL_CALLS = to_boolean(os.getenv("PARALLEL_TOOL_CALLS", "True"))
+DEFAULT_SEED = to_integer(os.getenv("SEED", None))
+DEFAULT_PRESENCE_PENALTY = to_float(os.getenv("PRESENCE_PENALTY", "0.0"))
+DEFAULT_FREQUENCY_PENALTY = to_float(os.getenv("FREQUENCY_PENALTY", "0.0"))
+DEFAULT_LOGIT_BIAS = to_dict(os.getenv("LOGIT_BIAS", None))
+DEFAULT_STOP_SEQUENCES = to_list(os.getenv("STOP_SEQUENCES", None))
+DEFAULT_EXTRA_HEADERS = to_dict(os.getenv("EXTRA_HEADERS", None))
+DEFAULT_EXTRA_BODY = to_dict(os.getenv("EXTRA_BODY", None))
 
 AGENT_NAME = "ServiceNow"
 AGENT_DESCRIPTION = "An agent built with Agent Skills and ServiceNow MCP tools to maximize ServiceNow interactivity."
@@ -426,7 +445,20 @@ def create_agent(
 
     # Create Model for all agents
     model = create_model(provider, model_id, base_url, api_key)
-    settings = ModelSettings(timeout=3600.0)
+    settings = ModelSettings(
+        max_tokens=DEFAULT_MAX_TOKENS,
+        temperature=DEFAULT_TEMPERATURE,
+        top_p=DEFAULT_TOP_P,
+        timeout=DEFAULT_TIMEOUT,
+        parallel_tool_calls=DEFAULT_PARALLEL_TOOL_CALLS,
+        seed=DEFAULT_SEED,
+        presence_penalty=DEFAULT_PRESENCE_PENALTY,
+        frequency_penalty=DEFAULT_FREQUENCY_PENALTY,
+        logit_bias=DEFAULT_LOGIT_BIAS,
+        stop_sequences=DEFAULT_STOP_SEQUENCES,
+        extra_headers=DEFAULT_EXTRA_HEADERS,
+        extra_body=DEFAULT_EXTRA_BODY,
+    )
 
     # Define Tag -> Prompt map
     agent_defs = {
@@ -516,7 +548,7 @@ def create_agent(
             model=model,
             model_settings=settings,
             toolsets=tag_toolsets,
-            tool_timeout=32400.0,
+            tool_timeout=DEFAULT_TOOL_TIMEOUT,
         )
         child_agents[tag] = child_agent
 
@@ -897,6 +929,10 @@ def create_agent_server(
                 media_type="application/json",
                 status_code=422,
             )
+
+        # Prune large messages from history
+        if hasattr(run_input, "messages"):
+            run_input.messages = prune_large_messages(run_input.messages)
 
         # Create adapter and run the agent → stream AG-UI events
         adapter = AGUIAdapter(agent=agent, run_input=run_input, accept=accept)
