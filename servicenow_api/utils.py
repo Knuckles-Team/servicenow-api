@@ -7,6 +7,7 @@ import yaml
 import logging
 from pathlib import Path
 from typing import Union, List, Any, Optional
+import json
 from importlib.resources import files, as_file
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.models.anthropic import AnthropicModel
@@ -42,6 +43,83 @@ def to_boolean(string: Union[str, bool] = None) -> bool:
         return False
     else:
         raise ValueError(f"Cannot convert '{string}' to boolean")
+
+
+def to_float(string: Union[str, float] = None) -> float:
+    if isinstance(string, float):
+        return string
+    if not string:
+        return 0.0
+    try:
+        return float(string.strip())
+    except ValueError:
+        raise ValueError(f"Cannot convert '{string}' to float")
+
+
+def to_list(string: Union[str, list] = None) -> list:
+    if isinstance(string, list):
+        return string
+    if not string:
+        return []
+    try:
+        return json.loads(string)
+    except Exception:
+        return string.split(",")
+
+
+def to_dict(string: Union[str, dict] = None) -> dict:
+    if isinstance(string, dict):
+        return string
+    if not string:
+        return {}
+    try:
+        return json.loads(string)
+    except Exception:
+        raise ValueError(f"Cannot convert '{string}' to dict")
+
+
+def prune_large_messages(messages: list[Any], max_length: int = 5000) -> list[Any]:
+    """
+    Summarize large tool outputs in the message history to save context window.
+    Keeps the most recent tool outputs intact if they are the very last message,
+    but generally we want to prune history.
+    """
+    pruned_messages = []
+    for i, msg in enumerate(messages):
+        content = getattr(msg, "content", None)
+        if content is None and isinstance(msg, dict):
+            content = msg.get("content")
+
+        if isinstance(content, str) and len(content) > max_length:
+            summary = (
+                f"{content[:200]} ... "
+                f"[Output truncated, original length {len(content)} characters] "
+                f"... {content[-200:]}"
+            )
+
+            # Replace content
+            if isinstance(msg, dict):
+                msg["content"] = summary
+                pruned_messages.append(msg)
+            elif hasattr(msg, "content"):
+                # Try to create a copy or modify in place if mutable
+                # If it's a Pydantic model it might be immutable or require copy
+                try:
+                    # Attempt shallow copy with update
+                    from copy import copy
+
+                    new_msg = copy(msg)
+                    new_msg.content = summary
+                    pruned_messages.append(new_msg)
+                except Exception:
+                    # Fallback: keep original if we can't modify
+                    pruned_messages.append(msg)
+            else:
+                pruned_messages.append(msg)
+        else:
+            pruned_messages.append(msg)
+
+    return pruned_messages
 
 
 def save_model(model: Any, file_name: str = "model", file_path: str = ".") -> str:
