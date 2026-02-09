@@ -79,7 +79,7 @@ services:
       - "PROVIDER=openai"
       - "OPENAI_BASE_URL=http://host.docker.internal:1234/v1"
       - "OPENAI_API_KEY=llama"
-      - "MODEL_ID=qwen/qwen3-4b-2507"
+      - "MODEL_ID=${MODEL_ID:-qwen/qwen3-coder-next}"
       - "DEBUG=True"
       - "ENABLE_WEB_UI=True"
     ports:
