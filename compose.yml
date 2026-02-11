@@ -77,7 +77,7 @@ services:
       - "PORT=9004"
       - "MCP_URL=http://servicenow-mcp:8004/mcp"
       - "PROVIDER=openai"
-      - "LLM_BASE_URL=http://host.docker.internal:1234/v1"
+      - "LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}"
       - "LLM_API_KEY=llama"
       - "MODEL_ID=${MODEL_ID:-qwen/qwen3-coder-next}"
       - "DEBUG=True"
