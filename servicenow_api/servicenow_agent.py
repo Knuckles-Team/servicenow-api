@@ -39,7 +39,7 @@ from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
 
-__version__ = "1.6.5"
+__version__ = "1.6.6"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -969,6 +969,12 @@ def agent_server():
         action="store_true",
         default=DEFAULT_ENABLE_WEB_UI,
         help="Enable Pydantic AI Web UI",
+    )
+
+    parser.add_argument(
+        "--insecure",
+        action="store_true",
+        help="Disable SSL verification for LLM requests (Use with caution)",
     )
     parser.add_argument("--debug", type=bool, default=DEFAULT_DEBUG, help="Debug mode")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
