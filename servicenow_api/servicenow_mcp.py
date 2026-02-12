@@ -30,7 +30,7 @@ from servicenow_api.servicenow_models import Response
 from servicenow_api.utils import to_integer, to_boolean
 from servicenow_api.middlewares import UserTokenMiddleware, JWTClaimsLoggingMiddleware
 
-__version__ = "1.6.4"
+__version__ = "1.6.5"
 
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
@@ -39,7 +39,7 @@ config = {
     "enable_delegation": to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
     "audience": os.environ.get("SERVICENOW_AUDIENCE", None),
     "delegated_scopes": os.environ.get("DELEGATED_SCOPES", "api"),
-    "token_endpoint": None,  # Will be fetched dynamically from OIDC config
+    "token_endpoint": None,
     "oidc_client_id": os.environ.get("OIDC_CLIENT_ID", None),
     "oidc_client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
     "oidc_config_url": os.environ.get("OIDC_CONFIG_URL", None),
@@ -70,10 +70,8 @@ def get_client() -> Api:
 
     verify = True
 
-    # === Auto-extract MCP token ===
     mcp_token = getattr(local, "user_token", None)
 
-    # === Delegation ===
     if config.get("enable_delegation", False) and mcp_token:
         logger.info("Delegating MCP token to ServiceNow")
         exchange_data = {
@@ -99,7 +97,6 @@ def get_client() -> Api:
             logger.error("Delegation failed", extra={"error": str(e)})
             raise
 
-    # === Basic auth (env) ===
     username = os.getenv("SERVICENOW_USERNAME")
     password = os.getenv("SERVICENOW_PASSWORD")
     client_id = os.getenv("SERVICENOW_CLIENT_ID")
@@ -115,7 +112,6 @@ def get_client() -> Api:
             verify=verify,
         )
 
-    # === Error ===
     raise ValueError(
         "No auth method: Provide token, enable delegation, or set SERVICENOW_USERNAME/PASSWORD"
     )
@@ -128,7 +124,6 @@ def register_tools(mcp: FastMCP):
     async def health_check(request: Request) -> JSONResponse:
         return JSONResponse({"status": "OK"})
 
-    # Application Service Tools
     @mcp.tool(
         tags={"application"},
     )
@@ -143,7 +138,6 @@ def register_tools(mcp: FastMCP):
         """
         return _client.get_application(application_id)
 
-    # CMDB Tools
     @mcp.tool(
         tags={"cmdb"},
     )
@@ -341,7 +335,6 @@ def register_tools(mcp: FastMCP):
             data_source_sys_id=data_source_sys_id, records=records
         )
 
-    # CI/CD Tools
     @mcp.tool(
         tags={"cicd"},
     )
@@ -556,7 +549,6 @@ def register_tools(mcp: FastMCP):
             suite_sys_id=suite_sys_id, sys_ids=sys_ids, scan_type=scan_type
         )
 
-    # Plugin and Update Set Tools
     @mcp.tool(
         tags={"plugins"},
     )
@@ -822,7 +814,6 @@ def register_tools(mcp: FastMCP):
             update_set_id=update_set_id, rollback_installs=rollback_installs
         )
 
-    # Batch API Tools
     @mcp.tool(
         tags={"batch"},
     )
@@ -842,7 +833,6 @@ def register_tools(mcp: FastMCP):
             batch_request_id=batch_request_id, rest_requests=rest_requests
         )
 
-    # Change Management Tools
     @mcp.tool(
         tags={"change_management"},
     )
@@ -1019,7 +1009,6 @@ def register_tools(mcp: FastMCP):
         """
 
         if change_request_id:
-            # Smart check: if it looks like a number (starts with INC), treat as query
             if (
                 change_request_id.upper().startswith("CHG")
                 and len(change_request_id) < 32
@@ -1467,7 +1456,6 @@ def register_tools(mcp: FastMCP):
             change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
         )
 
-    # CI Lifecycle Management Tools
     @mcp.tool(
         tags={"cilifecycle"},
     )
@@ -1506,7 +1494,6 @@ def register_tools(mcp: FastMCP):
         """
         return _client.unregister_ci_lifecycle_operator(req_id=req_id)
 
-    # DevOps Tools
     @mcp.tool(
         tags={"devops"},
     )
@@ -1567,7 +1554,6 @@ def register_tools(mcp: FastMCP):
             taskExecutionNumber=taskExecutionNumber,
         )
 
-    # Import Set Tools
     @mcp.tool(
         tags={"import_sets"},
     )
@@ -1622,7 +1608,6 @@ def register_tools(mcp: FastMCP):
 
         return _client.insert_multiple_import_sets(table=table, data=data)
 
-    # Incident Tools
     logger.info("DEBUG: Registering get_incidents...")
 
     @mcp.tool(
@@ -1682,7 +1667,6 @@ def register_tools(mcp: FastMCP):
         """
 
         if incident_id:
-            # Smart check: if it looks like a number (starts with INC), treat as query
             if incident_id.upper().startswith("INC") and len(incident_id) < 32:
                 logging.info(f"Treating incident_id='{incident_id}' as number query")
                 sysparm_query = f"number={incident_id}"
@@ -1722,7 +1706,6 @@ def register_tools(mcp: FastMCP):
         """
         return _client.create_incident(data=data)
 
-    # Knowledge Management Tools
     @mcp.tool(
         tags={"knowledge_management"},
     )
@@ -1937,7 +1920,6 @@ def register_tools(mcp: FastMCP):
             language=language,
         )
 
-    # Table API Tools
     @mcp.tool(
         tags={"table_api"},
     )
@@ -2113,7 +2095,6 @@ def register_tools(mcp: FastMCP):
 
         return _client.refresh_auth_token()
 
-    # Custom API Tools
     @mcp.tool(
         tags={"custom_api"},
     )
@@ -2139,7 +2120,6 @@ def register_tools(mcp: FastMCP):
             method=method, endpoint=endpoint, data=data, json=json
         )
 
-    # Email Tools
     @mcp.tool(tags={"email"})
     async def send_email(
         to: Union[str, List[str]] = Field(description="Recipient email addresses"),
@@ -2151,7 +2131,6 @@ def register_tools(mcp: FastMCP):
         """Sends an email via ServiceNow."""
         return _client.send_email(to=to, subject=subject, text=text, html=html)
 
-    # Data Classification Tools
     @mcp.tool(tags={"data_classification"})
     async def get_data_classification(
         sys_id: Optional[str] = Field(
@@ -2166,7 +2145,6 @@ def register_tools(mcp: FastMCP):
             sys_id=sys_id, table_name=table_name, column_name=column_name
         )
 
-    # Attachment Tools
     @mcp.tool(tags={"attachment"})
     async def get_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
@@ -2205,7 +2183,6 @@ def register_tools(mcp: FastMCP):
         """Deletes an attachment."""
         return _client.delete_attachment(sys_id=sys_id)
 
-    # Aggregate Tools
     @mcp.tool(tags={"aggregate"})
     async def get_stats(
         table_name: str = Field(description="Table name to aggregate on"),
@@ -2219,7 +2196,6 @@ def register_tools(mcp: FastMCP):
             table_name=table_name, query=query, group_by=group_by, stats=stats
         )
 
-    # Activity Subscriptions Tools
     @mcp.tool(tags={"activity_subscriptions"})
     async def get_activity_subscriptions(
         sys_id: Optional[str] = Field(
@@ -2230,7 +2206,6 @@ def register_tools(mcp: FastMCP):
         """Retrieves activity subscriptions."""
         return _client.get_activity_subscriptions(sys_id=sys_id)
 
-    # Account Tools
     @mcp.tool(tags={"account"})
     async def get_account(
         sys_id: Optional[str] = Field(default=None, description="Account Sys ID"),
@@ -2241,7 +2216,6 @@ def register_tools(mcp: FastMCP):
         """Retrieves CSM account information."""
         return _client.get_account(sys_id=sys_id, name=name, number=number)
 
-    # HR Tools
     @mcp.tool(tags={"hr"})
     async def get_hr_profile(
         sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
@@ -2251,7 +2225,6 @@ def register_tools(mcp: FastMCP):
         """Retrieves HR profile information."""
         return _client.get_hr_profile(sys_id=sys_id, user=user)
 
-    # MetricBase Tools
     @mcp.tool(tags={"metricbase"})
     async def metricbase_insert(
         table_name: str = Field(description="Table name"),
@@ -2272,7 +2245,6 @@ def register_tools(mcp: FastMCP):
             end_time=end_time,
         )
 
-    # Service Qualification Tools
     @mcp.tool(tags={"service_qualification"})
     async def check_service_qualification(
         description: Optional[str] = Field(default=None, description="Description"),
@@ -2316,7 +2288,6 @@ def register_tools(mcp: FastMCP):
             description=description,
         )
 
-    # PPM Tools
     @mcp.tool(tags={"ppm"})
     async def insert_cost_plans(
         plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
@@ -2347,7 +2318,6 @@ def register_tools(mcp: FastMCP):
             dependencies=dependencies,
         )
 
-    # Product Inventory Tools
     @mcp.tool(tags={"product_inventory"})
     async def get_product_inventory(
         customer: Optional[str] = Field(default=None, description="Customer Sys ID"),
@@ -2376,7 +2346,6 @@ def register_tools(mcp: FastMCP):
 
 
 def register_prompts(mcp: FastMCP):
-    # Prompts
     @mcp.prompt
     def create_incident_prompt(
         short_description: str,
@@ -2461,7 +2430,6 @@ def servicenow_mcp():
         choices=["none", "static", "jwt", "oauth-proxy", "oidc-proxy", "remote-oauth"],
         help="Authentication type for MCP server: 'none' (disabled), 'static' (internal), 'jwt' (external token verification), 'oauth-proxy', 'oidc-proxy', 'remote-oauth' (external) (default: none)",
     )
-    # JWT/Token params
     parser.add_argument(
         "--token-jwks-uri", default=None, help="JWKS URI for JWT verification"
     )
@@ -2502,7 +2470,6 @@ def servicenow_mcp():
         default=os.getenv("FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES"),
         help="Comma-separated list of required scopes (e.g., servicenow.read,servicenow.write).",
     )
-    # OAuth Proxy params
     parser.add_argument(
         "--oauth-upstream-auth-endpoint",
         default=None,
@@ -2526,14 +2493,12 @@ def servicenow_mcp():
     parser.add_argument(
         "--oauth-base-url", default=None, help="Base URL for OAuth Proxy"
     )
-    # OIDC Proxy params
     parser.add_argument(
         "--oidc-config-url", default=None, help="OIDC configuration URL"
     )
     parser.add_argument("--oidc-client-id", default=None, help="OIDC client ID")
     parser.add_argument("--oidc-client-secret", default=None, help="OIDC client secret")
     parser.add_argument("--oidc-base-url", default=None, help="Base URL for OIDC Proxy")
-    # Remote OAuth params
     parser.add_argument(
         "--remote-auth-servers",
         default=None,
@@ -2542,13 +2507,11 @@ def servicenow_mcp():
     parser.add_argument(
         "--remote-base-url", default=None, help="Base URL for Remote OAuth"
     )
-    # Common
     parser.add_argument(
         "--allowed-client-redirect-uris",
         default=None,
         help="Comma-separated list of allowed client redirect URIs",
     )
-    # Eunomia params
     parser.add_argument(
         "--eunomia-type",
         default="none",
@@ -2563,7 +2526,6 @@ def servicenow_mcp():
     parser.add_argument(
         "--eunomia-remote-url", default=None, help="URL for remote Eunomia server"
     )
-    # Delegation params
     parser.add_argument(
         "--enable-delegation",
         action="store_true",
@@ -2634,7 +2596,6 @@ def servicenow_mcp():
         print(f"Error: Port {args.port} is out of valid range (0-65535).")
         sys.exit(1)
 
-    # Update config with CLI arguments
     config["enable_delegation"] = args.enable_delegation
     config["audience"] = args.audience or config["audience"]
     config["delegated_scopes"] = args.delegated_scopes or config["delegated_scopes"]
@@ -2644,7 +2605,6 @@ def servicenow_mcp():
         args.oidc_client_secret or config["oidc_client_secret"]
     )
 
-    # Configure delegation if enabled
     if config["enable_delegation"]:
         if args.auth_type != "oidc-proxy":
             logger.error("Token delegation requires auth-type=oidc-proxy")
@@ -2664,7 +2624,6 @@ def servicenow_mcp():
             )
             sys.exit(1)
 
-        # Fetch OIDC configuration to get token_endpoint
         try:
             logger.info(
                 "Fetching OIDC configuration",
@@ -2689,7 +2648,6 @@ def servicenow_mcp():
             )
             sys.exit(1)
 
-    # Set auth based on type
     auth = None
     allowed_uris = (
         args.allowed_client_redirect_uris.split(",")
@@ -2707,7 +2665,6 @@ def servicenow_mcp():
             }
         )
     elif args.auth_type == "jwt":
-        # Fallback to env vars if not provided via CLI
         jwks_uri = args.token_jwks_uri or os.getenv("FASTMCP_SERVER_AUTH_JWT_JWKS_URI")
         issuer = args.token_issuer or os.getenv("FASTMCP_SERVER_AUTH_JWT_ISSUER")
         audience = args.token_audience or os.getenv("FASTMCP_SERVER_AUTH_JWT_AUDIENCE")
@@ -2724,7 +2681,6 @@ def servicenow_mcp():
             logger.error("JWT requires --token-issuer and --token-audience")
             sys.exit(1)
 
-        # Load static public key from file if path is given
         if args.token_public_key and os.path.isfile(args.token_public_key):
             try:
                 with open(args.token_public_key, "r") as f:
@@ -2735,15 +2691,13 @@ def servicenow_mcp():
                 logger.error(f"Failed to read public key file: {e}")
                 sys.exit(1)
         elif args.token_public_key:
-            public_key_pem = args.token_public_key  # Inline PEM
+            public_key_pem = args.token_public_key
 
-        # Validation: Conflicting options
         if jwks_uri and (algorithm or secret_or_key):
             logger.warning(
                 "JWKS mode ignores --token-algorithm and --token-secret/--token-public-key"
             )
 
-        # HMAC mode
         if algorithm and algorithm.startswith("HS"):
             if not secret_or_key:
                 logger.error(f"HMAC algorithm {algorithm} requires --token-secret")
@@ -2755,7 +2709,6 @@ def servicenow_mcp():
         else:
             public_key = public_key_pem
 
-        # Required scopes
         required_scopes = None
         if args.required_scopes:
             required_scopes = [
@@ -2892,7 +2845,6 @@ def servicenow_mcp():
             base_url=args.remote_base_url,
         )
 
-    # === 2. Build Middleware List ===
     middlewares: List[
         Union[
             UserTokenMiddleware,
@@ -2935,7 +2887,6 @@ def servicenow_mcp():
                     print("Using incoming JWT for OpenAPI import")
 
                 else:
-                    # Use CLI/env credentials
                     username = args.openapi_username or os.getenv("OPENAPI_USERNAME")
                     password = args.openapi_password or os.getenv("OPENAPI_PASSWORD")
                     client_id = args.openapi_client_id or os.getenv("OPENAPI_CLIENT_ID")
@@ -2985,7 +2936,7 @@ def servicenow_mcp():
         imported_tools, imported_resources = [], []
 
     if config["enable_delegation"] or args.auth_type == "jwt":
-        middlewares.insert(0, UserTokenMiddleware(config=config))  # Must be first
+        middlewares.insert(0, UserTokenMiddleware(config=config))
 
     if args.eunomia_type in ["embedded", "remote"]:
         try:
