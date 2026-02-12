@@ -244,9 +244,11 @@ def load_skills_from_directory(directory: str) -> List[Skill]:
     return skills
 
 
-def get_http_client(ssl_verify: bool = True) -> httpx.AsyncClient | None:
+def get_http_client(
+    ssl_verify: bool = True, timeout: float = 300.0
+) -> httpx.AsyncClient | None:
     if not ssl_verify:
-        return httpx.AsyncClient(verify=False)
+        return httpx.AsyncClient(verify=False, timeout=timeout)
     return None
 
 
@@ -256,6 +258,7 @@ def create_model(
     base_url: Optional[str],
     api_key: Optional[str],
     ssl_verify: bool = True,
+    timeout: float = 300.0,
 ):
     """
     Create a Pydantic AI model with the specified provider and configuration.
@@ -272,7 +275,7 @@ def create_model(
     """
     http_client = None
     if not ssl_verify:
-        http_client = httpx.AsyncClient(verify=False)
+        http_client = httpx.AsyncClient(verify=False, timeout=timeout)
 
     if provider == "openai":
         target_base_url = base_url
