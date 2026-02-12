@@ -12,10 +12,6 @@ from servicenow_api.exceptions import (
     ParameterError,
 )
 
-########################################################################################################################
-#                                               Input Models                                                           #
-########################################################################################################################
-
 
 class ApplicationServiceModel(BaseModel):
     """
@@ -187,7 +183,6 @@ class CMDBInstanceModel(BaseModel):
         if self.source:
             data["source"] = self.source
 
-        # Only set data if there are fields to send
         if data:
             self.data = data
         else:
@@ -439,7 +434,6 @@ class CICDModel(BaseModel):
         if "force_commit" in values and values["force_commit"] is not None:
             data["force_commit"] = str(values["force_commit"]).lower()
 
-        # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
 
         if "data" not in values or values["data"] is None:
@@ -681,7 +675,6 @@ class ChangeManagementModel(BaseModel):
         if "state" in values:
             data["state"] = values.get("state")
 
-        # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
 
         if "data" not in values or values["data"] is None:
@@ -1087,9 +1080,6 @@ class TableModel(BaseModel):
             self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
-########################################################################################################################
-#                                              Output Models                                                           #
-########################################################################################################################
 class FieldValue(BaseModel):
     model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
@@ -2809,9 +2799,6 @@ class MetricBaseTimeSeriesModel(BaseModel):
     values: Optional[List[Any]] = Field(default=None, description="Values to insert.")
 
 
-# Service Qualification Models
-
-
 class RelatedParty(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str = Field(description="Sys_id or external_id of the related party.")
@@ -2979,9 +2966,6 @@ class CheckServiceQualificationRequest(BaseModel):
     )
 
 
-# PPM Models
-
-
 class CostPlan(BaseModel):
     model_config = ConfigDict(extra="allow")
     name: str = Field(description="Name of the cost plan.")
@@ -3006,9 +2990,6 @@ class ProjectTask(BaseModel):
     dependencies: Optional[List[Dict[str, Any]]] = Field(
         default=None, description="Dependencies."
     )
-
-
-# Product Inventory Models
 
 
 class ProductCharacteristic(BaseModel):

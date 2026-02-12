@@ -2,7 +2,6 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -24,7 +23,6 @@ def servicenow_config():
 @pytest.fixture(scope="session")
 def api_client(servicenow_config):
     """Fixture to provide an authenticated Service Now Api client."""
-    # Import here to avoid circular dependencies or import errors if dependencies aren't ready
     from servicenow_api.servicenow_api import Api
 
     client = Api(

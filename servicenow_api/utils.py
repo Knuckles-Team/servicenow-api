@@ -18,7 +18,6 @@ from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.models.mistral import MistralModel
 from fasta2a import Skill
 
-# Try importing specific clients/providers, but don't fail if variables are missing
 try:
 
     from openai import AsyncOpenAI
@@ -131,22 +130,17 @@ def prune_large_messages(messages: list[Any], max_length: int = 5000) -> list[An
                 f"... {content[-200:]}"
             )
 
-            # Replace content
             if isinstance(msg, dict):
                 msg["content"] = summary
                 pruned_messages.append(msg)
             elif hasattr(msg, "content"):
-                # Try to create a copy or modify in place if mutable
-                # If it's a Pydantic model it might be immutable or require copy
                 try:
-                    # Attempt shallow copy with update
                     from copy import copy
 
                     new_msg = copy(msg)
                     new_msg.content = summary
                     pruned_messages.append(new_msg)
                 except Exception:
-                    # Fallback: keep original if we can't modify
                     pruned_messages.append(msg)
             else:
                 pruned_messages.append(msg)
@@ -176,30 +170,23 @@ def retrieve_package_name() -> str:
     Works reliably when utils.py is inside a proper package (with __init__.py or
     implicit namespace package) and the caller does normal imports.
     """
-    # Most common case: utils.py is imported as  package.utils
-    # __package__ is then 'package' or 'package.subpackage'
     if __package__:
-        # Take only the top-level part
         top = __package__.partition(".")[0]
         if top and top != "__main__":
             return top
 
-    # Fallback for scripts run directly or unusual import patterns
     try:
         file_path = Path(__file__).resolve()
-        # Walk up until we find a plausible top-level package folder
-        # (one that contains files like pyproject.toml, setup.py, README, or just assume 1–2 levels)
         for parent in file_path.parents:
             if (
                 (parent / "pyproject.toml").is_file()
                 or (parent / "setup.py").is_file()
                 or (parent / "__init__.py").is_file()
-            ):  # stop at namespace root
+            ):
                 return parent.name
     except Exception:
         pass
 
-    # Last resort — usually wrong in packaged context, but better than crashing
     return "unknown_package"
 
 
@@ -231,7 +218,6 @@ def load_skills_from_directory(directory: str) -> List[Skill]:
             if skill_file.exists():
                 try:
                     with open(skill_file, "r") as f:
-                        # Extract frontmatter
                         content = f.read()
                         if content.startswith("---"):
                             _, frontmatter, _ = content.split("---", 2)
@@ -267,8 +253,8 @@ def get_http_client(ssl_verify: bool = True) -> httpx.AsyncClient | None:
 def create_model(
     provider: str,
     model_id: str,
-    base_url: Optional[str] = None,
-    api_key: Optional[str] = None,
+    base_url: Optional[str],
+    api_key: Optional[str],
     ssl_verify: bool = True,
 ):
     """
@@ -284,7 +270,6 @@ def create_model(
     Returns:
         A Pydantic AI Model instance
     """
-    # Create a custom HTTP client if SSL verification is disabled
     http_client = None
     if not ssl_verify:
         http_client = httpx.AsyncClient(verify=False)
@@ -293,7 +278,6 @@ def create_model(
         target_base_url = base_url
         target_api_key = api_key
 
-        # If we have a custom client or specific settings, we might want to use the explicit provider object
         if http_client and AsyncOpenAI and OpenAIProvider:
             client = AsyncOpenAI(
                 api_key=target_api_key or os.environ.get("OPENAI_API_KEY"),
@@ -303,7 +287,6 @@ def create_model(
             provider_instance = OpenAIProvider(openai_client=client)
             return OpenAIChatModel(model_name=model_id, provider=provider_instance)
 
-        # Fallback to standard env vars
         if target_base_url:
             os.environ["OPENAI_BASE_URL"] = target_base_url
         if target_api_key:
@@ -311,7 +294,6 @@ def create_model(
         return OpenAIChatModel(model_name=model_id, provider="openai")
 
     elif provider == "ollama":
-        # Ollama is OpenAI compatible
         target_base_url = base_url or "http://localhost:11434/v1"
         target_api_key = api_key or "ollama"
 
@@ -332,9 +314,6 @@ def create_model(
         if api_key:
             os.environ["ANTHROPIC_API_KEY"] = api_key
 
-        # AnthropicModel supports http_client directly via some paths,
-        # but pydantic-ai might prefer we pass the client to the provider or use a custom client
-
         try:
             if http_client and AsyncAnthropic and AnthropicProvider:
                 client = AsyncAnthropic(
@@ -351,7 +330,6 @@ def create_model(
     elif provider == "google":
         if api_key:
             os.environ["GEMINI_API_KEY"] = api_key
-        # Google SSL disable is tricky with genai, skipping for now unless specifically requested/researched
         return GoogleModel(model_name=model_id)
 
     elif provider == "groq":
@@ -373,12 +351,7 @@ def create_model(
             os.environ["MISTRAL_API_KEY"] = api_key
 
         if http_client and Mistral and MistralProvider:
-            # Assuming mistral_client argument for MistralProvider
-            # Ideally we would verify this, but we'll try standard pattern
             pass
-            # client = Mistral(...) - Mistral SDK might be different
-            # Skipping Mistral custom client for now to avoid breaking without verification
-            # If user needs Mistral SSL disable, we'll need to research Mistral SDK + Provider
 
         return MistralModel(model_name=model_id)
 
@@ -406,29 +379,23 @@ def extract_tool_tags(tool_def: Any) -> List[str]:
     """
     tags_list = []
 
-    # 1. Direct 'meta' attribute (seen in pydantic-ai / mcp.types.Tool)
     meta = getattr(tool_def, "meta", None)
     if isinstance(meta, dict):
-        # Check fastmcp dict
         fastmcp = meta.get("fastmcp") or meta.get("_fastmcp") or {}
         tags_list = fastmcp.get("tags", [])
         if tags_list:
             return tags_list
 
-        # Check direct tags in meta
         tags_list = meta.get("tags", [])
         if tags_list:
             return tags_list
 
-    # 2. 'metadata' attribute (common in some wrappers)
     metadata = getattr(tool_def, "metadata", None)
     if isinstance(metadata, dict):
-        # Path: metadata.tags
         tags_list = metadata.get("tags", [])
         if tags_list:
             return tags_list
 
-        # Path: metadata.meta...
         meta_nested = metadata.get("meta") or {}
         fastmcp = meta_nested.get("fastmcp") or meta_nested.get("_fastmcp") or {}
         tags_list = fastmcp.get("tags", [])
@@ -439,7 +406,6 @@ def extract_tool_tags(tool_def: Any) -> List[str]:
         if tags_list:
             return tags_list
 
-    # 3. Direct 'tags' attribute
     tags_list = getattr(tool_def, "tags", [])
     if isinstance(tags_list, list) and tags_list:
         return tags_list

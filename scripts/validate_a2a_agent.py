@@ -10,29 +10,20 @@ __version__ = "0.1.0"
 print("Starting A2A Agent Validation and waiting for server initialization...")
 time.sleep(30)
 
-# Configuration
 A2A_URL = "http://localhost:9004/a2a/"
 
 
 async def main():
     print(f"Validating A2A Agent at {A2A_URL}...")
 
-    questions = [
-        "Can you get me the incident: INC0010004?"
-        # "Can you create an incident with the short description: 'Test Incident from AI', description: 'Test Again from AI'"
-        # "Get the incidents",
-        # "Can you create an change request with the short description: 'Test Change from AI', description: 'Test Again from AI', justification: 'We need this upgrade', test plan: 'Test the AI Agent'",
-        # "Fetch the change requests",
-    ]
+    questions = ["Can you get me the incident: INC0010004?"]
 
     async with httpx.AsyncClient(timeout=10000.0) as client:
-        # First, let's verify connectivity and maybe infer output schema
 
         for q in questions:
             print(f"\n\n\nUser: {q}")
             print("--- Sending Request ---")
 
-            # Construct JSON-RPC payload
             payload = {
                 "jsonrpc": "2.0",
                 "method": "message/send",
@@ -48,7 +39,6 @@ async def main():
             }
 
             try:
-                # Attempt POST to root
                 url = A2A_URL
                 print(f"Trying POST {url} with JSON-RPC (message/send)...")
                 resp = await client.post(
@@ -67,9 +57,8 @@ async def main():
                                 f"\nTask Submitted with ID: {task_id}. Polling for result..."
                             )
 
-                            # Poll tasks/get
                             while True:
-                                await asyncio.sleep(2)  # Wait a bit
+                                await asyncio.sleep(2)
                                 poll_payload = {
                                     "jsonrpc": "2.0",
                                     "method": "tasks/get",
@@ -90,16 +79,14 @@ async def main():
                                             "submitted",
                                             "running",
                                             "working",
-                                        ]:  # Assuming terminal states
+                                        ]:
                                             print(
                                                 f"\nTask Finished with state: {state}"
                                             )
 
-                                            # Extract final result
                                             if "history" in poll_data["result"]:
                                                 history = poll_data["result"]["history"]
                                                 if history:
-                                                    # Find last non-user message
                                                     last_msg = None
                                                     for msg in reversed(history):
                                                         if msg.get("role") != "user":
