@@ -173,7 +173,7 @@ class Api(object):
             response = requests.post(
                 url=self.auth_url, data=encoded_data_str, headers=self.auth_headers
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             self.token = json_response["access_token"]
             parsed_data = Authentication.model_validate(json_response)
@@ -185,9 +185,6 @@ class Api(object):
             print(f"Error during token refresh: {e}")
             raise
 
-    ####################################################################################################################
-    #                                         Application Service API                                                  #
-    ####################################################################################################################
     @require_auth
     def get_application(self, **kwargs) -> Response:
         """
@@ -210,9 +207,8 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
-            # Assuming ServiceNow APIs often wrap data in "result" key; adjust if direct
             result_data = json_response.get("result", json_response)
             parsed_data = CMDBService.model_validate(result_data)
             return Response(response=response, result=parsed_data)
@@ -223,9 +219,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                   CMDB API                                                       #
-    ####################################################################################################################
     @require_auth
     def get_cmdb(self, **kwargs) -> Response:
         """
@@ -247,7 +240,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CMDB.model_validate(result_data)
@@ -289,11 +282,9 @@ class Api(object):
             )
             response.raise_for_status()
 
-            # Delete usually returns 204 No Content, check if there is content to parse
             if response.content:
                 json_response = response.json()
                 result_data = json_response.get("result", json_response)
-                # No specific response model for delete, likely just success confirmation
                 return Response(response=response, result=result_data)
             return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
@@ -335,7 +326,6 @@ class Api(object):
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
-            # Response is a list of simple dicts usually (sys_id, name)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
             print(f"Invalid parameters: {ve.errors()}")
@@ -543,9 +533,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                           CMDB Data Ingestion API                                                #
-    ####################################################################################################################
     @require_auth
     def ingest_cmdb_data(self, **kwargs) -> Response:
         """
@@ -571,7 +558,6 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            # Status codes 201 and 202 are success
             if response.status_code not in [201, 202]:
                 response.raise_for_status()
 
@@ -585,9 +571,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                  Batch API                                                       #
-    ####################################################################################################################
     @require_auth
     def batch_request(self, **kwargs) -> Response:
         """
@@ -615,7 +598,6 @@ class Api(object):
             )
             response.raise_for_status()
             json_response = response.json()
-            # The response body for batch is at the root, not inside 'result'
             return Response(
                 response=response, result=BatchResponse.model_validate(json_response)
             )
@@ -626,9 +608,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                  CI/CD API                                                       #
-    ####################################################################################################################
     @require_auth
     def batch_install_result(self, **kwargs) -> Response:
         """
@@ -652,7 +631,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -687,7 +666,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -722,7 +701,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -763,7 +742,7 @@ class Api(object):
                 json=cicd.data,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -798,7 +777,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -843,7 +822,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -885,7 +864,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -925,7 +904,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -952,7 +931,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -990,7 +969,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1025,7 +1004,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1066,7 +1045,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1101,7 +1080,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1136,7 +1115,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1179,7 +1158,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1224,7 +1203,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1271,7 +1250,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1315,7 +1294,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1359,7 +1338,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1394,7 +1373,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1432,7 +1411,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1471,7 +1450,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1509,7 +1488,7 @@ class Api(object):
                 verify=self.verify,
                 proxies=self.proxies,
             )
-            response.raise_for_status()  # Raise if HTTP error
+            response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
@@ -1521,9 +1500,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                           CI Lifecycle Management API                                            #
-    ####################################################################################################################
     @require_auth
     def delete_ci_lifecycle_action(self, **kwargs) -> Response:
         """
@@ -1785,8 +1761,6 @@ class Api(object):
         """
         try:
             req = CILifecycleActionRequest(**kwargs)
-            # The sys_id, actionName, leaseTime, requestorId are needed
-            # For patch sys_id is usually a path param, but here it's about the lease for a CI sys_id
             sys_id = kwargs.get("sys_id")
             if (
                 not sys_id
@@ -1908,9 +1882,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                        Change Management API                                                     #
-    ####################################################################################################################
     @require_auth
     def get_change_requests(self, **kwargs) -> Response:
         """
@@ -3127,9 +3098,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                             Import Set API                                                       #
-    ####################################################################################################################
     @require_auth
     def get_import_set(self, **kwargs) -> Response:
         """
@@ -3245,9 +3213,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                               Incident API                                                       #
-    ####################################################################################################################
     @require_auth
     def get_incidents(self, **kwargs) -> Response:
         """
@@ -3380,9 +3345,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                       Knowledge Management API                                                   #
-    ####################################################################################################################
     @require_auth
     def get_knowledge_articles(self, **kwargs) -> Response:
         """
@@ -3628,9 +3590,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                  Table API                                                       #
-    ####################################################################################################################
     @require_auth
     def delete_table_record(self, **kwargs) -> Response:
         """
@@ -3895,9 +3854,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                  DevOps API                                                      #
-    ####################################################################################################################
     @require_auth
     def get_devops_code_schema(self, **kwargs) -> Response:
         """
@@ -3964,9 +3920,7 @@ class Api(object):
 
             params = {
                 "toolId": toolId,
-                "toolType": kwargs.get(
-                    "toolType", "jenkins"
-                ),  # Default to jenkins if not provided? Spec says toolType valid value jenkins
+                "toolType": kwargs.get("toolType", "jenkins"),
             }
             if orchestrationTaskName:
                 params["orchestrationTaskName"] = orchestrationTaskName
@@ -4035,7 +3989,7 @@ class Api(object):
         try:
             resource = kwargs.get("resource")
             if not resource:
-                raw_req = DevOpsSchemaRequest(**kwargs)  # Try to use model
+                raw_req = DevOpsSchemaRequest(**kwargs)
                 resource = raw_req.resource
 
             if not resource:
@@ -4075,7 +4029,6 @@ class Api(object):
                 "orchestrationTaskURL": orchestrationTaskURL,
                 "toolType": toolType,
             }
-            # Add optional params
             for k in [
                 "branchName",
                 "isMultiBranch",
@@ -4153,9 +4106,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                             Email API                                                            #
-    ####################################################################################################################
     @require_auth
     def send_email(self, **kwargs) -> Response:
         try:
@@ -4176,9 +4126,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                       Data Classification API                                                    #
-    ####################################################################################################################
     @require_auth
     def get_data_classification(self, **kwargs) -> Response:
         try:
@@ -4202,9 +4149,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                           Attachment API                                                         #
-    ####################################################################################################################
     @require_auth
     def get_attachment(self, **kwargs) -> Response:
         try:
@@ -4289,9 +4233,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                           Aggregate API                                                          #
-    ####################################################################################################################
     @require_auth
     def get_stats(self, **kwargs) -> Response:
         try:
@@ -4320,9 +4261,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                      Activity Subscriptions API                                                  #
-    ####################################################################################################################
     @require_auth
     def get_activity_subscriptions(self, **kwargs) -> Response:
         try:
@@ -4343,9 +4281,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                            Account API                                                           #
-    ####################################################################################################################
     @require_auth
     def get_account(self, **kwargs) -> Response:
         try:
@@ -4368,9 +4303,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                               HR API                                                             #
-    ####################################################################################################################
     @require_auth
     def get_hr_profile(self, **kwargs) -> Response:
         try:
@@ -4394,9 +4326,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                       MetricBase Time Series API                                                 #
-    ####################################################################################################################
     @require_auth
     def metricbase_insert(self, **kwargs) -> Response:
         try:
@@ -4417,9 +4346,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                                 Custom API                                                       #
-    ####################################################################################################################
     @require_auth
     def api_request(
         self,
@@ -4454,9 +4380,6 @@ class Api(object):
             print(f"Request Error: {str(e)}")
             raise
 
-    ####################################################################################################################
-    #                                     Technical Service Qualification Open API                                     #
-    ####################################################################################################################
     @require_auth
     def check_service_qualification(self, **kwargs) -> Response:
         """
@@ -4464,7 +4387,6 @@ class Api(object):
         """
         try:
             req = CheckServiceQualificationRequest(**kwargs)
-            # dump payload excluding None to avoid sending nulls
             payload = req.model_dump(exclude_none=True, by_alias=True)
 
             response = self._session.post(
@@ -4476,7 +4398,6 @@ class Api(object):
             )
             response.raise_for_status()
 
-            # The response body for create is CheckServiceQualificationRequest structure (with ID etc)
             return Response(
                 response=response,
                 result=CheckServiceQualificationRequest.model_validate(response.json()),
@@ -4494,9 +4415,6 @@ class Api(object):
         Retrieves a technical qualification request by ID or list all.
         """
         try:
-            # Reusing CheckServiceQualificationRequest to hold params like externalId or just passing id as arg
-            # But here we might just need 'id' or query params.
-            # Let's support 'id' in kwargs for specific fetch, else list.
             sys_id = kwargs.get("id") or kwargs.get("sys_id")
 
             if sys_id:
@@ -4504,7 +4422,6 @@ class Api(object):
                 params = {}
             else:
                 url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification"
-                # Support filtering params from kwargs
                 params = {
                     k: v
                     for k, v in kwargs.items()
@@ -4528,7 +4445,6 @@ class Api(object):
             response.raise_for_status()
 
             data = response.json()
-            # If list, it returns a list. If single, returns object.
             if isinstance(data, list):
                 result = [
                     CheckServiceQualificationRequest.model_validate(item)
@@ -4551,15 +4467,11 @@ class Api(object):
         Processes a technical service qualification result.
         """
         try:
-            # This endpoint takes 'serviceQualificationItem' list in body.
-            # Reuse CheckServiceQualificationRequest partially or just construct body.
-            # The requirement says "Request body parameters: serviceQualificationItem"
 
             items = kwargs.get("serviceQualificationItem")
             if not items:
                 raise MissingParameterError("serviceQualificationItem is required")
 
-            # Validate items using the model
             valid_items = [
                 ServiceQualificationItem(**item) if isinstance(item, dict) else item
                 for item in items
@@ -4573,7 +4485,6 @@ class Api(object):
                 "description": kwargs.get("description"),
                 "@type": "CheckServiceQualification",
             }
-            # Add description if present
 
             response = self._session.post(
                 url=f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/processResult",
@@ -4594,16 +4505,12 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                     Project Portfolio Management (PPM) API                                       #
-    ####################################################################################################################
     @require_auth
     def insert_cost_plans(self, plans: List[Dict[str, Any]], **kwargs) -> Response:
         """
         Creates cost plans.
         """
         try:
-            # Validate list of plans
             valid_plans = [CostPlan(**p) for p in plans]
             payload = [p.model_dump() for p in valid_plans]
 
@@ -4629,10 +4536,6 @@ class Api(object):
         Creates a project and associated project tasks.
         """
         try:
-            # Top level is project properties + child_tasks
-            # Validate using ProjectTask model (assuming top level structure matches or is similar)
-            # The API doc says: start_date, end_date, short_description, external_id, child_tasks.
-            # ProjectTask model covers this.
             project = ProjectTask(**kwargs)
 
             response = self._session.post(
@@ -4651,9 +4554,6 @@ class Api(object):
             print(f"Error during API call: {e}")
             raise
 
-    ####################################################################################################################
-    #                                     Product Inventory Open API                                                   #
-    ####################################################################################################################
     @require_auth
     def get_product_inventory(self, **kwargs) -> Response:
         """
@@ -4662,24 +4562,11 @@ class Api(object):
         try:
             qp = ProductInventoryQueryParams(**kwargs)
             params = qp.model_dump(exclude_none=True)
-            # 'place' in params is an Object in doc "place": {"id": "String"}, but requests params need flattening or specific format
-            # if place_id is passed, we might need to format it as place.id or check how SN expects it.
-            # Query parameters section says:
-            # place: Filter by location. "place": { "id": "String" }
-            # Usually in SN API, objects in query params are stringified JSON or dot notation.
             # Doc says Data type: Object.
 
             if qp.place_id:
-                # Constructing the object structure if needed, or maybe it expects sysparm_query
-                # But here it describes specific query parameters.
-                # Let's try to pass it as direct param if library supports it, or stringified json.
-                # Common SN pattern for object params in GET is often not standard.
-                # However, the doc "Supported request parameters" lists `place` as a query parameter of type Object.
-                # We will handle it by excluding place_id from direct params and adding 'place'
                 params.pop("place_id")
-                params["place"] = str({"id": qp.place_id}).replace(
-                    "'", '"'
-                )  # Primitive JSON stringify
+                params["place"] = str({"id": qp.place_id}).replace("'", '"')
 
             response = self._session.get(
                 url=f"{self.url}/api/sn_prd_invt/product",
@@ -4690,10 +4577,6 @@ class Api(object):
             )
             response.raise_for_status()
 
-            # Returns list of ProductInventory
-            # Handle pagination headers if needed, but for now return parsed body.
-            # Body itself is a list? Doc says "Response body parameters (JSON)" lists fields like href, id...
-            # Usually "Retrieves a list" implies a JSON array.
             data = response.json()
             if isinstance(data, list):
                 result = [ProductInventory.model_validate(item) for item in data]
@@ -4719,11 +4602,7 @@ class Api(object):
                 raise MissingParameterError("product inventory id is required")
 
             response = self._session.delete(
-                url=f"{self.url}/api/sn_prd_invt/order/product/{sys_id}",  # Doc says /api/sn_prd_invt/order/product/{id} AND /api/sn_prd_invt/product/{id} in example?
-                # "Product Inventory Open API – DELETE /sn_prd_invt/order/product/{id}" -> Header
-                # "Default URL: /api/sn_prd_invt/order/product/{id}"
-                # "cURL request ... DELETE ... /api/sn_prd_invt/product/..." -> Example URL is different!
-                # I will trust the Default URL header: /api/sn_prd_invt/order/product/{id}
+                url=f"{self.url}/api/sn_prd_invt/order/product/{sys_id}",
                 headers=self.headers,
                 verify=self.verify,
                 proxies=self.proxies,

@@ -15,6 +15,5 @@ def test_create_standard_change_request(api_client):
     We will attempt a basic normal change creation IF feasible, or just list models.
     For now, let's just stick to listing as creation can be complex without valid dependent data (like CI items).
     """
-    # Just testing we can hit the endpoint for now
     response = api_client.get_change_request_models(sysparm_limit=1)
     assert response.result is not None
