@@ -39,7 +39,7 @@ from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
 
-__version__ = "1.6.7"
+__version__ = "1.6.8"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -558,15 +558,41 @@ def create_agent(
                 f"Loaded specialized skills for {tag} from {specific_skill_path}"
             )
 
-        child_agent = Agent(
-            name=agent_name,
-            system_prompt=system_prompt,
+        # Collect tool names for logging
+        all_tool_names = []
+        for ts in tag_toolsets:
+            try:
+                # Unwrap FilteredToolset
+                current_ts = ts
+                while hasattr(current_ts, "wrapped"):
+                    current_ts = current_ts.wrapped
+
+                # Check for .tools (e.g. SkillsToolset)
+                if hasattr(current_ts, "tools") and isinstance(current_ts.tools, dict):
+                    all_tool_names.extend(current_ts.tools.keys())
+                # Check for ._tools (some implementations might use private attr)
+                elif hasattr(current_ts, "_tools") and isinstance(
+                    current_ts._tools, dict
+                ):
+                    all_tool_names.extend(current_ts._tools.keys())
+                else:
+                    # Fallback for MCP or others where tools are not available sync
+                    all_tool_names.append(f"<{type(current_ts).__name__}>")
+            except Exception as e:
+                logger.info(f"Unable to retrieve toolset: {e}")
+                pass
+
+        tool_list_str = ", ".join(all_tool_names)
+        logger.info(f"Available tools for {agent_name} ({tag}): {tool_list_str}")
+        agent = Agent(
             model=model,
-            model_settings=settings,
+            system_prompt=system_prompt,
+            name=agent_name,
             toolsets=tag_toolsets,
             tool_timeout=DEFAULT_TOOL_TIMEOUT,
+            model_settings=settings,
         )
-        child_agents[tag] = child_agent
+        child_agents[tag] = agent
 
     supervisor = Agent(
         name=AGENT_NAME,
@@ -873,7 +899,6 @@ def create_agent_server(
         mcp_config=mcp_config,
         skills_directory=skills_directory,
         ssl_verify=ssl_verify,
-        timeout=DEFAULT_TIMEOUT,
     )
 
     if skills_directory and os.path.exists(skills_directory):
