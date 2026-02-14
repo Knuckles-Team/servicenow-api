@@ -9,6 +9,8 @@ __pycache__/
 *.db
 *.wal
 
+/.ruff_cache/
+/mcp/
 # C extensions
 *.so
 

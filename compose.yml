@@ -18,7 +18,9 @@ services:
     restart: always
     env_file:
       - .env
+
     environment:
+      - "PYTHONUNBUFFERED=1"
       - HOST=0.0.0.0
       - PORT=8004
       - TRANSPORT=streamable-http
@@ -74,7 +76,9 @@ services:
     restart: always
     env_file:
       - .env
+
     environment:
+      - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"
       - "PORT=9004"
       - "MCP_URL=http://servicenow-mcp:8004/mcp"
