@@ -7,8 +7,10 @@ Dockerfile
 .pre-commit-config.yaml
 pytest.ini
 ./tests/
+
 Dockerfile
 debug.Dockerfile
+compose.yml
 ./scripts/
 ./mcp/
 ./build/
