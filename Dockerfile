@@ -68,6 +68,7 @@ ENV HOST=${HOST} \
     EUNOMIA_TYPE=${EUNOMIA_TYPE} \
     EUNOMIA_POLICY_FILE=${EUNOMIA_POLICY_FILE} \
     EUNOMIA_REMOTE_URL=${EUNOMIA_REMOTE_URL} \
+    PYTHONUNBUFFERED=1 \
     OPENAPI_FILE=${OPENAPI_FILE} \
     PATH="/root/.local/bin:${PATH}" \
     UV_HTTP_TIMEOUT=3600 \
@@ -77,6 +78,6 @@ ENV HOST=${HOST} \
 RUN apt-get update \
    && apt-get install -y curl nano \
    && curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.6.8
+    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.6.9
 
 CMD ["servicenow-mcp"]
