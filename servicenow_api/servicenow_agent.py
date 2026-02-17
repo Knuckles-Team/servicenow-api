@@ -39,7 +39,7 @@ from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
 
-__version__ = "1.6.10"
+__version__ = "1.6.11"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,7 +60,7 @@ DEFAULT_LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://host.docker.internal:12
 DEFAULT_LLM_API_KEY = os.getenv("LLM_API_KEY", "ollama")
 DEFAULT_MCP_URL = os.getenv("MCP_URL", None)
 DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", get_mcp_config_path())
-DEFAULT_SKILLS_DIRECTORY = os.getenv("SKILLS_DIRECTORY", get_skills_path())
+DEFAULT_CUSTOM_SKILLS_DIRECTORY = os.getenv("CUSTOM_SKILLS_DIRECTORY", None)
 DEFAULT_ENABLE_WEB_UI = to_boolean(os.getenv("ENABLE_WEB_UI", "False"))
 DEFAULT_SSL_VERIFY = to_boolean(os.getenv("SSL_VERIFY", "True"))
 
@@ -416,7 +416,7 @@ def create_agent(
     api_key: Optional[str] = DEFAULT_LLM_API_KEY,
     mcp_url: str = DEFAULT_MCP_URL,
     mcp_config: str = DEFAULT_MCP_CONFIG,
-    skills_directory: Optional[str] = DEFAULT_SKILLS_DIRECTORY,
+    custom_skills_directory: Optional[str] = DEFAULT_CUSTOM_SKILLS_DIRECTORY,
     ssl_verify: bool = DEFAULT_SSL_VERIFY,
 ) -> Agent:
     """
@@ -547,15 +547,22 @@ def create_agent(
                 pass
 
         skill_dir_name = f"servicenow-{tag.replace('_', '-')}"
-        specific_skill_path = None
-        if skills_directory:
-            specific_skill_path = os.path.join(skills_directory, skill_dir_name)
 
-        if specific_skill_path and os.path.exists(specific_skill_path):
-            skills = SkillsToolset(directories=[str(specific_skill_path)])
-            tag_toolsets.append(skills)
+        # Check custom skills directory
+        if custom_skills_directory:
+            skill_dir_path = os.path.join(custom_skills_directory, skill_dir_name)
+            if os.path.exists(skill_dir_path):
+                tag_toolsets.append(SkillsToolset(directories=[skill_dir_path]))
+                logger.info(
+                    f"Loaded specialized skills for {tag} from {skill_dir_path}"
+                )
+
+        # Check default skills directory
+        default_skill_path = os.path.join(get_skills_path(), skill_dir_name)
+        if os.path.exists(default_skill_path):
+            tag_toolsets.append(SkillsToolset(directories=[default_skill_path]))
             logger.info(
-                f"Loaded specialized skills for {tag} from {specific_skill_path}"
+                f"Loaded specialized skills for {tag} from {default_skill_path}"
             )
 
         # Collect tool names for logging
@@ -880,7 +887,7 @@ def create_agent_server(
     api_key: Optional[str] = DEFAULT_LLM_API_KEY,
     mcp_url: str = DEFAULT_MCP_URL,
     mcp_config: str = DEFAULT_MCP_CONFIG,
-    skills_directory: Optional[str] = DEFAULT_SKILLS_DIRECTORY,
+    custom_skills_directory: Optional[str] = DEFAULT_CUSTOM_SKILLS_DIRECTORY,
     debug: Optional[bool] = DEFAULT_DEBUG,
     host: Optional[str] = DEFAULT_HOST,
     port: Optional[int] = DEFAULT_PORT,
@@ -897,14 +904,30 @@ def create_agent_server(
         api_key=api_key,
         mcp_url=mcp_url,
         mcp_config=mcp_config,
-        skills_directory=skills_directory,
+        custom_skills_directory=custom_skills_directory,
         ssl_verify=ssl_verify,
     )
 
-    if skills_directory and os.path.exists(skills_directory):
-        skills = load_skills_from_directory(skills_directory)
-        logger.info(f"Loaded {len(skills)} skills from {skills_directory}")
-    else:
+    # Always load default skills
+
+    skills = load_skills_from_directory(get_skills_path())
+
+    logger.info(f"Loaded {len(skills)} default skills from {get_skills_path()}")
+
+    # Load custom skills if provided
+
+    if custom_skills_directory and os.path.exists(custom_skills_directory):
+
+        custom_skills = load_skills_from_directory(custom_skills_directory)
+
+        skills.extend(custom_skills)
+
+        logger.info(
+            f"Loaded {len(custom_skills)} custom skills from {custom_skills_directory}"
+        )
+
+    if not skills:
+
         skills = [
             Skill(
                 id="servicenow_agent",
@@ -1031,6 +1054,11 @@ def agent_server():
     parser.add_argument(
         "--mcp-config", default=DEFAULT_MCP_CONFIG, help="MCP Server Config"
     )
+    parser.add_argument(
+        "--custom-skills-directory",
+        default=DEFAULT_CUSTOM_SKILLS_DIRECTORY,
+        help="Directory containing additional custom agent skills",
+    )
     parser.add_argument("--help", action="store_true", help="Show usage")
 
     args = parser.parse_args()
@@ -1065,6 +1093,7 @@ def agent_server():
         api_key=args.api_key,
         mcp_url=args.mcp_url,
         mcp_config=args.mcp_config,
+        custom_skills_directory=args.custom_skills_directory,
         debug=args.debug,
         host=args.host,
         port=args.port,
@@ -1088,10 +1117,11 @@ def usage():
         "--api-key       [ LLM API Key ]\n"
         "--mcp-url       [ MCP Server URL ]\n"
         "--mcp-config    [ MCP Server Config ]\n"
+        "--custom-skills-directory    [ Directory containing additional custom agent skills ]\n"
         "\n"
         "Examples:\n"
         "  [Simple]  servicenow-agent \n"
-        '  [Complex] servicenow-agent --host "value" --port "value" --web --debug "value" --reload --provider "value" --model-id "value" --base-url "value" --api-key "value" --mcp-url "value" --mcp-config "value"\n'
+        '  [Complex] servicenow-agent --host "value" --port "value" --web --debug "value" --reload --provider "value" --model-id "value" --base-url "value" --api-key "value" --mcp-url "value" --mcp-config "value" --custom-skills-directory "value"\n'
     )
 
 
