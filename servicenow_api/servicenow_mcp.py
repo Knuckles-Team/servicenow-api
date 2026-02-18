@@ -30,7 +30,7 @@ from servicenow_api.servicenow_models import Response
 from servicenow_api.utils import to_integer, to_boolean
 from servicenow_api.middlewares import UserTokenMiddleware, JWTClaimsLoggingMiddleware
 
-__version__ = "1.6.12"
+__version__ = "1.6.13"
 
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.6.12"
+version = "1.6.13"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -31,7 +31,7 @@ mcp = [
 ]
 
 a2a = [
-    "pydantic-ai-slim[fastmcp,openai,anthropic,groq,mistral,google,huggingface,a2a,ag-ui,web]>=1.58.0",
+    "pydantic-ai-slim[fastmcp,openai,groq,anthropic,mistral,google,huggingface,a2a,ag-ui,web]>=1.60.0",
     "pydantic-ai-skills>=v0.4.0",
     "fastapi>=0.128.0"
 ]
@@ -39,7 +39,7 @@ a2a = [
 all = [
     "fastmcp>=3.0.0b1",
     "eunomia-mcp>=0.3.10",
-    "pydantic-ai-slim[fastmcp,openai,anthropic,groq,mistral,google,huggingface,a2a,ag-ui,web]>=1.58.0",
+    "pydantic-ai-slim[fastmcp,openai,groq,anthropic,mistral,google,huggingface,a2a,ag-ui,web]>=1.60.0",
     "pydantic-ai-skills>=v0.4.0",
     "fastapi>=0.128.0"
 ]
