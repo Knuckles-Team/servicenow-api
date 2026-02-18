@@ -1,10 +1,10 @@
 ---
 services:
   servicenow-mcp:
-    image: docker.io/knucklessg1/servicenow:latest
-    # build:
-    #   context: . # Debug
-    #   dockerfile: debug.Dockerfile
+    # image: docker.io/knucklessg1/servicenow:latest
+    build:
+     context: . # Debug
+     dockerfile: debug.Dockerfile
     container_name: servicenow-mcp
     hostname: servicenow-mcp
     command: [ "servicenow-mcp" ]
@@ -18,15 +18,14 @@ services:
     restart: always
     env_file:
       - .env
-
     environment:
       - "PYTHONUNBUFFERED=1"
-      - HOST=0.0.0.0
-      - PORT=8004
-      - TRANSPORT=streamable-http
-      - SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}
-      - SERVICENOW_USERNAME=${SERVICENOW_USERNAME}
-      - SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}
+      - "HOST=0.0.0.0"
+      - "PORT=8004"
+      - "TRANSPORT=streamable-http"
+      - "SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}"
+      - "SERVICENOW_USERNAME=${SERVICENOW_USERNAME}"
+      - "SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}"
       # - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
       # - SERVICENOW_USERNAME=user
       # - SERVICENOW_PASSWORD=pass
@@ -57,10 +56,10 @@ services:
       start_period: 10s
 
   servicenow-agent:
-    image: docker.io/knucklessg1/servicenow:latest
-    # build:
-    #   context: . # Debug
-    #   dockerfile: debug.Dockerfile
+    # image: docker.io/knucklessg1/servicenow:latest
+    build:
+      context: . # Debug
+      dockerfile: debug.Dockerfile
     container_name: servicenow-agent
     hostname: servicenow-agent
     command: [ "servicenow-agent" ]
@@ -76,7 +75,6 @@ services:
     restart: always
     env_file:
       - .env
-
     environment:
       - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"

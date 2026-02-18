@@ -11,7 +11,6 @@ from typing import Union, List, Any, Optional
 import json
 from importlib.resources import files, as_file
 from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.huggingface import HuggingFaceModel
 from pydantic_ai.models.groq import GroqModel
@@ -19,7 +18,6 @@ from pydantic_ai.models.mistral import MistralModel
 from fasta2a import Skill
 
 try:
-
     from openai import AsyncOpenAI
     from pydantic_ai.providers.openai import OpenAIProvider
 except ImportError:
@@ -41,9 +39,11 @@ except ImportError:
     MistralProvider = None
 
 try:
+    from pydantic_ai.models.anthropic import AnthropicModel
     from anthropic import AsyncAnthropic
     from pydantic_ai.providers.anthropic import AnthropicProvider
 except ImportError:
+    AnthropicModel = None
     AsyncAnthropic = None
     AnthropicProvider = None
 
