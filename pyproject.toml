@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.6.14"
+version = "1.6.15"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -18,6 +18,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "tree-sitter>=0.23.2",
     "requests>=2.8.1",
     "urllib3>=2.2.2",
     "pydantic[email]>=2.8.2",

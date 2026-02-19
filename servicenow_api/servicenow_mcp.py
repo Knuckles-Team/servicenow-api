@@ -33,7 +33,7 @@ from servicenow_api.middlewares import (
     get_client,
 )
 
-__version__ = "1.6.14"
+__version__ = "1.6.15"
 
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
