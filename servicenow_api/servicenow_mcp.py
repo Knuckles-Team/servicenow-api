@@ -25,12 +25,15 @@ from fastmcp.server.middleware.timing import TimingMiddleware
 from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.utilities.logging import get_logger
-from servicenow_api.servicenow_api import Api
 from servicenow_api.servicenow_models import Response
 from servicenow_api.utils import to_integer, to_boolean
-from servicenow_api.middlewares import UserTokenMiddleware, JWTClaimsLoggingMiddleware
+from servicenow_api.middlewares import (
+    UserTokenMiddleware,
+    JWTClaimsLoggingMiddleware,
+    get_client,
+)
 
-__version__ = "1.6.13"
+__version__ = "1.6.14"
 
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
@@ -54,67 +57,13 @@ config = {
 DEFAULT_TRANSPORT = os.getenv("TRANSPORT", "stdio")
 DEFAULT_HOST = os.getenv("HOST", "0.0.0.0")
 DEFAULT_PORT = to_integer(string=os.getenv("PORT", "8000"))
-
-
-def get_client() -> Api:
-    """
-    Single entry point for ServiceNow clients.
-
-    Auto-detects auth method:
-    1. Delegation → Exchanges MCP token
-    2. Basic auth → username/password (env fallback)
-    """
-    instance = os.getenv("SERVICENOW_INSTANCE")
-    if not instance:
-        raise RuntimeError("SERVICENOW_INSTANCE not set")
-
-    verify = True
-
-    mcp_token = getattr(local, "user_token", None)
-
-    if config.get("enable_delegation", False) and mcp_token:
-        logger.info("Delegating MCP token to ServiceNow")
-        exchange_data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "subject_token": mcp_token,
-            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "audience": config["audience"],
-            "scope": config["delegated_scopes"],
-        }
-        try:
-            resp = requests.post(
-                config["token_endpoint"],
-                data=exchange_data,
-                auth=(config["oidc_client_id"], config["oidc_client_secret"]),
-                verify=verify,
-            )
-            resp.raise_for_status()
-            sn_token = resp.json()["access_token"]
-            return Api(url=instance, token=sn_token, verify=verify)
-        except Exception as e:
-            print(f"Delegation failed: {e}")
-            logger.error("Delegation failed", extra={"error": str(e)})
-            raise
-
-    username = os.getenv("SERVICENOW_USERNAME")
-    password = os.getenv("SERVICENOW_PASSWORD")
-    client_id = os.getenv("SERVICENOW_CLIENT_ID")
-    client_secret = os.getenv("SERVICENOW_CLIENT_SECRET")
-
-    if username or password:
-        return Api(
-            url=instance,
-            username=username,
-            password=password,
-            client_id=client_id,
-            client_secret=client_secret,
-            verify=verify,
-        )
-
-    raise ValueError(
-        "No auth method: Provide token, enable delegation, or set SERVICENOW_USERNAME/PASSWORD"
-    )
+DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
+DEFAULT_SERVICENOW_PASSWORD = os.getenv("SERVICENOW_PASSWORD", None)
+DEFAULT_SERVICENOW_CLIENT_ID = os.getenv("SERVICENOW_CLIENT_ID", None)
+DEFAULT_SERVICENOW_CLIENT_SECRET = os.getenv("SERVICENOW_CLIENT_SECRET", None)
+DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
+    string=os.getenv("SERVICENOW_SSL_VERIFY", "True")
+)
 
 
 def register_tools(mcp: FastMCP):
