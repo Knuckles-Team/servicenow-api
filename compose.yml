@@ -26,12 +26,12 @@ services:
       - "SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}"
       - "SERVICENOW_USERNAME=${SERVICENOW_USERNAME}"
       - "SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}"
+      - "SERVICENOW_SSL_VERIFY=${SERVICENOW_SSL_VERIFY:-True}"
       # - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
       # - SERVICENOW_USERNAME=user
       # - SERVICENOW_PASSWORD=pass
       # - SERVICENOW_CLIENT_ID=client_id # Optional
       # - SERVICENOW_CLIENT_SECRET=client_secret # Optional
-      # - SERVICENOW_VERIFY=False # Optional
       #      - AUTH_TYPE=oidc-proxy # Optional
       #      - OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration # Optional
       #      - OIDC_CLIENT_ID=your-client-id # Optional
