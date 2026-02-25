@@ -1,6 +1,7 @@
 ---
 name: servicenow-testing
 description: Manages ServiceNow testing. Use for running test suites. Triggers - ATF, automated tests.
+tags: [testing]
 ---
 
 ### Overview

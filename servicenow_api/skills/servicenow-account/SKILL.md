@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Account
+name: servicenow-account
 description: Capabilities for managing CSM Accounts in ServiceNow.
+tags: [account]
 ---
 
 # ServiceNow Account

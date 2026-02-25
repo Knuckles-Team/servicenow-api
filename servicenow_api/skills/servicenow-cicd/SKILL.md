@@ -1,6 +1,7 @@
 ---
 name: servicenow-cicd
 description: Manages ServiceNow CI/CD. Use for batches, scans, installs, publishes. Triggers - deployments, testing, pipelines.
+tags: [cicd]
 ---
 
 ### Overview

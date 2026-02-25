@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Activity Subscriptions
+name: servicenow-activity-subscriptions
 description: Capabilities for managing activity subscriptions in ServiceNow.
+tags: [activity-subscriptions]
 ---
 
 # ServiceNow Activity Subscriptions

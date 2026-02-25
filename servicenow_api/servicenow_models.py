@@ -8,7 +8,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from servicenow_api.exceptions import (
+from agent_utilities.exceptions import (
     ParameterError,
 )
 

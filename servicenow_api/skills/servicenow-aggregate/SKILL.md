@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Aggregate
+name: servicenow-aggregate
 description: Capabilities for computing aggregate statistics on ServiceNow tables.
+tags: [aggregate]
 ---
 
 # ServiceNow Aggregate

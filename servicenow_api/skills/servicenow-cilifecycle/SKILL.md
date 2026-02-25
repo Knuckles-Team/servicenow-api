@@ -1,6 +1,7 @@
 ---
 name: servicenow-cilifecycle
 description: Manages CI Lifecycle Management in ServiceNow. Use for checking compatibility of CI actions and registering operators.
+tags: [cilifecycle]
 ---
 
 ### Overview

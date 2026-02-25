@@ -1,6 +1,7 @@
 ---
 name: servicenow-custom-api
 description: Handles custom ServiceNow API requests. Use for uncategorized endpoints. Triggers - advanced calls.
+tags: [custom-api]
 ---
 
 ### Overview

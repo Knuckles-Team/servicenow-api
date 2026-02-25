@@ -1,6 +1,7 @@
 ---
 name: servicenow-plugins
 description: Manages ServiceNow plugins. Use for activating/rolling back plugins. Triggers - extensions, activations.
+tags: [plugins]
 ---
 
 ### Overview

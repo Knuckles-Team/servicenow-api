@@ -1,6 +1,7 @@
 ---
 name: servicenow-table-api
 description: Manages ServiceNow tables. Use for CRUD on any table. Triggers - generic data ops.
+tags: [table-api]
 ---
 
 ### Overview

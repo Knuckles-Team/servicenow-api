@@ -1,6 +1,7 @@
 ---
-name: ServiceNow PPM
+name: servicenow-ppm
 description: Manage Project Portfolio Management cost plans and project tasks.
+tags: [ppm]
 ---
 
 # Project Portfolio Management (PPM)

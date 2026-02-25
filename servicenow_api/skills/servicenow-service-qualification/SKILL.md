@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Service Qualification
+name: servicenow-service-qualification
 description: Validates technical service availability and eligibility.
+tags: [service-qualification]
 ---
 
 # Service Qualification

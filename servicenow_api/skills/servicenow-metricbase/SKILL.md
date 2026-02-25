@@ -1,6 +1,7 @@
 ---
-name: ServiceNow MetricBase
+name: servicenow-metricbase
 description: Capabilities for interacting with ServiceNow MetricBase for time series data.
+tags: [metricbase]
 ---
 
 # ServiceNow MetricBase

@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Product Inventory
+name: servicenow-product-inventory
 description: Manage and query product inventory.
+tags: [product-inventory]
 ---
 
 # Product Inventory

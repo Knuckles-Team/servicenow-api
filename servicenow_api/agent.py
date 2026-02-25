@@ -85,7 +85,7 @@ def agent_server():
         ssl_verify=not args.insecure,
         name=DEFAULT_AGENT_NAME,
         system_prompt=DEFAULT_AGENT_SYSTEM_PROMPT,
-        agent_defs=CHILD_AGENT_DEFS if CHILD_AGENT_DEFS else None,
+        agent_definitions=CHILD_AGENT_DEFS if CHILD_AGENT_DEFS else None,
     )
 
 

@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_get_change_request_models(api_client):
     """Test retrieving change request models."""
     response = api_client.get_change_request_models(sysparm_limit=5)

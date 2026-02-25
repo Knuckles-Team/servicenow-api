@@ -1,6 +1,7 @@
 ---
-name: ServiceNow HR
+name: servicenow-hr
 description: Capabilities for retrieving HR Profile information in ServiceNow.
+tags: [hr]
 ---
 
 # ServiceNow HR

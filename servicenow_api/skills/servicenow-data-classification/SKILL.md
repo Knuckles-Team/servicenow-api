@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Data Classification
+name: servicenow-data-classification
 description: Capabilities for managing data classifications in ServiceNow.
+tags: [data-classification]
 ---
 
 # ServiceNow Data Classification
