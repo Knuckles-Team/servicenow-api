@@ -54,8 +54,8 @@ from servicenow_api.servicenow_models import (
     HRProfileModel,
     MetricBaseTimeSeriesModel,
 )
-from servicenow_api.decorators import require_auth
-from servicenow_api.exceptions import (
+from agent_utilities.decorators import require_auth
+from agent_utilities.exceptions import (
     AuthError,
     UnauthorizedError,
     ParameterError,

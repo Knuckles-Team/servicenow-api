@@ -1,6 +1,7 @@
 ---
 name: servicenow-devops
 description: Manages DevOps integration in ServiceNow. Use for checking change control and registering artifacts.
+tags: [devops]
 ---
 
 ### Overview

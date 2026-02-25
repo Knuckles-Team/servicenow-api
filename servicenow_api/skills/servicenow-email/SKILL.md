@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Email
+name: servicenow-email
 description: Capabilities for sending and retrieving emails in ServiceNow.
+tags: [email]
 ---
 
 # ServiceNow Email

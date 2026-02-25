@@ -8,7 +8,11 @@ You are running a scheduled heartbeat. Perform these checks and report results c
 2. **Memory Review** — Read `MEMORY.md` and check for any pending follow-up tasks or action items. List any that are overdue.
 3. **Cron Log** — Read `CRON_LOG.md` and check for recent errors (❌). Summarize any failures from the last 24 hours.
 4. **Peer Agents** — Read `AGENTS.md` and note if any registered peers need attention.
-5. **Self-Diagnostics** — Report your current model, available tool count, and any anomalies.
+5. **Domain-Specific Checks**:
+   - **Check Incidents**: Identify any unassigned or high-priority incidents created in the last 24 hours.
+   - **Change Requests**: Check for pending change requests that require approval or review.
+   - **SLA Breaches**: Identify any incidents or tasks approaching SLA breaches.
+6. **Self-Diagnostics** — Report your current model, available tool count, and any anomalies.
 
 ## Response Format
 

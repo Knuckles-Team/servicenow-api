@@ -10,13 +10,11 @@ __all__: List[str] = []
 CORE_MODULES = [
     "servicenow_api.servicenow_api",
     "servicenow_api.servicenow_models",
-    "servicenow_api.decorators",
-    "servicenow_api.exceptions",
 ]
 
 OPTIONAL_MODULES = {
-    "servicenow_api.servicenow_agent": "a2a",
-    "servicenow_api.servicenow_mcp": "mcp",
+    "servicenow_api.agent": "agent_server",
+    "servicenow_api.mcp": "mcp_server",
 }
 
 
@@ -50,12 +48,12 @@ for module_name, extra_name in OPTIONAL_MODULES.items():
     else:
         globals()[f"_{extra_name.upper()}_AVAILABLE"] = False
 
-_MCP_AVAILABLE = OPTIONAL_MODULES.get("servicenow_api.servicenow_mcp") in [
+_MCP_AVAILABLE = OPTIONAL_MODULES.get("servicenow_api.mcp") in [
     m.__name__ for m in globals().values() if hasattr(m, "__name__")
 ]
-_A2A_AVAILABLE = "servicenow_api.servicenow_agent" in globals()
+_AGENT_AVAILABLE = "servicenow_api.agent" in globals()
 
-__all__.extend(["_MCP_AVAILABLE", "_A2A_AVAILABLE"])
+__all__.extend(["_MCP_AVAILABLE", "_AGENT_AVAILABLE"])
 
 
 """

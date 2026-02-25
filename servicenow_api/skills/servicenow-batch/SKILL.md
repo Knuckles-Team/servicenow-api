@@ -1,6 +1,7 @@
 ---
 name: servicenow-batch
 description: Manages batch requests in ServiceNow. Use for sending multiple REST API requests in a single call.
+tags: [batch]
 ---
 
 ### Overview

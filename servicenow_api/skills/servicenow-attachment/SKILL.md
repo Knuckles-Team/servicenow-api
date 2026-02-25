@@ -1,6 +1,7 @@
 ---
-name: ServiceNow Attachment
+name: servicenow-attachment
 description: Capabilities for managing attachments in ServiceNow.
+tags: [attachment]
 ---
 
 # ServiceNow Attachment

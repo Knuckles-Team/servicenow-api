@@ -1,6 +1,7 @@
 ---
 name: servicenow-change-management
 description: "Manages ServiceNow Change Requests (CRs). Use this skill to create, read, update, and delete CRs, tasks, and models, and to manage conflicts, schedules, and approvals."
+tags: [change-management]
 ---
 
 ### Overview
