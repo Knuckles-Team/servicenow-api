@@ -12,7 +12,7 @@ from agent_utilities import (
 from agent_utilities.agent_utilities import create_agent_parser, get_mcp_config_path
 from agent_utilities.base_utilities import to_integer, to_boolean
 
-__version__ = "1.6.17"
+__version__ = "1.6.18"
 
 logging.basicConfig(
     level=logging.INFO,
