@@ -36,7 +36,7 @@ from agent_utilities.middlewares import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.21"
+__version__ = "1.6.22"
 
 logger = get_logger(name="TokenMiddleware")
 logger.setLevel(logging.DEBUG)
