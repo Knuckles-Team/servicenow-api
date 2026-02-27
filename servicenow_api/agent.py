@@ -12,7 +12,7 @@ from agent_utilities import (
 from agent_utilities.agent_utilities import create_agent_parser, get_mcp_config_path
 from agent_utilities.base_utilities import to_integer, to_boolean
 
-__version__ = "1.6.19"
+__version__ = "1.6.20"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,6 +57,7 @@ DEFAULT_MCP_URL = os.getenv("MCP_URL", None)
 DEFAULT_MCP_CONFIG = os.getenv("MCP_CONFIG", get_mcp_config_path())
 DEFAULT_CUSTOM_SKILLS_DIRECTORY = os.getenv("CUSTOM_SKILLS_DIRECTORY", None)
 DEFAULT_ENABLE_WEB_UI = to_boolean(os.getenv("ENABLE_WEB_UI", "False"))
+DEFAULT_ENABLE_OTEL = to_boolean(os.getenv("ENABLE_OTEL", "False"))
 DEFAULT_SSL_VERIFY = to_boolean(os.getenv("SSL_VERIFY", "True"))
 
 
@@ -85,6 +86,7 @@ def agent_server():
         ssl_verify=not args.insecure,
         name=DEFAULT_AGENT_NAME,
         system_prompt=DEFAULT_AGENT_SYSTEM_PROMPT,
+        enable_otel=args.otel,
         agent_definitions=CHILD_AGENT_DEFS if CHILD_AGENT_DEFS else None,
     )
 
