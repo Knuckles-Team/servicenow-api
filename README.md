@@ -72,6 +72,7 @@ Contributions are welcome!
 - Incident
 - Knowledge Base
 - Table
+- Flow Designer
 - Custom Endpoint
 
 If your API call isn't supported, you can use the `api_request` tool to perform GET/POST/PUT/DELETE requests to any ServiceNow endpoint.
@@ -175,6 +176,7 @@ All the available API Calls above are wrapped in MCP Tools. You can find those b
 | insert_project_tasks                       | Creates a project and associated project tasks.                                                                            | ppm                    |
 | get_product_inventory                      | Retrieves a list of all product inventories.                                                                               | product_inventory      |
 | delete_product_inventory                   | Deletes a specified product inventory record.                                                                              | product_inventory      |
+| workflow_to_mermaid                       | Generates a unified Mermaid diagram + rich Markdown report for multiple ServiceNow flows.                                   | flows                  |
 
 ## A2A Agent
 
