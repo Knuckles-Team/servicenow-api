@@ -1,12 +1,16 @@
 #!/usr/bin/python
 # coding: utf-8
 import asyncio
+import base64
+import gzip
 import json
 import os
 import sys
 import logging
+from datetime import datetime
+from pathlib import Path
 from threading import local
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, Set
 
 import httpx
 import requests
@@ -14,7 +18,7 @@ from eunomia_mcp.middleware import EunomiaMcpMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastmcp.dependencies import Depends
-from pydantic import Field
+from pydantic import Field, BaseModel
 from fastmcp import FastMCP, Context
 from fastmcp.server.auth.oidc_proxy import OIDCProxy
 from fastmcp.server.auth import OAuthProxy, RemoteAuthProvider
@@ -50,12 +54,382 @@ DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
 )
 
 
+# ================== FLOW MODELS ==================
+class FlowNode(BaseModel):
+    id: str
+    label: str
+    type: str  # 'trigger', 'decision', 'loop', 'subflow_call', or 'action'
+    action_name: Optional[str] = None
+
+
+class FlowEdge(BaseModel):
+    from_id: str
+    to_id: str
+    label: Optional[str] = None
+
+
+class FlowGraph(BaseModel):
+    nodes: List[FlowNode]
+    edges: List[FlowEdge]
+    summary: str
+
+
+class FlowReportResult(BaseModel):
+    markdown_content: str
+    file_path: Optional[str] = None
+    summary: str
+    root_flow_sys_ids: List[str]
+
+
+# ================== FLOW HELPERS ==================
+def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
+    if not raw_values or not isinstance(raw_values, str):
+        return []
+    try:
+        if "," in raw_values and len(raw_values.split(",", 1)[0]) < 10:
+            raw_values = raw_values.split(",", 1)[1]
+        decoded_b64 = base64.b64decode(raw_values)
+        decompressed = gzip.decompress(decoded_b64).decode("utf-8")
+        parsed = json.loads(decompressed)
+        return parsed if isinstance(parsed, list) else [parsed]
+    except Exception:
+        return []
+
+
+def find_subflow_sys_id(decoded: List[Dict[str, Any]]) -> Optional[str]:
+    for item in decoded:
+        for val in item.values():
+            if (
+                isinstance(val, str)
+                and len(val) == 32
+                and all(c in "0123456789abcdefABCDEF" for c in val)
+            ):
+                return val
+    return None
+
+
+def determine_node_type(action: Dict[str, Any], decoded: List[Dict[str, Any]]) -> str:
+    action_name = action.get("name", "").lower()
+    act = action.get("action", {})
+    act_name = (act.get("display_value") or "").lower()
+
+    if (
+        "if" in action_name
+        or "if" in act_name
+        or "decision" in action_name
+        or "switch" in action_name
+    ):
+        return "decision"
+    if (
+        "for each" in action_name
+        or "for each" in act_name
+        or "do the following" in action_name
+    ):
+        return "loop"
+
+    sub = find_subflow_sys_id(decoded)
+    if sub:
+        return "subflow_call"
+
+    return "action"
+
+
+def get_flow_metadata(_client, flow_sys_id: str) -> Dict[str, Any]:
+    """Fetch rich metadata for any flow/subflow."""
+    resp = _client.get_table_record(
+        table="sys_hub_flow", table_record_sys_id=flow_sys_id
+    )
+    if not resp.response.ok:
+        return {}
+
+    flow = resp.response.json().get("result", {})
+
+    # Optional display value fetch
+    return {
+        "sys_id": flow.get("sys_id"),
+        "name": flow.get("name", "Unnamed Flow"),
+        "domain": flow.get("domain", {}).get("display_value", flow.get("domain")),
+        "scope": flow.get("sys_scope", {}).get("display_value", flow.get("sys_scope")),
+        "application": flow.get("application", {}).get("display_value", "Global"),
+        "active": str(flow.get("active", False)).lower() == "true",
+        "flow_type": flow.get("flow_type", "flow"),
+        "description": flow.get("description", ""),
+        "updated_on": flow.get("sys_updated_on"),
+        "created_on": flow.get("sys_created_on"),
+    }
+
+
+def collect_graph_for_roots(
+    _client, root_sys_ids: List[str], max_depth: int = 5
+) -> tuple[FlowGraph, Dict[str, Dict[str, Any]]]:
+    all_nodes: List[FlowNode] = []
+    all_edges: List[FlowEdge] = []
+    visited: Set[str] = set()
+    root_nodes: Dict[str, str] = {}
+    all_metadata: Dict[str, Dict[str, Any]] = {}
+
+    def recurse(
+        flow_sys_id: str, prefix: str = "", depth: int = 0, is_root: bool = False
+    ) -> Optional[str]:
+        if depth > max_depth or flow_sys_id in visited:
+            return None
+        visited.add(flow_sys_id)
+
+        # Get metadata
+        meta = get_flow_metadata(_client, flow_sys_id)
+        if not meta:
+            return None
+        all_metadata[flow_sys_id] = meta
+        flow_name = meta.get("name", "Unnamed")
+
+        # Get actions
+        actions = []
+        for tbl in ["sys_hub_action_instance_v2", "sys_hub_action_instance"]:
+            resp = _client.get_table(
+                table=tbl,
+                sysparm_query=f"flow={flow_sys_id}^ORDERBYorder",
+                sysparm_fields="sys_id,name,order,values,action",
+                sysparm_limit=500,
+            )
+            if resp.response.ok:
+                results = resp.response.json().get("result", [])
+                if results:
+                    actions = results if isinstance(results, list) else [results]
+                    break
+
+        nodes: List[FlowNode] = []
+        edges: List[FlowEdge] = []
+        prev_id: Optional[str] = None
+
+        trigger_id = f"{prefix}trigger_{flow_sys_id[:8]}"
+        label = f"ROOT: {flow_name}" if is_root else f"Subflow: {flow_name}"
+        nodes.append(FlowNode(id=trigger_id, label=label, type="trigger"))
+        prev_id = trigger_id
+        if is_root:
+            root_nodes[flow_sys_id] = trigger_id
+
+        for action in actions:
+            act_id = f"{prefix}{action.get('sys_id', '')}"
+            decoded = decode_values(action.get("values"))
+            node_type = determine_node_type(action, decoded)
+            label = action.get("name", "Step")
+
+            nodes.append(
+                FlowNode(
+                    id=act_id,
+                    label=label,
+                    type=node_type,
+                    action_name=action.get("name"),
+                )
+            )
+
+            if prev_id:
+                edges.append(FlowEdge(from_id=prev_id, to_id=act_id))
+
+            sub_id = find_subflow_sys_id(decoded)
+            if sub_id:
+                sub_trigger = recurse(
+                    sub_id, f"sub_{sub_id[:8]}_", depth + 1, is_root=False
+                )
+                if sub_trigger:
+                    edges.append(
+                        FlowEdge(from_id=act_id, to_id=sub_trigger, label="calls")
+                    )
+
+            if node_type == "decision" and len(edges) > 0:
+                edges[-1].label = "condition"
+
+            prev_id = act_id
+
+        all_nodes.extend(nodes)
+        all_edges.extend(edges)
+        return trigger_id
+
+    for root_id in root_sys_ids:
+        recurse(root_id, prefix=f"root_{root_id[:8]}_", depth=0, is_root=True)
+
+    return (
+        FlowGraph(
+            nodes=all_nodes,
+            edges=all_edges,
+            summary=f"{len(root_sys_ids)} root flows + subflows",
+        ),
+        all_metadata,
+    )
+
+
+def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
+    lines = ["flowchart TD"]
+
+    for root_id in root_sys_ids:
+        root_prefix = f"root_{root_id[:8]}_"
+        lines.append(f'    subgraph "ROOT FLOW: {root_id}"')
+
+        for node in graph.nodes:
+            if (
+                node.id.startswith(root_prefix)
+                or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
+            ):
+                shape_map = {
+                    "trigger": f"(( {node.label} ))",
+                    "decision": f"{{{{ {node.label} }}}}",
+                    "loop": f"[/ {node.label} /]",
+                    "subflow_call": f"[ [ {node.label} ] ]",
+                }
+                shape = shape_map.get(node.type, f"[ {node.label} ]")
+                lines.append(f"        {node.id}{shape}")
+
+        lines.append("    end")
+
+    for edge in graph.edges:
+        label = f" |{edge.label}|" if edge.label else ""
+        lines.append(f"    {edge.from_id} -->{label} {edge.to_id}")
+
+    return "\\n".join(lines)
+
+
+def build_polished_markdown(
+    graph: FlowGraph,
+    metadata: Dict[str, Dict[str, Any]],
+    root_sys_ids: List[str],
+    mermaid_code: str,
+) -> str:
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    md = f"""# ServiceNow Flow Relationship Report
+**Generated:** {now}
+**Root Flows Analyzed:** {len(root_sys_ids)}
+
+## Executive Summary
+Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows and cross-relationships.
+
+## Root Flows Overview
+| Name | Sys ID | Domain | Scope / Application | Active | Flow Type | Last Updated |
+|------|--------|--------|---------------------|--------|-----------|--------------|
+"""
+    for rid in root_sys_ids:
+        m = metadata.get(rid, {})
+        md += f"| {m.get('name')} | `{rid}` | {m.get('domain')} | {m.get('scope')} / {m.get('application')} | {m.get('active')} | {m.get('flow_type')} | {m.get('updated_on')} |\n"
+
+    md += """
+## All Flows & Subflows (including nested)
+| Name | Sys ID | Domain | Scope | Active | Description |
+|------|--------|--------|-------|--------|-------------|
+"""
+    for sid, m in metadata.items():
+        md += f"| {m.get('name')} | `{sid}` | {m.get('domain')} | {m.get('scope')} | {m.get('active')} | {m.get('description', '')[:80]}... |\n"
+
+    md += f"""
+## Unified Flow Diagram
+```mermaid
+{mermaid_code}
+```
+
+*Tip: Copy the code block above into [mermaid.live](https://mermaid.live) or any Markdown viewer that supports Mermaid.*
+
+## Generation Notes
+- Subflows are expanded and deduplicated (appear only once).
+- Cross-flow "calls" relationships are shown.
+- Branching/conditions approximated from action names.
+- Max recursion depth: 5 (prevents infinite loops).
+
+---
+*Report generated via ServiceNow MCP Agent — {now}*
+"""
+    return md
+
+
 def register_tools(mcp: FastMCP):
     logger.info("DEBUG: Executing register_tools...")
 
     @mcp.custom_route("/health", methods=["GET"])
     async def health_check(request: Request) -> JSONResponse:
         return JSONResponse({"status": "OK"})
+
+    @mcp.tool(
+        description="Generate a UNIFIED Mermaid diagram + rich Markdown report for multiple ServiceNow flows. By default saves a polished .md file.",
+        tags={"flows"},
+    )
+    async def workflow_to_mermaid(
+        flow_identifiers: List[str] = Field(
+            ..., description="List of flow names or sys_ids"
+        ),
+        save_to_file: bool = Field(
+            True,
+            description="Default: True → saves polished .md file. Set False to return Markdown as text only.",
+        ),
+        output_dir: Optional[str] = Field(
+            "./servicenow_flow_reports", description="Default folder for saved reports"
+        ),
+        mermaid_name: Optional[str] = Field("unified_flow_diagram"),
+        max_depth: Optional[int] = Field(
+            5, description="Maximum recursion depth for subflows"
+        ),
+        _client=Depends(get_client),
+    ) -> FlowReportResult:
+        """
+        Generate a unified Mermaid diagram + rich Markdown report for multiple ServiceNow flows.
+        """
+        root_sys_ids: List[str] = []
+        for ident in flow_identifiers:
+            resp = _client.get_table(
+                table="sys_hub_flow",
+                sysparm_query=f"name={ident} OR sys_id={ident}",
+                sysparm_limit="1",
+                sysparm_fields="sys_id",
+                sysparm_display_value="true",
+            )
+            if resp.response.ok:
+                results = resp.response.json().get("result", [])
+                if results:
+                    sid = (
+                        results[0].get("sys_id")
+                        if isinstance(results, list)
+                        else results.get("sys_id")
+                    )
+                    if sid:
+                        root_sys_ids.append(sid)
+
+        if not root_sys_ids:
+            return FlowReportResult(
+                markdown_content="No flows found matching your identifiers.",
+                file_path=None,
+                summary="0 flows found.",
+                root_flow_sys_ids=[],
+            )
+
+        # Build graph and metadata
+        graph, all_metadata = collect_graph_for_roots(
+            _client, root_sys_ids, max_depth=max_depth
+        )
+
+        # Generate Mermaid
+        mermaid = graph_to_mermaid_multi(graph, root_sys_ids)
+
+        # Build polished Markdown
+        markdown_content = build_polished_markdown(
+            graph, all_metadata, root_sys_ids, mermaid
+        )
+
+        file_path = None
+        if save_to_file:
+            dir_path = Path(output_dir)
+            dir_path.mkdir(parents=True, exist_ok=True)
+            filename = f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+            file_path = os.path.join(dir_path, filename)
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(markdown_content)
+
+            summary = f"✅ Report saved to: {file_path} ({len(all_metadata)} flows documented)"
+        else:
+            summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"
+
+        return FlowReportResult(
+            markdown_content=markdown_content,
+            file_path=file_path,
+            summary=summary,
+            root_flow_sys_ids=root_sys_ids,
+        )
 
     @mcp.tool(
         tags={"application"},
