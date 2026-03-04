@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # coding: utf-8
+from dotenv import load_dotenv, find_dotenv
 import asyncio
 import base64
 import gzip
@@ -41,7 +42,7 @@ from agent_utilities.middlewares import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.26"
+__version__ = "1.6.27"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -139,30 +140,36 @@ def determine_node_type(action: Dict[str, Any], decoded: List[Dict[str, Any]]) -
 def get_flow_metadata(_client, flow_sys_id: str) -> Dict[str, Any]:
     """Fetch rich metadata for any flow/subflow."""
     logger.debug(f"Fetching metadata for flow {flow_sys_id}")
-    resp = _client.get_table_record(
-        table="sys_hub_flow", table_record_sys_id=flow_sys_id
-    )
-    if not resp.response.ok:
-        logger.error(
-            f"Failed fetching metadata for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
+    try:
+        resp = _client.get_table_record(
+            table="sys_hub_flow", table_record_sys_id=flow_sys_id
         )
+        if not resp.response.ok:
+            logger.error(
+                f"Failed fetching metadata for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
+            )
+            return {}
+
+        flow = resp.response.json().get("result", {})
+
+        # Optional display value fetch
+        return {
+            "sys_id": flow.get("sys_id"),
+            "name": flow.get("name", "Unnamed Flow"),
+            "domain": flow.get("domain", {}).get("display_value", flow.get("domain")),
+            "scope": flow.get("sys_scope", {}).get(
+                "display_value", flow.get("sys_scope")
+            ),
+            "application": flow.get("application", {}).get("display_value", "Global"),
+            "active": str(flow.get("active", False)).lower() == "true",
+            "flow_type": flow.get("flow_type", "flow"),
+            "description": flow.get("description", ""),
+            "updated_on": flow.get("sys_updated_on"),
+            "created_on": flow.get("sys_created_on"),
+        }
+    except Exception as e:
+        logger.error(f"Error fetching metadata for flow {flow_sys_id}: {e}")
         return {}
-
-    flow = resp.response.json().get("result", {})
-
-    # Optional display value fetch
-    return {
-        "sys_id": flow.get("sys_id"),
-        "name": flow.get("name", "Unnamed Flow"),
-        "domain": flow.get("domain", {}).get("display_value", flow.get("domain")),
-        "scope": flow.get("sys_scope", {}).get("display_value", flow.get("sys_scope")),
-        "application": flow.get("application", {}).get("display_value", "Global"),
-        "active": str(flow.get("active", False)).lower() == "true",
-        "flow_type": flow.get("flow_type", "flow"),
-        "description": flow.get("description", ""),
-        "updated_on": flow.get("sys_updated_on"),
-        "created_on": flow.get("sys_created_on"),
-    }
 
 
 def collect_graph_for_roots(
@@ -199,8 +206,9 @@ def collect_graph_for_roots(
             resp = _client.get_table(
                 table=tbl,
                 sysparm_query=f"flow={flow_sys_id}^ORDERBYorder",
-                sysparm_fields="sys_id,name,order,values,action",
+                sysparm_fields="sys_id,name,order,values,action,action_type,comment,display_text",
                 sysparm_limit=500,
+                sysparm_display_value="true",
             )
             if resp.response.ok:
                 results = resp.response.json().get("result", [])
@@ -230,21 +238,51 @@ def collect_graph_for_roots(
             act_id = f"{prefix}{action.get('sys_id', '')}"
             decoded = decode_values(action.get("values"))
             node_type = determine_node_type(action, decoded)
-            label = action.get("name", "Step")
+
+            # Generate verbose label
+            step_name = action.get("name", "Step")
+
+            # Try to get the descriptive action type
+            action_ref = action.get("action_type", {})
+            if not action_ref:
+                action_ref = action.get("action", {})
+
+            action_type_label = (
+                action_ref.get("display_value")
+                if isinstance(action_ref, dict)
+                else action_ref
+            )
+
+            # Prioritize comment for the most specific information
+            comment = action.get("comment", "")
+
+            label = step_name
+            if comment:
+                label = f"{step_name}: {comment}"
+                if action_type_label and action_type_label.lower() != step_name.lower():
+                    label = f"{label} ({action_type_label})"
+            elif action_type_label and action_type_label.lower() != step_name.lower():
+                label = f"{step_name} ({action_type_label})"
+
+            sub_id = find_subflow_sys_id(decoded)
+            if sub_id:
+                sub_meta = get_flow_metadata(_client, sub_id)
+                if sub_meta:
+                    sub_name = sub_meta.get("name", "Unnamed Subflow")
+                    label = f"{label} -> CALL SUBFLOW: {sub_name}"
 
             nodes.append(
                 FlowNode(
                     id=act_id,
                     label=label,
                     type=node_type,
-                    action_name=action.get("name"),
+                    action_name=step_name,
                 )
             )
 
             if prev_id:
                 edges.append(FlowEdge(from_id=prev_id, to_id=act_id))
 
-            sub_id = find_subflow_sys_id(decoded)
             if sub_id:
                 sub_trigger = recurse(
                     sub_id, f"sub_{sub_id[:8]}_", depth + 1, is_root=False
@@ -329,6 +367,15 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
     return components
 
 
+def sanitize_mermaid_label(label: str) -> str:
+    """Sanitize and quote labels for Mermaid syntax."""
+    if not label:
+        return ""
+    # Remove problematic characters and escape quotes
+    sanitized = label.replace('"', "'").replace("\n", " ").replace("\r", " ")
+    return f'"{sanitized}"'
+
+
 def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
     lines = ["flowchart TD"]
 
@@ -341,13 +388,14 @@ def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
                 node.id.startswith(root_prefix)
                 or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
             ):
+                label = sanitize_mermaid_label(node.label)
                 shape_map = {
-                    "trigger": f"(( {node.label} ))",
-                    "decision": f"{{{{ {node.label} }}}}",
-                    "loop": f"[/ {node.label} /]",
-                    "subflow_call": f"[ [ {node.label} ] ]",
+                    "trigger": f"(({label}))",
+                    "decision": f"{{{{{label}}}}}",
+                    "loop": f"[/{label}/]",
+                    "subflow_call": f"[[{label}]]",
                 }
-                shape = shape_map.get(node.type, f"[ {node.label} ]")
+                shape = shape_map.get(node.type, f"[{label}]")
                 lines.append(f"        {node.id}{shape}")
 
         lines.append("    end")
@@ -355,20 +403,21 @@ def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
     # Define shapes for nodes not inside any root subgraph (e.g., shared subflow nodes)
     for node in graph.nodes:
         if not any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
+            label = sanitize_mermaid_label(node.label)
             shape_map = {
-                "trigger": f"(( {node.label} ))",
-                "decision": f"{{{{ {node.label} }}}}",
-                "loop": f"[/ {node.label} /]",
-                "subflow_call": f"[ [ {node.label} ] ]",
+                "trigger": f"(({label}))",
+                "decision": f"{{{{{label}}}}}",
+                "loop": f"[/{label}/]",
+                "subflow_call": f"[[{label}]]",
             }
-            shape = shape_map.get(node.type, f"[ {node.label} ]")
+            shape = shape_map.get(node.type, f"[{label}]")
             lines.append(f"    {node.id}{shape}")
 
     for edge in graph.edges:
         label = f" |{edge.label}|" if edge.label else ""
         lines.append(f"    {edge.from_id} -->{label} {edge.to_id}")
 
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def build_polished_markdown(
@@ -435,13 +484,16 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     return md
 
 
-def register_tools(mcp: FastMCP):
+def register_misc_tools(mcp: FastMCP):
     logger.info("DEBUG: Executing register_tools...")
 
-    @mcp.custom_route("/health", methods=["GET"])
     async def health_check(request: Request) -> JSONResponse:
         return JSONResponse({"status": "OK"})
 
+    logger.info("DEBUG: Registering get_incidents...")
+
+
+def register_flows_tools(mcp: FastMCP):
     @mcp.tool(
         description="Generate a UNIFIED Mermaid diagram + rich Markdown report for multiple ServiceNow flows. Optional: leave flow_identifiers empty to fetch ALL active flows up to 1000 limit. Unrelated flow groups are split into separate safe-to-render diagram blocks. By default saves a polished .md file.",
         tags={"flows"},
@@ -497,7 +549,7 @@ def register_tools(mcp: FastMCP):
                     logger.debug(f"Looking up sys_id for flow identifier: {ident}")
                     resp = _client.get_table(
                         table="sys_hub_flow",
-                        sysparm_query=f"name={ident} OR sys_id={ident}",
+                        sysparm_query=f"name={ident}^ORsys_id={ident}",
                         sysparm_limit="1",
                         sysparm_fields="sys_id",
                         sysparm_display_value="true",
@@ -598,6 +650,8 @@ def register_tools(mcp: FastMCP):
                 root_flow_sys_ids=[],
             )
 
+
+def register_application_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"application"},
     )
@@ -612,6 +666,8 @@ def register_tools(mcp: FastMCP):
         """
         return _client.get_application(application_id)
 
+
+def register_cmdb_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cmdb"},
     )
@@ -809,6 +865,8 @@ def register_tools(mcp: FastMCP):
             data_source_sys_id=data_source_sys_id, records=records
         )
 
+
+def register_cicd_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cicd"},
     )
@@ -1023,6 +1081,8 @@ def register_tools(mcp: FastMCP):
             suite_sys_id=suite_sys_id, sys_ids=sys_ids, scan_type=scan_type
         )
 
+
+def register_plugins_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"plugins"},
     )
@@ -1049,6 +1109,8 @@ def register_tools(mcp: FastMCP):
 
         return _client.rollback_plugin(plugin_id=plugin_id)
 
+
+def register_source_control_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"source_control"},
     )
@@ -1111,6 +1173,8 @@ def register_tools(mcp: FastMCP):
             auto_upgrade_base_app=auto_upgrade_base_app,
         )
 
+
+def register_testing_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"testing"},
     )
@@ -1150,6 +1214,8 @@ def register_tools(mcp: FastMCP):
             os_version=os_version,
         )
 
+
+def register_update_sets_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"update_sets"},
     )
@@ -1288,6 +1354,8 @@ def register_tools(mcp: FastMCP):
             update_set_id=update_set_id, rollback_installs=rollback_installs
         )
 
+
+def register_batch_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"batch"},
     )
@@ -1307,6 +1375,8 @@ def register_tools(mcp: FastMCP):
             batch_request_id=batch_request_id, rest_requests=rest_requests
         )
 
+
+def register_change_management_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"change_management"},
     )
@@ -1930,6 +2000,8 @@ def register_tools(mcp: FastMCP):
             change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
         )
 
+
+def register_cilifecycle_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"cilifecycle"},
     )
@@ -1968,6 +2040,8 @@ def register_tools(mcp: FastMCP):
         """
         return _client.unregister_ci_lifecycle_operator(req_id=req_id)
 
+
+def register_devops_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"devops"},
     )
@@ -2028,6 +2102,8 @@ def register_tools(mcp: FastMCP):
             taskExecutionNumber=taskExecutionNumber,
         )
 
+
+def register_import_sets_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"import_sets"},
     )
@@ -2082,8 +2158,8 @@ def register_tools(mcp: FastMCP):
 
         return _client.insert_multiple_import_sets(table=table, data=data)
 
-    logger.info("DEBUG: Registering get_incidents...")
 
+def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"incidents"},
     )
@@ -2180,6 +2256,8 @@ def register_tools(mcp: FastMCP):
         """
         return _client.create_incident(data=data)
 
+
+def register_knowledge_management_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"knowledge_management"},
     )
@@ -2394,6 +2472,8 @@ def register_tools(mcp: FastMCP):
             language=language,
         )
 
+
+def register_table_api_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"table_api"},
     )
@@ -2557,6 +2637,8 @@ def register_tools(mcp: FastMCP):
 
         return _client.add_table_record(table=table, data=data)
 
+
+def register_auth_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"auth"},
     )
@@ -2569,6 +2651,8 @@ def register_tools(mcp: FastMCP):
 
         return _client.refresh_auth_token()
 
+
+def register_custom_api_tools(mcp: FastMCP):
     @mcp.tool(
         tags={"custom_api"},
     )
@@ -2594,6 +2678,8 @@ def register_tools(mcp: FastMCP):
             method=method, endpoint=endpoint, data=data, json=json
         )
 
+
+def register_email_tools(mcp: FastMCP):
     @mcp.tool(tags={"email"})
     async def send_email(
         to: Union[str, List[str]] = Field(description="Recipient email addresses"),
@@ -2605,6 +2691,8 @@ def register_tools(mcp: FastMCP):
         """Sends an email via ServiceNow."""
         return _client.send_email(to=to, subject=subject, text=text, html=html)
 
+
+def register_data_classification_tools(mcp: FastMCP):
     @mcp.tool(tags={"data_classification"})
     async def get_data_classification(
         sys_id: Optional[str] = Field(
@@ -2619,6 +2707,8 @@ def register_tools(mcp: FastMCP):
             sys_id=sys_id, table_name=table_name, column_name=column_name
         )
 
+
+def register_attachment_tools(mcp: FastMCP):
     @mcp.tool(tags={"attachment"})
     async def get_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
@@ -2657,6 +2747,8 @@ def register_tools(mcp: FastMCP):
         """Deletes an attachment."""
         return _client.delete_attachment(sys_id=sys_id)
 
+
+def register_aggregate_tools(mcp: FastMCP):
     @mcp.tool(tags={"aggregate"})
     async def get_stats(
         table_name: str = Field(description="Table name to aggregate on"),
@@ -2670,6 +2762,8 @@ def register_tools(mcp: FastMCP):
             table_name=table_name, query=query, group_by=group_by, stats=stats
         )
 
+
+def register_activity_subscriptions_tools(mcp: FastMCP):
     @mcp.tool(tags={"activity_subscriptions"})
     async def get_activity_subscriptions(
         sys_id: Optional[str] = Field(
@@ -2680,6 +2774,8 @@ def register_tools(mcp: FastMCP):
         """Retrieves activity subscriptions."""
         return _client.get_activity_subscriptions(sys_id=sys_id)
 
+
+def register_account_tools(mcp: FastMCP):
     @mcp.tool(tags={"account"})
     async def get_account(
         sys_id: Optional[str] = Field(default=None, description="Account Sys ID"),
@@ -2690,6 +2786,8 @@ def register_tools(mcp: FastMCP):
         """Retrieves CSM account information."""
         return _client.get_account(sys_id=sys_id, name=name, number=number)
 
+
+def register_hr_tools(mcp: FastMCP):
     @mcp.tool(tags={"hr"})
     async def get_hr_profile(
         sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
@@ -2699,6 +2797,8 @@ def register_tools(mcp: FastMCP):
         """Retrieves HR profile information."""
         return _client.get_hr_profile(sys_id=sys_id, user=user)
 
+
+def register_metricbase_tools(mcp: FastMCP):
     @mcp.tool(tags={"metricbase"})
     async def metricbase_insert(
         table_name: str = Field(description="Table name"),
@@ -2719,6 +2819,8 @@ def register_tools(mcp: FastMCP):
             end_time=end_time,
         )
 
+
+def register_service_qualification_tools(mcp: FastMCP):
     @mcp.tool(tags={"service_qualification"})
     async def check_service_qualification(
         description: Optional[str] = Field(default=None, description="Description"),
@@ -2762,6 +2864,8 @@ def register_tools(mcp: FastMCP):
             description=description,
         )
 
+
+def register_ppm_tools(mcp: FastMCP):
     @mcp.tool(tags={"ppm"})
     async def insert_cost_plans(
         plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
@@ -2792,6 +2896,8 @@ def register_tools(mcp: FastMCP):
             dependencies=dependencies,
         )
 
+
+def register_product_inventory_tools(mcp: FastMCP):
     @mcp.tool(tags={"product_inventory"})
     async def get_product_inventory(
         customer: Optional[str] = Field(default=None, description="Customer Sys ID"),
@@ -2874,6 +2980,7 @@ def register_prompts(mcp: FastMCP):
 
 
 def mcp_server():
+    load_dotenv(find_dotenv())
     print(f"mcp_server v{__version__}")
     parser = create_mcp_parser()
 
@@ -3250,7 +3357,108 @@ def mcp_server():
             sys.exit(1)
 
     mcp = FastMCP("ServiceNow", auth=auth)
-    register_tools(mcp)
+    DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
+    if DEFAULT_MISCTOOL:
+        register_misc_tools(mcp)
+    DEFAULT_FLOWSTOOL = to_boolean(os.getenv("FLOWSTOOL", "True"))
+    if DEFAULT_FLOWSTOOL:
+        register_flows_tools(mcp)
+    DEFAULT_APPLICATIONTOOL = to_boolean(os.getenv("APPLICATIONTOOL", "True"))
+    if DEFAULT_APPLICATIONTOOL:
+        register_application_tools(mcp)
+    DEFAULT_CMDBTOOL = to_boolean(os.getenv("CMDBTOOL", "True"))
+    if DEFAULT_CMDBTOOL:
+        register_cmdb_tools(mcp)
+    DEFAULT_CICDTOOL = to_boolean(os.getenv("CICDTOOL", "True"))
+    if DEFAULT_CICDTOOL:
+        register_cicd_tools(mcp)
+    DEFAULT_PLUGINSTOOL = to_boolean(os.getenv("PLUGINSTOOL", "True"))
+    if DEFAULT_PLUGINSTOOL:
+        register_plugins_tools(mcp)
+    DEFAULT_SOURCE_CONTROLTOOL = to_boolean(os.getenv("SOURCE_CONTROLTOOL", "True"))
+    if DEFAULT_SOURCE_CONTROLTOOL:
+        register_source_control_tools(mcp)
+    DEFAULT_TESTINGTOOL = to_boolean(os.getenv("TESTINGTOOL", "True"))
+    if DEFAULT_TESTINGTOOL:
+        register_testing_tools(mcp)
+    DEFAULT_UPDATE_SETSTOOL = to_boolean(os.getenv("UPDATE_SETSTOOL", "True"))
+    if DEFAULT_UPDATE_SETSTOOL:
+        register_update_sets_tools(mcp)
+    DEFAULT_BATCHTOOL = to_boolean(os.getenv("BATCHTOOL", "True"))
+    if DEFAULT_BATCHTOOL:
+        register_batch_tools(mcp)
+    DEFAULT_CHANGE_MANAGEMENTTOOL = to_boolean(
+        os.getenv("CHANGE_MANAGEMENTTOOL", "True")
+    )
+    if DEFAULT_CHANGE_MANAGEMENTTOOL:
+        register_change_management_tools(mcp)
+    DEFAULT_CILIFECYCLETOOL = to_boolean(os.getenv("CILIFECYCLETOOL", "True"))
+    if DEFAULT_CILIFECYCLETOOL:
+        register_cilifecycle_tools(mcp)
+    DEFAULT_DEVOPSTOOL = to_boolean(os.getenv("DEVOPSTOOL", "True"))
+    if DEFAULT_DEVOPSTOOL:
+        register_devops_tools(mcp)
+    DEFAULT_IMPORT_SETSTOOL = to_boolean(os.getenv("IMPORT_SETSTOOL", "True"))
+    if DEFAULT_IMPORT_SETSTOOL:
+        register_import_sets_tools(mcp)
+    DEFAULT_INCIDENTSTOOL = to_boolean(os.getenv("INCIDENTSTOOL", "True"))
+    if DEFAULT_INCIDENTSTOOL:
+        register_incidents_tools(mcp)
+    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = to_boolean(
+        os.getenv("KNOWLEDGE_MANAGEMENTTOOL", "True")
+    )
+    if DEFAULT_KNOWLEDGE_MANAGEMENTTOOL:
+        register_knowledge_management_tools(mcp)
+    DEFAULT_TABLE_APITOOL = to_boolean(os.getenv("TABLE_APITOOL", "True"))
+    if DEFAULT_TABLE_APITOOL:
+        register_table_api_tools(mcp)
+    DEFAULT_AUTHTOOL = to_boolean(os.getenv("AUTHTOOL", "True"))
+    if DEFAULT_AUTHTOOL:
+        register_auth_tools(mcp)
+    DEFAULT_CUSTOM_APITOOL = to_boolean(os.getenv("CUSTOM_APITOOL", "True"))
+    if DEFAULT_CUSTOM_APITOOL:
+        register_custom_api_tools(mcp)
+    DEFAULT_EMAILTOOL = to_boolean(os.getenv("EMAILTOOL", "True"))
+    if DEFAULT_EMAILTOOL:
+        register_email_tools(mcp)
+    DEFAULT_DATA_CLASSIFICATIONTOOL = to_boolean(
+        os.getenv("DATA_CLASSIFICATIONTOOL", "True")
+    )
+    if DEFAULT_DATA_CLASSIFICATIONTOOL:
+        register_data_classification_tools(mcp)
+    DEFAULT_ATTACHMENTTOOL = to_boolean(os.getenv("ATTACHMENTTOOL", "True"))
+    if DEFAULT_ATTACHMENTTOOL:
+        register_attachment_tools(mcp)
+    DEFAULT_AGGREGATETOOL = to_boolean(os.getenv("AGGREGATETOOL", "True"))
+    if DEFAULT_AGGREGATETOOL:
+        register_aggregate_tools(mcp)
+    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = to_boolean(
+        os.getenv("ACTIVITY_SUBSCRIPTIONSTOOL", "True")
+    )
+    if DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL:
+        register_activity_subscriptions_tools(mcp)
+    DEFAULT_ACCOUNTTOOL = to_boolean(os.getenv("ACCOUNTTOOL", "True"))
+    if DEFAULT_ACCOUNTTOOL:
+        register_account_tools(mcp)
+    DEFAULT_HRTOOL = to_boolean(os.getenv("HRTOOL", "True"))
+    if DEFAULT_HRTOOL:
+        register_hr_tools(mcp)
+    DEFAULT_METRICBASETOOL = to_boolean(os.getenv("METRICBASETOOL", "True"))
+    if DEFAULT_METRICBASETOOL:
+        register_metricbase_tools(mcp)
+    DEFAULT_SERVICE_QUALIFICATIONTOOL = to_boolean(
+        os.getenv("SERVICE_QUALIFICATIONTOOL", "True")
+    )
+    if DEFAULT_SERVICE_QUALIFICATIONTOOL:
+        register_service_qualification_tools(mcp)
+    DEFAULT_PPMTOOL = to_boolean(os.getenv("PPMTOOL", "True"))
+    if DEFAULT_PPMTOOL:
+        register_ppm_tools(mcp)
+    DEFAULT_PRODUCT_INVENTORYTOOL = to_boolean(
+        os.getenv("PRODUCT_INVENTORYTOOL", "True")
+    )
+    if DEFAULT_PRODUCT_INVENTORYTOOL:
+        register_product_inventory_tools(mcp)
     register_prompts(mcp)
 
     for tool in imported_tools:
