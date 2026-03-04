@@ -16,6 +16,8 @@ services:
         max-size: "10m"
         max-file: "3"
     restart: always
+    volumes:
+      - ./mcp:/app
     env_file:
       - .env
     environment:
