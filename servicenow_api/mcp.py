@@ -10,7 +10,8 @@ import logging
 from datetime import datetime
 from pathlib import Path
 from threading import local
-from typing import Optional, List, Dict, Any, Union, Set
+from typing import Optional, List, Dict, Any, Union, Set, DefaultDict
+from collections import defaultdict
 
 import httpx
 import requests
@@ -40,9 +41,9 @@ from agent_utilities.middlewares import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.25"
+__version__ = "1.6.26"
 
-logger = get_logger(name="TokenMiddleware")
+logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
 
 DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
@@ -92,7 +93,8 @@ def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
         decompressed = gzip.decompress(decoded_b64).decode("utf-8")
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to decode values: {e}")
         return []
 
 
@@ -136,10 +138,14 @@ def determine_node_type(action: Dict[str, Any], decoded: List[Dict[str, Any]]) -
 
 def get_flow_metadata(_client, flow_sys_id: str) -> Dict[str, Any]:
     """Fetch rich metadata for any flow/subflow."""
+    logger.debug(f"Fetching metadata for flow {flow_sys_id}")
     resp = _client.get_table_record(
         table="sys_hub_flow", table_record_sys_id=flow_sys_id
     )
     if not resp.response.ok:
+        logger.error(
+            f"Failed fetching metadata for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
+        )
         return {}
 
     flow = resp.response.json().get("result", {})
@@ -171,13 +177,18 @@ def collect_graph_for_roots(
     def recurse(
         flow_sys_id: str, prefix: str = "", depth: int = 0, is_root: bool = False
     ) -> Optional[str]:
-        if depth > max_depth or flow_sys_id in visited:
+        if depth > max_depth:
+            logger.warning(f"Max depth {max_depth} reached at flow {flow_sys_id}")
+            return None
+        if flow_sys_id in visited:
+            logger.debug(f"Already visited flow {flow_sys_id}, skipping")
             return None
         visited.add(flow_sys_id)
 
         # Get metadata
         meta = get_flow_metadata(_client, flow_sys_id)
         if not meta:
+            logger.warning(f"Could not retrieve metadata for flow {flow_sys_id}")
             return None
         all_metadata[flow_sys_id] = meta
         flow_name = meta.get("name", "Unnamed")
@@ -195,7 +206,14 @@ def collect_graph_for_roots(
                 results = resp.response.json().get("result", [])
                 if results:
                     actions = results if isinstance(results, list) else [results]
+                    logger.debug(
+                        f"Found {len(actions)} actions for flow {flow_sys_id} in table {tbl}"
+                    )
                     break
+            else:
+                logger.warning(
+                    f"Failed fetching actions from table {tbl} for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
+                )
 
         nodes: List[FlowNode] = []
         edges: List[FlowEdge] = []
@@ -258,6 +276,59 @@ def collect_graph_for_roots(
     )
 
 
+def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
+    """
+    Splits a single large global FlowGraph into a list of smaller FlowGraphs,
+    where each sub-graph represents a completely disconnected component of flows/subflows.
+    """
+    if not graph.nodes:
+        return []
+
+    # Build adjacency list (undirected for finding components)
+    adj: DefaultDict[str, List[str]] = defaultdict(list)
+    for edge in graph.edges:
+        adj[edge.from_id].append(edge.to_id)
+        adj[edge.to_id].append(edge.from_id)
+
+    # All node IDs in the graph
+    all_node_ids = {node.id for node in graph.nodes}
+    node_by_id = {node.id: node for node in graph.nodes}
+
+    visited: Set[str] = set()
+    components: List[FlowGraph] = []
+
+    for start_node in all_node_ids:
+        if start_node not in visited:
+            # BFS or DFS to find all connected nodes
+            component_nodes: Set[str] = set()
+            stack = [start_node]
+            while stack:
+                curr = stack.pop()
+                if curr not in component_nodes:
+                    component_nodes.add(curr)
+                    visited.add(curr)
+                    for neighbor in adj[curr]:
+                        if neighbor not in component_nodes:
+                            stack.append(neighbor)
+
+            # Build sub-graph
+            sub_nodes = [node_by_id[nid] for nid in component_nodes]
+            sub_edges = [
+                edge
+                for edge in graph.edges
+                if edge.from_id in component_nodes and edge.to_id in component_nodes
+            ]
+            components.append(
+                FlowGraph(
+                    nodes=sub_nodes,
+                    edges=sub_edges,
+                    summary=f"Component size: {len(sub_nodes)}",
+                )
+            )
+
+    return components
+
+
 def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
     lines = ["flowchart TD"]
 
@@ -280,6 +351,18 @@ def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
                 lines.append(f"        {node.id}{shape}")
 
         lines.append("    end")
+
+    # Define shapes for nodes not inside any root subgraph (e.g., shared subflow nodes)
+    for node in graph.nodes:
+        if not any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
+            shape_map = {
+                "trigger": f"(( {node.label} ))",
+                "decision": f"{{{{ {node.label} }}}}",
+                "loop": f"[/ {node.label} /]",
+                "subflow_call": f"[ [ {node.label} ] ]",
+            }
+            shape = shape_map.get(node.type, f"[ {node.label} ]")
+            lines.append(f"    {node.id}{shape}")
 
     for edge in graph.edges:
         label = f" |{edge.label}|" if edge.label else ""
@@ -318,12 +401,26 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     for sid, m in metadata.items():
         md += f"| {m.get('name')} | `{sid}` | {m.get('domain')} | {m.get('scope')} | {m.get('active')} | {m.get('description', '')[:80]}... |\n"
 
-    md += f"""
-## Unified Flow Diagram
-```mermaid
-{mermaid_code}
-```
+    # Assume mermaid_code is a list of blocks if its a split graph
+    mermaid_blocks = (
+        mermaid_code.split("|||BLOCK_SEP|||")
+        if "|||BLOCK_SEP|||" in mermaid_code
+        else [mermaid_code]
+    )
 
+    md += f"""
+## Unified Flow Diagrams ({len(mermaid_blocks)} distinct groups)
+"""
+
+    for i, block in enumerate(mermaid_blocks):
+        md += f"""
+### Group {i+1}
+```mermaid
+{block.strip()}
+```
+"""
+
+    md += """
 *Tip: Copy the code block above into [mermaid.live](https://mermaid.live) or any Markdown viewer that supports Mermaid.*
 
 ## Generation Notes
@@ -346,12 +443,13 @@ def register_tools(mcp: FastMCP):
         return JSONResponse({"status": "OK"})
 
     @mcp.tool(
-        description="Generate a UNIFIED Mermaid diagram + rich Markdown report for multiple ServiceNow flows. By default saves a polished .md file.",
+        description="Generate a UNIFIED Mermaid diagram + rich Markdown report for multiple ServiceNow flows. Optional: leave flow_identifiers empty to fetch ALL active flows up to 1000 limit. Unrelated flow groups are split into separate safe-to-render diagram blocks. By default saves a polished .md file.",
         tags={"flows"},
     )
     async def workflow_to_mermaid(
         flow_identifiers: List[str] = Field(
-            ..., description="List of flow names or sys_ids"
+            default_factory=list,
+            description="List of flow names or sys_ids. If empty, fetches ALL active flows.",
         ),
         save_to_file: bool = Field(
             True,
@@ -369,67 +467,136 @@ def register_tools(mcp: FastMCP):
         """
         Generate a unified Mermaid diagram + rich Markdown report for multiple ServiceNow flows.
         """
-        root_sys_ids: List[str] = []
-        for ident in flow_identifiers:
-            resp = _client.get_table(
-                table="sys_hub_flow",
-                sysparm_query=f"name={ident} OR sys_id={ident}",
-                sysparm_limit="1",
-                sysparm_fields="sys_id",
-                sysparm_display_value="true",
-            )
-            if resp.response.ok:
-                results = resp.response.json().get("result", [])
-                if results:
-                    sid = (
-                        results[0].get("sys_id")
-                        if isinstance(results, list)
-                        else results.get("sys_id")
+        logger.info(
+            f"workflow_to_mermaid called with flow_identifiers: {flow_identifiers}"
+        )
+        try:
+            root_sys_ids: List[str] = []
+            if not flow_identifiers:
+                logger.info("No flow_identifiers provided. Fetching all active flows.")
+                resp = _client.get_table(
+                    table="sys_hub_flow",
+                    sysparm_query="active=true^flow_type=flow",
+                    sysparm_limit="1000",
+                    sysparm_fields="sys_id",
+                )
+                if resp.response.ok:
+                    results = resp.response.json().get("result", [])
+                    if results:
+                        results = results if isinstance(results, list) else [results]
+                        root_sys_ids = [
+                            r.get("sys_id") for r in results if r.get("sys_id")
+                        ]
+                        logger.info(f"Retrieved {len(root_sys_ids)} active root flows.")
+                else:
+                    logger.error(
+                        f"Failed fetching all flows: {resp.response.status_code} - {resp.response.text}"
                     )
-                    if sid:
-                        root_sys_ids.append(sid)
+            else:
+                for ident in flow_identifiers:
+                    logger.debug(f"Looking up sys_id for flow identifier: {ident}")
+                    resp = _client.get_table(
+                        table="sys_hub_flow",
+                        sysparm_query=f"name={ident} OR sys_id={ident}",
+                        sysparm_limit="1",
+                        sysparm_fields="sys_id",
+                        sysparm_display_value="true",
+                    )
+                    if resp.response.ok:
+                        results = resp.response.json().get("result", [])
+                        if results:
+                            sid = (
+                                results[0].get("sys_id")
+                                if isinstance(results, list)
+                                else results.get("sys_id")
+                            )
+                            if sid:
+                                logger.info(
+                                    f"Found sys_id {sid} for identifier {ident}"
+                                )
+                                root_sys_ids.append(sid)
+                            else:
+                                logger.warning(
+                                    f"Result for {ident} had no sys_id: {results}"
+                                )
+                        else:
+                            logger.warning(f"No results found for {ident}")
+                    else:
+                        logger.error(
+                            f"Failed finding sys_id for {ident}: {resp.response.status_code} - {resp.response.text}"
+                        )
 
-        if not root_sys_ids:
+            if not root_sys_ids:
+                logger.warning(
+                    "No flows found matching your identifiers. Exiting tool."
+                )
+                return FlowReportResult(
+                    markdown_content="No flows found matching your identifiers.",
+                    file_path=None,
+                    summary="0 flows found.",
+                    root_flow_sys_ids=[],
+                )
+
+            # Build graph and metadata
+            logger.info(f"Collecting graph for {len(root_sys_ids)} root sys_ids")
+            graph, all_metadata = collect_graph_for_roots(
+                _client, root_sys_ids, max_depth=max_depth
+            )
+
+            # Split into connected components
+            logger.info("Splitting global graph into disjoint components")
+            components = find_connected_components(graph)
+            logger.info(f"Found {len(components)} standalone graph component groups")
+
+            # Generate Mermaid blocks separated by a token
+            mermaid_blocks = []
+            for idx, comp in enumerate(components):
+                logger.debug(f"Generating syntax for component {idx}")
+                comp_mermaid = graph_to_mermaid_multi(comp, root_sys_ids)
+                mermaid_blocks.append(comp_mermaid)
+
+            combined_mermaid = "|||BLOCK_SEP|||".join(mermaid_blocks)
+
+            # Build polished Markdown
+            logger.info("Building polished markdown")
+            markdown_content = build_polished_markdown(
+                graph, all_metadata, root_sys_ids, combined_mermaid
+            )
+
+            file_path = None
+            if save_to_file:
+                dir_path = Path(output_dir)
+                dir_path.mkdir(parents=True, exist_ok=True)
+                filename = (
+                    f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                )
+                file_path = os.path.join(dir_path, filename)
+
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(markdown_content)
+
+                logger.info(f"Saved report to {file_path}")
+                summary = f"✅ Report saved to: {file_path} ({len(all_metadata)} flows documented)"
+            else:
+                summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"
+
             return FlowReportResult(
-                markdown_content="No flows found matching your identifiers.",
+                markdown_content=markdown_content,
+                file_path=file_path,
+                summary=summary,
+                root_flow_sys_ids=root_sys_ids,
+            )
+        except Exception as e:
+            logger.error(
+                f"An error occurred during workflow_to_mermaid processing: {e}",
+                exc_info=True,
+            )
+            return FlowReportResult(
+                markdown_content=f"An error occurred generating the report: {e}",
                 file_path=None,
-                summary="0 flows found.",
+                summary=f"Failed with error: {e}",
                 root_flow_sys_ids=[],
             )
-
-        # Build graph and metadata
-        graph, all_metadata = collect_graph_for_roots(
-            _client, root_sys_ids, max_depth=max_depth
-        )
-
-        # Generate Mermaid
-        mermaid = graph_to_mermaid_multi(graph, root_sys_ids)
-
-        # Build polished Markdown
-        markdown_content = build_polished_markdown(
-            graph, all_metadata, root_sys_ids, mermaid
-        )
-
-        file_path = None
-        if save_to_file:
-            dir_path = Path(output_dir)
-            dir_path.mkdir(parents=True, exist_ok=True)
-            filename = f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-            file_path = os.path.join(dir_path, filename)
-
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(markdown_content)
-
-            summary = f"✅ Report saved to: {file_path} ({len(all_metadata)} flows documented)"
-        else:
-            summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"
-
-        return FlowReportResult(
-            markdown_content=markdown_content,
-            file_path=file_path,
-            summary=summary,
-            root_flow_sys_ids=root_sys_ids,
-        )
 
     @mcp.tool(
         tags={"application"},
