@@ -8,10 +8,10 @@ from agent_utilities import (
     create_agent_parser,
     create_agent_server,
     initialize_workspace,
-    load_identities,
+    load_identity,
 )
 
-__version__ = "1.6.26"
+__version__ = "1.6.27"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,28 +22,16 @@ logger = logging.getLogger(__name__)
 
 # Load identity and system prompt from workspace
 initialize_workspace()
-identities = load_identities()
-
-# Prepare supervisor identity
-supervisor_meta = identities.get("supervisor", identities.get("default", {}))
-DEFAULT_AGENT_NAME = os.getenv(
-    "DEFAULT_AGENT_NAME", supervisor_meta.get("name", "Servicenow Api")
-)
+meta = load_identity()
+DEFAULT_AGENT_NAME = os.getenv("DEFAULT_AGENT_NAME", meta.get("name", "Servicenow Api"))
 DEFAULT_AGENT_DESCRIPTION = os.getenv(
     "AGENT_DESCRIPTION",
-    supervisor_meta.get("description", "A multi-agent system."),
+    meta.get("description", "AI agent for ServiceNow Api management."),
 )
 DEFAULT_AGENT_SYSTEM_PROMPT = os.getenv(
     "AGENT_SYSTEM_PROMPT",
-    supervisor_meta.get("content") or build_system_prompt_from_workspace(),
+    meta.get("content") or build_system_prompt_from_workspace(),
 )
-
-# Prepare child agent definitions from IDENTITY.md sections
-CHILD_AGENT_DEFS = {
-    tag: (data["content"], data["name"])
-    for tag, data in identities.items()
-    if tag not in ["supervisor", "default"]
-}
 
 
 def agent_server():
@@ -61,8 +49,6 @@ def agent_server():
         model_id=args.model_id,
         base_url=args.base_url,
         api_key=args.api_key,
-        mcp_url=args.mcp_url,
-        mcp_config=args.mcp_config,
         custom_skills_directory=args.custom_skills_directory,
         debug=args.debug,
         host=args.host,
@@ -77,7 +63,6 @@ def agent_server():
         otel_public_key=args.otel_public_key,
         otel_secret_key=args.otel_secret_key,
         otel_protocol=args.otel_protocol,
-        agent_definitions=CHILD_AGENT_DEFS if CHILD_AGENT_DEFS else None,
     )
 
 
