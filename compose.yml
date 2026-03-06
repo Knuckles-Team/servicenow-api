@@ -1,62 +1,5 @@
 ---
 services:
-  servicenow-mcp:
-    # image: docker.io/knucklessg1/servicenow:latest
-    build:
-     context: . # Debug
-     dockerfile: debug.Dockerfile
-    container_name: servicenow-mcp
-    hostname: servicenow-mcp
-    command: [ "servicenow-mcp" ]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: always
-    volumes:
-      - ./mcp:/app
-    env_file:
-      - .env
-    environment:
-      - "PYTHONUNBUFFERED=1"
-      - "HOST=0.0.0.0"
-      - "PORT=8004"
-      - "TRANSPORT=streamable-http"
-      - "SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}"
-      - "SERVICENOW_USERNAME=${SERVICENOW_USERNAME}"
-      - "SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}"
-      - "SERVICENOW_SSL_VERIFY=${SERVICENOW_SSL_VERIFY:-True}"
-      # - SERVICENOW_INSTANCE=https://yourinstance.servicenow.com
-      # - SERVICENOW_USERNAME=user
-      # - SERVICENOW_PASSWORD=pass
-      # - SERVICENOW_CLIENT_ID=client_id # Optional
-      # - SERVICENOW_CLIENT_SECRET=client_secret # Optional
-      #      - AUTH_TYPE=oidc-proxy # Optional
-      #      - OIDC_CONFIG_URL=https://provider.com/.well-known/openid-configuration # Optional
-      #      - OIDC_CLIENT_ID=your-client-id # Optional
-      #      - OIDC_CLIENT_SECRET=your-client-secret # Optional
-      #      - OIDC_BASE_URL=https://your-server.com # Optional
-      #      - ALLOWED_CLIENT_REDIRECT_URIS=http://localhost:*,https://*.example.com/* # Optional
-      #      - ENABLE_DELEGATION=True # Optional
-      #      - SERVICENOW_AUDIENCE=https://yourinstance.servicenow.com # Optional
-      #      - DELEGATED_SCOPES='api user_impersonation' # Optional
-      #      - EUNOMIA_TYPE=embedded # Optional
-      #      - EUNOMIA_POLICY_FILE=/app/mcp_policies.json # Optional
-      #      - FASTMCP_SERVER_AUTH_JWT_ALGORITHM=HS256 # Optional
-      #      - FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=your-shared-secret # Optional
-      #      - FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=servicenow.read,servicenow.write # Optional
-    ports:
-      - "8004:8004"
-    healthcheck:
-      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8004/health')" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
   servicenow-agent:
     # image: docker.io/knucklessg1/servicenow:latest
     build:
@@ -67,8 +10,6 @@ services:
     command: [ "servicenow-agent" ]
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      - servicenow-mcp
     logging:
       driver: json-file
       options:
@@ -80,8 +21,12 @@ services:
     environment:
       - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"
-      - "PORT=9004"
-      - "MCP_URL=http://servicenow-mcp:8004/mcp"
+      - "PORT=9504"
+      - "TRANSPORT=stdio"
+      - "SERVICENOW_INSTANCE=${SERVICENOW_INSTANCE}"
+      - "SERVICENOW_USERNAME=${SERVICENOW_USERNAME}"
+      - "SERVICENOW_PASSWORD=${SERVICENOW_PASSWORD}"
+      - "SERVICENOW_SSL_VERIFY=${SERVICENOW_SSL_VERIFY:-True}"
       - "PROVIDER=openai"
       - "LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}"
       - "LLM_API_KEY=${LLM_API_KEY:-llama}"
@@ -90,9 +35,9 @@ services:
       - "ENABLE_WEB_UI=True"
       - "ENABLE_OTEL=True"
     ports:
-      - "9004:9004"
+      - "9504:9504"
     healthcheck:
-      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9004/health')" ]
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9504/health')" ]
       interval: 30s
       timeout: 10s
       retries: 3
