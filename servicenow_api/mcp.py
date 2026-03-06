@@ -15,34 +15,21 @@ from typing import Optional, List, Dict, Any, Union, Set, DefaultDict
 from collections import defaultdict
 
 import httpx
-import requests
-from eunomia_mcp.middleware import EunomiaMcpMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastmcp.dependencies import Depends
 from pydantic import Field, BaseModel
 from fastmcp import FastMCP, Context
-from fastmcp.server.auth.oidc_proxy import OIDCProxy
-from fastmcp.server.auth import OAuthProxy, RemoteAuthProvider
-from fastmcp.server.auth.providers.jwt import JWTVerifier, StaticTokenVerifier
-from fastmcp.server.middleware.logging import LoggingMiddleware
-from fastmcp.server.middleware.timing import TimingMiddleware
-from fastmcp.server.middleware.rate_limiting import RateLimitingMiddleware
-from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
 from fastmcp.utilities.logging import get_logger
 from servicenow_api.servicenow_models import Response
 from agent_utilities.base_utilities import to_boolean, to_integer
 from agent_utilities.mcp_utilities import (
-    create_mcp_parser,
+    create_mcp_server,
     config,
-)
-from agent_utilities.middlewares import (
-    UserTokenMiddleware,
-    JWTClaimsLoggingMiddleware,
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.27"
+__version__ = "1.6.28"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -2981,287 +2968,12 @@ def register_prompts(mcp: FastMCP):
 
 def mcp_server():
     load_dotenv(find_dotenv())
-    print(f"mcp_server v{__version__}")
-    parser = create_mcp_parser()
 
-    args = parser.parse_args()
-
-    if hasattr(args, "help") and args.help:
-
-        parser.print_help()
-
-        sys.exit(0)
-
-    if args.port < 0 or args.port > 65535:
-        print(f"Error: Port {args.port} is out of valid range (0-65535).")
-        sys.exit(1)
-
-    config["enable_delegation"] = args.enable_delegation
-    config["audience"] = args.audience or config["audience"]
-    config["delegated_scopes"] = args.delegated_scopes or config["delegated_scopes"]
-    config["oidc_config_url"] = args.oidc_config_url or config["oidc_config_url"]
-    config["oidc_client_id"] = args.oidc_client_id or config["oidc_client_id"]
-    config["oidc_client_secret"] = (
-        args.oidc_client_secret or config["oidc_client_secret"]
+    args, mcp, middlewares = create_mcp_server(
+        name="ServiceNow",
+        version=__version__,
+        instructions="ServiceNow MCP Server — Manage incidents, CMDB, workflows, CICD, and more in your ServiceNow instance.",
     )
-
-    if config["enable_delegation"]:
-        if args.auth_type != "oidc-proxy":
-            logger.error("Token delegation requires auth-type=oidc-proxy")
-            sys.exit(1)
-        if not config["audience"]:
-            logger.error("audience is required for delegation")
-            sys.exit(1)
-        if not all(
-            [
-                config["oidc_config_url"],
-                config["oidc_client_id"],
-                config["oidc_client_secret"],
-            ]
-        ):
-            logger.error(
-                "Delegation requires complete OIDC configuration (oidc-config-url, oidc-client-id, oidc-client-secret)"
-            )
-            sys.exit(1)
-
-        try:
-            logger.info(
-                "Fetching OIDC configuration",
-                extra={"oidc_config_url": config["oidc_config_url"]},
-            )
-            oidc_config_resp = requests.get(config["oidc_config_url"])
-            oidc_config_resp.raise_for_status()
-            oidc_config = oidc_config_resp.json()
-            config["token_endpoint"] = oidc_config.get("token_endpoint")
-            if not config["token_endpoint"]:
-                logger.error("No token_endpoint found in OIDC configuration")
-                raise ValueError("No token_endpoint found in OIDC configuration")
-            logger.info(
-                "OIDC configuration fetched successfully",
-                extra={"token_endpoint": config["token_endpoint"]},
-            )
-        except Exception as e:
-            print(f"Failed to fetch OIDC configuration: {e}")
-            logger.error(
-                "Failed to fetch OIDC configuration",
-                extra={"error_type": type(e).__name__, "error_message": str(e)},
-            )
-            sys.exit(1)
-
-    auth = None
-    allowed_uris = (
-        args.allowed_client_redirect_uris.split(",")
-        if args.allowed_client_redirect_uris
-        else None
-    )
-
-    if args.auth_type == "none":
-        auth = None
-    elif args.auth_type == "static":
-        auth = StaticTokenVerifier(
-            tokens={
-                "test-token": {"client_id": "test-user", "scopes": ["read", "write"]},
-                "admin-token": {"client_id": "admin", "scopes": ["admin"]},
-            }
-        )
-    elif args.auth_type == "jwt":
-        jwks_uri = args.token_jwks_uri or os.getenv("FASTMCP_SERVER_AUTH_JWT_JWKS_URI")
-        issuer = args.token_issuer or os.getenv("FASTMCP_SERVER_AUTH_JWT_ISSUER")
-        audience = args.token_audience or os.getenv("FASTMCP_SERVER_AUTH_JWT_AUDIENCE")
-        algorithm = args.token_algorithm
-        secret_or_key = args.token_secret or args.token_public_key
-        public_key_pem = None
-
-        if not (jwks_uri or secret_or_key):
-            logger.error(
-                "JWT auth requires either --token-jwks-uri or --token-secret/--token-public-key"
-            )
-            sys.exit(1)
-        if not (issuer and audience):
-            logger.error("JWT requires --token-issuer and --token-audience")
-            sys.exit(1)
-
-        if args.token_public_key and os.path.isfile(args.token_public_key):
-            try:
-                with open(args.token_public_key, "r") as f:
-                    public_key_pem = f.read()
-                logger.info(f"Loaded static public key from {args.token_public_key}")
-            except Exception as e:
-                print(f"Failed to read public key file: {e}")
-                logger.error(f"Failed to read public key file: {e}")
-                sys.exit(1)
-        elif args.token_public_key:
-            public_key_pem = args.token_public_key
-
-        if jwks_uri and (algorithm or secret_or_key):
-            logger.warning(
-                "JWKS mode ignores --token-algorithm and --token-secret/--token-public-key"
-            )
-
-        if algorithm and algorithm.startswith("HS"):
-            if not secret_or_key:
-                logger.error(f"HMAC algorithm {algorithm} requires --token-secret")
-                sys.exit(1)
-            if jwks_uri:
-                logger.error("Cannot use --token-jwks-uri with HMAC")
-                sys.exit(1)
-            public_key = secret_or_key
-        else:
-            public_key = public_key_pem
-
-        required_scopes = None
-        if args.required_scopes:
-            required_scopes = [
-                s.strip() for s in args.required_scopes.split(",") if s.strip()
-            ]
-
-        try:
-            auth = JWTVerifier(
-                jwks_uri=jwks_uri,
-                public_key=public_key,
-                issuer=issuer,
-                audience=audience,
-                algorithm=(
-                    algorithm if algorithm and algorithm.startswith("HS") else None
-                ),
-                required_scopes=required_scopes,
-            )
-            logger.info(
-                "JWTVerifier configured",
-                extra={
-                    "mode": (
-                        "JWKS"
-                        if jwks_uri
-                        else (
-                            "HMAC"
-                            if algorithm and algorithm.startswith("HS")
-                            else "Static Key"
-                        )
-                    ),
-                    "algorithm": algorithm,
-                    "required_scopes": required_scopes,
-                },
-            )
-        except Exception as e:
-            print(f"Failed to initialize JWTVerifier: {e}")
-            logger.error(f"Failed to initialize JWTVerifier: {e}")
-            sys.exit(1)
-    elif args.auth_type == "oauth-proxy":
-        if not (
-            args.oauth_upstream_auth_endpoint
-            and args.oauth_upstream_token_endpoint
-            and args.oauth_upstream_client_id
-            and args.oauth_upstream_client_secret
-            and args.oauth_base_url
-            and args.token_jwks_uri
-            and args.token_issuer
-            and args.token_audience
-        ):
-            print(
-                "oauth-proxy requires oauth-upstream-auth-endpoint, oauth-upstream-token-endpoint, "
-                "oauth-upstream-client-id, oauth-upstream-client-secret, oauth-base-url, token-jwks-uri, "
-                "token-issuer, token-audience"
-            )
-            logger.error(
-                "oauth-proxy requires oauth-upstream-auth-endpoint, oauth-upstream-token-endpoint, "
-                "oauth-upstream-client-id, oauth-upstream-client-secret, oauth-base-url, token-jwks-uri, "
-                "token-issuer, token-audience",
-                extra={
-                    "auth_endpoint": args.oauth_upstream_auth_endpoint,
-                    "token_endpoint": args.oauth_upstream_token_endpoint,
-                    "client_id": args.oauth_upstream_client_id,
-                    "base_url": args.oauth_base_url,
-                    "jwks_uri": args.token_jwks_uri,
-                    "issuer": args.token_issuer,
-                    "audience": args.token_audience,
-                },
-            )
-            sys.exit(1)
-        token_verifier = JWTVerifier(
-            jwks_uri=args.token_jwks_uri,
-            issuer=args.token_issuer,
-            audience=args.token_audience,
-        )
-        auth = OAuthProxy(
-            upstream_authorization_endpoint=args.oauth_upstream_auth_endpoint,
-            upstream_token_endpoint=args.oauth_upstream_token_endpoint,
-            upstream_client_id=args.oauth_upstream_client_id,
-            upstream_client_secret=args.oauth_upstream_client_secret,
-            token_verifier=token_verifier,
-            base_url=args.oauth_base_url,
-            allowed_client_redirect_uris=allowed_uris,
-        )
-    elif args.auth_type == "oidc-proxy":
-        if not (
-            args.oidc_config_url
-            and args.oidc_client_id
-            and args.oidc_client_secret
-            and args.oidc_base_url
-        ):
-            logger.error(
-                "oidc-proxy requires oidc-config-url, oidc-client-id, oidc-client-secret, oidc-base-url",
-                extra={
-                    "config_url": args.oidc_config_url,
-                    "client_id": args.oidc_client_id,
-                    "base_url": args.oidc_base_url,
-                },
-            )
-            sys.exit(1)
-        auth = OIDCProxy(
-            config_url=args.oidc_config_url,
-            client_id=args.oidc_client_id,
-            client_secret=args.oidc_client_secret,
-            base_url=args.oidc_base_url,
-            allowed_client_redirect_uris=allowed_uris,
-        )
-    elif args.auth_type == "remote-oauth":
-        if not (
-            args.remote_auth_servers
-            and args.remote_base_url
-            and args.token_jwks_uri
-            and args.token_issuer
-            and args.token_audience
-        ):
-            logger.error(
-                "remote-oauth requires remote-auth-servers, remote-base-url, token-jwks-uri, token-issuer, token-audience",
-                extra={
-                    "auth_servers": args.remote_auth_servers,
-                    "base_url": args.remote_base_url,
-                    "jwks_uri": args.token_jwks_uri,
-                    "issuer": args.token_issuer,
-                    "audience": args.token_audience,
-                },
-            )
-            sys.exit(1)
-        auth_servers = [url.strip() for url in args.remote_auth_servers.split(",")]
-        token_verifier = JWTVerifier(
-            jwks_uri=args.token_jwks_uri,
-            issuer=args.token_issuer,
-            audience=args.token_audience,
-        )
-        auth = RemoteAuthProvider(
-            token_verifier=token_verifier,
-            authorization_servers=auth_servers,
-            base_url=args.remote_base_url,
-        )
-
-    middlewares: List[
-        Union[
-            UserTokenMiddleware,
-            ErrorHandlingMiddleware,
-            RateLimitingMiddleware,
-            TimingMiddleware,
-            LoggingMiddleware,
-            JWTClaimsLoggingMiddleware,
-            EunomiaMcpMiddleware,
-        ]
-    ] = [
-        ErrorHandlingMiddleware(include_traceback=True, transform_errors=True),
-        RateLimitingMiddleware(max_requests_per_second=10.0, burst_capacity=20),
-        TimingMiddleware(),
-        LoggingMiddleware(),
-        JWTClaimsLoggingMiddleware(),
-    ]
 
     if args.openapi_file:
         if config["enable_delegation"]:
@@ -3302,12 +3014,7 @@ def mcp_server():
                             "or (username+password) or (client_id+client_secret)"
                         )
 
-                instance = os.getenv("SERVICENOW_INSTANCE")
-                if not instance:
-                    raise ValueError("SERVICENOW_INSTANCE required")
-
                 api = get_client()
-
                 base_url = args.openapi_base_url or api.url
 
                 async with httpx.AsyncClient(
@@ -3328,35 +3035,139 @@ def mcp_server():
                 f"Imported {len(imported_tools)} tools, {len(imported_resources)} resources"
             )
 
+            for tool in imported_tools:
+                mcp.add_tool(tool)
+            for resource in imported_resources:
+                mcp.add_resource(resource)
+
         except Exception as exc:
             print(f"OpenAPI import failed: {exc}")
             logger.error("OpenAPI import failed", extra={"error": str(exc)})
             sys.exit(1)
+
+    DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
+    if DEFAULT_MISCTOOL:
+        register_misc_tools(mcp)
+    DEFAULT_FLOWSTOOL = to_boolean(os.getenv("FLOWSTOOL", "True"))
+    if DEFAULT_FLOWSTOOL:
+        register_flows_tools(mcp)
+    DEFAULT_APPLICATIONTOOL = to_boolean(os.getenv("APPLICATIONTOOL", "True"))
+    if DEFAULT_APPLICATIONTOOL:
+        register_application_tools(mcp)
+    DEFAULT_CMDBTOOL = to_boolean(os.getenv("CMDBTOOL", "True"))
+    if DEFAULT_CMDBTOOL:
+        register_cmdb_tools(mcp)
+    DEFAULT_CICDTOOL = to_boolean(os.getenv("CICDTOOL", "True"))
+    if DEFAULT_CICDTOOL:
+        register_cicd_tools(mcp)
+    DEFAULT_PLUGINSTOOL = to_boolean(os.getenv("PLUGINSTOOL", "True"))
+    if DEFAULT_PLUGINSTOOL:
+        register_plugins_tools(mcp)
+    DEFAULT_SOURCE_CONTROLTOOL = to_boolean(os.getenv("SOURCE_CONTROLTOOL", "True"))
+    if DEFAULT_SOURCE_CONTROLTOOL:
+        register_source_control_tools(mcp)
+    DEFAULT_TESTINGTOOL = to_boolean(os.getenv("TESTINGTOOL", "True"))
+    if DEFAULT_TESTINGTOOL:
+        register_testing_tools(mcp)
+    DEFAULT_UPDATE_SETSTOOL = to_boolean(os.getenv("UPDATE_SETSTOOL", "True"))
+    if DEFAULT_UPDATE_SETSTOOL:
+        register_update_sets_tools(mcp)
+    DEFAULT_BATCHTOOL = to_boolean(os.getenv("BATCHTOOL", "True"))
+    if DEFAULT_BATCHTOOL:
+        register_batch_tools(mcp)
+    DEFAULT_CHANGE_MANAGEMENTTOOL = to_boolean(
+        os.getenv("CHANGE_MANAGEMENTTOOL", "True")
+    )
+    if DEFAULT_CHANGE_MANAGEMENTTOOL:
+        register_change_management_tools(mcp)
+    DEFAULT_CILIFECYCLETOOL = to_boolean(os.getenv("CILIFECYCLETOOL", "True"))
+    if DEFAULT_CILIFECYCLETOOL:
+        register_cilifecycle_tools(mcp)
+    DEFAULT_DEVOPSTOOL = to_boolean(os.getenv("DEVOPSTOOL", "True"))
+    if DEFAULT_DEVOPSTOOL:
+        register_devops_tools(mcp)
+    DEFAULT_IMPORT_SETSTOOL = to_boolean(os.getenv("IMPORT_SETSTOOL", "True"))
+    if DEFAULT_IMPORT_SETSTOOL:
+        register_import_sets_tools(mcp)
+    DEFAULT_INCIDENTSTOOL = to_boolean(os.getenv("INCIDENTSTOOL", "True"))
+    if DEFAULT_INCIDENTSTOOL:
+        register_incidents_tools(mcp)
+    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = to_boolean(
+        os.getenv("KNOWLEDGE_MANAGEMENTTOOL", "True")
+    )
+    if DEFAULT_KNOWLEDGE_MANAGEMENTTOOL:
+        register_knowledge_management_tools(mcp)
+    DEFAULT_TABLE_APITOOL = to_boolean(os.getenv("TABLE_APITOOL", "True"))
+    if DEFAULT_TABLE_APITOOL:
+        register_table_api_tools(mcp)
+    DEFAULT_AUTHTOOL = to_boolean(os.getenv("AUTHTOOL", "True"))
+    if DEFAULT_AUTHTOOL:
+        register_auth_tools(mcp)
+    DEFAULT_CUSTOM_APITOOL = to_boolean(os.getenv("CUSTOM_APITOOL", "True"))
+    if DEFAULT_CUSTOM_APITOOL:
+        register_custom_api_tools(mcp)
+    DEFAULT_EMAILTOOL = to_boolean(os.getenv("EMAILTOOL", "True"))
+    if DEFAULT_EMAILTOOL:
+        register_email_tools(mcp)
+    DEFAULT_DATA_CLASSIFICATIONTOOL = to_boolean(
+        os.getenv("DATA_CLASSIFICATIONTOOL", "True")
+    )
+    if DEFAULT_DATA_CLASSIFICATIONTOOL:
+        register_data_classification_tools(mcp)
+    DEFAULT_ATTACHMENTTOOL = to_boolean(os.getenv("ATTACHMENTTOOL", "True"))
+    if DEFAULT_ATTACHMENTTOOL:
+        register_attachment_tools(mcp)
+    DEFAULT_AGGREGATETOOL = to_boolean(os.getenv("AGGREGATETOOL", "True"))
+    if DEFAULT_AGGREGATETOOL:
+        register_aggregate_tools(mcp)
+    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = to_boolean(
+        os.getenv("ACTIVITY_SUBSCRIPTIONSTOOL", "True")
+    )
+    if DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL:
+        register_activity_subscriptions_tools(mcp)
+    DEFAULT_ACCOUNTTOOL = to_boolean(os.getenv("ACCOUNTTOOL", "True"))
+    if DEFAULT_ACCOUNTTOOL:
+        register_account_tools(mcp)
+    DEFAULT_HRTOOL = to_boolean(os.getenv("HRTOOL", "True"))
+    if DEFAULT_HRTOOL:
+        register_hr_tools(mcp)
+    DEFAULT_METRICBASETOOL = to_boolean(os.getenv("METRICBASETOOL", "True"))
+    if DEFAULT_METRICBASETOOL:
+        register_metricbase_tools(mcp)
+    DEFAULT_SERVICE_QUALIFICATIONTOOL = to_boolean(
+        os.getenv("SERVICE_QUALIFICATIONTOOL", "True")
+    )
+    if DEFAULT_SERVICE_QUALIFICATIONTOOL:
+        register_service_qualification_tools(mcp)
+    DEFAULT_PPMTOOL = to_boolean(os.getenv("PPMTOOL", "True"))
+    if DEFAULT_PPMTOOL:
+        register_ppm_tools(mcp)
+    DEFAULT_PRODUCT_INVENTORYTOOL = to_boolean(
+        os.getenv("PRODUCT_INVENTORYTOOL", "True")
+    )
+    if DEFAULT_PRODUCT_INVENTORYTOOL:
+        register_product_inventory_tools(mcp)
+    register_prompts(mcp)
+
+    for mw in middlewares:
+        mcp.add_middleware(mw)
+
+    print(f"ServiceNow MCP v{__version__}")
+    print("\nStarting ServiceNow MCP Server")
+    print(f"  Transport: {args.transport.upper()}")
+    print(f"  Auth: {args.auth_type}")
+    print(f"  Delegation: {'ON' if config['enable_delegation'] else 'OFF'}")
+    print(f"  Eunomia: {args.eunomia_type}")
+
+    if args.transport == "stdio":
+        mcp.run(transport="stdio")
+    elif args.transport == "streamable-http":
+        mcp.run(transport="streamable-http", host=args.host, port=args.port)
+    elif args.transport == "sse":
+        mcp.run(transport="sse", host=args.host, port=args.port)
     else:
-        imported_tools, imported_resources = [], []
-
-    if config["enable_delegation"] or args.auth_type == "jwt":
-        middlewares.insert(0, UserTokenMiddleware(config=config))
-
-    if args.eunomia_type in ["embedded", "remote"]:
-        try:
-            from eunomia_mcp import create_eunomia_middleware
-
-            policy_file = args.eunomia_policy_file or "mcp_policies.json"
-            eunomia_endpoint = (
-                args.eunomia_remote_url if args.eunomia_type == "remote" else None
-            )
-            eunomia_mw = create_eunomia_middleware(
-                policy_file=policy_file, eunomia_endpoint=eunomia_endpoint
-            )
-            middlewares.append(eunomia_mw)
-            logger.info(f"Eunomia middleware enabled ({args.eunomia_type})")
-        except Exception as e:
-            print(f"Failed to load Eunomia middleware: {e}")
-            logger.error("Failed to load Eunomia middleware", extra={"error": str(e)})
-            sys.exit(1)
-
-    mcp = FastMCP("ServiceNow", auth=auth)
+        logger.error("Invalid transport", extra={"transport": args.transport})
+        sys.exit(1)
     DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
     if DEFAULT_MISCTOOL:
         register_misc_tools(mcp)
