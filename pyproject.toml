@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.6.28"
+version = "1.6.29"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -17,17 +17,17 @@ classifiers = [
     "Programming Language :: Python :: 3"]
 requires-python = ">=3.10"
 dependencies = [
-    "agent-utilities>=0.2.13"]
+    "agent-utilities>=0.2.14"]
 
 [project.optional-dependencies]
 mcp = [
-    "agent-utilities[mcp]>=0.2.13"]
+    "agent-utilities[mcp]>=0.2.14"]
 
 agent = [
-    "agent-utilities[agent,logfire]>=0.2.13"]
+    "agent-utilities[agent,logfire]>=0.2.14"]
 
 all = [
-    "agent-utilities[mcp,agent,logfire]>=0.2.13"]
+    "agent-utilities[mcp,agent,logfire]>=0.2.14"]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp:mcp_server"
