@@ -34,7 +34,7 @@ servicenow-mcp = "servicenow_api.mcp:mcp_server"
 servicenow-agent = "servicenow_api.agent:agent_server"
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent/**"]
+servicenow_api = [ "mcp_config.json", "agent/**", "skills/**"]
 
 [tool.setuptools.packages.find]
 where = ["."]
