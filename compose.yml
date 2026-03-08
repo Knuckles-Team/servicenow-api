@@ -30,7 +30,7 @@ services:
       - "PROVIDER=openai"
       - "LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}"
       - "LLM_API_KEY=${LLM_API_KEY:-llama}"
-      - "MODEL_ID=${MODEL_ID:-qwen/qwen3-coder-next}"
+      - "MODEL_ID=${MODEL_ID:-qwen/qwen3.5-35b-a3b}"
       - "DEBUG=True"
       - "ENABLE_WEB_UI=True"
       - "ENABLE_OTEL=True"
