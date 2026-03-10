@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.6.39"
+version = "1.6.41"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -17,24 +17,27 @@ classifiers = [
     "Programming Language :: Python :: 3"]
 requires-python = ">=3.10"
 dependencies = [
-    "agent-utilities>=0.2.23"]
+    "agent-utilities>=0.2.25"]
 
 [project.optional-dependencies]
 mcp = [
-    "agent-utilities[mcp]>=0.2.23"]
+    "agent-utilities[mcp]>=0.2.25"]
 
 agent = [
-    "agent-utilities[agent,logfire]>=0.2.23"]
+    "agent-utilities[agent,logfire]>=0.2.25"]
 
 all = [
-    "agent-utilities[mcp,agent,logfire]>=0.2.23"]
+    "agent-utilities[mcp,agent,logfire]>=0.2.25"]
 
 [project.scripts]
-servicenow-mcp = "servicenow_api.mcp:mcp_server"
-servicenow-agent = "servicenow_api.agent:agent_server"
+servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
+servicenow-agent = "servicenow_api.agent_server:agent_server"
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent/**", "skills/**"]
+servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**"]
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools]
+include-package-data = true
