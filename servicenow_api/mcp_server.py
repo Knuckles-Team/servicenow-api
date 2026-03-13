@@ -29,7 +29,7 @@ from agent_utilities.mcp_utilities import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.41"
+__version__ = "1.6.42"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -2975,6 +2975,9 @@ def mcp_server():
         instructions="ServiceNow MCP Server — Manage incidents, CMDB, workflows, CICD, and more in your ServiceNow instance.",
     )
 
+    imported_tools = []
+    imported_resources = []
+
     if args.openapi_file:
         if config["enable_delegation"]:
             raise ValueError("OpenAPI import not supported with delegation enabled")
@@ -3044,113 +3047,6 @@ def mcp_server():
             print(f"OpenAPI import failed: {exc}")
             logger.error("OpenAPI import failed", extra={"error": str(exc)})
             sys.exit(1)
-
-    DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
-    if DEFAULT_MISCTOOL:
-        register_misc_tools(mcp)
-    DEFAULT_FLOWSTOOL = to_boolean(os.getenv("FLOWSTOOL", "True"))
-    if DEFAULT_FLOWSTOOL:
-        register_flows_tools(mcp)
-    DEFAULT_APPLICATIONTOOL = to_boolean(os.getenv("APPLICATIONTOOL", "True"))
-    if DEFAULT_APPLICATIONTOOL:
-        register_application_tools(mcp)
-    DEFAULT_CMDBTOOL = to_boolean(os.getenv("CMDBTOOL", "True"))
-    if DEFAULT_CMDBTOOL:
-        register_cmdb_tools(mcp)
-    DEFAULT_CICDTOOL = to_boolean(os.getenv("CICDTOOL", "True"))
-    if DEFAULT_CICDTOOL:
-        register_cicd_tools(mcp)
-    DEFAULT_PLUGINSTOOL = to_boolean(os.getenv("PLUGINSTOOL", "True"))
-    if DEFAULT_PLUGINSTOOL:
-        register_plugins_tools(mcp)
-    DEFAULT_SOURCE_CONTROLTOOL = to_boolean(os.getenv("SOURCE_CONTROLTOOL", "True"))
-    if DEFAULT_SOURCE_CONTROLTOOL:
-        register_source_control_tools(mcp)
-    DEFAULT_TESTINGTOOL = to_boolean(os.getenv("TESTINGTOOL", "True"))
-    if DEFAULT_TESTINGTOOL:
-        register_testing_tools(mcp)
-    DEFAULT_UPDATE_SETSTOOL = to_boolean(os.getenv("UPDATE_SETSTOOL", "True"))
-    if DEFAULT_UPDATE_SETSTOOL:
-        register_update_sets_tools(mcp)
-    DEFAULT_BATCHTOOL = to_boolean(os.getenv("BATCHTOOL", "True"))
-    if DEFAULT_BATCHTOOL:
-        register_batch_tools(mcp)
-    DEFAULT_CHANGE_MANAGEMENTTOOL = to_boolean(
-        os.getenv("CHANGE_MANAGEMENTTOOL", "True")
-    )
-    if DEFAULT_CHANGE_MANAGEMENTTOOL:
-        register_change_management_tools(mcp)
-    DEFAULT_CILIFECYCLETOOL = to_boolean(os.getenv("CILIFECYCLETOOL", "True"))
-    if DEFAULT_CILIFECYCLETOOL:
-        register_cilifecycle_tools(mcp)
-    DEFAULT_DEVOPSTOOL = to_boolean(os.getenv("DEVOPSTOOL", "True"))
-    if DEFAULT_DEVOPSTOOL:
-        register_devops_tools(mcp)
-    DEFAULT_IMPORT_SETSTOOL = to_boolean(os.getenv("IMPORT_SETSTOOL", "True"))
-    if DEFAULT_IMPORT_SETSTOOL:
-        register_import_sets_tools(mcp)
-    DEFAULT_INCIDENTSTOOL = to_boolean(os.getenv("INCIDENTSTOOL", "True"))
-    if DEFAULT_INCIDENTSTOOL:
-        register_incidents_tools(mcp)
-    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = to_boolean(
-        os.getenv("KNOWLEDGE_MANAGEMENTTOOL", "True")
-    )
-    if DEFAULT_KNOWLEDGE_MANAGEMENTTOOL:
-        register_knowledge_management_tools(mcp)
-    DEFAULT_TABLE_APITOOL = to_boolean(os.getenv("TABLE_APITOOL", "True"))
-    if DEFAULT_TABLE_APITOOL:
-        register_table_api_tools(mcp)
-    DEFAULT_AUTHTOOL = to_boolean(os.getenv("AUTHTOOL", "True"))
-    if DEFAULT_AUTHTOOL:
-        register_auth_tools(mcp)
-    DEFAULT_CUSTOM_APITOOL = to_boolean(os.getenv("CUSTOM_APITOOL", "True"))
-    if DEFAULT_CUSTOM_APITOOL:
-        register_custom_api_tools(mcp)
-    DEFAULT_EMAILTOOL = to_boolean(os.getenv("EMAILTOOL", "True"))
-    if DEFAULT_EMAILTOOL:
-        register_email_tools(mcp)
-    DEFAULT_DATA_CLASSIFICATIONTOOL = to_boolean(
-        os.getenv("DATA_CLASSIFICATIONTOOL", "True")
-    )
-    if DEFAULT_DATA_CLASSIFICATIONTOOL:
-        register_data_classification_tools(mcp)
-    DEFAULT_ATTACHMENTTOOL = to_boolean(os.getenv("ATTACHMENTTOOL", "True"))
-    if DEFAULT_ATTACHMENTTOOL:
-        register_attachment_tools(mcp)
-    DEFAULT_AGGREGATETOOL = to_boolean(os.getenv("AGGREGATETOOL", "True"))
-    if DEFAULT_AGGREGATETOOL:
-        register_aggregate_tools(mcp)
-    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = to_boolean(
-        os.getenv("ACTIVITY_SUBSCRIPTIONSTOOL", "True")
-    )
-    if DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL:
-        register_activity_subscriptions_tools(mcp)
-    DEFAULT_ACCOUNTTOOL = to_boolean(os.getenv("ACCOUNTTOOL", "True"))
-    if DEFAULT_ACCOUNTTOOL:
-        register_account_tools(mcp)
-    DEFAULT_HRTOOL = to_boolean(os.getenv("HRTOOL", "True"))
-    if DEFAULT_HRTOOL:
-        register_hr_tools(mcp)
-    DEFAULT_METRICBASETOOL = to_boolean(os.getenv("METRICBASETOOL", "True"))
-    if DEFAULT_METRICBASETOOL:
-        register_metricbase_tools(mcp)
-    DEFAULT_SERVICE_QUALIFICATIONTOOL = to_boolean(
-        os.getenv("SERVICE_QUALIFICATIONTOOL", "True")
-    )
-    if DEFAULT_SERVICE_QUALIFICATIONTOOL:
-        register_service_qualification_tools(mcp)
-    DEFAULT_PPMTOOL = to_boolean(os.getenv("PPMTOOL", "True"))
-    if DEFAULT_PPMTOOL:
-        register_ppm_tools(mcp)
-    DEFAULT_PRODUCT_INVENTORYTOOL = to_boolean(
-        os.getenv("PRODUCT_INVENTORYTOOL", "True")
-    )
-    if DEFAULT_PRODUCT_INVENTORYTOOL:
-        register_product_inventory_tools(mcp)
-    register_prompts(mcp)
-
-    for mw in middlewares:
-        mcp.add_middleware(mw)
 
     DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
     if DEFAULT_MISCTOOL:
