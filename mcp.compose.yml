@@ -85,7 +85,7 @@ services:
       - "PROVIDER=openai"
       - "LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:1234/v1}"
       - "LLM_API_KEY=${LLM_API_KEY:-llama}"
-      - "MODEL_ID=${MODEL_ID:-qwen/qwen3.5-35b-a3b}"
+      - "MODEL_ID=${MODEL_ID:-nvidia/nemotron-3-super}"
       - "DEBUG=True"
       - "ENABLE_WEB_UI=True"
       - "ENABLE_OTEL=True"
