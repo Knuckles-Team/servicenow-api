@@ -3098,3 +3098,30 @@ class Response(BaseModel, Generic[T]):
     result: Optional[Union[T, List[T]]] = Field(
         default=None, description="The Pydantic models converted from the response"
     )
+
+
+# ================== FLOW MODELS ==================
+class FlowNode(BaseModel):
+    id: str
+    label: str
+    type: str  # 'trigger', 'decision', 'loop', 'subflow_call', or 'action'
+    action_name: Optional[str] = None
+
+
+class FlowEdge(BaseModel):
+    from_id: str
+    to_id: str
+    label: Optional[str] = None
+
+
+class FlowGraph(BaseModel):
+    nodes: List[FlowNode]
+    edges: List[FlowEdge]
+    summary: str
+
+
+class FlowReportResult(BaseModel):
+    markdown_content: str
+    file_path: Optional[str] = None
+    summary: str
+    root_flow_sys_ids: List[str]

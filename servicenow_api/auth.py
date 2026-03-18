@@ -2,6 +2,7 @@ import os
 import requests
 from threading import local
 from agent_utilities.base_utilities import to_boolean, get_logger
+from agent_utilities.exceptions import AuthError, UnauthorizedError
 from servicenow_api.servicenow_api import Api
 
 local = local()
@@ -70,15 +71,23 @@ def get_client(
             logger.error("Delegation failed", extra={"error": str(e)})
             raise
 
-    if username or password:
-        return Api(
-            url=instance,
-            username=username,
-            password=password,
-            client_id=client_id,
-            client_secret=client_secret,
-            verify=verify,
-        )
+    try:
+        if username or password:
+            return Api(
+                url=instance,
+                username=username,
+                password=password,
+                client_id=client_id,
+                client_secret=client_secret,
+                verify=verify,
+            )
+    except (AuthError, UnauthorizedError) as e:
+        logger.error(f"ServiceNow authentication failed: {e}")
+        raise RuntimeError(
+            "AUTHENTICATION ERROR: The ServiceNow credentials provided are not valid for the account used. "
+            "Please check your SERVICENOW_USERNAME and SERVICENOW_PASSWORD environment variables, "
+            "or verify your OAuth client configuration if applicable."
+        ) from e
 
     raise ValueError(
         "No auth method: Provide token, enable delegation, or set SERVICENOW_USERNAME/PASSWORD"
