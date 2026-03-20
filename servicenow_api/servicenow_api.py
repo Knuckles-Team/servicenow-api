@@ -5,7 +5,6 @@ from collections import defaultdict
 import json
 import base64
 import gzip
-import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -65,6 +64,8 @@ from servicenow_api.servicenow_models import (
     FlowGraph,
     FlowReportResult,
 )
+from agent_utilities.base_utilities import get_logger
+from agent_utilities.agent_utilities import get_agent_workspace
 from agent_utilities.decorators import require_auth
 from agent_utilities.exceptions import (
     AuthError,
@@ -73,7 +74,7 @@ from agent_utilities.exceptions import (
     MissingParameterError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # ================== FLOW HELPERS ==================
@@ -5040,7 +5041,7 @@ class Api(object):
         self,
         flow_identifiers: List[str] = None,
         save_to_file: bool = True,
-        output_dir: Optional[str] = "./servicenow_flow_reports",
+        output_dir: Optional[str] = None,
         mermaid_name: Optional[str] = "unified_flow_diagram",
         max_depth: Optional[int] = 5,
     ) -> FlowReportResult:
@@ -5049,6 +5050,11 @@ class Api(object):
         """
         if flow_identifiers is None:
             flow_identifiers = []
+
+        if not output_dir:
+            ws = get_agent_workspace()
+            output_dir = str(ws / "servicenow_flow_reports")
+            logger.info(f"Using default output directory: {output_dir}")
 
         logger.info(
             f"workflow_to_mermaid called with flow_identifiers: {flow_identifiers}"
@@ -5153,12 +5159,12 @@ class Api(object):
                 filename = (
                     f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
                 )
-                file_path = str(dir_path / filename)
+                file_path = str((dir_path / filename).resolve())
 
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(markdown_content)
 
-                logger.info(f"Saved report to {file_path}")
+                logger.info(f"Saved report to: {file_path}")
                 summary = f"✅ Report saved to: {file_path} ({len(all_metadata)} flows documented)"
             else:
                 summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"
