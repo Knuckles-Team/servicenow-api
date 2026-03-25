@@ -93,6 +93,59 @@ def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
         return []
 
 
+def extract_action_details(decoded: List[Dict[str, Any]], action_type: str) -> List[str]:
+    """
+    Extracts specific metadata from decoded action values based on the action type.
+    """
+    details = []
+    params = {}
+    
+    # Decoded is a list of param dicts
+    for p in decoded:
+        name = p.get("name")
+        # Use displayValue if available, otherwise value
+        val = p.get("displayValue") or p.get("value")
+        if name and val:
+            params[name] = val
+
+    at_clean = (action_type or "").lower()
+
+    if "approval" in at_clean:
+        table = params.get("table_name") or params.get("table")
+        rules = params.get("approval_conditions")
+        if table:
+            details.append(f"Table: {table}")
+        if rules:
+            # Rules can be long, so we show the start of it
+            details.append(f"Rules: {rules}")
+
+    elif "create record" in at_clean or "update record" in at_clean:
+        table = params.get("table_name") or params.get("ah_table") or params.get("table")
+        fields = params.get("values") or params.get("ah_fields")
+        if table:
+            details.append(f"Table: {table}")
+        if fields and isinstance(fields, str):
+            # Extract keys from encoded field string (e.g. key1=val1^key2=val2)
+            important = [f.split("=")[0] for f in fields.split("^") if "=" in f]
+            if important:
+                details.append(f"Fields: {', '.join(important[:5])}...")
+
+    elif "look up record" in at_clean:
+        table = params.get("table")
+        conds = params.get("conditions")
+        if table:
+            details.append(f"Table: {table}")
+        if conds:
+            details.append(f"Cond: {conds}")
+
+    elif "worknote" in at_clean or "comment" in at_clean:
+        note = params.get("ah_work_note") or params.get("ah_comment") or params.get("note") or params.get("comment")
+        if note:
+            details.append(f"Note: {note}")
+
+    return details
+
+
 def find_subflow_sys_id(decoded: List[Dict[str, Any]]) -> Optional[str]:
     for item in decoded:
         for val in item.values():
@@ -135,9 +188,51 @@ def sanitize_mermaid_label(label: str) -> str:
     """Sanitize and quote labels for Mermaid syntax."""
     if not label:
         return ""
-    # Remove problematic characters and escape quotes
+    # Remove problematic characters but KEEP <br/> and HTML tags for formatting
+    # Replace only double quotes with single quotes to avoid breaking Mermaid syntax
     sanitized = label.replace('"', "'").replace("\n", " ").replace("\r", " ")
     return f'"{sanitized}"'
+
+
+def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
+    """
+    Extracts a subgraph containing only the nodes and edges reachable from the given root_id.
+    """
+    # Root trigger ID in the graph is root_{root_id[:8]}_trigger_{root_id[:8]}
+    start_node = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
+    if not any(node.id == start_node for node in graph.nodes):
+        # Maybe it's just the sys_id if it's a subflow treated as root
+        start_node = f"trigger_{root_id[:8]}"
+        if not any(node.id == start_node for node in graph.nodes):
+             return FlowGraph(nodes=[], edges=[], summary="Root not found")
+
+    # Build adjacency list (directed)
+    adj: DefaultDict[str, List[str]] = defaultdict(list)
+    for edge in graph.edges:
+        adj[edge.from_id].append(edge.to_id)
+
+    node_by_id = {node.id: node for node in graph.nodes}
+    reachable_nodes: Set[str] = set()
+    stack = [start_node]
+    while stack:
+        curr = stack.pop()
+        if curr not in reachable_nodes:
+            reachable_nodes.add(curr)
+            for neighbor in adj[curr]:
+                if neighbor not in reachable_nodes:
+                    stack.append(neighbor)
+
+    sub_nodes = [node_by_id[nid] for nid in reachable_nodes]
+    sub_edges = [
+        edge
+        for edge in graph.edges
+        if edge.from_id in reachable_nodes and edge.to_id in reachable_nodes
+    ]
+    return FlowGraph(
+        nodes=sub_nodes,
+        edges=sub_edges,
+        summary=f"Reachable from {root_id}",
+    )
 
 
 def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
@@ -193,13 +288,27 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
     return components
 
 
-def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
+def graph_to_mermaid_multi(
+    graph: FlowGraph,
+    root_sys_ids: List[str],
+    all_metadata: Dict[str, Dict[str, Any]] = None,
+) -> str:
     lines = ["flowchart TD"]
 
     for root_id in root_sys_ids:
         root_prefix = f"root_{root_id[:8]}_"
-        lines.append(f'    subgraph "ROOT FLOW: {root_id}"')
+        # Check if any nodes for this root exist in this component
+        has_nodes = any(
+            node.id.startswith(root_prefix)
+            or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
+            for node in graph.nodes
+        )
+        if not has_nodes:
+            continue
 
+        meta = (all_metadata or {}).get(root_id, {})
+        flow_name = meta.get("name", root_id)
+        lines.append(f'    subgraph "{flow_name} ({root_id})"')
         for node in graph.nodes:
             if (
                 node.id.startswith(root_prefix)
@@ -214,7 +323,6 @@ def graph_to_mermaid_multi(graph: FlowGraph, root_sys_ids: List[str]) -> str:
                 }
                 shape = shape_map.get(node.type, f"[{label}]")
                 lines.append(f"        {node.id}{shape}")
-
         lines.append("    end")
 
     # Define shapes for nodes not inside any root subgraph (e.g., shared subflow nodes)
@@ -4856,8 +4964,13 @@ class Api(object):
         """Fetch rich metadata for any flow/subflow."""
         logger.debug(f"Fetching metadata for flow {flow_sys_id}")
         try:
-            resp = self.get_table_record(
-                table="sys_hub_flow", table_record_sys_id=flow_sys_id
+            # Use get_table with sys_id query for more reliable results
+            resp = self.get_table(
+                table="sys_hub_flow",
+                sysparm_query=f"sys_id={flow_sys_id}",
+                sysparm_fields="sys_id,name,active,flow_type,description,sys_scope,application,sys_domain,sys_updated_on,sys_created_on",
+                sysparm_display_value="true",
+                sysparm_limit="1",
             )
             if not resp.response.ok:
                 logger.error(
@@ -4865,20 +4978,25 @@ class Api(object):
                 )
                 return {}
 
-            flow = resp.response.json().get("result", {})
+            results = resp.response.json().get("result", [])
+            if not results:
+                logger.warning(f"No metadata found for flow {flow_sys_id}")
+                return {}
+
+            flow = results[0] if isinstance(results, list) else results
+
+            def get_val(item, key, default=""):
+                v = item.get(key)
+                if isinstance(v, dict):
+                    return v.get("display_value", v.get("value", default))
+                return v if v is not None else default
 
             return {
                 "sys_id": flow.get("sys_id"),
-                "name": flow.get("name", "Unnamed Flow"),
-                "domain": flow.get("domain", {}).get(
-                    "display_value", flow.get("domain")
-                ),
-                "scope": flow.get("sys_scope", {}).get(
-                    "display_value", flow.get("sys_scope")
-                ),
-                "application": flow.get("application", {}).get(
-                    "display_value", "Global"
-                ),
+                "name": get_val(flow, "name", "Unnamed Flow"),
+                "domain": get_val(flow, "sys_domain"),
+                "scope": get_val(flow, "sys_scope"),
+                "application": get_val(flow, "application", "Global"),
                 "active": str(flow.get("active", False)).lower() == "true",
                 "flow_type": flow.get("flow_type", "flow"),
                 "description": flow.get("description", ""),
@@ -4891,13 +5009,19 @@ class Api(object):
 
     @require_auth
     def collect_graph_for_roots(
-        self, root_sys_ids: List[str], max_depth: int = 5
+        self,
+        root_sys_ids: List[str],
+        max_depth: int = 5,
+        initial_metadata: Dict[str, Dict[str, Any]] = None,
     ) -> tuple[FlowGraph, Dict[str, Dict[str, Any]]]:
         all_nodes: List[FlowNode] = []
         all_edges: List[FlowEdge] = []
-        visited: Set[str] = set()
+        visited: Dict[str, str] = {}  # flow_sys_id -> trigger_id
         root_nodes: Dict[str, str] = {}
         all_metadata: Dict[str, Dict[str, Any]] = {}
+
+        if initial_metadata:
+            all_metadata.update(initial_metadata)
 
         def recurse(
             flow_sys_id: str, prefix: str = "", depth: int = 0, is_root: bool = False
@@ -4906,16 +5030,23 @@ class Api(object):
                 logger.warning(f"Max depth {max_depth} reached at flow {flow_sys_id}")
                 return None
             if flow_sys_id in visited:
-                logger.debug(f"Already visited flow {flow_sys_id}, skipping")
-                return None
-            visited.add(flow_sys_id)
+                logger.debug(
+                    f"Already visited flow {flow_sys_id}, returning its trigger_id"
+                )
+                return visited[flow_sys_id]
 
             # Get metadata
-            meta = self.get_flow_metadata(flow_sys_id)
+            if flow_sys_id in all_metadata:
+                meta = all_metadata[flow_sys_id]
+            else:
+                meta = self.get_flow_metadata(flow_sys_id)
+                if meta:
+                    all_metadata[flow_sys_id] = meta
+
             if not meta:
                 logger.warning(f"Could not retrieve metadata for flow {flow_sys_id}")
                 return None
-            all_metadata[flow_sys_id] = meta
+
             flow_name = meta.get("name", "Unnamed")
 
             # Get actions
@@ -4946,8 +5077,22 @@ class Api(object):
             prev_id: Optional[str] = None
 
             trigger_id = f"{prefix}trigger_{flow_sys_id[:8]}"
-            label = f"ROOT: {flow_name}" if is_root else f"Subflow: {flow_name}"
-            nodes.append(FlowNode(id=trigger_id, label=label, type="trigger"))
+            visited[flow_sys_id] = trigger_id
+
+            # Enrich trigger label
+            desc = meta.get("description", "")
+            app = meta.get("application", "Global")
+            scope = meta.get("scope", "Global")
+
+            trigger_label = f"FLOW: {flow_name}" if is_root else f"SUBFLOW: {flow_name}"
+            trigger_label += f"<br/><i>{flow_sys_id}</i>"
+            if desc:
+                # Truncate description if too long
+                trunc_desc = desc[:100] + "..." if len(desc) > 100 else desc
+                trigger_label += f"<br/>{trunc_desc}"
+            trigger_label += f"<br/>App: {app} | Scope: {scope}"
+
+            nodes.append(FlowNode(id=trigger_id, label=trigger_label, type="trigger"))
             prev_id = trigger_id
             if is_root:
                 root_nodes[flow_sys_id] = trigger_id
@@ -4958,7 +5103,9 @@ class Api(object):
                 node_type = determine_node_type(action, decoded)
 
                 # Generate verbose label
-                step_name = action.get("name", "Step")
+                step_name = action.get("name", "")
+                if step_name.lower() in ["step", "action"]:
+                    step_name = ""
 
                 # Try to get the descriptive action type
                 action_ref = action.get("action_type", {})
@@ -4969,23 +5116,38 @@ class Api(object):
                     action_ref.get("display_value")
                     if isinstance(action_ref, dict)
                     else action_ref
-                )
+                ) or "Action"
 
-                # Prioritize comment for the most specific information
+                # Prioritize display_text or comment for the most specific information
                 comment = action.get("comment", "")
+                display_text = action.get("display_text", "")
 
-                label = step_name
-                if comment:
-                    label = f"{step_name}: {comment}"
-                    if (
-                        action_type_label
-                        and action_type_label.lower() != step_name.lower()
-                    ):
-                        label = f"{label} ({action_type_label})"
-                elif (
-                    action_type_label and action_type_label.lower() != step_name.lower()
+                action_sys_id = action.get("sys_id", "N/A")
+                
+                # Build label based on priority: Name -> Type
+                main_title = step_name if step_name else action_type_label
+                label = f"<b>{main_title}</b>"
+
+                # Add display text if it's different from the title
+                if display_text and display_text.lower() != main_title.lower():
+                    label += f"<br/>{display_text}"
+                elif comment and comment.lower() != main_title.lower():
+                    label += f"<br/>{comment}"
+
+                # Append enriched metadata
+                extra_details = extract_action_details(decoded, action_type_label)
+                for detail in extra_details:
+                    # Avoid repeating info already in display_text
+                    if all(d.split(": ")[1].lower() not in label.lower() for d in [detail] if ": " in d):
+                        label += f"<br/>{detail}"
+
+                # Add action type in parens only if it wasn't the main title
+                if (
+                    step_name and action_type_label.lower() != step_name.lower()
                 ):
-                    label = f"{step_name} ({action_type_label})"
+                    label += f"<br/>({action_type_label})"
+
+                label += f"<br/><small>{action_sys_id}</small>"
 
                 sub_id = find_subflow_sys_id(decoded)
                 if sub_id:
@@ -5035,23 +5197,32 @@ class Api(object):
             ),
             all_metadata,
         )
-
     @require_auth
     def workflow_to_mermaid(
         self,
         flow_identifiers: List[str] = None,
+        max_depth: int = 5,
         save_to_file: bool = True,
-        output_dir: Optional[str] = None,
-        mermaid_name: Optional[str] = "unified_flow_diagram",
-        max_depth: Optional[int] = 5,
+        output_dir: str = None,
+        mermaid_name: str = "servicenow_workflow",
+        segment_by_root: bool = True,
+        destination_file: Optional[str] = None,
     ) -> FlowReportResult:
         """
-        Generate a unified Mermaid diagram + rich Markdown report for multiple ServiceNow flows.
+        Generates a Mermaid diagram representing the relationships between ServiceNow flows and subflows.
+
+        :param flow_identifiers: List of flow names or sys_ids to use as roots. If None, fetches all active flows.
+        :param max_depth: Maximum recursion depth for subflow discovery.
+        :param save_to_file: Whether to save the result to a markdown file.
+        :param output_dir: Directory to save the report. Defaults to project/servicenow_flow_reports.
+        :param mermaid_name: Base name for the generated file (used if destination_file is not provided).
+        :param segment_by_root: If True, generates a separate diagram for each root flow. 
+        :param destination_file: Explicit full path to save the markdown report.
         """
         if flow_identifiers is None:
             flow_identifiers = []
 
-        if not output_dir:
+        if not destination_file and output_dir is None:
             ws = get_agent_workspace()
             output_dir = str(ws / "servicenow_flow_reports")
             logger.info(f"Using default output directory: {output_dir}")
@@ -5061,21 +5232,48 @@ class Api(object):
         )
         try:
             root_sys_ids: List[str] = []
+            initial_metadata: Dict[str, Dict[str, Any]] = {}
+
             if not flow_identifiers:
                 logger.info("No flow_identifiers provided. Fetching all active flows.")
                 resp = self.get_table(
                     table="sys_hub_flow",
                     sysparm_query="active=true^flow_type=flow",
                     sysparm_limit="1000",
-                    sysparm_fields="sys_id",
+                    sysparm_fields="sys_id,name,active,flow_type,description,sys_scope,application,sys_domain,sys_updated_on,sys_created_on",
+                    sysparm_display_value="true",
                 )
                 if resp.response.ok:
                     results = resp.response.json().get("result", [])
                     if results:
                         results = results if isinstance(results, list) else [results]
-                        root_sys_ids = [
-                            r.get("sys_id") for r in results if r.get("sys_id")
-                        ]
+                        for r in results:
+                            sid = r.get("sys_id")
+                            if sid:
+                                root_sys_ids.append(sid)
+
+                                def get_val(item, key, default=""):
+                                    v = item.get(key)
+                                    if isinstance(v, dict):
+                                        return v.get(
+                                            "display_value", v.get("value", default)
+                                        )
+                                    return v if v is not None else default
+
+                                # Pre-populate metadata to avoid extra API calls
+                                initial_metadata[sid] = {
+                                    "sys_id": sid,
+                                    "name": get_val(r, "name", "Unnamed Flow"),
+                                    "domain": get_val(r, "sys_domain"),
+                                    "scope": get_val(r, "sys_scope"),
+                                    "application": get_val(r, "application", "Global"),
+                                    "active": str(r.get("active", False)).lower()
+                                    == "true",
+                                    "flow_type": r.get("flow_type", "flow"),
+                                    "description": r.get("description", ""),
+                                    "updated_on": r.get("sys_updated_on"),
+                                    "created_on": r.get("sys_created_on"),
+                                }
                         logger.info(f"Retrieved {len(root_sys_ids)} active root flows.")
                 else:
                     logger.error(
@@ -5088,22 +5286,43 @@ class Api(object):
                         table="sys_hub_flow",
                         sysparm_query=f"name={ident}^ORsys_id={ident}",
                         sysparm_limit="1",
-                        sysparm_fields="sys_id",
+                        sysparm_fields="sys_id,name,active,flow_type,description,sys_scope,application,sys_domain,sys_updated_on,sys_created_on",
                         sysparm_display_value="true",
                     )
                     if resp.response.ok:
                         results = resp.response.json().get("result", [])
                         if results:
-                            sid = (
-                                results[0].get("sys_id")
-                                if isinstance(results, list)
-                                else results.get("sys_id")
+                            raw = (
+                                results[0] if isinstance(results, list) else results
                             )
+                            sid = raw.get("sys_id")
                             if sid:
                                 logger.info(
                                     f"Found sys_id {sid} for identifier {ident}"
                                 )
                                 root_sys_ids.append(sid)
+
+                                def get_val(item, key, default=""):
+                                    v = item.get(key)
+                                    if isinstance(v, dict):
+                                        return v.get(
+                                            "display_value", v.get("value", default)
+                                        )
+                                    return v if v is not None else default
+
+                                initial_metadata[sid] = {
+                                    "sys_id": sid,
+                                    "name": get_val(raw, "name", "Unnamed Flow"),
+                                    "domain": get_val(raw, "sys_domain"),
+                                    "scope": get_val(raw, "sys_scope"),
+                                    "application": get_val(raw, "application", "Global"),
+                                    "active": str(raw.get("active", False)).lower()
+                                    == "true",
+                                    "flow_type": raw.get("flow_type", "flow"),
+                                    "description": raw.get("description", ""),
+                                    "updated_on": raw.get("sys_updated_on"),
+                                    "created_on": raw.get("sys_created_on"),
+                                }
                             else:
                                 logger.warning(
                                     f"Result for {ident} had no sys_id: {results}"
@@ -5129,20 +5348,31 @@ class Api(object):
             # Build graph and metadata
             logger.info(f"Collecting graph for {len(root_sys_ids)} root sys_ids")
             graph, all_metadata = self.collect_graph_for_roots(
-                root_sys_ids, max_depth=max_depth
+                root_sys_ids, max_depth=max_depth, initial_metadata=initial_metadata
             )
 
-            # Split into connected components
-            logger.info("Splitting global graph into disjoint components")
-            components = find_connected_components(graph)
-            logger.info(f"Found {len(components)} standalone graph component groups")
-
-            # Generate Mermaid blocks separated by a token
+            # Split into components or segment by root
             mermaid_blocks = []
-            for idx, comp in enumerate(components):
-                logger.debug(f"Generating syntax for component {idx}")
-                comp_mermaid = graph_to_mermaid_multi(comp, root_sys_ids)
-                mermaid_blocks.append(comp_mermaid)
+            if segment_by_root:
+                logger.info(f"Segmenting report by root ({len(root_sys_ids)} roots)")
+                for rid in root_sys_ids:
+                    logger.debug(f"Extracting subgraph for root: {rid}")
+                    sub_graph = get_reachable_subgraph(graph, rid)
+                    if sub_graph.nodes:
+                        comp_mermaid = graph_to_mermaid_multi(
+                            sub_graph, [rid], all_metadata
+                        )
+                        mermaid_blocks.append(comp_mermaid)
+            else:
+                logger.info("Splitting global graph into disjoint components")
+                components = find_connected_components(graph)
+                logger.info(f"Found {len(components)} standalone graph component groups")
+                for idx, comp in enumerate(components):
+                    logger.debug(f"Generating syntax for component {idx}")
+                    comp_mermaid = graph_to_mermaid_multi(
+                        comp, root_sys_ids, all_metadata
+                    )
+                    mermaid_blocks.append(comp_mermaid)
 
             combined_mermaid = "|||BLOCK_SEP|||".join(mermaid_blocks)
 
@@ -5154,12 +5384,18 @@ class Api(object):
 
             file_path = None
             if save_to_file:
-                dir_path = Path(output_dir)
-                dir_path.mkdir(parents=True, exist_ok=True)
-                filename = (
-                    f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                )
-                file_path = str((dir_path / filename).resolve())
+                if destination_file:
+                    file_path = str(Path(destination_file).resolve())
+                else:
+                    dir_path = Path(output_dir)
+                    dir_path.mkdir(parents=True, exist_ok=True)
+                    filename = (
+                        f"{mermaid_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                    )
+                    file_path = str((dir_path / filename).resolve())
+
+                # Ensure parent directory exists for destination_file too
+                Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(markdown_content)
