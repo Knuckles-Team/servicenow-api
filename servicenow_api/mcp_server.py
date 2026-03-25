@@ -27,7 +27,7 @@ from agent_utilities.mcp_utilities import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.48"
+__version__ = "1.6.49"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -75,7 +75,8 @@ def register_flows_tools(mcp: FastMCP):
             True, description="If True (default), each flow gets its own diagram block."
         ),
         destination_file: Optional[str] = Field(
-            None, description="Explicit full path to save the report (e.g. /tmp/report.md)"
+            None,
+            description="Explicit full path to save the report (e.g. /tmp/report.md)",
         ),
         _client=Depends(get_client),
     ) -> FlowReportResult:
