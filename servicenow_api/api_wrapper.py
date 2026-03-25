@@ -93,13 +93,15 @@ def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
         return []
 
 
-def extract_action_details(decoded: List[Dict[str, Any]], action_type: str) -> List[str]:
+def extract_action_details(
+    decoded: List[Dict[str, Any]], action_type: str
+) -> List[str]:
     """
     Extracts specific metadata from decoded action values based on the action type.
     """
     details = []
     params = {}
-    
+
     # Decoded is a list of param dicts
     for p in decoded:
         name = p.get("name")
@@ -120,7 +122,9 @@ def extract_action_details(decoded: List[Dict[str, Any]], action_type: str) -> L
             details.append(f"Rules: {rules}")
 
     elif "create record" in at_clean or "update record" in at_clean:
-        table = params.get("table_name") or params.get("ah_table") or params.get("table")
+        table = (
+            params.get("table_name") or params.get("ah_table") or params.get("table")
+        )
         fields = params.get("values") or params.get("ah_fields")
         if table:
             details.append(f"Table: {table}")
@@ -139,7 +143,12 @@ def extract_action_details(decoded: List[Dict[str, Any]], action_type: str) -> L
             details.append(f"Cond: {conds}")
 
     elif "worknote" in at_clean or "comment" in at_clean:
-        note = params.get("ah_work_note") or params.get("ah_comment") or params.get("note") or params.get("comment")
+        note = (
+            params.get("ah_work_note")
+            or params.get("ah_comment")
+            or params.get("note")
+            or params.get("comment")
+        )
         if note:
             details.append(f"Note: {note}")
 
@@ -204,7 +213,7 @@ def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
         # Maybe it's just the sys_id if it's a subflow treated as root
         start_node = f"trigger_{root_id[:8]}"
         if not any(node.id == start_node for node in graph.nodes):
-             return FlowGraph(nodes=[], edges=[], summary="Root not found")
+            return FlowGraph(nodes=[], edges=[], summary="Root not found")
 
     # Build adjacency list (directed)
     adj: DefaultDict[str, List[str]] = defaultdict(list)
@@ -5123,7 +5132,7 @@ class Api(object):
                 display_text = action.get("display_text", "")
 
                 action_sys_id = action.get("sys_id", "N/A")
-                
+
                 # Build label based on priority: Name -> Type
                 main_title = step_name if step_name else action_type_label
                 label = f"<b>{main_title}</b>"
@@ -5138,13 +5147,15 @@ class Api(object):
                 extra_details = extract_action_details(decoded, action_type_label)
                 for detail in extra_details:
                     # Avoid repeating info already in display_text
-                    if all(d.split(": ")[1].lower() not in label.lower() for d in [detail] if ": " in d):
+                    if all(
+                        d.split(": ")[1].lower() not in label.lower()
+                        for d in [detail]
+                        if ": " in d
+                    ):
                         label += f"<br/>{detail}"
 
                 # Add action type in parens only if it wasn't the main title
-                if (
-                    step_name and action_type_label.lower() != step_name.lower()
-                ):
+                if step_name and action_type_label.lower() != step_name.lower():
                     label += f"<br/>({action_type_label})"
 
                 label += f"<br/><small>{action_sys_id}</small>"
@@ -5197,6 +5208,7 @@ class Api(object):
             ),
             all_metadata,
         )
+
     @require_auth
     def workflow_to_mermaid(
         self,
@@ -5216,7 +5228,7 @@ class Api(object):
         :param save_to_file: Whether to save the result to a markdown file.
         :param output_dir: Directory to save the report. Defaults to project/servicenow_flow_reports.
         :param mermaid_name: Base name for the generated file (used if destination_file is not provided).
-        :param segment_by_root: If True, generates a separate diagram for each root flow. 
+        :param segment_by_root: If True, generates a separate diagram for each root flow.
         :param destination_file: Explicit full path to save the markdown report.
         """
         if flow_identifiers is None:
@@ -5292,9 +5304,7 @@ class Api(object):
                     if resp.response.ok:
                         results = resp.response.json().get("result", [])
                         if results:
-                            raw = (
-                                results[0] if isinstance(results, list) else results
-                            )
+                            raw = results[0] if isinstance(results, list) else results
                             sid = raw.get("sys_id")
                             if sid:
                                 logger.info(
@@ -5315,7 +5325,9 @@ class Api(object):
                                     "name": get_val(raw, "name", "Unnamed Flow"),
                                     "domain": get_val(raw, "sys_domain"),
                                     "scope": get_val(raw, "sys_scope"),
-                                    "application": get_val(raw, "application", "Global"),
+                                    "application": get_val(
+                                        raw, "application", "Global"
+                                    ),
                                     "active": str(raw.get("active", False)).lower()
                                     == "true",
                                     "flow_type": raw.get("flow_type", "flow"),
@@ -5366,7 +5378,9 @@ class Api(object):
             else:
                 logger.info("Splitting global graph into disjoint components")
                 components = find_connected_components(graph)
-                logger.info(f"Found {len(components)} standalone graph component groups")
+                logger.info(
+                    f"Found {len(components)} standalone graph component groups"
+                )
                 for idx, comp in enumerate(components):
                     logger.debug(f"Generating syntax for component {idx}")
                     comp_mermaid = graph_to_mermaid_multi(

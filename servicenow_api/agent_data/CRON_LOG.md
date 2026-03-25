@@ -20,7 +20,7 @@ HEARTBEAT_ALERT — Unable to perform domain-specific checks (incidents, change 
 - Cron log: No errors in the last 24 hours.
 - Peer agents: AGENTS.md not found; no peers registered.
 - Domain checks: Graph flow indicated the agent cannot query ServiceNow directly; only guidance was provided.
-- Self‑diagnostics: 17 tools available; model unspecified; no other anomalies detected.  
+- Self‑diagnostics: 17 tools available; model unspecified; no other anomalies detected.
 Action needed: Configure or verify ServiceNow connectivity (or provide appropriate credentials) so the heartbeat can perform real‑time incident, change, and SLA checks.
 
 ---

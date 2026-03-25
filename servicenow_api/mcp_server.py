@@ -27,7 +27,7 @@ from agent_utilities.mcp_utilities import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.49"
+__version__ = "1.6.50"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
