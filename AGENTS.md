@@ -58,7 +58,7 @@ pre-commit run --all-files
 
 ### File Tree
 ```text
-├── .bumpversion.cfg\n├── .codespellignore\n├── .dockerignore\n├── .env\n├── .gitattributes\n├── .github\n│   └── workflows\n│       └── pipeline.yml\n├── .gitignore\n├── .pre-commit-config.yaml\n├── .pytest_cache\n│   ├── .gitignore\n│   ├── CACHEDIR.TAG\n│   ├── README.md\n│   └── v\n│       └── cache\n├── AGENTS.md\n├── Dockerfile\n├── LICENSE\n├── MANIFEST.in\n├── README.md\n├── compose.yml\n├── debug.Dockerfile\n├── mcp\n├── mcp.compose.yml\n├── pyproject.toml\n├── pytest.ini\n├── requirements.txt\n├── scripts\n│   ├── validate_a2a_agent.py\n│   └── validate_agent.py\n├── servicenow_api\n│   ├── __init__.py\n│   ├── __main__.py\n│   ├── agent\n│   │   ├── AGENTS.md\n│   │   ├── CRON.md\n│   │   ├── CRON_LOG.md\n│   │   ├── HEARTBEAT.md\n│   │   ├── IDENTITY.md\n│   │   ├── MEMORY.md\n│   │   ├── USER.md\n│   │   ├── mcp_config.json\n│   │   └── templates.py\n│   ├── agent.py\n│   ├── auth.py\n│   ├── mcp.py\n│   ├── servicenow_api.py\n│   └── servicenow_models.py\n├── servicenow_api.egg-info\n│   ├── PKG-INFO\n│   ├── SOURCES.txt\n│   ├── dependency_links.txt\n│   ├── entry_points.txt\n│   ├── requires.txt\n│   └── top_level.txt\n└── tests\n    ├── conftest.py\n    ├── test_change_requests.py\n    ├── test_incidents.py\n    ├── test_servicenow_api.py\n    ├── test_servicenow_models.py\n    └── test_user.py
+├── .bumpversion.cfg\n├── .codespellignore\n├── .dockerignore\n├── .env\n├── .gitattributes\n├── .github\n│   └── workflows\n│       └── pipeline.yml\n├── .gitignore\n├── .pre-commit-config.yaml\n├── .pytest_cache\n│   ├── .gitignore\n│   ├── CACHEDIR.TAG\n│   ├── README.md\n│   └── v\n│       └── cache\n├── AGENTS.md\n├── Dockerfile\n├── LICENSE\n├── MANIFEST.in\n├── README.md\n├── compose.yml\n├── debug.Dockerfile\n├── mcp\n├── mcp.compose.yml\n├── pyproject.toml\n├── pytest.ini\n├── requirements.txt\n├── scripts\n│   ├── validate_a2a_agent.py\n│   └── validate_agent.py\n├── servicenow_api\n│   ├── __init__.py\n│   ├── __main__.py\n│   ├── agent\n│   │   ├── AGENTS.md\n│   │   ├── CRON.md\n│   │   ├── CRON_LOG.md\n│   │   ├── HEARTBEAT.md\n│   │   ├── IDENTITY.md\n│   │   ├── MEMORY.md\n│   │   ├── USER.md\n│   │   ├── mcp_config.json\n│   │   └── templates.py\n│   ├── agent.py\n│   ├── auth.py\n│   ├── mcp.py\n│   ├── api_wrapper.py\n│   └── servicenow_models.py\n├── servicenow_api.egg-info\n│   ├── PKG-INFO\n│   ├── SOURCES.txt\n│   ├── dependency_links.txt\n│   ├── entry_points.txt\n│   ├── requires.txt\n│   └── top_level.txt\n└── tests\n    ├── conftest.py\n    ├── test_change_requests.py\n    ├── test_incidents.py\n    ├── test_api_wrapper.py\n    ├── test_servicenow_models.py\n    └── test_user.py
 ```
 
 ## Code Style & Conventions
@@ -108,3 +108,22 @@ async def my_tool(param: str) -> str:
 ## When Stuck
 - Propose a plan first before making large changes.
 - Check `agent-utilities` documentation for existing helpers.
+
+
+## Graph Architecture
+
+This agent uses `pydantic-graph` orchestration for intelligent routing and optimal context management.
+
+```mermaid
+---
+title: Servicenow API Graph Agent
+---
+stateDiagram-v2
+  [*] --> RouterNode: User Query
+  RouterNode --> DomainNode: Classified Domain
+  RouterNode --> [*]: Low confidence / Error
+  DomainNode --> [*]: Domain Result
+```
+
+- **RouterNode**: A fast, lightweight LLM (e.g., `gpt-4o-mini`) that classifies the user's query into one of the specialized domains.
+- **DomainNode**: The executor node. For the selected domain, it dynamically sets environment variables to temporarily enable ONLY the tools relevant to that domain, creating a highly focused sub-agent (e.g., `gpt-4o`) to complete the request. This preserves LLM context and prevents tool hallucination.

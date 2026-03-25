@@ -23,7 +23,7 @@ def servicenow_config():
 @pytest.fixture(scope="session")
 def api_client(servicenow_config):
     """Fixture to provide an authenticated Service Now Api client."""
-    from servicenow_api.servicenow_api import Api
+    from servicenow_api.api_wrapper import Api
 
     client = Api(
         url=servicenow_config["instance"],

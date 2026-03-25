@@ -27,7 +27,7 @@ from agent_utilities.mcp_utilities import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.47"
+__version__ = "1.6.48"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -71,6 +71,12 @@ def register_flows_tools(mcp: FastMCP):
         max_depth: Optional[int] = Field(
             5, description="Maximum recursion depth for subflows"
         ),
+        segment_by_root: bool = Field(
+            True, description="If True (default), each flow gets its own diagram block."
+        ),
+        destination_file: Optional[str] = Field(
+            None, description="Explicit full path to save the report (e.g. /tmp/report.md)"
+        ),
         _client=Depends(get_client),
     ) -> FlowReportResult:
         """
@@ -82,6 +88,8 @@ def register_flows_tools(mcp: FastMCP):
             output_dir=output_dir,
             mermaid_name=mermaid_name,
             max_depth=max_depth,
+            segment_by_root=segment_by_root,
+            destination_file=destination_file,
         )
 
 
@@ -2413,7 +2421,8 @@ def register_prompts(mcp: FastMCP):
         )
 
 
-def mcp_server():
+def get_mcp_instance() -> tuple[Any, Any, Any, Any]:
+    """Initialize and return the MCP instance, args, and middlewares."""
     load_dotenv(find_dotenv())
 
     args, mcp, middlewares = create_mcp_server(
@@ -2606,13 +2615,22 @@ def mcp_server():
 
     for mw in middlewares:
         mcp.add_middleware(mw)
+    registered_tags = []
+    return mcp, args, middlewares, registered_tags, imported_tools
+
+
+def mcp_server() -> None:
+    mcp, args, middlewares, imported_tools = get_mcp_instance()
 
     print("\nStarting ServiceNow MCP Server")
-    print(f"  Transport: {args.transport.upper()}")
-    print(f"  Auth: {args.auth_type}")
-    print(f"  Delegation: {'ON' if config['enable_delegation'] else 'OFF'}")
-    print(f"  Eunomia: {args.eunomia_type}")
-    print(f"  Imported OpenAPI Tools: {len(imported_tools)} total\n")
+    print(f"  Transport: {args.transport.upper()}", file=sys.stderr)
+    print(f"  Auth: {args.auth_type}", file=sys.stderr)
+    print(
+        f"  Delegation: {'ON' if config['enable_delegation'] else 'OFF'}",
+        file=sys.stderr,
+    )
+    print(f"  Eunomia: {args.eunomia_type}", file=sys.stderr)
+    print(f"  Imported OpenAPI Tools: {len(imported_tools)} total\n", file=sys.stderr)
 
     if args.transport == "stdio":
         mcp.run(transport="stdio")

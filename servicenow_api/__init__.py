@@ -8,7 +8,7 @@ from typing import List
 __all__: List[str] = []
 
 CORE_MODULES = [
-    "servicenow_api.servicenow_api",
+    "servicenow_api.api_wrapper",
     "servicenow_api.servicenow_models",
 ]
 

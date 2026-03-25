@@ -1,3 +1,18 @@
 {
-  "mcpServers": {}
+    "mcpServers": {
+        "servicenow-api": {
+            "command": "servicenow-mcp",
+            "args": [
+                "--transport",
+                "stdio"
+            ],
+            "env": {
+                "SERVICENOW_INSTANCE": "${SERVICENOW_INSTANCE}",
+                "SERVICENOW_USERNAME": "${SERVICENOW_USERNAME}",
+                "SERVICENOW_PASSWORD": "${SERVICENOW_PASSWORD}",
+                "SERVICENOW_CLIENT_ID": "${SERVICENOW_CLIENT_ID}",
+                "SERVICENOW_CLIENT_SECRET": "${SERVICENOW_CLIENT_SECRET}"
+            }
+        }
+    }
 }

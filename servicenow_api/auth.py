@@ -3,7 +3,7 @@ import requests
 from threading import local
 from agent_utilities.base_utilities import to_boolean, get_logger
 from agent_utilities.exceptions import AuthError, UnauthorizedError
-from servicenow_api.servicenow_api import Api
+from servicenow_api.api_wrapper import Api
 
 local = local()
 logger = get_logger(__name__)
