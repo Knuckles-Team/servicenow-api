@@ -21,7 +21,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.6.47*
+*Version: 1.6.48*
 
 ## Overview
 
@@ -315,6 +315,25 @@ This sequence highlights delegation, knowledge retrieval, and tool execution.
 - **Prompts**: Includes `create_incident_prompt` and `query_table_prompt` for AI-driven interactions.
 - **OIDC Token Delegation**: Supports token exchange for ServiceNow API calls, enabling user-specific authentication via OIDC.
 - **OpenAPI JSON Tool Import**: Import custom ServiceNow API Endpoints through the OpenAPI JSON generated.
+
+
+## Graph Architecture
+
+This agent uses `pydantic-graph` orchestration for intelligent routing and optimal context management.
+
+```mermaid
+---
+title: Servicenow API Graph Agent
+---
+stateDiagram-v2
+  [*] --> RouterNode: User Query
+  RouterNode --> DomainNode: Classified Domain
+  RouterNode --> [*]: Low confidence / Error
+  DomainNode --> [*]: Domain Result
+```
+
+- **RouterNode**: A fast, lightweight LLM (e.g., `gpt-4o-mini`) that classifies the user's query into one of the specialized domains.
+- **DomainNode**: The executor node. For the selected domain, it dynamically sets environment variables to temporarily enable ONLY the tools relevant to that domain, creating a highly focused sub-agent (e.g., `gpt-4o`) to complete the request. This preserves LLM context and prevents tool hallucination.
 
 ## Usage
 
