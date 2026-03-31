@@ -10,9 +10,9 @@ import {
     EmailVariable,
 } from '@servicenow/sdk/core'
 
-// ---------------------------
-// Variable Sets
-// ---------------------------
+
+
+
 const userInfoVarSet = VariableSet({
     $id: Now.ID['user_info_varset'],
     title: 'User Information',
@@ -46,9 +46,9 @@ const userInfoVarSet = VariableSet({
 
 const hardwareSpecsVarSet = '3820df570a0a0b2700d944110d29fc55'
 
-// ---------------------------
-// Catalogs
-// ---------------------------
+
+
+
 const catalogServiceCatalog = 'e0d08b13c3330100c8b837659bba8fb4'
 const catalogTechnicalCatalog = Record({
     $id: Now.ID['technical_catalog'],
@@ -65,9 +65,9 @@ const catalogTechnicalCatalog = Record({
     },
 })
 
-// ---------------------------
-// Categories
-// ---------------------------
+
+
+
 const categoryHardware = 'd258b953c611227a0146101fb1be7c31'
 const categorySoftware = Record({
     $id: Now.ID['software_category'],
@@ -82,9 +82,9 @@ const categorySoftware = Record({
     },
 })
 
-// ---------------------------
-// Topics
-// ---------------------------
+
+
+
 const topicHardware = '782413a7c3053010069aec4b7d40ddf1'
 const topicSoftware = Record({
     $id: Now.ID['software_topic'],
@@ -98,9 +98,9 @@ const topicSoftware = Record({
     },
 })
 
-// ---------------------------
-// User Criteria
-// ---------------------------
+
+
+
 const userCriteriaItilRole = 'afbaf8be844d40d7a526798fd6ecc5f8'
 const userCriteriaDevDepartment = Record({
     $id: Now.ID['dev_department_criteria'],
@@ -116,9 +116,9 @@ const userCriteriaDevDepartment = Record({
     },
 })
 
-// ---------------------------
-// Example 1: Basic Catalog Item
-// ---------------------------
+
+
+
 export const basicLaptopRequest = CatalogItem({
     $id: Now.ID['basic_catalog_item'],
     name: 'Basic Laptop Request',
@@ -130,9 +130,9 @@ export const basicLaptopRequest = CatalogItem({
     executionPlan: '523da512c611228900811a37c97c2014',
 })
 
-// ---------------------------
-// Example 2: Catalog Item with Pricing
-// ---------------------------
+
+
+
 export const pricedDeveloperWorkstation = CatalogItem({
     $id: Now.ID['priced_catalog_item'],
     name: 'Developer Workstation',
@@ -168,9 +168,9 @@ export const pricedDeveloperWorkstation = CatalogItem({
     },
 })
 
-// ---------------------------
-// Example 3: Catalog Item with Topics and Access Controls
-// ---------------------------
+
+
+
 export const softwareInstallation = CatalogItem({
     $id: Now.ID['topic_catalog_item'],
     name: 'Software Installation',
@@ -189,9 +189,9 @@ export const softwareInstallation = CatalogItem({
     ],
     executionPlan: '523da512c611228900811a37c97c2014',
     useScLayout: true,
-    deliveryPlanScript: `// Custom delivery plan logic
+    deliveryPlanScript: `
 gs.info('Processing delivery plan for software installation');`,
-    entitlementScript: `// Entitlement check
+    entitlementScript: `
 return current.department.name == 'IT' || current.hasRole('admin');`,
     image: 'software_icon.png',
     icon: 'icon-software',

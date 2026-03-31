@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "servicenow": {
+      "command": "servicenow-mcp",
+      "args": ["--transport", "stdio"],
+      "env": {
+        "SERVICENOW_URL": "${SERVICENOW_URL:-http://localhost:8080}",
+        "SERVICENOW_TOKEN": "${SERVICENOW_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { action, Flow, wfa, trigger } from '@servicenow/sdk/automation'
 
-// ── trigger.record.created ────────────────────────────────────────────────────
+
 
 export const incidentSeverityAlertFlow = Flow(
     {
@@ -157,7 +157,7 @@ export const incidentSeverityAlertFlow = Flow(
     }
 )
 
-// ── trigger.record.updated ────────────────────────────────────────────────────
+
 
 export const changeRequestApprovalNotificationFlow = Flow(
     {
@@ -218,7 +218,7 @@ export const changeRequestApprovalNotificationFlow = Flow(
     }
 )
 
-// ── trigger.record.createdOrUpdated ──────────────────────────────────────────
+
 
 export const changeRiskTaggingFlow = Flow(
     {

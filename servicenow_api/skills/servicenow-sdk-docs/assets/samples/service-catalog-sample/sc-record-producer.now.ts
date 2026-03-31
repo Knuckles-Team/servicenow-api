@@ -13,15 +13,15 @@ import {
     StringColumn,
 } from '@servicenow/sdk/core'
 
-// ---------------------------------------------------------------------------
-// Roles
-// ---------------------------------------------------------------------------
+
+
+
 
 const itil = Role({ name: 'x_servicecatalog.fulfiller' })
 
-// ---------------------------------------------------------------------------
-// Record Producer – Report an Incident
-// ---------------------------------------------------------------------------
+
+
+
 
 export const reportIncidentProducer = CatalogItemRecordProducer({
     $id: Now.ID['report_incident_producer'],
@@ -32,7 +32,7 @@ export const reportIncidentProducer = CatalogItemRecordProducer({
     availability: 'both',
     roles: [itil],
 
-    // Record producer settings
+    
     redirectUrl: 'generatedRecord',
     canCancel: true,
 
@@ -88,9 +88,9 @@ export const reportIncidentProducer = CatalogItemRecordProducer({
     },
 })
 
-// ---------------------------------------------------------------------------
-// UI Policy – Hide screenshot when urgency is low
-// ---------------------------------------------------------------------------
+
+
+
 
 export const hideScreenshotForLowUrgency = CatalogUiPolicy({
     $id: Now.ID['hide_screenshot_low_urgency_policy'],
@@ -111,9 +111,9 @@ export const hideScreenshotForLowUrgency = CatalogUiPolicy({
     ],
 })
 
-// ---------------------------------------------------------------------------
-// Client Script – Validate description on submit
-// ---------------------------------------------------------------------------
+
+
+
 
 export const incidentSubmitValidation = CatalogClientScript({
     $id: Now.ID['incident_submit_validation_script'],
@@ -135,9 +135,9 @@ function onSubmit() {
 }`,
 })
 
-// ---------------------------------------------------------------------------
-// Client Script – Auto-set short description prefix based on urgency
-// ---------------------------------------------------------------------------
+
+
+
 
 export const incidentUrgencyChangeScript = CatalogClientScript({
     $id: Now.ID['incident_urgency_change_script'],
@@ -153,7 +153,7 @@ function onChange(control, oldValue, newValue, isLoading) {
     if (isLoading) return;
     var shortDesc = g_form.getValue('short_desc');
     var prefixes = { '1': '[HIGH] ', '2': '[MEDIUM] ', '3': '[LOW] ' };
-    // Remove any existing prefix
+    
     shortDesc = shortDesc.replace(/^\\[(HIGH|MEDIUM|LOW)\\] /, '');
     if (prefixes[newValue]) {
         g_form.setValue('short_desc', prefixes[newValue] + shortDesc);
@@ -183,7 +183,7 @@ export const reportSecurityIncidentProducer = CatalogItemRecordProducer({
     state: 'published',
     availability: 'both',
 
-    // Record producer settings
+    
     redirectUrl: 'generatedRecord',
     canCancel: true,
 

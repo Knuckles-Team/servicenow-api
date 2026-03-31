@@ -21,7 +21,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.6.50*
+*Version: 1.6.51*
 
 ## Overview
 
@@ -332,7 +332,7 @@ stateDiagram-v2
   DomainNode --> [*]: Domain Result
 ```
 
-- **RouterNode**: A fast, lightweight LLM (e.g., `gpt-4o-mini`) that classifies the user's query into one of the specialized domains.
+- **RouterNode**: A fast, lightweight LLM (e.g., `nvidia/nemotron-3-super`) that classifies the user's query into one of the specialized domains.
 - **DomainNode**: The executor node. For the selected domain, it dynamically sets environment variables to temporarily enable ONLY the tools relevant to that domain, creating a highly focused sub-agent (e.g., `gpt-4o`) to complete the request. This preserves LLM context and prevents tool hallucination.
 
 ## Usage
@@ -622,7 +622,7 @@ docker run -d \
   -e SERVICENOW_PASSWORD=pass \
   -e SERVICENOW_CLIENT_ID=client_id \
   -e SERVICENOW_CLIENT_SECRET=client_secret \
-  -e SERVICENOW_VERIFY=False \
+  -e SERVICENOW_SSL_VERIFY=False \
   knucklessg1/servicenow:latest
 ```
 
@@ -656,7 +656,7 @@ docker run -d \
   -e SERVICENOW_PASSWORD=pass \
   -e SERVICENOW_CLIENT_ID=client_id \
   -e SERVICENOW_CLIENT_SECRET=client_secret \
-  -e SERVICENOW_VERIFY=False \
+  -e SERVICENOW_SSL_VERIFY=False \
   -e OPENAPI_FILE=/app/servicenow_openapi.json \
   knucklessg1/servicenow:latest
 ```
@@ -700,7 +700,7 @@ For Testing Only: Plain text storage will also work, although **not** recommende
         "SERVICENOW_PASSWORD": "pass",
         "SERVICENOW_CLIENT_ID": "client_id",
         "SERVICENOW_CLIENT_SECRET": "client_secret",
-        "SERVICENOW_VERIFY": "False",
+        "SERVICENOW_SSL_VERIFY": "False",
         "TOKEN_JWKS_URI": "${TOKEN_JWKS_URI}",
         "TOKEN_ISSUER": "${TOKEN_ISSUER}",
         "TOKEN_AUDIENCE": "${TOKEN_AUDIENCE}",

@@ -3100,11 +3100,11 @@ class Response(BaseModel, Generic[T]):
     )
 
 
-# ================== FLOW MODELS ==================
+                                                   
 class FlowNode(BaseModel):
     id: str
     label: str
-    type: str  # 'trigger', 'decision', 'loop', 'subflow_call', or 'action'
+    type: str                                                              
     action_name: Optional[str] = None
 
 

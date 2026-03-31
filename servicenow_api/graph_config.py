@@ -5,8 +5,8 @@ This is the only file each consumer agent needs to provide to use
 the centralized graph orchestration from agent-utilities.
 """
 
-# ── Tag → System Prompt Mapping ──────────────────────────────────────
-# Each domain tag gets a specialized system prompt for its sub-agent.
+                                                                       
+                                                                     
 TAG_PROMPTS: dict[str, str] = {
     "misc": (
         "You are a ServiceNow general-purpose assistant. Use the misc tools "
@@ -141,9 +141,9 @@ TAG_PROMPTS: dict[str, str] = {
 }
 
 
-# ── Tag → Environment Variable Mapping ────────────────────────────────
-# Each tag maps to the env var that toggles it at the MCP server level.
-# These follow the convention from mcp_server.py's mcp_server() function.
+                                                                        
+                                                                       
+                                                                         
 TAG_ENV_VARS: dict[str, str] = {
     "misc": "MISCTOOL",
     "flows": "FLOWSTOOL",

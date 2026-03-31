@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# coding: utf-8
+
 import os
 import logging
 
@@ -13,7 +13,7 @@ from agent_utilities import (
     load_identity,
 )
 
-__version__ = "1.6.50"
+__version__ = "1.6.51"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +22,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load identity and system prompt from workspace
+
 initialize_workspace()
 meta = load_identity()
 DEFAULT_AGENT_NAME = os.getenv("DEFAULT_AGENT_NAME", meta.get("name", "Servicenow Api"))
@@ -37,24 +37,47 @@ DEFAULT_AGENT_SYSTEM_PROMPT = os.getenv(
 
 
 def agent_template(mcp_url: str = None, mcp_config: str = None, **kwargs):
-    """Factory function returning the fully initialized graph for execution."""
     from agent_utilities import create_graph_agent
     from servicenow_api.graph_config import TAG_PROMPTS, TAG_ENV_VARS
 
-    # In-process MCP loading: if no external URL/Config, load the local FastMCP instance
-    mcp_toolsets = []
+    effective_mcp_config = mcp_config or os.getenv("MCP_CONFIG") or "mcp_config.json"
     effective_mcp_url = mcp_url or os.getenv("MCP_URL")
-    effective_mcp_config = mcp_config or os.getenv("MCP_CONFIG")
 
-    if not effective_mcp_url and not effective_mcp_config:
+    mcp_toolsets = []
+    if effective_mcp_config:
+        from agent_utilities.mcp_utilities import load_mcp_config
+
         try:
-            from servicenow_api.mcp_server import get_mcp_instance
 
-            mcp, _, _, _ = get_mcp_instance()
-            mcp_toolsets.append(mcp)
-            logger.info("ServiceNow API: Using in-process MCP instance.")
-        except (ImportError, Exception) as e:
-            logger.warning(f"ServiceNow API: Could not load in-process MCP: {e}")
+            config_path = effective_mcp_config
+            if not os.path.isabs(config_path) and "/" not in config_path:
+                from importlib.resources import files, as_file
+
+                try:
+
+                    pkg_res = files("servicenow_api") / config_path
+                    if pkg_res.is_file():
+                        with as_file(pkg_res) as path:
+                            config_path = str(path)
+                except Exception:
+                    pass
+
+                if not os.path.isabs(config_path):
+                    from agent_utilities import get_workspace_path
+
+                    ws_config = get_workspace_path(config_path)
+                    if ws_config.exists():
+                        config_path = str(ws_config)
+
+            if os.path.exists(config_path):
+                mcp_toolsets = load_mcp_config(config_path)
+                logger.info(
+                    f"servicenow-api: Loaded {len(mcp_toolsets)} MCP servers from {config_path}"
+                )
+        except Exception as e:
+            logger.error(
+                f"servicenow-api: Failed to load MCP config {effective_mcp_config}: {e}"
+            )
 
     return create_graph_agent(
         mcp_url=effective_mcp_url,
@@ -69,7 +92,6 @@ def agent_template(mcp_url: str = None, mcp_config: str = None, **kwargs):
 
 def agent_server():
 
-    # Suppress RequestsDependencyWarning and FastMCP DeprecationWarnings
     warnings.filterwarnings("ignore", message=".*urllib3.*or chardet.*")
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="fastmcp")
 
@@ -82,7 +104,6 @@ def agent_server():
         logging.getLogger().setLevel(logging.DEBUG)
         logger.debug("Debug mode enabled")
 
-    # Create graph and config using standardized template
     graph_bundle = agent_template(
         provider=args.provider,
         agent_model=args.model_id,
@@ -93,7 +114,6 @@ def agent_server():
         ssl_verify=not args.insecure,
     )
 
-    # Start server using the pre-built graph bundle
     create_graph_agent_server(
         graph_bundle=graph_bundle,
         host=args.host,
@@ -107,10 +127,6 @@ def agent_server():
         otel_protocol=args.otel_protocol,
         debug=args.debug,
     )
-
-
-if __name__ == "__main__":
-    agent_server()
 
 
 if __name__ == "__main__":

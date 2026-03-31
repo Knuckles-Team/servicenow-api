@@ -21,15 +21,15 @@ import {
 import { Flow, wfa, trigger } from '@servicenow/sdk/automation'
 import { contactInfoVariableSet } from './variable-set.now'
 
-// ---------------------------------------------------------------------------
-// Roles
-// ---------------------------------------------------------------------------
+
+
+
 
 const itil = Role({ name: 'x_servicecatalog.itil' })
 
-// ---------------------------------------------------------------------------
-// Flow – Laptop Request Fulfillment
-// ---------------------------------------------------------------------------
+
+
+
 
 export const laptopFulfillmentFlow = Flow(
     {
@@ -54,13 +54,13 @@ export const laptopFulfillmentFlow = Flow(
         }
     ),
     (_trigger) => {
-        // Flow logic goes here
+        
     }
 )
 
-// ---------------------------------------------------------------------------
-// Catalog Item – Laptop Request
-// ---------------------------------------------------------------------------
+
+
+
 
 export const laptopRequest = CatalogItem({
     $id: Now.ID['laptop_request_catalog_item'],
@@ -71,36 +71,36 @@ export const laptopRequest = CatalogItem({
     availability: 'both',
     order: 100,
 
-    // Fulfillment
+    
     fulfillmentAutomationLevel: 'semiAutomated',
     flow: laptopFulfillmentFlow,
 
-    // Pricing
+    
     ignorePrice: false,
     cost: 1200,
     recurringFrequency: 'yearly',
     billable: true,
 
-    // Portal settings
+    
     requestMethod: 'order',
     hideAddToCart: false,
     hideQuantitySelector: true,
     mandatoryAttachment: false,
 
-    // Visibility
+    
     visibleBundle: true,
     visibleGuide: true,
     visibleStandalone: true,
 
-    // Access
+    
     roles: [itil],
 
-    // M2M relationships
+    
     variableSets: [{ variableSet: contactInfoVariableSet, order: 0 }],
 
-    // Variables
+    
     variables: {
-        // -- Container: Laptop Details --
+        
         laptop_details_start: ContainerStartVariable({
             question: 'Laptop Details',
             displayTitle: true,
@@ -149,7 +149,7 @@ export const laptopRequest = CatalogItem({
 
         laptop_details_end: ContainerEndVariable({ order: 1600 }),
 
-        // -- Additional Options --
+        
         include_dock: YesNoVariable({
             question: 'Include Docking Station?',
             order: 2000,
@@ -195,9 +195,9 @@ export const laptopRequest = CatalogItem({
     },
 })
 
-// ---------------------------------------------------------------------------
-// UI Policy – Show dock option only for standard laptops
-// ---------------------------------------------------------------------------
+
+
+
 
 export const showDockForStandard = CatalogUiPolicy({
     $id: Now.ID['show_dock_for_standard_policy'],
@@ -218,9 +218,9 @@ export const showDockForStandard = CatalogUiPolicy({
     ],
 })
 
-// ---------------------------------------------------------------------------
-// Client Script – Auto-fill justification hint on type change
-// ---------------------------------------------------------------------------
+
+
+
 
 export const laptopTypeChangeScript = CatalogClientScript({
     $id: Now.ID['laptop_type_change_script'],
@@ -234,9 +234,9 @@ export const laptopTypeChangeScript = CatalogClientScript({
     script: Now.include('./sc-catalog-item.client.js'),
 })
 
-// ---------------------------------------------------------------------------
-// Client Script – Set default needed-by date on load
-// ---------------------------------------------------------------------------
+
+
+
 
 export const laptopOnLoadScript = CatalogClientScript({
     $id: Now.ID['laptop_onload_script'],

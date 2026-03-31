@@ -1,6 +1,6 @@
 import { Record } from '@servicenow/sdk/core'
 
-// Use the sc_cat_item table dependency that was downloaded
+
 
 Record({
     $id: Now.ID['cat-item-1'],

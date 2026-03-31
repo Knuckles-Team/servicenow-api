@@ -34,7 +34,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        // QA check 1: article must have content
+        
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_content_empty'],
@@ -85,7 +85,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        // QA check 2: article must have a title
+        
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_title_empty'],
@@ -113,7 +113,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        // Article passed QA — stamp approval comment
+        
         wfa.action(
             action.core.updateRecord,
             { $id: Now.ID['mark_qa_approved'] },
@@ -132,7 +132,7 @@ export const knowledgeArticleQaFlow = Flow(
             { source_record: wfa.dataPill(article.Record.sys_id, 'reference') }
         )
 
-        // Notify knowledge manager if article has attachments (high quality)
+        
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_has_attachments'],

@@ -1,8 +1,6 @@
 import { Test } from '@servicenow/sdk/core'
 
-/**
- * This example of an ATF Test uses an output variable to be used in subsequent steps
- */
+
 
 Test(
     {

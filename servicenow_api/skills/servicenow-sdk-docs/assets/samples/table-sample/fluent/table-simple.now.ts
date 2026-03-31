@@ -1,8 +1,6 @@
 import { Table, StringColumn, IntegerColumn, BooleanColumn, DateColumn } from '@servicenow/sdk/core'
 
-/**
- * This example creates a table in the ServiceNow platform with 4 columns.
- */
+
 export const x_tablesample_name = Table({
     name: 'x_tablesample_name',
     schema: {

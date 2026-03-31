@@ -7,15 +7,15 @@ import {
     Role,
 } from '@servicenow/sdk/core'
 
-// ---------------------------------------------------------------------------
-// Roles
-// ---------------------------------------------------------------------------
+
+
+
 
 const itil = Role({ name: 'x_servicecatalog.requestor' })
 
-// ---------------------------------------------------------------------------
-// Reusable Variable Set – Contact Information
-// ---------------------------------------------------------------------------
+
+
+
 
 export const contactInfoVariableSet = VariableSet({
     $id: Now.ID['contact_info_variable_set'],
@@ -45,9 +45,9 @@ export const contactInfoVariableSet = VariableSet({
     },
 })
 
-// ---------------------------------------------------------------------------
-// UI Policy – Make phone mandatory when email is provided
-// ---------------------------------------------------------------------------
+
+
+
 
 export const contactPhoneMandatoryPolicy = CatalogUiPolicy({
     $id: Now.ID['contact_phone_mandatory_policy'],
@@ -69,9 +69,9 @@ export const contactPhoneMandatoryPolicy = CatalogUiPolicy({
     ],
 })
 
-// ---------------------------------------------------------------------------
-// Client Script – Auto-format phone number on change
-// ---------------------------------------------------------------------------
+
+
+
 
 export const contactPhoneFormatScript = CatalogClientScript({
     $id: Now.ID['contact_phone_format_script'],
