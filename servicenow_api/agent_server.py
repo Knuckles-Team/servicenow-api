@@ -13,7 +13,7 @@ from agent_utilities import (
     load_identity,
 )
 
-__version__ = "1.6.55"
+__version__ = "1.6.56"
 
 logging.basicConfig(
     level=logging.INFO,
