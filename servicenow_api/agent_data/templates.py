@@ -2,7 +2,6 @@ import asyncio
 from typing import Dict
 from servicenow_api.models import PeriodicTask
 
-                               
 CORE_FILES = {
     "IDENTITY": "IDENTITY.md",
     "USER": "USER.md",
@@ -13,11 +12,11 @@ CORE_FILES = {
     "MCP_CONFIG": "mcp_config.json",
 }
 
-                                                                  
+
 tasks: list[PeriodicTask] = []
 lock = asyncio.Lock()
 
-                                        
+
 TEMPLATES: Dict[str, str] = {
     "IDENTITY": """# IDENTITY.md - Who I Am, Core Personality, & Boundaries
 

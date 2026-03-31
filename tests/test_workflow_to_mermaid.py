@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 from pathlib import Path
 import pytest
 
-                                  
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from servicenow_api.servicenow_api import Api
@@ -28,7 +27,7 @@ def test_workflow_to_mermaid_path(
     mock_get_table,
     mock_get_workspace,
 ):
-                 
+
     mock_session_get.return_value.status_code = 200
     mock_workspace = Path("/tmp/mock_workspace")
     mock_get_workspace.return_value = mock_workspace
@@ -45,18 +44,14 @@ def test_workflow_to_mermaid_path(
 
     client = Api(url="http://test.com", username="user", password="pass")
 
-                                 
     result = client.workflow_to_mermaid(save_to_file=True)
 
-                                 
     mock_get_workspace.assert_called_once()
 
-                                               
     expected_base = mock_workspace / "servicenow_flow_reports"
     assert "servicenow_flow_reports" in result.file_path
     assert str(expected_base) in result.file_path
 
-                                                  
     mock_open.assert_called_once()
     args, kwargs = mock_open.call_args
     assert Path(args[0]).is_absolute()

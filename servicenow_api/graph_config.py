@@ -5,8 +5,6 @@ This is the only file each consumer agent needs to provide to use
 the centralized graph orchestration from agent-utilities.
 """
 
-                                                                       
-                                                                     
 TAG_PROMPTS: dict[str, str] = {
     "misc": (
         "You are a ServiceNow general-purpose assistant. Use the misc tools "
@@ -141,9 +139,6 @@ TAG_PROMPTS: dict[str, str] = {
 }
 
 
-                                                                        
-                                                                       
-                                                                         
 TAG_ENV_VARS: dict[str, str] = {
     "misc": "MISCTOOL",
     "flows": "FLOWSTOOL",

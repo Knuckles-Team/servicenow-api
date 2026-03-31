@@ -3100,11 +3100,10 @@ class Response(BaseModel, Generic[T]):
     )
 
 
-                                                   
 class FlowNode(BaseModel):
     id: str
     label: str
-    type: str                                                              
+    type: str
     action_name: Optional[str] = None
 
 

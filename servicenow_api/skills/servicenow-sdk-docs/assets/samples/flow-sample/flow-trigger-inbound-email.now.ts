@@ -35,7 +35,7 @@ export const emailIncidentTaskFlow = Flow(
             }
         )
 
-        
+
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_internal_p1'],
@@ -86,7 +86,7 @@ export const emailIncidentTaskFlow = Flow(
             }
         )
 
-        
+
         wfa.flowLogic.else({ $id: Now.ID['create_p3_incident_branch'] }, () => {
             const p3Incident = wfa.action(
                 action.core.createRecord,
