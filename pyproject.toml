@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.6.50"
+version = "1.6.51"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 authors = [{ name = "Audel Rouhi", email = "knucklessg1@gmail.com" }]
@@ -31,7 +31,6 @@ all = [
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
-servicenow-agent = "servicenow_api.agent_server:agent_server"
 
 [tool.setuptools.package-data]
 servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**"]

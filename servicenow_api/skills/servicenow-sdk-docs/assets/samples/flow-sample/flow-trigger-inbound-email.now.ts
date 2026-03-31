@@ -35,7 +35,7 @@ export const emailIncidentTaskFlow = Flow(
             }
         )
 
-        // Internal P1 path — two tasks
+        
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_internal_p1'],
@@ -86,7 +86,7 @@ export const emailIncidentTaskFlow = Flow(
             }
         )
 
-        // External / non-P1 path — P3 incident + copy attachments
+        
         wfa.flowLogic.else({ $id: Now.ID['create_p3_incident_branch'] }, () => {
             const p3Incident = wfa.action(
                 action.core.createRecord,

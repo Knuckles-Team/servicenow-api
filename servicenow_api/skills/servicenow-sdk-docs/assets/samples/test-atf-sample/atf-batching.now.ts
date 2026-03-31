@@ -1,8 +1,6 @@
 import { Test } from '@servicenow/sdk/core'
 
-/**
- * This is an example ATF test that uses impesonation, form actions, and field state validation steps
- */
+
 
 Test(
     {

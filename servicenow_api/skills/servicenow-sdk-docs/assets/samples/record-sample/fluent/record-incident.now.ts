@@ -1,6 +1,6 @@
 import { Record } from '@servicenow/sdk/core'
 
-//This example generates a record in the incident table
+
 
 Record({
     $id: Now.ID['incident-1'],

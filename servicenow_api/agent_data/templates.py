@@ -2,7 +2,7 @@ import asyncio
 from typing import Dict
 from servicenow_api.models import PeriodicTask
 
-# Core files we care about most
+                               
 CORE_FILES = {
     "IDENTITY": "IDENTITY.md",
     "USER": "USER.md",
@@ -13,11 +13,11 @@ CORE_FILES = {
     "MCP_CONFIG": "mcp_config.json",
 }
 
-# ============== IN-MEMORY PERIODIC SCHEDULER STATE ==============
+                                                                  
 tasks: list[PeriodicTask] = []
 lock = asyncio.Lock()
 
-# Templates for workspace initialization
+                                        
 TEMPLATES: Dict[str, str] = {
     "IDENTITY": """# IDENTITY.md - Who I Am, Core Personality, & Boundaries
 

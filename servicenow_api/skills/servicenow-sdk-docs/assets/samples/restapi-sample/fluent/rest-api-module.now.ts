@@ -1,11 +1,7 @@
 import { RestApi } from '@servicenow/sdk/core'
 import { process } from '../server/rest-api-handler'
 
-/**
- * This is a simple example of a REST API build using fluent that has 4 routes (GET, POST, PUT, DELETE)
- * scripts are enclosed in the `script` tag to allow for inline syntax highlighting for server code
- * /api/restapi-hello
- */
+
 
 RestApi({
     $id: Now.ID['restapi-modules'],

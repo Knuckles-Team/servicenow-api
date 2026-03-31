@@ -1,6 +1,6 @@
 import { Record } from '@servicenow/sdk/core'
 
-// Use the sys_ui_action table dependency that was downloaded
+
 
 const action = Record({
     $id: Now.ID['edit_in_catalog_builder'],
@@ -24,12 +24,12 @@ const action = Record({
     },
 })
 
-//Map the ui action to a role
+
 Record({
     $id: Now.ID['edit_in_catalog_builder_role'],
     table: 'sys_ui_action_role',
     data: {
-        sys_user_role: '2831a114c611228501d4ea6c309d626d', //admin
+        sys_user_role: '2831a114c611228501d4ea6c309d626d', 
         sys_ui_action: action,
     },
 })

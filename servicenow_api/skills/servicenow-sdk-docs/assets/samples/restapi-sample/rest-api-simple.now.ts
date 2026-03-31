@@ -1,10 +1,6 @@
 import { RestApi } from '@servicenow/sdk/core'
 
-/**
- * This is a simple example of a REST API build using fluent that has 4 routes (GET, POST, PUT, DELETE)
- * scripts are enclosed in the `script` tag to allow for inline syntax highlighting for server code
- * /api/restapi-hello
- */
+
 
 RestApi({
     $id: Now.ID['restapi-hello'],
@@ -17,7 +13,7 @@ RestApi({
             name: 'get',
             method: 'GET',
             script: script`
-              (function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+              (function process(  request,  response) {
                 response.setBody({ message: 'Hello, World!' })
               })(request, response)
             `,
@@ -27,7 +23,7 @@ RestApi({
             name: 'post',
             method: 'POST',
             script: script`
-              (function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+              (function process(  request,  response) {
 				            var reqbody = request.body.dataString;
                     var parser = new global.JSON();
                     var parsedData = parser.decode(reqbody);
@@ -41,7 +37,7 @@ RestApi({
             name: 'put',
             method: 'PUT',
             script: script`
-              (function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+              (function process(  request,  response) {
                 var reqbody = request.body.dataString;
                 var parser = new global.JSON();
                 var parsedData = parser.decode(reqbody);
@@ -55,7 +51,7 @@ RestApi({
             name: 'delete',
             method: 'DELETE',
             script: script`
-              (function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+              (function process(  request,  response) {
                 response.setBody({ delete: { msg: "DELETED" } })
               })(request, response)
             `,

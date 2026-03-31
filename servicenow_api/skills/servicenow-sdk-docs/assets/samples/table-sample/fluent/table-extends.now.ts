@@ -1,8 +1,6 @@
 import { ReferenceColumn, Table } from '@servicenow/sdk/core'
 
-/**
- * This example creates a table in the ServiceNow platform that extends the task table, and has a reference colun
- */
+
 export const x_tablesample_extends = Table({
     name: 'x_tablesample_extends',
     extends: 'task',

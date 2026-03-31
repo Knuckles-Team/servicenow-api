@@ -12,7 +12,7 @@ export const slaTaskEscalationFlow = Flow(
         {}
     ),
     (params) => {
-        // ── 75% milestone ────────────────────────────────────────────────────────
+        
         wfa.action(
             action.core.slaPercentageTimer,
             { $id: Now.ID['wait_75_percent'], annotation: 'Pause until 75% of SLA time elapsed' },
@@ -85,7 +85,7 @@ export const slaTaskEscalationFlow = Flow(
             }
         )
 
-        // ── 90% milestone ────────────────────────────────────────────────────────
+        
         wfa.action(
             action.core.slaPercentageTimer,
             { $id: Now.ID['wait_90_percent'], annotation: 'Pause until 90% of SLA time elapsed' },
