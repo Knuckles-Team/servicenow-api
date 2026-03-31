@@ -34,7 +34,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        
+
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_content_empty'],
@@ -85,7 +85,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        
+
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_title_empty'],
@@ -113,7 +113,7 @@ export const knowledgeArticleQaFlow = Flow(
             }
         )
 
-        
+
         wfa.action(
             action.core.updateRecord,
             { $id: Now.ID['mark_qa_approved'] },
@@ -132,7 +132,7 @@ export const knowledgeArticleQaFlow = Flow(
             { source_record: wfa.dataPill(article.Record.sys_id, 'reference') }
         )
 
-        
+
         wfa.flowLogic.if(
             {
                 $id: Now.ID['check_has_attachments'],

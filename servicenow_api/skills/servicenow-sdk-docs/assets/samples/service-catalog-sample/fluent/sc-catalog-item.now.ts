@@ -54,7 +54,7 @@ export const laptopFulfillmentFlow = Flow(
         }
     ),
     (_trigger) => {
-        
+
     }
 )
 
@@ -71,36 +71,36 @@ export const laptopRequest = CatalogItem({
     availability: 'both',
     order: 100,
 
-    
+
     fulfillmentAutomationLevel: 'semiAutomated',
     flow: laptopFulfillmentFlow,
 
-    
+
     ignorePrice: false,
     cost: 1200,
     recurringFrequency: 'yearly',
     billable: true,
 
-    
+
     requestMethod: 'order',
     hideAddToCart: false,
     hideQuantitySelector: true,
     mandatoryAttachment: false,
 
-    
+
     visibleBundle: true,
     visibleGuide: true,
     visibleStandalone: true,
 
-    
+
     roles: [itil],
 
-    
+
     variableSets: [{ variableSet: contactInfoVariableSet, order: 0 }],
 
-    
+
     variables: {
-        
+
         laptop_details_start: ContainerStartVariable({
             question: 'Laptop Details',
             displayTitle: true,
@@ -149,7 +149,7 @@ export const laptopRequest = CatalogItem({
 
         laptop_details_end: ContainerEndVariable({ order: 1600 }),
 
-        
+
         include_dock: YesNoVariable({
             question: 'Include Docking Station?',
             order: 2000,

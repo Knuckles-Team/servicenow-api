@@ -32,7 +32,7 @@ export const reportIncidentProducer = CatalogItemRecordProducer({
     availability: 'both',
     roles: [itil],
 
-    
+
     redirectUrl: 'generatedRecord',
     canCancel: true,
 
@@ -153,7 +153,7 @@ function onChange(control, oldValue, newValue, isLoading) {
     if (isLoading) return;
     var shortDesc = g_form.getValue('short_desc');
     var prefixes = { '1': '[HIGH] ', '2': '[MEDIUM] ', '3': '[LOW] ' };
-    
+
     shortDesc = shortDesc.replace(/^\\[(HIGH|MEDIUM|LOW)\\] /, '');
     if (prefixes[newValue]) {
         g_form.setValue('short_desc', prefixes[newValue] + shortDesc);
@@ -183,7 +183,7 @@ export const reportSecurityIncidentProducer = CatalogItemRecordProducer({
     state: 'published',
     availability: 'both',
 
-    
+
     redirectUrl: 'generatedRecord',
     canCancel: true,
 

@@ -18,7 +18,7 @@ Record({
 const x_require = (function() {
     if (typeof require == "undefined") {
         return function(path) {
-			
+
 			const API_NAME = "x_sysmodulesample.x_require";
             var nowGr = new GlideRecord("sys_script_include");
             nowGr.get("api_name", API_NAME);

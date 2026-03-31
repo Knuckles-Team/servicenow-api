@@ -1,5 +1,5 @@
 #!/usr/bin/python
-               
+
 from typing import Dict, Any, Optional, List, Set, DefaultDict
 from collections import defaultdict
 import json
@@ -77,7 +77,6 @@ from agent_utilities.exceptions import (
 logger = get_logger(__name__)
 
 
-                                                    
 def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
     if not raw_values or not isinstance(raw_values, str):
         return []
@@ -102,10 +101,9 @@ def extract_action_details(
     details = []
     params = {}
 
-                                      
     for p in decoded:
         name = p.get("name")
-                                                        
+
         val = p.get("displayValue") or p.get("value")
         if name and val:
             params[name] = val
@@ -118,7 +116,7 @@ def extract_action_details(
         if table:
             details.append(f"Table: {table}")
         if rules:
-                                                           
+
             details.append(f"Rules: {rules}")
 
     elif "create record" in at_clean or "update record" in at_clean:
@@ -129,7 +127,7 @@ def extract_action_details(
         if table:
             details.append(f"Table: {table}")
         if fields and isinstance(fields, str):
-                                                                               
+
             important = [f.split("=")[0] for f in fields.split("^") if "=" in f]
             if important:
                 details.append(f"Fields: {', '.join(important[:5])}...")
@@ -197,8 +195,7 @@ def sanitize_mermaid_label(label: str) -> str:
     """Sanitize and quote labels for Mermaid syntax."""
     if not label:
         return ""
-                                                                               
-                                                                                    
+
     sanitized = label.replace('"', "'").replace("\n", " ").replace("\r", " ")
     return f'"{sanitized}"'
 
@@ -207,15 +204,14 @@ def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
     """
     Extracts a subgraph containing only the nodes and edges reachable from the given root_id.
     """
-                                                                              
+
     start_node = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
     if not any(node.id == start_node for node in graph.nodes):
-                                                                      
+
         start_node = f"trigger_{root_id[:8]}"
         if not any(node.id == start_node for node in graph.nodes):
             return FlowGraph(nodes=[], edges=[], summary="Root not found")
 
-                                     
     adj: DefaultDict[str, List[str]] = defaultdict(list)
     for edge in graph.edges:
         adj[edge.from_id].append(edge.to_id)
@@ -252,13 +248,11 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
     if not graph.nodes:
         return []
 
-                                                              
     adj: DefaultDict[str, List[str]] = defaultdict(list)
     for edge in graph.edges:
         adj[edge.from_id].append(edge.to_id)
         adj[edge.to_id].append(edge.from_id)
 
-                               
     all_node_ids = {node.id for node in graph.nodes}
     node_by_id = {node.id: node for node in graph.nodes}
 
@@ -267,7 +261,7 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
 
     for start_node in all_node_ids:
         if start_node not in visited:
-                                                    
+
             component_nodes: Set[str] = set()
             stack = [start_node]
             while stack:
@@ -279,7 +273,6 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
                         if neighbor not in component_nodes:
                             stack.append(neighbor)
 
-                             
             sub_nodes = [node_by_id[nid] for nid in component_nodes]
             sub_edges = [
                 edge
@@ -306,7 +299,7 @@ def graph_to_mermaid_multi(
 
     for root_id in root_sys_ids:
         root_prefix = f"root_{root_id[:8]}_"
-                                                                  
+
         has_nodes = any(
             node.id.startswith(root_prefix)
             or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
@@ -334,7 +327,6 @@ def graph_to_mermaid_multi(
                 lines.append(f"        {node.id}{shape}")
         lines.append("    end")
 
-                                                                                       
     for node in graph.nodes:
         if not any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
             label = sanitize_mermaid_label(node.label)
@@ -384,7 +376,6 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     for sid, m in metadata.items():
         md += f"| {m.get('name')} | `{sid}` | {m.get('domain')} | {m.get('scope')} | {m.get('active')} | {m.get('description', '')[:80]}... |\n"
 
-                                                                  
     mermaid_blocks = (
         mermaid_code.split("|||BLOCK_SEP|||")
         if "|||BLOCK_SEP|||" in mermaid_code
@@ -4917,7 +4908,6 @@ class Api(object):
         try:
             qp = ProductInventoryQueryParams(**kwargs)
             params = qp.model_dump(exclude_none=True)
-                                         
 
             if qp.place_id:
                 params.pop("place_id")
@@ -4973,7 +4963,7 @@ class Api(object):
         """Fetch rich metadata for any flow/subflow."""
         logger.debug(f"Fetching metadata for flow {flow_sys_id}")
         try:
-                                                                       
+
             resp = self.get_table(
                 table="sys_hub_flow",
                 sysparm_query=f"sys_id={flow_sys_id}",
@@ -5025,7 +5015,7 @@ class Api(object):
     ) -> tuple[FlowGraph, Dict[str, Dict[str, Any]]]:
         all_nodes: List[FlowNode] = []
         all_edges: List[FlowEdge] = []
-        visited: Dict[str, str] = {}                             
+        visited: Dict[str, str] = {}
         root_nodes: Dict[str, str] = {}
         all_metadata: Dict[str, Dict[str, Any]] = {}
 
@@ -5044,7 +5034,6 @@ class Api(object):
                 )
                 return visited[flow_sys_id]
 
-                          
             if flow_sys_id in all_metadata:
                 meta = all_metadata[flow_sys_id]
             else:
@@ -5058,7 +5047,6 @@ class Api(object):
 
             flow_name = meta.get("name", "Unnamed")
 
-                         
             actions = []
             for tbl in ["sys_hub_action_instance_v2", "sys_hub_action_instance"]:
                 resp = self.get_table(
@@ -5088,7 +5076,6 @@ class Api(object):
             trigger_id = f"{prefix}trigger_{flow_sys_id[:8]}"
             visited[flow_sys_id] = trigger_id
 
-                                  
             desc = meta.get("description", "")
             app = meta.get("application", "Global")
             scope = meta.get("scope", "Global")
@@ -5096,7 +5083,7 @@ class Api(object):
             trigger_label = f"FLOW: {flow_name}" if is_root else f"SUBFLOW: {flow_name}"
             trigger_label += f"<br/><i>{flow_sys_id}</i>"
             if desc:
-                                                  
+
                 trunc_desc = desc[:100] + "..." if len(desc) > 100 else desc
                 trigger_label += f"<br/>{trunc_desc}"
             trigger_label += f"<br/>App: {app} | Scope: {scope}"
@@ -5111,12 +5098,10 @@ class Api(object):
                 decoded = decode_values(action.get("values"))
                 node_type = determine_node_type(action, decoded)
 
-                                        
                 step_name = action.get("name", "")
                 if step_name.lower() in ["step", "action"]:
                     step_name = ""
 
-                                                        
                 action_ref = action.get("action_type", {})
                 if not action_ref:
                     action_ref = action.get("action", {})
@@ -5127,26 +5112,22 @@ class Api(object):
                     else action_ref
                 ) or "Action"
 
-                                                                                      
                 comment = action.get("comment", "")
                 display_text = action.get("display_text", "")
 
                 action_sys_id = action.get("sys_id", "N/A")
 
-                                                             
                 main_title = step_name if step_name else action_type_label
                 label = f"<b>{main_title}</b>"
 
-                                                                   
                 if display_text and display_text.lower() != main_title.lower():
                     label += f"<br/>{display_text}"
                 elif comment and comment.lower() != main_title.lower():
                     label += f"<br/>{comment}"
 
-                                          
                 extra_details = extract_action_details(decoded, action_type_label)
                 for detail in extra_details:
-                                                                  
+
                     if all(
                         d.split(": ")[1].lower() not in label.lower()
                         for d in [detail]
@@ -5154,7 +5135,6 @@ class Api(object):
                     ):
                         label += f"<br/>{detail}"
 
-                                                                            
                 if step_name and action_type_label.lower() != step_name.lower():
                     label += f"<br/>({action_type_label})"
 
@@ -5272,7 +5252,6 @@ class Api(object):
                                         )
                                     return v if v is not None else default
 
-                                                                                
                                 initial_metadata[sid] = {
                                     "sys_id": sid,
                                     "name": get_val(r, "name", "Unnamed Flow"),
@@ -5357,13 +5336,11 @@ class Api(object):
                     root_flow_sys_ids=[],
                 )
 
-                                      
             logger.info(f"Collecting graph for {len(root_sys_ids)} root sys_ids")
             graph, all_metadata = self.collect_graph_for_roots(
                 root_sys_ids, max_depth=max_depth, initial_metadata=initial_metadata
             )
 
-                                                      
             mermaid_blocks = []
             if segment_by_root:
                 logger.info(f"Segmenting report by root ({len(root_sys_ids)} roots)")
@@ -5390,7 +5367,6 @@ class Api(object):
 
             combined_mermaid = "|||BLOCK_SEP|||".join(mermaid_blocks)
 
-                                     
             logger.info("Building polished markdown")
             markdown_content = build_polished_markdown(
                 graph, all_metadata, root_sys_ids, combined_mermaid
@@ -5408,7 +5384,6 @@ class Api(object):
                     )
                     file_path = str((dir_path / filename).resolve())
 
-                                                                         
                 Path(file_path).parent.mkdir(parents=True, exist_ok=True)
 
                 with open(file_path, "w", encoding="utf-8") as f:

@@ -29,7 +29,7 @@ Record({
     $id: Now.ID['edit_in_catalog_builder_role'],
     table: 'sys_ui_action_role',
     data: {
-        sys_user_role: '2831a114c611228501d4ea6c309d626d', 
+        sys_user_role: '2831a114c611228501d4ea6c309d626d',
         sys_ui_action: action,
     },
 })
