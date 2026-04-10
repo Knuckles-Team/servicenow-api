@@ -1,4 +1,18 @@
 #!/usr/bin/python
+import warnings
+
+# Filter RequestsDependencyWarning early to prevent log spam
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    try:
+        from requests.exceptions import RequestsDependencyWarning
+        warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
+    except ImportError:
+        pass
+
+# General urllib3/chardet mismatch warnings
+warnings.filterwarnings("ignore", message=".*urllib3.*or chardet.*")
+warnings.filterwarnings("ignore", message=".*urllib3.*or charset_normalizer.*")
 
 from dotenv import load_dotenv, find_dotenv
 import asyncio
@@ -2621,7 +2635,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any]:
 
 
 def mcp_server() -> None:
-    mcp, args, middlewares, imported_tools = get_mcp_instance()
+    mcp, args, middlewares, registered_tags, imported_tools = get_mcp_instance()
 
     print("\nStarting ServiceNow MCP Server")
     print(f"  Transport: {args.transport.upper()}", file=sys.stderr)
@@ -2631,7 +2645,7 @@ def mcp_server() -> None:
         file=sys.stderr,
     )
     print(f"  Eunomia: {args.eunomia_type}", file=sys.stderr)
-    print(f"  Imported OpenAPI Tools: {len(imported_tools)} total\n", file=sys.stderr)
+    print(f"  Imported OpenAPI Tools: {len(imported_tools)} total", file=sys.stderr)
 
     if args.transport == "stdio":
         mcp.run(transport="stdio")

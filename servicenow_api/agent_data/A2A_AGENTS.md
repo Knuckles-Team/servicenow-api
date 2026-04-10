@@ -5,8 +5,8 @@ This file is the local registry of other A2A agents this agent can discover and 
 
 ## Registered A2A Peers
 
-| Name            | Endpoint URL                    | Description                          | Capabilities                     | Auth      | Notes / Last Connected |
-|-----------------|---------------------------------|--------------------------------------|----------------------------------|-----------|------------------------|
-| SearchMaster    | http://search-agent:9000/a2a    | Advanced web researcher              | web_search, summarize, browse    | none      | 2026-02-20             |
+| Name | Endpoint URL | Description | Capabilities | Auth | Notes / Last Connected |
+|------|--------------|-------------|--------------|------|------------------------|
+|      |              |             |              |      |                        |
 
 *Add new rows manually or let the agent call `register_a2a_peer(...)`.*

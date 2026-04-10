@@ -76,8 +76,13 @@ ENV HOST=${HOST} \
     UV_COMPILE_BYTECODE=1
 
 RUN apt-get update \
-   && apt-get install -y ripgrep tree fd-find curl nano \
-   && curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.6.56
+    && apt-get install -y ripgrep tree fd-find curl nano \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+     && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
+    && mkdir -p /root/.config \
+    && echo 'eval "$(starship init bash)"' >> /root/.bashrc \ \
+    uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.6.56
+
+COPY starship.toml /root/.config/starship.toml
 
 CMD ["servicenow-mcp"]
