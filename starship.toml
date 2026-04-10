@@ -1,0 +1,70 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+add_newline = true
+command_timeout = 1000
+
+format = """\
+${custom.shell}\
+${directory}\
+${git_branch}${git_status}\
+${line_break}\
+${character}"""
+
+right_format = """${nodejs}${time}"""
+
+# ── Left side ───────────────────────────────────────────────────────────────
+
+# Shell name (blue diamond like your first segment)
+[custom.shell]
+command = """echo ${SHELL##*/}"""
+when = true
+format = "[ ╭─](fg:#0077c2)[ $output ](fg:#ffffff bg:#0077c2)[ ](fg:#0077c2)"
+
+# Directory (gray powerline)
+[directory]
+style = "fg:#E4E4E4 bg:#444444"
+format = "[ $path ](fg:#E4E4E4 bg:#444444)[ ](fg:#444444)"
+truncation_len = 0
+truncate_to_repo = false
+use_logical_path = false
+
+# Git
+[git_branch]
+format = "[ ](fg:#FFFB38)[ $branch ](fg:#011627 bg:#FFFB38)"
+style = "fg:#011627 bg:#FFFB38"
+
+[git_status]
+format = "[$all_status$ahead_behind ](fg:#011627 bg:#FFFB38)"
+style = "fg:#011627 bg:#FFFB38"
+ahead = "↑$count"
+behind = "↓$count"
+diverged = "↑$ahead_count↓$behind_count"
+modified = "!"
+staged = "+"
+untracked = "?"
+deleted = "✘"
+renamed = "»"
+
+# ── Right side ──────────────────────────────────────────────────────────────
+
+# Node.js (green on dark)
+[nodejs]
+format = "[ ](fg:#303030)[  $version ](fg:#3C873A bg:#303030)[ ](fg:#303030)"
+detect_files = ["package.json"]
+
+# Time (cyan diamond)
+[time]
+disabled = false
+format = "[ ](fg:#40c4ff)[  $time ](fg:#ffffff bg:#40c4ff)[ ](fg:#40c4ff)"
+time_format = "%H:%M:%S"
+
+# ── Bottom line ─────────────────────────────────────────────────────────────
+
+[character]
+success_symbol = "[╰─❯ ](fg:#e0f8ff)"
+error_symbol = "[╰─❯ ](fg:#ef5350)"
+
+# Python module (nice to have in a Python container)
+[python]
+format = "[  $version ](fg:#3776AB bg:#444444)[ ](fg:#444444)"
+style = "fg:#3776AB bg:#444444"

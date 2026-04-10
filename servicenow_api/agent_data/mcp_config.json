@@ -1,18 +1,53 @@
 {
-    "mcpServers": {
-        "servicenow-api": {
-            "command": "servicenow-mcp",
-            "args": [
-                "--transport",
-                "stdio"
-            ],
-            "env": {
-                "SERVICENOW_INSTANCE": "${SERVICENOW_INSTANCE}",
-                "SERVICENOW_USERNAME": "${SERVICENOW_USERNAME}",
-                "SERVICENOW_PASSWORD": "${SERVICENOW_PASSWORD}",
-                "SERVICENOW_CLIENT_ID": "${SERVICENOW_CLIENT_ID}",
-                "SERVICENOW_CLIENT_SECRET": "${SERVICENOW_CLIENT_SECRET}"
-            }
-        }
+  "mcpServers": {
+    "servicenow-api": {
+      "command": "servicenow-mcp",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "SERVICENOW_INSTANCE": "${SERVICENOW_INSTANCE}",
+        "SERVICENOW_USERNAME": "${SERVICENOW_USERNAME}",
+        "SERVICENOW_PASSWORD": "${SERVICENOW_PASSWORD}",
+        "SERVICENOW_CLIENT_ID": "${SERVICENOW_CLIENT_ID}",
+        "SERVICENOW_CLIENT_SECRET": "${SERVICENOW_CLIENT_SECRET}",
+        "ACCOUNTTOOL": "${ ACCOUNTTOOL:-True }",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "${ ACTIVITY_SUBSCRIPTIONSTOOL:-True }",
+        "AGGREGATETOOL": "${ AGGREGATETOOL:-True }",
+        "APPLICATIONTOOL": "${ APPLICATIONTOOL:-True }",
+        "ATTACHMENTTOOL": "${ ATTACHMENTTOOL:-True }",
+        "AUTHTOOL": "${ AUTHTOOL:-True }",
+        "BATCHTOOL": "${ BATCHTOOL:-True }",
+        "CHANGE_MANAGEMENTTOOL": "${ CHANGE_MANAGEMENTTOOL:-True }",
+        "CICDTOOL": "${ CICDTOOL:-True }",
+        "CILIFECYCLETOOL": "${ CILIFECYCLETOOL:-True }",
+        "CMDBTOOL": "${ CMDBTOOL:-True }",
+        "CUSTOM_APITOOL": "${ CUSTOM_APITOOL:-True }",
+        "DATA_CLASSIFICATIONTOOL": "${ DATA_CLASSIFICATIONTOOL:-True }",
+        "DEVOPSTOOL": "${ DEVOPSTOOL:-True }",
+        "EMAILTOOL": "${ EMAILTOOL:-True }",
+        "FLOWSTOOL": "${ FLOWSTOOL:-True }",
+        "HRTOOL": "${ HRTOOL:-True }",
+        "IMPORT_SETSTOOL": "${ IMPORT_SETSTOOL:-True }",
+        "INCIDENTSTOOL": "${ INCIDENTSTOOL:-True }",
+        "KNOWLEDGE_MANAGEMENTTOOL": "${ KNOWLEDGE_MANAGEMENTTOOL:-True }",
+        "METRICBASETOOL": "${ METRICBASETOOL:-True }",
+        "MISCTOOL": "${ MISCTOOL:-True }",
+        "OPENAPI_CLIENT_ID": "${OPENAPI_CLIENT_ID}",
+        "OPENAPI_PASSWORD": "${OPENAPI_PASSWORD}",
+        "OPENAPI_USERNAME": "${OPENAPI_USERNAME}",
+        "PLUGINSTOOL": "${ PLUGINSTOOL:-True }",
+        "PPMTOOL": "${ PPMTOOL:-True }",
+        "PRODUCT_INVENTORYTOOL": "${ PRODUCT_INVENTORYTOOL:-True }",
+        "SERVICENOW_RETURN_LIMIT": "${SERVICENOW_RETURN_LIMIT}",
+        "SERVICENOW_SSL_VERIFY": "${SERVICENOW_SSL_VERIFY}",
+        "SERVICE_QUALIFICATIONTOOL": "${ SERVICE_QUALIFICATIONTOOL:-True }",
+        "SOURCE_CONTROLTOOL": "${ SOURCE_CONTROLTOOL:-True }",
+        "TABLE_APITOOL": "${ TABLE_APITOOL:-True }",
+        "TESTINGTOOL": "${ TESTINGTOOL:-True }",
+        "UPDATE_SETSTOOL": "${ UPDATE_SETSTOOL:-True }"
+      }
     }
+  }
 }
