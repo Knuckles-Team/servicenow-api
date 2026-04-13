@@ -332,7 +332,7 @@ stateDiagram-v2
   DomainNode --> [*]: Domain Result
 ```
 
-- **RouterNode**: A fast, lightweight LLM (e.g., `google/gemma-4-31b`) that classifies the user's query into one of the specialized domains.
+- **RouterNode**: A fast, lightweight LLM (e.g., `nvidia/nemotron-3-super`) that classifies the user's query into one of the specialized domains.
 - **DomainNode**: The executor node. For the selected domain, it dynamically sets environment variables to temporarily enable ONLY the tools relevant to that domain, creating a highly focused sub-agent (e.g., `gpt-4o`) to complete the request. This preserves LLM context and prevents tool hallucination.
 
 ## Usage
@@ -820,7 +820,7 @@ eunomia-mcp validate mcp_policies.json
 |            | --port            | Port to bind the server to (default: 9000)                             |
 |            | --reload          | Enable auto-reload                                                     |
 |            | --provider        | LLM Provider: 'openai', 'anthropic', 'google', 'huggingface'           |
-|            | --model-id        | LLM Model ID (default: google/gemma-4-31b)                                       |
+|            | --model-id        | LLM Model ID (default: nvidia/nemotron-3-super)                                       |
 |            | --base-url        | LLM Base URL (for OpenAI compatible providers)                         |
 |            | --api-key         | LLM API Key                                                            |
 |            | --mcp-url         | MCP Server URL (default: http://localhost:8000/mcp)                    |
