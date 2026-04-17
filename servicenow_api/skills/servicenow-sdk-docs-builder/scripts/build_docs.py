@@ -164,11 +164,13 @@ def main():
     )
     parser.print_usage()
     parser.add_argument(
-        "--sdk-path", default="/home/genius/Workspace/sdk", help="Path to sdk repo"
+        "--sdk-path",
+        default=os.path.expanduser("~/Workspace/sdk"),
+        help="Path to sdk repo",
     )
     parser.add_argument(
         "--examples-path",
-        default="/home/genius/Workspace/sdk-examples",
+        default=os.path.expanduser("~/Workspace/sdk-examples"),
         help="Path to sdk-examples repo",
     )
     parser.add_argument("--target", required=True, help="Target skill directory")
