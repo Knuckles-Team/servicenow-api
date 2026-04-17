@@ -6,6 +6,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     try:
         from requests.exceptions import RequestsDependencyWarning
+
         warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
     except ImportError:
         pass
@@ -24,8 +25,6 @@ from threading import local
 from typing import Optional, List, Dict, Any, Union
 
 import httpx
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 from fastmcp.dependencies import Depends
 from pydantic import Field
 from fastmcp import FastMCP, Context
@@ -41,7 +40,7 @@ from agent_utilities.mcp_utilities import (
 )
 from servicenow_api.auth import get_client
 
-__version__ = "1.6.56"
+__version__ = "1.6.57"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
@@ -56,10 +55,9 @@ DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
 
 
 def register_misc_tools(mcp: FastMCP):
+    pass
+    pass
     logger.info("DEBUG: Executing register_tools...")
-
-    async def health_check(request: Request) -> JSONResponse:
-        return JSONResponse({"status": "OK"})
 
     logger.info("DEBUG: Registering get_incidents...")
 
