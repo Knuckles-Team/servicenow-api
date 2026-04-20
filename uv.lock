@@ -2673,7 +2673,7 @@ wheels = [
 
 [[package]]
 name = "servicenow-api"
-version = "1.6.56"
+version = "1.6.57"
 source = { editable = "." }
 dependencies = [
     { name = "agent-utilities" },
