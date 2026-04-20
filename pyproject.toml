@@ -31,6 +31,7 @@ all = [
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
+servicenow-agent = "servicenow_api.agent_server:agent_server"
 
 [tool.setuptools.package-data]
 servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**"]
