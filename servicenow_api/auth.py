@@ -1,8 +1,10 @@
 import os
-import requests
 from threading import local
-from agent_utilities.base_utilities import to_boolean, get_logger
+
+import requests
+from agent_utilities.base_utilities import get_logger, to_boolean
 from agent_utilities.exceptions import AuthError, UnauthorizedError
+
 from servicenow_api.api_wrapper import Api
 
 local = local()

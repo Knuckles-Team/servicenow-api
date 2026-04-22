@@ -15,30 +15,31 @@ with warnings.catch_warnings():
 warnings.filterwarnings("ignore", message=".*urllib3.*or chardet.*")
 warnings.filterwarnings("ignore", message=".*urllib3.*or charset_normalizer.*")
 
-from dotenv import load_dotenv, find_dotenv
 import asyncio
 import json
+import logging
 import os
 import sys
-import logging
 from threading import local
-from typing import Optional, List, Dict, Any, Union
+from typing import Any
 
 import httpx
-from fastmcp.dependencies import Depends
-from pydantic import Field
-from fastmcp import FastMCP, Context
-from fastmcp.utilities.logging import get_logger
-from servicenow_api.servicenow_models import (
-    Response,
-    FlowReportResult,
-)
 from agent_utilities.base_utilities import to_boolean, to_integer
 from agent_utilities.mcp_utilities import (
-    create_mcp_server,
     config,
+    create_mcp_server,
 )
+from dotenv import find_dotenv, load_dotenv
+from fastmcp import Context, FastMCP
+from fastmcp.dependencies import Depends
+from fastmcp.utilities.logging import get_logger
+from pydantic import Field
+
 from servicenow_api.auth import get_client
+from servicenow_api.servicenow_models import (
+    FlowReportResult,
+    Response,
+)
 
 __version__ = "1.6.57"
 
@@ -68,7 +69,7 @@ def register_flows_tools(mcp: FastMCP):
         tags={"flows"},
     )
     async def workflow_to_mermaid(
-        flow_identifiers: List[str] = Field(
+        flow_identifiers: list[str] = Field(
             default_factory=list,
             description="List of flow names or sys_ids. If empty, fetches ALL active flows.",
         ),
@@ -76,17 +77,17 @@ def register_flows_tools(mcp: FastMCP):
             True,
             description="Default: True → saves polished .md file. Set False to return Markdown as text only.",
         ),
-        output_dir: Optional[str] = Field(
+        output_dir: str | None = Field(
             "./servicenow_flow_reports", description="Default folder for saved reports"
         ),
-        mermaid_name: Optional[str] = Field("unified_flow_diagram"),
-        max_depth: Optional[int] = Field(
+        mermaid_name: str | None = Field("unified_flow_diagram"),
+        max_depth: int | None = Field(
             5, description="Maximum recursion depth for subflows"
         ),
         segment_by_root: bool = Field(
             True, description="If True (default), each flow gets its own diagram block."
         ),
-        destination_file: Optional[str] = Field(
+        destination_file: str | None = Field(
             None,
             description="Explicit full path to save the report (e.g. /tmp/report.md)",
         ),
@@ -159,13 +160,13 @@ def register_cmdb_tools(mcp: FastMCP):
     )
     async def get_cmdb_instances(
         className: str = Field(description="CMDB class name"),
-        sysparm_limit: Optional[str] = Field(
+        sysparm_limit: str | None = Field(
             default="10000", description="Maximum number of records to return"
         ),
-        sysparm_offset: Optional[str] = Field(
+        sysparm_offset: str | None = Field(
             default="0", description="Starting record index"
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query used to filter the result set"
         ),
         _client=Depends(get_client),
@@ -199,13 +200,13 @@ def register_cmdb_tools(mcp: FastMCP):
     async def create_cmdb_instance(
         className: str = Field(description="CMDB class name"),
         source: str = Field(description="Discovery source"),
-        attributes: Optional[Dict] = Field(
+        attributes: dict | None = Field(
             default=None, description="Data attributes to define in the CI record"
         ),
-        inbound_relations: Optional[List[Dict]] = Field(
+        inbound_relations: list[dict] | None = Field(
             default=None, description="List of inbound relations"
         ),
-        outbound_relations: Optional[List[Dict]] = Field(
+        outbound_relations: list[dict] | None = Field(
             default=None, description="List of outbound relations"
         ),
         _client=Depends(get_client),
@@ -228,10 +229,10 @@ def register_cmdb_tools(mcp: FastMCP):
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
-        attributes: Optional[Dict] = Field(
+        attributes: dict | None = Field(
             default=None, description="Data attributes to replace"
         ),
-        ctx: Context = None,
+        ctx: Context | None = None,
         _client=Depends(get_client),
     ) -> Response | str:
         """
@@ -257,10 +258,10 @@ def register_cmdb_tools(mcp: FastMCP):
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
-        attributes: Optional[Dict] = Field(
+        attributes: dict | None = Field(
             default=None, description="Data attributes to replace"
         ),
-        ctx: Context = None,
+        ctx: Context | None = None,
         _client=Depends(get_client),
     ) -> Response | str:
         """
@@ -286,10 +287,10 @@ def register_cmdb_tools(mcp: FastMCP):
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI"),
         source: str = Field(description="Discovery source"),
-        inbound_relations: Optional[List[Dict]] = Field(
+        inbound_relations: list[dict] | None = Field(
             default=None, description="List of inbound relations"
         ),
-        outbound_relations: Optional[List[Dict]] = Field(
+        outbound_relations: list[dict] | None = Field(
             default=None, description="List of outbound relations"
         ),
         _client=Depends(get_client),
@@ -310,7 +311,7 @@ def register_cmdb_tools(mcp: FastMCP):
     )
     async def ingest_cmdb_data(
         data_source_sys_id: str = Field(description="Sys_id of the data source record"),
-        records: List[Dict] = Field(description="Array of objects to ingest"),
+        records: list[dict] = Field(description="Array of objects to ingest"),
         _client=Depends(get_client),
     ) -> Response:
         """
@@ -371,7 +372,7 @@ def register_cicd_tools(mcp: FastMCP):
     async def batch_install(
         name: str = Field(description="The name of the batch installation"),
         packages: str = Field(description="The packages to be installed in the batch"),
-        notes: Optional[str] = Field(
+        notes: str | None = Field(
             default=None, description="Additional notes for the batch installation"
         ),
         _client=Depends(get_client),
@@ -405,14 +406,14 @@ def register_cicd_tools(mcp: FastMCP):
             description="The sys_id of the application to be installed"
         ),
         scope: str = Field(description="The scope of the application"),
-        auto_upgrade_base_app: Optional[bool] = Field(
+        auto_upgrade_base_app: bool | None = Field(
             default=None,
             description="Flag indicating whether to auto-upgrade the base app",
         ),
-        base_app_version: Optional[str] = Field(
+        base_app_version: str | None = Field(
             default=None, description="The version of the base app"
         ),
-        version: Optional[str] = Field(
+        version: str | None = Field(
             default=None, description="The version of the application to be installed"
         ),
         _client=Depends(get_client),
@@ -437,10 +438,10 @@ def register_cicd_tools(mcp: FastMCP):
             description="The sys_id of the application to be published"
         ),
         scope: str = Field(description="The scope of the application"),
-        dev_notes: Optional[str] = Field(
+        dev_notes: str | None = Field(
             default=None, description="Development notes for the published version"
         ),
-        version: Optional[str] = Field(
+        version: str | None = Field(
             default=None, description="The version of the application to be published"
         ),
         _client=Depends(get_client),
@@ -520,7 +521,7 @@ def register_cicd_tools(mcp: FastMCP):
     )
     async def suite_scan(
         suite_sys_id: str = Field(description="The sys_id of the suite to be scanned"),
-        sys_ids: List[str] = Field(
+        sys_ids: list[str] = Field(
             description="List of sys_ids representing app_scope_sys_ids for the suite scan"
         ),
         scan_type: str = Field(
@@ -577,7 +578,7 @@ def register_source_control_tools(mcp: FastMCP):
         branch_name: str = Field(
             description="The name of the branch containing the changes"
         ),
-        auto_upgrade_base_app: Optional[bool] = Field(
+        auto_upgrade_base_app: bool | None = Field(
             default=None,
             description="Flag indicating whether to auto-upgrade the base app",
         ),
@@ -599,18 +600,18 @@ def register_source_control_tools(mcp: FastMCP):
     )
     async def import_repository(
         repo_url: str = Field(description="The URL of the repository to be imported"),
-        credential_sys_id: Optional[str] = Field(
+        credential_sys_id: str | None = Field(
             default=None,
             description="The sys_id of the credential to be used for the import",
         ),
-        mid_server_sys_id: Optional[str] = Field(
+        mid_server_sys_id: str | None = Field(
             default=None,
             description="The sys_id of the MID Server to be used for the import",
         ),
-        branch_name: Optional[str] = Field(
+        branch_name: str | None = Field(
             default=None, description="The name of the branch to be imported"
         ),
-        auto_upgrade_base_app: Optional[bool] = Field(
+        auto_upgrade_base_app: bool | None = Field(
             default=None,
             description="Flag indicating whether to auto-upgrade the base app",
         ),
@@ -640,17 +641,17 @@ def register_testing_tools(mcp: FastMCP):
         test_suite_name: str = Field(
             description="The name of the test suite to be run"
         ),
-        browser_name: Optional[str] = Field(
+        browser_name: str | None = Field(
             default=None, description="The name of the browser for the test run"
         ),
-        browser_version: Optional[str] = Field(
+        browser_version: str | None = Field(
             default=None, description="The version of the browser for the test run"
         ),
-        os_name: Optional[str] = Field(
+        os_name: str | None = Field(
             default=None,
             description="The name of the operating system for the test run",
         ),
-        os_version: Optional[str] = Field(
+        os_version: str | None = Field(
             default=None,
             description="The version of the operating system for the test run",
         ),
@@ -682,7 +683,7 @@ def register_update_sets_tools(mcp: FastMCP):
         sys_id: str = Field(
             description="Sys_id of the application in which to create the new update set"
         ),
-        description: Optional[str] = Field(
+        description: str | None = Field(
             default=None, description="Description of the update set"
         ),
         _client=Depends(get_client),
@@ -705,17 +706,17 @@ def register_update_sets_tools(mcp: FastMCP):
         update_set_id: str = Field(
             description="Sys_id of the update set on the source instance from where the update set was retrieved"
         ),
-        update_source_id: Optional[str] = Field(
+        update_source_id: str | None = Field(
             default=None, description="Sys_id of the remote instance record"
         ),
-        update_source_instance_id: Optional[str] = Field(
+        update_source_instance_id: str | None = Field(
             default=None, description="Instance ID of the remote instance"
         ),
-        auto_preview: Optional[bool] = Field(
+        auto_preview: bool | None = Field(
             default=None,
             description="Flag that indicates whether to automatically preview the update set after retrieval",
         ),
-        cleanup_retrieved: Optional[bool] = Field(
+        cleanup_retrieved: bool | None = Field(
             default=None,
             description="Flag that indicates whether to remove the existing retrieved update set from the instance",
         ),
@@ -755,7 +756,7 @@ def register_update_sets_tools(mcp: FastMCP):
         remote_update_set_id: str = Field(
             description="Sys_id of the update set to commit"
         ),
-        force_commit: Optional[str] = Field(
+        force_commit: str | None = Field(
             default=None,
             description="Flag that indicates whether to force commit the update set",
         ),
@@ -773,10 +774,10 @@ def register_update_sets_tools(mcp: FastMCP):
         tags={"update_sets"},
     )
     async def update_set_commit_multiple(
-        remote_update_set_ids: List[str] = Field(
+        remote_update_set_ids: list[str] = Field(
             description="List of sys_ids associated with update sets to commit. Sys_ids are committed in the order given"
         ),
-        force_commit: Optional[str] = Field(
+        force_commit: str | None = Field(
             default=None,
             description="Flag that indicates whether to force commit the update sets",
         ),
@@ -795,7 +796,7 @@ def register_update_sets_tools(mcp: FastMCP):
     )
     async def update_set_back_out(
         update_set_id: str = Field(description="Sys_id of the update set"),
-        rollback_installs: Optional[bool] = Field(
+        rollback_installs: bool | None = Field(
             default=None,
             description="Flag that indicates whether to rollback the batch installation performed during the update set commit",
         ),
@@ -815,10 +816,10 @@ def register_batch_tools(mcp: FastMCP):
         tags={"batch"},
     )
     async def batch_request(
-        rest_requests: List[Dict] = Field(
+        rest_requests: list[dict] = Field(
             description="List of requests to execute. Each item must correspond to BatchRequestItem model."
         ),
-        batch_request_id: Optional[str] = Field(
+        batch_request_id: str | None = Field(
             default=None, description="Client provided batch ID"
         ),
         _client=Depends(get_client),
@@ -836,27 +837,27 @@ def register_change_management_tools(mcp: FastMCP):
         tags={"change_management"},
     )
     async def get_change_requests(
-        order: Optional[str] = Field(
+        order: str | None = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Query parameter for filtering results"
         ),
-        text_search: Optional[str] = Field(
+        text_search: str | None = Field(
             default=None, description="Text search parameter for searching results"
         ),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default=None,
             description="Type of change (emergency, normal, standard, model)",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None, description="Offset for pagination"
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
@@ -912,23 +913,23 @@ def register_change_management_tools(mcp: FastMCP):
     )
     async def get_change_request_tasks(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        order: Optional[str] = Field(
+        order: str | None = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Query parameter for filtering results"
         ),
-        text_search: Optional[str] = Field(
+        text_search: str | None = Field(
             default=None, description="Text search parameter for searching results"
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None, description="Offset for pagination"
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
@@ -956,50 +957,50 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID or change number (CHG#####) of the change request",
             default=None,
         ),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default=None, description="Type of change (emergency, normal, standard)"
         ),
         _client=Depends(get_client),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_display_value: Optional[str] = Field(
+        sysparm_display_value: str | None = Field(
             default=None,
             description="Display values for reference fields ('true', 'false', or 'all')",
         ),
-        sysparm_exclude_reference_link: Optional[bool] = Field(
+        sysparm_exclude_reference_link: bool | None = Field(
             default=None, description="Exclude reference links in the response"
         ),
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_no_count: Optional[bool] = Field(
+        sysparm_no_count: bool | None = Field(
             default=None,
             description="Do not include the total number of records in the response",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query string for filtering records"
         ),
-        sysparm_query_category: Optional[str] = Field(
+        sysparm_query_category: str | None = Field(
             default=None, description="Category to which the query belongs"
         ),
-        sysparm_query_no_domain: Optional[bool] = Field(
+        sysparm_query_no_domain: bool | None = Field(
             default=None, description="Exclude records based on domain separation"
         ),
-        sysparm_suppress_pagination_header: Optional[bool] = Field(
+        sysparm_suppress_pagination_header: bool | None = Field(
             default=None, description="Suppress pagination headers in the response"
         ),
-        sysparm_view: Optional[str] = Field(
+        sysparm_view: str | None = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
     ) -> Response | None:
@@ -1075,23 +1076,23 @@ def register_change_management_tools(mcp: FastMCP):
         tags={"change_management"},
     )
     async def get_standard_change_request_templates(
-        order: Optional[str] = Field(
+        order: str | None = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Query parameter for filtering results"
         ),
-        text_search: Optional[str] = Field(
+        text_search: str | None = Field(
             default=None, description="Text search parameter for searching results"
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None, description="Offset for pagination"
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
@@ -1114,27 +1115,27 @@ def register_change_management_tools(mcp: FastMCP):
         tags={"change_management"},
     )
     async def get_change_request_models(
-        order: Optional[str] = Field(
+        order: str | None = Field(
             default=None, description="Ordering parameter for sorting results"
         ),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Query parameter for filtering results"
         ),
-        text_search: Optional[str] = Field(
+        text_search: str | None = Field(
             default=None, description="Text search parameter for searching results"
         ),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default=None,
             description="Type of change (emergency, normal, standard, model)",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None, description="Offset for pagination"
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Limit for pagination",
         ),
@@ -1203,14 +1204,14 @@ def register_change_management_tools(mcp: FastMCP):
         tags={"change_management"},
     )
     async def create_change_request(
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default="normal", description="Type of change (emergency, normal, standard)"
         ),
-        standard_change_template_id: Optional[str] = Field(
+        standard_change_template_id: str | None = Field(
             default=None,
             description="Sys ID of the standard change request template (if applicable)",
         ),
@@ -1231,7 +1232,7 @@ def register_change_management_tools(mcp: FastMCP):
     )
     async def create_change_request_task(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        data: Dict[str, str] = Field(
+        data: dict[str, str] = Field(
             description="Name-value pairs providing details for the new task"
         ),
         _client=Depends(get_client),
@@ -1249,13 +1250,13 @@ def register_change_management_tools(mcp: FastMCP):
     )
     async def create_change_request_ci_association(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        cmdb_ci_sys_ids: List[str] = Field(
+        cmdb_ci_sys_ids: list[str] = Field(
             description="List of Sys IDs of CIs to associate with the change request"
         ),
         association_type: str = Field(
             description="Type of association (affected, impacted, offering)"
         ),
-        refresh_impacted_services: Optional[bool] = Field(
+        refresh_impacted_services: bool | None = Field(
             default=None,
             description="Flag to refresh impacted services (applicable for 'affected' association)",
         ),
@@ -1342,11 +1343,11 @@ def register_change_management_tools(mcp: FastMCP):
     )
     async def update_change_request(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default=None,
             description="Type of change (emergency, normal, standard, model)",
         ),
@@ -1385,7 +1386,7 @@ def register_change_management_tools(mcp: FastMCP):
         change_request_task_sys_id: str = Field(
             description="Sys ID of the change request task"
         ),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
@@ -1406,7 +1407,7 @@ def register_change_management_tools(mcp: FastMCP):
     )
     async def delete_change_request(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
-        change_type: Optional[str] = Field(
+        change_type: str | None = Field(
             default=None, description="Type of change (emergency, normal, standard)"
         ),
         _client=Depends(get_client),
@@ -1502,14 +1503,14 @@ def register_devops_tools(mcp: FastMCP):
     )
     async def check_devops_change_control(
         toolId: str = Field(description="Tool ID"),
-        orchestrationTaskName: Optional[str] = Field(
+        orchestrationTaskName: str | None = Field(
             default=None, description="Orchestration Task Name"
         ),
         toolType: str = Field(default="jenkins", description="Tool Type"),
-        orchestrationTaskURL: Optional[str] = Field(
+        orchestrationTaskURL: str | None = Field(
             default=None, description="Orchestration Task URL"
         ),
-        testConnection: Optional[bool] = Field(
+        testConnection: bool | None = Field(
             default=None, description="Test Connection"
         ),
         _client=Depends(get_client),
@@ -1529,16 +1530,16 @@ def register_devops_tools(mcp: FastMCP):
         tags={"devops"},
     )
     async def register_devops_artifact(
-        artifacts: List[Dict] = Field(description="List of artifacts to register"),
-        orchestrationToolId: Optional[str] = Field(
+        artifacts: list[dict] = Field(description="List of artifacts to register"),
+        orchestrationToolId: str | None = Field(
             default=None, description="Orchestration Tool ID"
         ),
-        toolId: Optional[str] = Field(default=None, description="Artifact Tool ID"),
-        branchName: Optional[str] = Field(default=None, description="Branch Name"),
-        pipelineName: Optional[str] = Field(default=None, description="Pipeline Name"),
-        projectName: Optional[str] = Field(default=None, description="Project Name"),
-        stageName: Optional[str] = Field(default=None, description="Stage Name"),
-        taskExecutionNumber: Optional[str] = Field(
+        toolId: str | None = Field(default=None, description="Artifact Tool ID"),
+        branchName: str | None = Field(default=None, description="Branch Name"),
+        pipelineName: str | None = Field(default=None, description="Pipeline Name"),
+        projectName: str | None = Field(default=None, description="Project Name"),
+        stageName: str | None = Field(default=None, description="Stage Name"),
+        taskExecutionNumber: str | None = Field(
             default=None, description="Task Execution Number"
         ),
         _client=Depends(get_client),
@@ -1584,7 +1585,7 @@ def register_import_sets_tools(mcp: FastMCP):
         table: str = Field(
             description="The name of the table associated with the import set"
         ),
-        data: Dict[str, str] = Field(
+        data: dict[str, str] = Field(
             description="Dictionary containing the field values for the new import set record"
         ),
         _client=Depends(get_client),
@@ -1602,7 +1603,7 @@ def register_import_sets_tools(mcp: FastMCP):
         table: str = Field(
             description="The name of the table associated with the import set"
         ),
-        data: List[Dict[str, str]] = Field(
+        data: list[dict[str, str]] = Field(
             description="List of dictionaries containing field values for multiple new import set records"
         ),
         _client=Depends(get_client),
@@ -1619,51 +1620,51 @@ def register_incidents_tools(mcp: FastMCP):
         tags={"incidents"},
     )
     async def get_incidents(
-        incident_id: Optional[str] = Field(
+        incident_id: str | None = Field(
             default=None,
             description="The sys_id or the incident number (INC######) of the incident record, if retrieving a specific incident",
         ),
         _client=Depends(get_client),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_display_value: Optional[str] = Field(
+        sysparm_display_value: str | None = Field(
             default=None,
             description="Display values for reference fields ('true', 'false', or 'all')",
         ),
-        sysparm_exclude_reference_link: Optional[bool] = Field(
+        sysparm_exclude_reference_link: bool | None = Field(
             default=None, description="Exclude reference links in the response"
         ),
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_no_count: Optional[bool] = Field(
+        sysparm_no_count: bool | None = Field(
             default=None,
             description="Do not include the total number of records in the response",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query string for filtering records"
         ),
-        sysparm_query_category: Optional[str] = Field(
+        sysparm_query_category: str | None = Field(
             default=None, description="Category to which the query belongs"
         ),
-        sysparm_query_no_domain: Optional[bool] = Field(
+        sysparm_query_no_domain: bool | None = Field(
             default=None, description="Exclude records based on domain separation"
         ),
-        sysparm_suppress_pagination_header: Optional[bool] = Field(
+        sysparm_suppress_pagination_header: bool | None = Field(
             default=None, description="Suppress pagination headers in the response"
         ),
-        sysparm_view: Optional[str] = Field(
+        sysparm_view: str | None = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
     ) -> Response | None:
@@ -1701,7 +1702,7 @@ def register_incidents_tools(mcp: FastMCP):
         tags={"incidents"},
     )
     async def create_incident(
-        data: Dict[str, str] = Field(
+        data: dict[str, str] = Field(
             description="Dictionary containing the field values for the new incident record"
         ),
         _client=Depends(get_client),
@@ -1717,33 +1718,33 @@ def register_knowledge_management_tools(mcp: FastMCP):
         tags={"knowledge_management"},
     )
     async def get_knowledge_articles(
-        filter: Optional[str] = Field(
+        filter: str | None = Field(
             default=None,
             description="Encoded query to filter the result set (e.g., =, !=, ^, ^OR, LIKE, STARTSWITH, ENDSWITH)",
         ),
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query string for filtering records"
         ),
-        sysparm_query_category: Optional[str] = Field(
+        sysparm_query_category: str | None = Field(
             default=None, description="Category to which the query belongs"
         ),
-        kb: Optional[str] = Field(
+        kb: str | None = Field(
             default=None,
             description="Comma-separated list of knowledge base sys_ids to restrict results to",
         ),
-        language: Optional[str] = Field(
+        language: str | None = Field(
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
@@ -1771,44 +1772,44 @@ def register_knowledge_management_tools(mcp: FastMCP):
         article_sys_id: str = Field(
             description="The sys_id of the Knowledge Base article"
         ),
-        filter: Optional[str] = Field(
+        filter: str | None = Field(
             default=None,
             description="Encoded query to filter the result set (e.g., =, !=, ^, ^OR, LIKE, STARTSWITH, ENDSWITH)",
         ),
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_search_id: Optional[str] = Field(
+        sysparm_search_id: str | None = Field(
             default=None,
             description="Unique identifier of search that returned this article",
         ),
-        sysparm_search_rank: Optional[str] = Field(
+        sysparm_search_rank: str | None = Field(
             default=None, description="Article search rank by click-rate"
         ),
-        sysparm_update_view: Optional[bool] = Field(
+        sysparm_update_view: bool | None = Field(
             default=None,
             description="Update view count and record an entry in the Knowledge Use table",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query string for filtering records"
         ),
-        sysparm_query_category: Optional[str] = Field(
+        sysparm_query_category: str | None = Field(
             default=None, description="Category to which the query belongs"
         ),
-        kb: Optional[str] = Field(
+        kb: str | None = Field(
             default=None,
             description="Comma-separated list of knowledge base sys_ids to restrict results to",
         ),
-        language: Optional[str] = Field(
+        language: str | None = Field(
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
@@ -1855,23 +1856,23 @@ def register_knowledge_management_tools(mcp: FastMCP):
         tags={"knowledge_management"},
     )
     async def get_featured_knowledge_article(
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        kb: Optional[str] = Field(
+        kb: str | None = Field(
             default=None,
             description="Comma-separated list of knowledge base sys_ids to restrict results to",
         ),
-        language: Optional[str] = Field(
+        language: str | None = Field(
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
@@ -1893,23 +1894,23 @@ def register_knowledge_management_tools(mcp: FastMCP):
         tags={"knowledge_management"},
     )
     async def get_most_viewed_knowledge_articles(
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        kb: Optional[str] = Field(
+        kb: str | None = Field(
             default=None,
             description="Comma-separated list of knowledge base sys_ids to restrict results to",
         ),
-        language: Optional[str] = Field(
+        language: str | None = Field(
             default=None,
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
@@ -1952,46 +1953,46 @@ def register_table_api_tools(mcp: FastMCP):
     )
     async def get_table(
         table: str = Field(description="The name of the table"),
-        name_value_pairs: Optional[str] = Field(
+        name_value_pairs: str | None = Field(
             default=None,
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
-        sysparm_display_value: Optional[str] = Field(
+        sysparm_display_value: str | None = Field(
             default=None,
             description="Display values for reference fields ('true', 'false', or 'all')",
         ),
-        sysparm_exclude_reference_link: Optional[bool] = Field(
+        sysparm_exclude_reference_link: bool | None = Field(
             default=None, description="Exclude reference links in the response"
         ),
-        sysparm_fields: Optional[str] = Field(
+        sysparm_fields: str | None = Field(
             default=None,
             description="Comma-separated list of field names to include in the response",
         ),
-        sysparm_limit: Optional[int] = Field(
+        sysparm_limit: int | None = Field(
             default=os.environ.get("SERVICENOW_RETURN_LIMIT", to_integer(string="5")),
             description="Maximum number of records to return",
         ),
-        sysparm_no_count: Optional[bool] = Field(
+        sysparm_no_count: bool | None = Field(
             default=None,
             description="Do not include the total number of records in the response",
         ),
-        sysparm_offset: Optional[int] = Field(
+        sysparm_offset: int | None = Field(
             default=None,
             description="Number of records to skip before starting the retrieval",
         ),
-        sysparm_query: Optional[str] = Field(
+        sysparm_query: str | None = Field(
             default=None, description="Encoded query string for filtering records"
         ),
-        sysparm_query_category: Optional[str] = Field(
+        sysparm_query_category: str | None = Field(
             default=None, description="Category to which the query belongs"
         ),
-        sysparm_query_no_domain: Optional[bool] = Field(
+        sysparm_query_no_domain: bool | None = Field(
             default=None, description="Exclude records based on domain separation"
         ),
-        sysparm_suppress_pagination_header: Optional[bool] = Field(
+        sysparm_suppress_pagination_header: bool | None = Field(
             default=None, description="Suppress pagination headers in the response"
         ),
-        sysparm_view: Optional[str] = Field(
+        sysparm_view: str | None = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
         _client=Depends(get_client),
@@ -2042,7 +2043,7 @@ def register_table_api_tools(mcp: FastMCP):
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be updated"
         ),
-        data: Dict[str, Any] = Field(
+        data: dict[str, Any] = Field(
             description="Dictionary containing the fields to be updated"
         ),
         _client=Depends(get_client),
@@ -2063,7 +2064,7 @@ def register_table_api_tools(mcp: FastMCP):
         table_record_sys_id: str = Field(
             description="The sys_id of the record to be updated"
         ),
-        data: Dict[str, Any] = Field(
+        data: dict[str, Any] = Field(
             description="Dictionary containing the fields to be updated"
         ),
         _client=Depends(get_client),
@@ -2081,7 +2082,7 @@ def register_table_api_tools(mcp: FastMCP):
     )
     async def add_table_record(
         table: str = Field(description="The name of the table"),
-        data: Dict[str, Any] = Field(
+        data: dict[str, Any] = Field(
             description="Dictionary containing the field values for the new record"
         ),
         _client=Depends(get_client),
@@ -2116,11 +2117,11 @@ def register_custom_api_tools(mcp: FastMCP):
             description="The HTTP method to use ('GET', 'POST', 'PUT', 'DELETE')"
         ),
         endpoint: str = Field(description="The API endpoint to send the request to"),
-        data: Optional[Dict[str, Any]] = Field(
+        data: dict[str, Any] | None = Field(
             default=None,
             description="Data to include in the request body (for non-JSON payloads)",
         ),
-        json: Optional[Dict[str, Any]] = Field(
+        json: dict[str, Any] | None = Field(
             default=None, description="JSON data to include in the request body"
         ),
         _client=Depends(get_client),
@@ -2137,10 +2138,10 @@ def register_custom_api_tools(mcp: FastMCP):
 def register_email_tools(mcp: FastMCP):
     @mcp.tool(tags={"email"})
     async def send_email(
-        to: Union[str, List[str]] = Field(description="Recipient email addresses"),
-        subject: Optional[str] = Field(default=None, description="Email subject"),
-        text: Optional[str] = Field(default=None, description="Email body text"),
-        html: Optional[str] = Field(default=None, description="Email body HTML"),
+        to: str | list[str] = Field(description="Recipient email addresses"),
+        subject: str | None = Field(default=None, description="Email subject"),
+        text: str | None = Field(default=None, description="Email body text"),
+        html: str | None = Field(default=None, description="Email body HTML"),
         _client=Depends(get_client),
     ) -> Response:
         """Sends an email via ServiceNow."""
@@ -2150,11 +2151,11 @@ def register_email_tools(mcp: FastMCP):
 def register_data_classification_tools(mcp: FastMCP):
     @mcp.tool(tags={"data_classification"})
     async def get_data_classification(
-        sys_id: Optional[str] = Field(
+        sys_id: str | None = Field(
             default=None, description="Classification record Sys ID"
         ),
-        table_name: Optional[str] = Field(default=None, description="Table name"),
-        column_name: Optional[str] = Field(default=None, description="Column name"),
+        table_name: str | None = Field(default=None, description="Table name"),
+        column_name: str | None = Field(default=None, description="Column name"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves data classification information."""
@@ -2180,7 +2181,7 @@ def register_attachment_tools(mcp: FastMCP):
         ),
         table_sys_id: str = Field(description="Sys ID of the record in the table"),
         file_name: str = Field(description="Name of the file"),
-        content_type: Optional[str] = Field(
+        content_type: str | None = Field(
             default=None, description="MIME type of the file"
         ),
         _client=Depends(get_client),
@@ -2207,9 +2208,9 @@ def register_aggregate_tools(mcp: FastMCP):
     @mcp.tool(tags={"aggregate"})
     async def get_stats(
         table_name: str = Field(description="Table name to aggregate on"),
-        query: Optional[str] = Field(default=None, description="Encoded query string"),
-        group_by: Optional[str] = Field(default=None, description="Field to group by"),
-        stats: Optional[str] = Field(default=None, description="Statistics function"),
+        query: str | None = Field(default=None, description="Encoded query string"),
+        group_by: str | None = Field(default=None, description="Field to group by"),
+        stats: str | None = Field(default=None, description="Statistics function"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves aggregate statistics for a table."""
@@ -2221,7 +2222,7 @@ def register_aggregate_tools(mcp: FastMCP):
 def register_activity_subscriptions_tools(mcp: FastMCP):
     @mcp.tool(tags={"activity_subscriptions"})
     async def get_activity_subscriptions(
-        sys_id: Optional[str] = Field(
+        sys_id: str | None = Field(
             default=None, description="Activity Subscription Sys ID"
         ),
         _client=Depends(get_client),
@@ -2233,9 +2234,9 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
 def register_account_tools(mcp: FastMCP):
     @mcp.tool(tags={"account"})
     async def get_account(
-        sys_id: Optional[str] = Field(default=None, description="Account Sys ID"),
-        name: Optional[str] = Field(default=None, description="Account name"),
-        number: Optional[str] = Field(default=None, description="Account number"),
+        sys_id: str | None = Field(default=None, description="Account Sys ID"),
+        name: str | None = Field(default=None, description="Account name"),
+        number: str | None = Field(default=None, description="Account number"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves CSM account information."""
@@ -2245,8 +2246,8 @@ def register_account_tools(mcp: FastMCP):
 def register_hr_tools(mcp: FastMCP):
     @mcp.tool(tags={"hr"})
     async def get_hr_profile(
-        sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
-        user: Optional[str] = Field(default=None, description="User Sys ID"),
+        sys_id: str | None = Field(default=None, description="HR Profile Sys ID"),
+        user: str | None = Field(default=None, description="User Sys ID"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves HR profile information."""
@@ -2259,9 +2260,9 @@ def register_metricbase_tools(mcp: FastMCP):
         table_name: str = Field(description="Table name"),
         sys_id: str = Field(description="Record Sys ID"),
         metric_name: str = Field(description="Metric name"),
-        values: List[Any] = Field(description="Values to insert"),
-        start_time: Optional[str] = Field(default=None, description="Start time"),
-        end_time: Optional[str] = Field(default=None, description="End time"),
+        values: list[Any] = Field(description="Values to insert"),
+        start_time: str | None = Field(default=None, description="Start time"),
+        end_time: str | None = Field(default=None, description="End time"),
         _client=Depends(get_client),
     ) -> Response:
         """Inserts time series data into MetricBase."""
@@ -2278,12 +2279,12 @@ def register_metricbase_tools(mcp: FastMCP):
 def register_service_qualification_tools(mcp: FastMCP):
     @mcp.tool(tags={"service_qualification"})
     async def check_service_qualification(
-        description: Optional[str] = Field(default=None, description="Description"),
-        externalId: Optional[str] = Field(default=None, description="External ID"),
-        relatedParty: List[Dict[str, Any]] = Field(
+        description: str | None = Field(default=None, description="Description"),
+        externalId: str | None = Field(default=None, description="External ID"),
+        relatedParty: list[dict[str, Any]] = Field(
             default=None, description="List of related parties"
         ),
-        service_qualitification_item: List[Dict[str, Any]] = Field(
+        service_qualitification_item: list[dict[str, Any]] = Field(
             default=None, description="List of qualification items"
         ),
         _client=Depends(get_client),
@@ -2298,8 +2299,8 @@ def register_service_qualification_tools(mcp: FastMCP):
 
     @mcp.tool(tags={"service_qualification"})
     async def get_service_qualification(
-        id: Optional[str] = Field(default=None, description="Qualification Request ID"),
-        state: Optional[str] = Field(default=None, description="Filter by state"),
+        id: str | None = Field(default=None, description="Qualification Request ID"),
+        state: str | None = Field(default=None, description="Filter by state"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves a service qualification request."""
@@ -2307,10 +2308,10 @@ def register_service_qualification_tools(mcp: FastMCP):
 
     @mcp.tool(tags={"service_qualification"})
     async def process_service_qualification_result(
-        service_qualitification_item: List[Dict[str, Any]] = Field(
+        service_qualitification_item: list[dict[str, Any]] = Field(
             description="Items to process"
         ),
-        description: Optional[str] = Field(default=None, description="Description"),
+        description: str | None = Field(default=None, description="Description"),
         _client=Depends(get_client),
     ) -> Response:
         """Processes a service qualification result."""
@@ -2323,7 +2324,7 @@ def register_service_qualification_tools(mcp: FastMCP):
 def register_ppm_tools(mcp: FastMCP):
     @mcp.tool(tags={"ppm"})
     async def insert_cost_plans(
-        plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
+        plans: list[dict[str, Any]] = Field(description="List of cost plans"),
         _client=Depends(get_client),
     ) -> Response:
         """Creates cost plans."""
@@ -2332,12 +2333,12 @@ def register_ppm_tools(mcp: FastMCP):
     @mcp.tool(tags={"ppm"})
     async def insert_project_tasks(
         short_description: str = Field(description="Short description"),
-        start_date: Optional[str] = Field(default=None, description="Start date"),
-        end_date: Optional[str] = Field(default=None, description="End date"),
-        child_tasks: Optional[List[Dict[str, Any]]] = Field(
+        start_date: str | None = Field(default=None, description="Start date"),
+        end_date: str | None = Field(default=None, description="End date"),
+        child_tasks: list[dict[str, Any]] | None = Field(
             default=None, description="Child tasks"
         ),
-        dependencies: Optional[List[Dict[str, Any]]] = Field(
+        dependencies: list[dict[str, Any]] | None = Field(
             default=None, description="Dependencies"
         ),
         _client=Depends(get_client),
@@ -2355,11 +2356,11 @@ def register_ppm_tools(mcp: FastMCP):
 def register_product_inventory_tools(mcp: FastMCP):
     @mcp.tool(tags={"product_inventory"})
     async def get_product_inventory(
-        customer: Optional[str] = Field(default=None, description="Customer Sys ID"),
-        place_id: Optional[str] = Field(default=None, description="Location ID"),
-        status: Optional[str] = Field(default=None, description="Status filter"),
-        limit: Optional[int] = Field(default=20, description="Limit"),
-        offset: Optional[int] = Field(default=0, description="Offset"),
+        customer: str | None = Field(default=None, description="Customer Sys ID"),
+        place_id: str | None = Field(default=None, description="Location ID"),
+        status: str | None = Field(default=None, description="Status filter"),
+        limit: int | None = Field(default=20, description="Limit"),
+        offset: int | None = Field(default=0, description="Offset"),
         _client=Depends(get_client),
     ) -> Response:
         """Retrieves product inventory."""
@@ -2452,7 +2453,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any]:
             raise ValueError("OpenAPI import not supported with delegation enabled")
 
         try:
-            with open(args.openapi_file, "r") as f:
+            with open(args.openapi_file) as f:
                 spec = json.load(f)
 
             async def _load_openapi_tools():

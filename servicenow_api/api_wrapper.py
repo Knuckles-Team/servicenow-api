@@ -1,83 +1,83 @@
 #!/usr/bin/python
 
-from typing import Dict, Any, Optional, List, Set, DefaultDict
-from collections import defaultdict
-import json
 import base64
 import gzip
+import json
+from base64 import b64encode
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from typing import Any
+from urllib.parse import urlencode
 
 import requests
 import urllib3
-from urllib.parse import urlencode
-from base64 import b64encode
-from pydantic import ValidationError
-
-from servicenow_api.servicenow_models import (
-    ApplicationServiceModel,
-    CMDBModel,
-    CMDBInstanceModel,
-    CMDBIngestModel,
-    CICDModel,
-    ChangeManagementModel,
-    IncidentModel,
-    ImportSetModel,
-    KnowledgeManagementModel,
-    TableModel,
-    Authentication,
-    ChangeRequest,
-    CICD,
-    CMDB,
-    CMDBService,
-    Table,
-    ImportSet,
-    Incident,
-    Task,
-    CheckServiceQualificationRequest,
-    ServiceQualificationItem,
-    CostPlan,
-    ProjectTask,
-    ProductInventory,
-    ProductInventoryQueryParams,
-    Response,
-    Article,
-    BatchRequest,
-    BatchResponse,
-    CILifecycleActionRequest,
-    CILifecycleResult,
-    DevOpsSchemaRequest,
-    DevOpsOnboardingStatusResponse,
-    DevOpsChangeControlResponse,
-    DevOpsArtifactRegistrationRequest,
-    EmailModel,
-    DataClassificationModel,
-    AttachmentModel,
-    Attachment,
-    AggregateModel,
-    ActivitySubscriptionModel,
-    AccountModel,
-    HRProfileModel,
-    MetricBaseTimeSeriesModel,
-    FlowNode,
-    FlowEdge,
-    FlowGraph,
-    FlowReportResult,
-)
-from agent_utilities.base_utilities import get_logger
 from agent_utilities.agent_utilities import get_agent_workspace
+from agent_utilities.base_utilities import get_logger
 from agent_utilities.decorators import require_auth
 from agent_utilities.exceptions import (
     AuthError,
-    UnauthorizedError,
-    ParameterError,
     MissingParameterError,
+    ParameterError,
+    UnauthorizedError,
+)
+from pydantic import ValidationError
+
+from servicenow_api.servicenow_models import (
+    CICD,
+    CMDB,
+    AccountModel,
+    ActivitySubscriptionModel,
+    AggregateModel,
+    ApplicationServiceModel,
+    Article,
+    Attachment,
+    AttachmentModel,
+    Authentication,
+    BatchRequest,
+    BatchResponse,
+    ChangeManagementModel,
+    ChangeRequest,
+    CheckServiceQualificationRequest,
+    CICDModel,
+    CILifecycleActionRequest,
+    CILifecycleResult,
+    CMDBIngestModel,
+    CMDBInstanceModel,
+    CMDBModel,
+    CMDBService,
+    CostPlan,
+    DataClassificationModel,
+    DevOpsArtifactRegistrationRequest,
+    DevOpsChangeControlResponse,
+    DevOpsOnboardingStatusResponse,
+    DevOpsSchemaRequest,
+    EmailModel,
+    FlowEdge,
+    FlowGraph,
+    FlowNode,
+    FlowReportResult,
+    HRProfileModel,
+    ImportSet,
+    ImportSetModel,
+    Incident,
+    IncidentModel,
+    KnowledgeManagementModel,
+    MetricBaseTimeSeriesModel,
+    ProductInventory,
+    ProductInventoryQueryParams,
+    ProjectTask,
+    Response,
+    ServiceQualificationItem,
+    Table,
+    TableModel,
+    Task,
 )
 
 logger = get_logger(__name__)
 
 
-def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
+def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
     if not raw_values or not isinstance(raw_values, str):
         return []
     try:
@@ -93,13 +93,13 @@ def decode_values(raw_values: Optional[str]) -> List[Dict[str, Any]]:
 
 
 def extract_action_details(
-    decoded: List[Dict[str, Any]], action_type: str
-) -> List[str]:
+    decoded: list[dict[str, Any]], action_type: str
+) -> list[str]:
     """
     Extracts specific metadata from decoded action values based on the action type.
     """
     details = []
-    params = {}
+    params: dict[str, Any] = {}
 
     for p in decoded:
         name = p.get("name")
@@ -116,7 +116,6 @@ def extract_action_details(
         if table:
             details.append(f"Table: {table}")
         if rules:
-
             details.append(f"Rules: {rules}")
 
     elif "create record" in at_clean or "update record" in at_clean:
@@ -127,7 +126,6 @@ def extract_action_details(
         if table:
             details.append(f"Table: {table}")
         if fields and isinstance(fields, str):
-
             important = [f.split("=")[0] for f in fields.split("^") if "=" in f]
             if important:
                 details.append(f"Fields: {', '.join(important[:5])}...")
@@ -153,7 +151,7 @@ def extract_action_details(
     return details
 
 
-def find_subflow_sys_id(decoded: List[Dict[str, Any]]) -> Optional[str]:
+def find_subflow_sys_id(decoded: list[dict[str, Any]]) -> str | None:
     for item in decoded:
         for val in item.values():
             if (
@@ -165,7 +163,7 @@ def find_subflow_sys_id(decoded: List[Dict[str, Any]]) -> Optional[str]:
     return None
 
 
-def determine_node_type(action: Dict[str, Any], decoded: List[Dict[str, Any]]) -> str:
+def determine_node_type(action: dict[str, Any], decoded: list[dict[str, Any]]) -> str:
     action_name = action.get("name", "").lower()
     act = action.get("action", {})
     act_name = (act.get("display_value") or "").lower()
@@ -207,17 +205,16 @@ def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
 
     start_node = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
     if not any(node.id == start_node for node in graph.nodes):
-
         start_node = f"trigger_{root_id[:8]}"
         if not any(node.id == start_node for node in graph.nodes):
             return FlowGraph(nodes=[], edges=[], summary="Root not found")
 
-    adj: DefaultDict[str, List[str]] = defaultdict(list)
+    adj: defaultdict[str, list[str]] = defaultdict(list)
     for edge in graph.edges:
         adj[edge.from_id].append(edge.to_id)
 
     node_by_id = {node.id: node for node in graph.nodes}
-    reachable_nodes: Set[str] = set()
+    reachable_nodes: set[str] = set()
     stack = [start_node]
     while stack:
         curr = stack.pop()
@@ -240,7 +237,7 @@ def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
     )
 
 
-def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
+def find_connected_components(graph: FlowGraph) -> list[FlowGraph]:
     """
     Splits a single large global FlowGraph into a list of smaller FlowGraphs,
     where each sub-graph represents a completely disconnected component of flows/subflows.
@@ -248,7 +245,7 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
     if not graph.nodes:
         return []
 
-    adj: DefaultDict[str, List[str]] = defaultdict(list)
+    adj: defaultdict[str, list[str]] = defaultdict(list)
     for edge in graph.edges:
         adj[edge.from_id].append(edge.to_id)
         adj[edge.to_id].append(edge.from_id)
@@ -256,13 +253,12 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
     all_node_ids = {node.id for node in graph.nodes}
     node_by_id = {node.id: node for node in graph.nodes}
 
-    visited: Set[str] = set()
-    components: List[FlowGraph] = []
+    visited: set[str] = set()
+    components: list[FlowGraph] = []
 
     for start_node in all_node_ids:
         if start_node not in visited:
-
-            component_nodes: Set[str] = set()
+            component_nodes: set[str] = set()
             stack = [start_node]
             while stack:
                 curr = stack.pop()
@@ -292,8 +288,8 @@ def find_connected_components(graph: FlowGraph) -> List[FlowGraph]:
 
 def graph_to_mermaid_multi(
     graph: FlowGraph,
-    root_sys_ids: List[str],
-    all_metadata: Dict[str, Dict[str, Any]] = None,
+    root_sys_ids: list[str],
+    all_metadata: dict[str, dict[str, Any]] = None,
 ) -> str:
     lines = ["flowchart TD"]
 
@@ -348,8 +344,8 @@ def graph_to_mermaid_multi(
 
 def build_polished_markdown(
     graph: FlowGraph,
-    metadata: Dict[str, Dict[str, Any]],
-    root_sys_ids: List[str],
+    metadata: dict[str, dict[str, Any]],
+    root_sys_ids: list[str],
     mermaid_code: str,
 ) -> str:
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -388,7 +384,7 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
 
     for i, block in enumerate(mermaid_blocks):
         md += f"""
-### Group {i+1}
+### Group {i + 1}
 ```mermaid
 {block.strip()}
 ```
@@ -409,19 +405,18 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     return md
 
 
-class Api(object):
-
+class Api:
     def __init__(
         self,
-        url: str = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        client_id: Optional[str] = None,
-        client_secret: Optional[str] = None,
-        token: Optional[str] = None,
-        grant_type: Optional[str] = "password",
-        proxies: Optional[dict] = None,
-        verify: Optional[bool] = True,
+        url: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        token: str | None = None,
+        grant_type: str | None = "password",
+        proxies: dict | None = None,
+        verify: bool | None = True,
     ):
         if url is None:
             raise MissingParameterError
@@ -4432,7 +4427,7 @@ class Api(object):
             if not req.artifacts:
                 raise MissingParameterError
 
-            params = {}
+            params: dict[str, Any] = {}
             if req.orchestrationToolId:
                 params["orchestrationToolId"] = req.orchestrationToolId
             if req.toolId:
@@ -4583,7 +4578,7 @@ class Api(object):
     def get_stats(self, **kwargs) -> Response:
         try:
             agg = AggregateModel(**kwargs)
-            params = {}
+            params: dict[str, Any] = {}
             if agg.query:
                 params["sysparm_query"] = agg.query
             if agg.groupby:
@@ -4697,8 +4692,8 @@ class Api(object):
         self,
         method: str,
         endpoint: str,
-        data: Dict[str, Any] = None,
-        json: Dict[str, Any] = None,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
     ) -> Response:
         if method.upper() not in ["GET", "POST", "PUT", "DELETE"]:
             raise ValueError(f"Unsupported HTTP method: {method.upper()}")
@@ -4765,7 +4760,7 @@ class Api(object):
 
             if sys_id:
                 url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/{sys_id}"
-                params = {}
+                params: dict[str, Any] = {}
             else:
                 url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification"
                 params = {
@@ -4813,7 +4808,6 @@ class Api(object):
         Processes a technical service qualification result.
         """
         try:
-
             items = kwargs.get("serviceQualificationItem")
             if not items:
                 raise MissingParameterError("serviceQualificationItem is required")
@@ -4852,7 +4846,7 @@ class Api(object):
             raise
 
     @require_auth
-    def insert_cost_plans(self, plans: List[Dict[str, Any]], **kwargs) -> Response:
+    def insert_cost_plans(self, plans: list[dict[str, Any]], **kwargs) -> Response:
         """
         Creates cost plans.
         """
@@ -4959,11 +4953,10 @@ class Api(object):
             raise
 
     @require_auth
-    def get_flow_metadata(self, flow_sys_id: str) -> Dict[str, Any]:
+    def get_flow_metadata(self, flow_sys_id: str) -> dict[str, Any]:
         """Fetch rich metadata for any flow/subflow."""
         logger.debug(f"Fetching metadata for flow {flow_sys_id}")
         try:
-
             resp = self.get_table(
                 table="sys_hub_flow",
                 sysparm_query=f"sys_id={flow_sys_id}",
@@ -5009,22 +5002,22 @@ class Api(object):
     @require_auth
     def collect_graph_for_roots(
         self,
-        root_sys_ids: List[str],
+        root_sys_ids: list[str],
         max_depth: int = 5,
-        initial_metadata: Dict[str, Dict[str, Any]] = None,
-    ) -> tuple[FlowGraph, Dict[str, Dict[str, Any]]]:
-        all_nodes: List[FlowNode] = []
-        all_edges: List[FlowEdge] = []
-        visited: Dict[str, str] = {}
-        root_nodes: Dict[str, str] = {}
-        all_metadata: Dict[str, Dict[str, Any]] = {}
+        initial_metadata: dict[str, dict[str, Any]] = None,
+    ) -> tuple[FlowGraph, dict[str, dict[str, Any]]]:
+        all_nodes: list[FlowNode] = []
+        all_edges: list[FlowEdge] = []
+        visited: dict[str, str] = {}
+        root_nodes: dict[str, str] = {}
+        all_metadata: dict[str, dict[str, Any]] = {}
 
         if initial_metadata:
             all_metadata.update(initial_metadata)
 
         def recurse(
             flow_sys_id: str, prefix: str = "", depth: int = 0, is_root: bool = False
-        ) -> Optional[str]:
+        ) -> str | None:
             if depth > max_depth:
                 logger.warning(f"Max depth {max_depth} reached at flow {flow_sys_id}")
                 return None
@@ -5069,9 +5062,9 @@ class Api(object):
                         f"Failed fetching actions from table {tbl} for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
                     )
 
-            nodes: List[FlowNode] = []
-            edges: List[FlowEdge] = []
-            prev_id: Optional[str] = None
+            nodes: list[FlowNode] = []
+            edges: list[FlowEdge] = []
+            prev_id: str | None = None
 
             trigger_id = f"{prefix}trigger_{flow_sys_id[:8]}"
             visited[flow_sys_id] = trigger_id
@@ -5083,7 +5076,6 @@ class Api(object):
             trigger_label = f"FLOW: {flow_name}" if is_root else f"SUBFLOW: {flow_name}"
             trigger_label += f"<br/><i>{flow_sys_id}</i>"
             if desc:
-
                 trunc_desc = desc[:100] + "..." if len(desc) > 100 else desc
                 trigger_label += f"<br/>{trunc_desc}"
             trigger_label += f"<br/>App: {app} | Scope: {scope}"
@@ -5127,7 +5119,6 @@ class Api(object):
 
                 extra_details = extract_action_details(decoded, action_type_label)
                 for detail in extra_details:
-
                     if all(
                         d.split(": ")[1].lower() not in label.lower()
                         for d in [detail]
@@ -5192,13 +5183,13 @@ class Api(object):
     @require_auth
     def workflow_to_mermaid(
         self,
-        flow_identifiers: List[str] = None,
+        flow_identifiers: list[str] | None = None,
         max_depth: int = 5,
         save_to_file: bool = True,
-        output_dir: str = None,
+        output_dir: str | None = None,
         mermaid_name: str = "servicenow_workflow",
         segment_by_root: bool = True,
-        destination_file: Optional[str] = None,
+        destination_file: str | None = None,
     ) -> FlowReportResult:
         """
         Generates a Mermaid diagram representing the relationships between ServiceNow flows and subflows.
@@ -5223,8 +5214,8 @@ class Api(object):
             f"workflow_to_mermaid called with flow_identifiers: {flow_identifiers}"
         )
         try:
-            root_sys_ids: List[str] = []
-            initial_metadata: Dict[str, Dict[str, Any]] = {}
+            root_sys_ids: list[str] = []
+            initial_metadata: dict[str, dict[str, Any]] = {}
 
             if not flow_identifiers:
                 logger.info("No flow_identifiers provided. Fetching all active flows.")

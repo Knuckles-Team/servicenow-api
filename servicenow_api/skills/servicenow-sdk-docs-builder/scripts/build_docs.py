@@ -1,12 +1,12 @@
+import argparse
 import os
 import shutil
-import argparse
 
 
 def merge_readmes(sdk_readme_path, examples_readme_path):
-    with open(sdk_readme_path, "r") as f:
+    with open(sdk_readme_path) as f:
         sdk_content = f.read()
-    with open(examples_readme_path, "r") as f:
+    with open(examples_readme_path) as f:
         examples_content = f.read()
 
     # Simple merging logic: combine them and de-duplicate common headers
@@ -42,7 +42,7 @@ def process_samples(source_dir, skill_dir):
             description = "No description provided."
 
             if os.path.exists(readme_path):
-                with open(readme_path, "r") as f:
+                with open(readme_path) as f:
                     lines = f.readlines()
                     if lines:
                         title = lines[0].strip("# ").strip()
@@ -105,7 +105,7 @@ def process_samples(source_dir, skill_dir):
                     f.write(f"### `{os.path.basename(cf)}`\n")
                     f.write(f"Path: [{rel_cf}]({rel_to_ref})\n\n")
                     f.write("```typescript\n")
-                    with open(cf, "r") as cf_file:
+                    with open(cf) as cf_file:
                         f.write(cf_file.read())
                     f.write("\n```\n\n")
     return samples

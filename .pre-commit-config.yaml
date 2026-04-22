@@ -1,6 +1,6 @@
 default_language_version:
   python: python3
-exclude: 'dotnet'
+exclude: 'dotnet|node_modules'
 ci:
   autofix_prs: true
   autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
@@ -12,8 +12,9 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=2000"]
-        exclude: 'servicenow_api/skills/.*-docs/'
+        exclude: ^uv\.lock$
       - id: check-ast
+        exclude: ^(tests/|test/|scripts/|script/)
       - id: check-yaml
       - id: check-toml
       - id: check-json
@@ -24,39 +25,48 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: no-commit-to-branch
-  - repo: https://github.com/psf/black
-    rev: 26.3.1
-    hooks:
-      - id: black
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.8
+    rev: v0.15.11
     hooks:
-      - id: ruff
-        exclude: tests
-        types_or: [ python, pyi, jupyter ]
-        args: ["--fix", "--ignore=E402"]
+      - id: ruff-check
+        args: ["--fix", "--ignore=E402,B008,E501"]
+        exclude: ^(tests/|test/|scripts/|script/)
+      - id: ruff-format
+        exclude: ^(tests/|test/|scripts/|script/)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic, types-PyYAML, types-requests, types-setuptools]
+        args: ["--ignore-missing-imports"]
   - repo: https://github.com/jendrikseipp/vulture
     rev: v2.16
     hooks:
       - id: vulture
         pass_filenames: false
-        args: [ ".", "--min-confidence", "95" ]   # or 100 if you want very high confidence only
+        args: [ ".", "--min-confidence", "95", "--exclude", "node_modules,dotnet" ]
         require_serial: true
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2
     hooks:
       - id: codespell
-        args:
-          - "-L"
-          - "ans,linar,nam,tread,ot,"
-          - "--ignore-words"
-          - ".codespellignore"
-        exclude: 'servicenow_api/skills/.*-docs/'
+        args: ["-L", "ans,linar,nam,tread,ot,", "--ignore-words=.codespellignore"]
+        exclude: ^(tests/|test/|scripts/|script/|.*lock.*)
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.9.1
     hooks:
-      - id: nbqa-black
+      - id: nbqa-ruff
+        args: ["--fix"]
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.11.7
     hooks:
       - id: uv-lock
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
