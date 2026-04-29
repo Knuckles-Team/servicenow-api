@@ -79,12 +79,12 @@ ENV HOST=${HOST} \
 WORKDIR /app
 COPY . /app
 RUN apt-get update \
-    && apt-get install -y ripgrep tree fd-find curl nano \
+    && apt-get install -y default-jre ripgrep tree fd-find curl nano \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
-     && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
+    && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
     && mkdir -p /root/.config \
     && echo 'eval "$(starship init bash)"' >> /root/.bashrc \ \
-    uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow .[all]
+uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow .[all]
 
 COPY starship.toml /root/.config/starship.toml
 

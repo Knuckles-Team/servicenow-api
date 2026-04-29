@@ -6,6 +6,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     try:
         from requests.exceptions import RequestsDependencyWarning
+
         warnings.filterwarnings("ignore", category=RequestsDependencyWarning)
     except ImportError:
         pass
@@ -38,6 +39,8 @@ from agent_utilities.base_utilities import to_boolean, to_integer
 from agent_utilities.mcp_utilities import (
     create_mcp_server,
     config,
+    ctx_confirm_destructive,
+    ctx_progress,
 )
 from servicenow_api.auth import get_client
 
@@ -93,6 +96,9 @@ def register_flows_tools(mcp: FastMCP):
             description="Explicit full path to save the report (e.g. /tmp/report.md)",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> FlowReportResult:
         """
         Generate a unified Mermaid diagram + rich Markdown report for multiple ServiceNow flows.
@@ -117,6 +123,9 @@ def register_application_tools(mcp: FastMCP):
             description="The unique identifier of the application to retrieve"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves details of a specific application from a ServiceNow instance by its unique identifier.
@@ -133,6 +142,9 @@ def register_cmdb_tools(mcp: FastMCP):
             description="The unique identifier of the CMDB record to retrieve"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Fetches a specific Configuration Management Database (CMDB) record from a ServiceNow instance using its unique identifier.
@@ -148,10 +160,16 @@ def register_cmdb_tools(mcp: FastMCP):
         sys_id: str = Field(description="Sys_id of the CI"),
         rel_sys_id: str = Field(description="Sys_id of the relation to remove"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Deletes the relation for the specified configuration item (CI).
         """
+        if not await ctx_confirm_destructive(ctx, "delete cmdb relation"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_cmdb_relation(
             className=className, sys_id=sys_id, rel_sys_id=rel_sys_id
         )
@@ -171,6 +189,9 @@ def register_cmdb_tools(mcp: FastMCP):
             default=None, description="Encoded query used to filter the result set"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Returns the available configuration items (CI) for a specified CMDB class.
@@ -189,6 +210,9 @@ def register_cmdb_tools(mcp: FastMCP):
         className: str = Field(description="CMDB class name"),
         sys_id: str = Field(description="Sys_id of the CI record to retrieve"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Returns attributes and relationship information for a specified CI record.
@@ -211,6 +235,9 @@ def register_cmdb_tools(mcp: FastMCP):
             default=None, description="List of outbound relations"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Creates a single configuration item (CI).
@@ -295,6 +322,9 @@ def register_cmdb_tools(mcp: FastMCP):
             default=None, description="List of outbound relations"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Adds an inbound and/or outbound relation to the specified CI.
@@ -314,6 +344,9 @@ def register_cmdb_tools(mcp: FastMCP):
         data_source_sys_id: str = Field(description="Sys_id of the data source record"),
         records: List[Dict] = Field(description="Array of objects to ingest"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Inserts records into the Import Set table associated with the data source.
@@ -332,11 +365,16 @@ def register_cicd_tools(mcp: FastMCP):
             description="The ID associated with the batch installation result"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """
         Retrieves the result of a batch installation process in ServiceNow by result ID.
         """
 
+        await ctx_progress(ctx, 100, 100)
         return _client.batch_install_result(result_id=result_id)
 
     @mcp.tool(
@@ -347,6 +385,9 @@ def register_cicd_tools(mcp: FastMCP):
             description="The ID associated with the instance scan progress"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Gets the progress status of an instance scan in ServiceNow by progress ID.
@@ -360,6 +401,9 @@ def register_cicd_tools(mcp: FastMCP):
     async def progress(
         progress_id: str = Field(description="The ID associated with the progress"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves the progress status of a specified process in ServiceNow by progress ID.
@@ -377,11 +421,16 @@ def register_cicd_tools(mcp: FastMCP):
             default=None, description="Additional notes for the batch installation"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """
         Initiates a batch installation of specified packages in ServiceNow with optional notes.
         """
 
+        await ctx_progress(ctx, 100, 100)
         return _client.batch_install(name=name, packages=packages, notes=notes)
 
     @mcp.tool(
@@ -392,11 +441,16 @@ def register_cicd_tools(mcp: FastMCP):
             description="The ID associated with the batch rollback"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """
         Performs a rollback of a batch installation in ServiceNow using the rollback ID.
         """
 
+        await ctx_progress(ctx, 100, 100)
         return _client.batch_rollback(rollback_id=rollback_id)
 
     @mcp.tool(
@@ -418,6 +472,9 @@ def register_cicd_tools(mcp: FastMCP):
             default=None, description="The version of the application to be installed"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Installs an application from a repository in ServiceNow with specified parameters.
@@ -446,6 +503,9 @@ def register_cicd_tools(mcp: FastMCP):
             default=None, description="The version of the application to be published"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Publishes an application to a repository in ServiceNow with development notes and version.
@@ -467,6 +527,9 @@ def register_cicd_tools(mcp: FastMCP):
             description="The version of the application to be rolled back"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Rolls back an application to a previous version in ServiceNow by sys_id, scope, and version.
@@ -481,6 +544,9 @@ def register_cicd_tools(mcp: FastMCP):
     )
     async def full_scan(
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Initiates a full scan of the ServiceNow instance.
@@ -495,6 +561,9 @@ def register_cicd_tools(mcp: FastMCP):
         target_sys_id: str = Field(description="The sys_id of the target instance"),
         target_table: str = Field(description="The table of the target instance"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Performs a targeted scan on a specific instance and table in ServiceNow.
@@ -510,6 +579,9 @@ def register_cicd_tools(mcp: FastMCP):
     async def combo_suite_scan(
         combo_sys_id: str = Field(description="The sys_id of the combo to be scanned"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Executes a scan on a combination of suites in ServiceNow by combo sys_id.
@@ -529,6 +601,9 @@ def register_cicd_tools(mcp: FastMCP):
             default="scoped_apps", description="Type of scan to be performed"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Runs a scan on a specified suite with a list of sys_ids and scan type in ServiceNow.
@@ -546,6 +621,9 @@ def register_plugins_tools(mcp: FastMCP):
     async def activate_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be activated"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Activates a specified plugin in ServiceNow by plugin ID.
@@ -559,6 +637,9 @@ def register_plugins_tools(mcp: FastMCP):
     async def rollback_plugin(
         plugin_id: str = Field(description="The ID of the plugin to be rolled back"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Rolls back a specified plugin in ServiceNow to its previous state by plugin ID.
@@ -584,6 +665,9 @@ def register_source_control_tools(mcp: FastMCP):
             description="Flag indicating whether to auto-upgrade the base app",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Applies changes from a remote source control branch to a ServiceNow application.
@@ -617,6 +701,9 @@ def register_source_control_tools(mcp: FastMCP):
             description="Flag indicating whether to auto-upgrade the base app",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Imports a repository into ServiceNow with specified credentials and branch.
@@ -657,11 +744,16 @@ def register_testing_tools(mcp: FastMCP):
             description="The version of the operating system for the test run",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """
         Executes a test suite in ServiceNow with specified browser and OS configurations.
         """
 
+        await ctx_progress(ctx, 100, 100)
         return _client.run_test_suite(
             test_suite_sys_id=test_suite_sys_id,
             test_suite_name=test_suite_name,
@@ -688,6 +780,9 @@ def register_update_sets_tools(mcp: FastMCP):
             default=None, description="Description of the update set"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Creates a new update set in ServiceNow with a given name, scope, and description.
@@ -722,6 +817,9 @@ def register_update_sets_tools(mcp: FastMCP):
             description="Flag that indicates whether to remove the existing retrieved update set from the instance",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves an update set from a source instance in ServiceNow with optional preview and cleanup.
@@ -743,6 +841,9 @@ def register_update_sets_tools(mcp: FastMCP):
             description="Sys_id of the update set to preview"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Previews an update set in ServiceNow by its remote sys_id.
@@ -762,6 +863,9 @@ def register_update_sets_tools(mcp: FastMCP):
             description="Flag that indicates whether to force commit the update set",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Commits an update set in ServiceNow with an option to force commit.
@@ -783,6 +887,9 @@ def register_update_sets_tools(mcp: FastMCP):
             description="Flag that indicates whether to force commit the update sets",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Commits multiple update sets in ServiceNow in the specified order.
@@ -802,6 +909,9 @@ def register_update_sets_tools(mcp: FastMCP):
             description="Flag that indicates whether to rollback the batch installation performed during the update set commit",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Backs out an update set in ServiceNow with an option to rollback installations.
@@ -824,10 +934,15 @@ def register_batch_tools(mcp: FastMCP):
             default=None, description="Client provided batch ID"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """
         Sends multiple REST API requests in a single call.
         """
+        await ctx_progress(ctx, 100, 100)
         return _client.batch_request(
             batch_request_id=batch_request_id, rest_requests=rest_requests
         )
@@ -863,6 +978,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Limit for pagination",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves change requests from ServiceNow with optional filtering and pagination.
@@ -885,6 +1003,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def get_change_request_nextstate(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Gets the next state for a specific change request in ServiceNow.
@@ -902,6 +1023,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the CI (Configuration Item)"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves the schedule for a change request based on a Configuration Item (CI) in ServiceNow.
@@ -935,6 +1059,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Limit for pagination",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Fetches tasks associated with a change request in ServiceNow with optional filtering.
@@ -1004,6 +1131,9 @@ def register_change_management_tools(mcp: FastMCP):
         sysparm_view: Optional[str] = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response | None:
         """
         Retrieves details of a specific change request in ServiceNow by sys_id and type.
@@ -1049,6 +1179,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def get_change_request_ci(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Gets Configuration Items (CIs) associated with a change request in ServiceNow.
@@ -1064,6 +1197,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def get_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Checks for conflicts in a change request in ServiceNow.
@@ -1098,6 +1234,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Limit for pagination",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves standard change request templates from ServiceNow with optional filtering.
@@ -1141,6 +1280,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Limit for pagination",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Fetches change request models from ServiceNow with optional filtering and type.
@@ -1164,6 +1306,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the standard change request model"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves a specific standard change request model in ServiceNow by sys_id.
@@ -1179,6 +1324,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the standard change request template"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Gets a specific standard change request template in ServiceNow by sys_id.
@@ -1194,6 +1342,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def get_change_request_worker(
         worker_sys_id: str = Field(description="Sys ID of the change request worker"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves details of a change request worker in ServiceNow by sys_id.
@@ -1217,6 +1368,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the standard change request template (if applicable)",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Creates a new change request in ServiceNow with specified details and type.
@@ -1237,6 +1391,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Name-value pairs providing details for the new task"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Creates a task for a change request in ServiceNow with provided details.
@@ -1262,6 +1419,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Flag to refresh impacted services (applicable for 'affected' association)",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Associates Configuration Items (CIs) with a change request in ServiceNow.
@@ -1282,6 +1442,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the standard change request"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Calculates the risk for a standard change request in ServiceNow.
@@ -1297,6 +1460,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def check_change_request_conflict(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Checks for conflicts in a change request in ServiceNow.
@@ -1312,6 +1478,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def refresh_change_request_impacted_services(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Refreshes the impacted services for a change request in ServiceNow.
@@ -1330,6 +1499,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="State to set the change request to (approved or rejected)"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Approves or rejects a change request in ServiceNow by setting its state.
@@ -1353,6 +1525,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Type of change (emergency, normal, standard, model)",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Updates a change request in ServiceNow with new details and type.
@@ -1370,6 +1545,9 @@ def register_change_management_tools(mcp: FastMCP):
     async def update_change_request_first_available(
         change_request_sys_id: str = Field(description="Sys ID of the change request"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Updates a change request to the first available state in ServiceNow.
@@ -1392,6 +1570,9 @@ def register_change_management_tools(mcp: FastMCP):
             description="Dictionary of name-value pairs for filtering records entered as a string",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Updates a task for a change request in ServiceNow with new details.
@@ -1412,11 +1593,17 @@ def register_change_management_tools(mcp: FastMCP):
             default=None, description="Type of change (emergency, normal, standard)"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Deletes a change request from ServiceNow by sys_id and type.
         """
 
+        if not await ctx_confirm_destructive(ctx, "delete change request"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_change_request(
             change_request_sys_id=change_request_sys_id, change_type=change_type
         )
@@ -1430,11 +1617,17 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the task associated with the change request"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Deletes a task associated with a change request in ServiceNow.
         """
 
+        if not await ctx_confirm_destructive(ctx, "delete change request task"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_change_request_task(
             change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
         )
@@ -1448,11 +1641,19 @@ def register_change_management_tools(mcp: FastMCP):
             description="Sys ID of the task associated with the change request"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Deletes a conflict scan for a change request in ServiceNow.
         """
 
+        if not await ctx_confirm_destructive(
+            ctx, "delete change request conflict scan"
+        ):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_change_request_conflict_scan(
             change_request_sys_id=change_request_sys_id, task_sys_id=task_sys_id
         )
@@ -1466,6 +1667,9 @@ def register_cilifecycle_tools(mcp: FastMCP):
         actionName: str = Field(description="Name of the CI action"),
         otherActionName: str = Field(description="Name of the other CI action"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Determines whether two specified CI actions are compatible.
@@ -1479,6 +1683,9 @@ def register_cilifecycle_tools(mcp: FastMCP):
     )
     async def register_ci_lifecycle_operator(
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Registers an operator for a non-workflow user.
@@ -1491,6 +1698,9 @@ def register_cilifecycle_tools(mcp: FastMCP):
     async def unregister_ci_lifecycle_operator(
         req_id: str = Field(description="Request ID needed to unregister"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Unregisters an operator for non-workflow users.
@@ -1515,6 +1725,9 @@ def register_devops_tools(mcp: FastMCP):
             default=None, description="Test Connection"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Checks if the orchestration task is under change control.
@@ -1544,6 +1757,9 @@ def register_devops_tools(mcp: FastMCP):
             default=None, description="Task Execution Number"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Enables orchestration tools to register artifacts into a ServiceNow instance.
@@ -1572,6 +1788,9 @@ def register_import_sets_tools(mcp: FastMCP):
             description="The sys_id of the import set record"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Retrieves details of a specific import set record from a ServiceNow instance.
@@ -1590,6 +1809,9 @@ def register_import_sets_tools(mcp: FastMCP):
             description="Dictionary containing the field values for the new import set record"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Inserts a new record into a specified import set on a ServiceNow instance.
@@ -1608,6 +1830,9 @@ def register_import_sets_tools(mcp: FastMCP):
             description="List of dictionaries containing field values for multiple new import set records"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Inserts multiple records into a specified import set on a ServiceNow instance.
@@ -1668,6 +1893,9 @@ def register_incidents_tools(mcp: FastMCP):
         sysparm_view: Optional[str] = Field(
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response | None:
         """
         Retrieves incident records from a ServiceNow instance, optionally by specific incident ID.
@@ -1707,6 +1935,9 @@ def register_incidents_tools(mcp: FastMCP):
             description="Dictionary containing the field values for the new incident record"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Creates a new incident record on a ServiceNow instance with provided details.
@@ -1750,6 +1981,9 @@ def register_knowledge_management_tools(mcp: FastMCP):
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get all Knowledge Base articles from a ServiceNow instance.
@@ -1815,6 +2049,9 @@ def register_knowledge_management_tools(mcp: FastMCP):
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get a specific Knowledge Base article from a ServiceNow instance.
@@ -1844,6 +2081,9 @@ def register_knowledge_management_tools(mcp: FastMCP):
         ),
         attachment_sys_id: str = Field(description="The sys_id of the attachment"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get a Knowledge Base article attachment from a ServiceNow instance.
@@ -1878,6 +2118,9 @@ def register_knowledge_management_tools(mcp: FastMCP):
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get featured Knowledge Base articles from a ServiceNow instance.
@@ -1916,6 +2159,9 @@ def register_knowledge_management_tools(mcp: FastMCP):
             description="Comma-separated languages in ISO 639-1 format or 'all' to search all valid languages",
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get most viewed Knowledge Base articles from a ServiceNow instance.
@@ -1940,11 +2186,17 @@ def register_table_api_tools(mcp: FastMCP):
             description="The sys_id of the record to be deleted"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Delete a record from the specified table on a ServiceNow instance.
         """
 
+        if not await ctx_confirm_destructive(ctx, "delete table record"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_table_record(
             table=table, table_record_sys_id=table_record_sys_id
         )
@@ -1997,6 +2249,9 @@ def register_table_api_tools(mcp: FastMCP):
             default=None, description="Display style ('desktop', 'mobile', or 'both')"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get records from the specified table on a ServiceNow instance.
@@ -2027,6 +2282,9 @@ def register_table_api_tools(mcp: FastMCP):
             description="The sys_id of the record to be retrieved"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Get a specific record from the specified table on a ServiceNow instance.
@@ -2048,6 +2306,9 @@ def register_table_api_tools(mcp: FastMCP):
             description="Dictionary containing the fields to be updated"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Partially update a record in the specified table on a ServiceNow instance.
@@ -2069,6 +2330,9 @@ def register_table_api_tools(mcp: FastMCP):
             description="Dictionary containing the fields to be updated"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Fully update a record in the specified table on a ServiceNow instance.
@@ -2087,6 +2351,9 @@ def register_table_api_tools(mcp: FastMCP):
             description="Dictionary containing the field values for the new record"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Add a new record to the specified table on a ServiceNow instance.
@@ -2101,6 +2368,9 @@ def register_auth_tools(mcp: FastMCP):
     )
     async def refresh_auth_token(
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Refreshes the authentication token for the ServiceNow client.
@@ -2126,6 +2396,9 @@ def register_custom_api_tools(mcp: FastMCP):
             default=None, description="JSON data to include in the request body"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """
         Make a custom API request to a ServiceNow instance.
@@ -2144,6 +2417,9 @@ def register_email_tools(mcp: FastMCP):
         text: Optional[str] = Field(default=None, description="Email body text"),
         html: Optional[str] = Field(default=None, description="Email body HTML"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Sends an email via ServiceNow."""
         return _client.send_email(to=to, subject=subject, text=text, html=html)
@@ -2158,6 +2434,9 @@ def register_data_classification_tools(mcp: FastMCP):
         table_name: Optional[str] = Field(default=None, description="Table name"),
         column_name: Optional[str] = Field(default=None, description="Column name"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves data classification information."""
         return _client.get_data_classification(
@@ -2170,6 +2449,9 @@ def register_attachment_tools(mcp: FastMCP):
     async def get_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves attachment metadata."""
         return _client.get_attachment(sys_id=sys_id)
@@ -2186,8 +2468,13 @@ def register_attachment_tools(mcp: FastMCP):
             default=None, description="MIME type of the file"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
+        await ctx_progress(ctx, 0, 100)
         """Uploads an attachment to a record."""
+        await ctx_progress(ctx, 100, 100)
         return _client.upload_attachment(
             file_path=file_path,
             table_name=table_name,
@@ -2200,8 +2487,14 @@ def register_attachment_tools(mcp: FastMCP):
     async def delete_attachment(
         sys_id: str = Field(description="Attachment Sys ID"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Deletes an attachment."""
+        if not await ctx_confirm_destructive(ctx, "delete attachment"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_attachment(sys_id=sys_id)
 
 
@@ -2213,6 +2506,9 @@ def register_aggregate_tools(mcp: FastMCP):
         group_by: Optional[str] = Field(default=None, description="Field to group by"),
         stats: Optional[str] = Field(default=None, description="Statistics function"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves aggregate statistics for a table."""
         return _client.get_stats(
@@ -2227,6 +2523,9 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
             default=None, description="Activity Subscription Sys ID"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves activity subscriptions."""
         return _client.get_activity_subscriptions(sys_id=sys_id)
@@ -2239,6 +2538,9 @@ def register_account_tools(mcp: FastMCP):
         name: Optional[str] = Field(default=None, description="Account name"),
         number: Optional[str] = Field(default=None, description="Account number"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves CSM account information."""
         return _client.get_account(sys_id=sys_id, name=name, number=number)
@@ -2250,6 +2552,9 @@ def register_hr_tools(mcp: FastMCP):
         sys_id: Optional[str] = Field(default=None, description="HR Profile Sys ID"),
         user: Optional[str] = Field(default=None, description="User Sys ID"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves HR profile information."""
         return _client.get_hr_profile(sys_id=sys_id, user=user)
@@ -2265,6 +2570,9 @@ def register_metricbase_tools(mcp: FastMCP):
         start_time: Optional[str] = Field(default=None, description="Start time"),
         end_time: Optional[str] = Field(default=None, description="End time"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Inserts time series data into MetricBase."""
         return _client.metricbase_insert(
@@ -2289,6 +2597,9 @@ def register_service_qualification_tools(mcp: FastMCP):
             default=None, description="List of qualification items"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Creates a technical service qualification request."""
         return _client.check_service_qualification(
@@ -2303,6 +2614,9 @@ def register_service_qualification_tools(mcp: FastMCP):
         id: Optional[str] = Field(default=None, description="Qualification Request ID"),
         state: Optional[str] = Field(default=None, description="Filter by state"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves a service qualification request."""
         return _client.get_service_qualification(id=id, state=state)
@@ -2314,6 +2628,9 @@ def register_service_qualification_tools(mcp: FastMCP):
         ),
         description: Optional[str] = Field(default=None, description="Description"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Processes a service qualification result."""
         return _client.process_service_qualification_result(
@@ -2327,6 +2644,9 @@ def register_ppm_tools(mcp: FastMCP):
     async def insert_cost_plans(
         plans: List[Dict[str, Any]] = Field(description="List of cost plans"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Creates cost plans."""
         return _client.insert_cost_plans(plans=plans)
@@ -2343,6 +2663,9 @@ def register_ppm_tools(mcp: FastMCP):
             default=None, description="Dependencies"
         ),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Creates a project and associated project tasks."""
         return _client.insert_project_tasks(
@@ -2363,6 +2686,9 @@ def register_product_inventory_tools(mcp: FastMCP):
         limit: Optional[int] = Field(default=20, description="Limit"),
         offset: Optional[int] = Field(default=0, description="Offset"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Retrieves product inventory."""
         return _client.get_product_inventory(
@@ -2377,8 +2703,14 @@ def register_product_inventory_tools(mcp: FastMCP):
     async def delete_product_inventory(
         id: str = Field(description="Product Inventory Sys ID"),
         _client=Depends(get_client),
+        ctx: Context = Field(
+            description="MCP context for progress reporting", default=None
+        ),
     ) -> Response:
         """Deletes a product inventory record."""
+        if not await ctx_confirm_destructive(ctx, "delete product inventory"):
+            return {"status": "cancelled", "message": "Operation cancelled by user"}
+        await ctx_progress(ctx, 0, 100)
         return _client.delete_product_inventory(id=id)
 
 
