@@ -1,0 +1,22 @@
+{
+  "name": "servicenow-api-agent",
+  "type": "agent",
+  "version": "0.1.0",
+  "description": "Agent package for servicenow-api",
+  "url": "https://github.com/user/servicenow-api/tree/main",
+  "license": "MIT",
+  "capabilities": [
+    {
+      "id": "run_graph_flow",
+      "name": "Graph Flow Execution",
+      "description": "Execute a workflow through the agent's graph orchestration engine"
+    }
+  ],
+  "tools": [
+    {
+      "id": "graph-flow",
+      "type": "flow",
+      "description": "Run complex multi-step workflows via Pydantic-Graph"
+    }
+  ]
+}
