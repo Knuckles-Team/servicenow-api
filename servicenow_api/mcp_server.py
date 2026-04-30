@@ -35,12 +35,15 @@ from fastmcp.dependencies import Depends
 from fastmcp.utilities.logging import get_logger
 from pydantic import Field
 
+<<<<<<< HEAD
 from servicenow_api.auth import get_client
 from servicenow_api.servicenow_models import (
     FlowReportResult,
     Response,
 )
 
+=======
+>>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
 __version__ = "1.6.57"
 
 logger = get_logger(name="ServicenowMCP")
