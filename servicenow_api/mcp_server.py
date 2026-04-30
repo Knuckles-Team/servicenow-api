@@ -44,7 +44,7 @@ from servicenow_api.servicenow_models import (
 
 =======
 >>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
-__version__ = "1.6.57"
+__version__ = "1.6.58"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
