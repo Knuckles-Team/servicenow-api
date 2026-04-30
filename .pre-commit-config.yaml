@@ -7,6 +7,7 @@ ci:
   autoupdate_schedule: 'monthly'
 
 repos:
+<<<<<<< HEAD
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -70,3 +71,59 @@ repos:
         types: [python]
         pass_filenames: false
         always_run: true
+=======
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+  - id: check-added-large-files
+    args: ["--maxkb=2000"]
+  - id: check-ast
+  - id: check-yaml
+  - id: check-toml
+  - id: check-json
+  - id: fix-byte-order-marker
+    exclude: .gitignore
+  - id: check-merge-conflict
+  - id: detect-private-key
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: no-commit-to-branch
+- repo: https://github.com/psf/black
+  rev: 26.3.1
+  hooks:
+  - id: black
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.15.8
+  hooks:
+  - id: ruff
+    exclude: tests
+    types_or: [python, pyi, jupyter]
+    args: ["--fix", "--ignore=E402"]
+- repo: https://github.com/jendrikseipp/vulture
+  rev: v2.16
+  hooks:
+  - id: vulture
+    pass_filenames: false
+    args: [".", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist'] # or 100 if you want very high confidence only
+    require_serial: true
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.4.2
+  hooks:
+  - id: codespell
+    args:
+    - "-L"
+    - "ans,linar,nam,tread,ot,"
+    - "--ignore-words"
+    - ".codespellignore"
+    exclude: 'servicenow_api/skills/.*-docs/'
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.8.6
+  hooks:
+  - id: bandit
+    args: ["--skip", "B101,B404,B603"]
+    exclude: ^(tests/|test/|scripts/|script/|__tests__/)
+- repo: https://github.com/nbQA-dev/nbQA
+  rev: 1.9.1
+  hooks:
+  - id: nbqa-ruff
+>>>>>>> 4f87888 (chore: manual fixes)

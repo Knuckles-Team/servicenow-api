@@ -14,8 +14,8 @@ import requests
 import urllib3
 from agent_utilities.agent_utilities import get_agent_workspace
 from agent_utilities.base_utilities import get_logger
-from agent_utilities.decorators import require_auth
-from agent_utilities.exceptions import (
+from agent_utilities.core.decorators import require_auth
+from agent_utilities.core.exceptions import (
     AuthError,
     MissingParameterError,
     ParameterError,
