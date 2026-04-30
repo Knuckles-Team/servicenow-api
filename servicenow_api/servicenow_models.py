@@ -8,7 +8,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from agent_utilities.exceptions import (
+from agent_utilities.core.exceptions import (
     ParameterError,
 )
 

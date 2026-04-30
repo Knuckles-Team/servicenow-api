@@ -28,7 +28,7 @@ repos:
   hooks:
   - id: black
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.8
+  rev: v0.15.12
   hooks:
   - id: ruff
     exclude: tests
@@ -39,7 +39,7 @@ repos:
   hooks:
   - id: vulture
     pass_filenames: false
-    args: [".", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist'] # or 100 if you want very high confidence only
+    args: [".", "vulture_whitelist.py", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist'] # or 100 if you want very high confidence only
     require_serial: true
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.2
@@ -47,12 +47,12 @@ repos:
   - id: codespell
     args:
     - "-L"
-    - "ans,linar,nam,tread,ot,"
+    - "ans,linar,nam,tread,ot,requestors,"
     - "--ignore-words"
     - ".codespellignore"
     exclude: 'servicenow_api/skills/.*-docs/'
 - repo: https://github.com/PyCQA/bandit
-  rev: 1.8.6
+  rev: 1.9.4
   hooks:
   - id: bandit
     args: ["--skip", "B101,B404,B603"]
