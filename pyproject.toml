@@ -9,6 +9,7 @@ description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.10"
+<<<<<<< HEAD
 dependencies = [ "agent-utilities>=0.2.31",]
 [[project.authors]]
 name = "Audel Rouhi"
@@ -22,6 +23,20 @@ mcp = [ "agent-utilities[mcp]>=0.2.31",]
 agent = [ "agent-utilities[agent,logfire]>=0.2.31",]
 all = [ "agent-utilities[mcp,agent,logfire]>=0.2.31",]
 test = [ "pytest", "pytest-asyncio",]
+=======
+dependencies = [
+    "agent-utilities>=0.2.41"]
+
+[project.optional-dependencies]
+mcp = [
+    "agent-utilities[mcp]>=0.2.41"]
+
+agent = [
+    "agent-utilities[agent,logfire]>=0.2.41"]
+
+all = [
+    "agent-utilities[mcp,agent,logfire]>=0.2.41"]
+>>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"

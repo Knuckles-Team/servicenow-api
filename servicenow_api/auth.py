@@ -1,10 +1,15 @@
 import os
 from threading import local
+<<<<<<< HEAD
 
 import requests
 from agent_utilities.base_utilities import get_logger, to_boolean
 from agent_utilities.exceptions import AuthError, UnauthorizedError
 
+=======
+from agent_utilities.base_utilities import to_boolean, get_logger
+from agent_utilities.core.exceptions import AuthError, UnauthorizedError
+>>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
 from servicenow_api.api_wrapper import Api
 
 local = local()
@@ -64,6 +69,7 @@ def get_client(
                 data=exchange_data,
                 auth=(config["oidc_client_id"], config["oidc_client_secret"]),
                 verify=verify,
+                timeout=30,
             )
             resp.raise_for_status()
             sn_token = resp.json()["access_token"]

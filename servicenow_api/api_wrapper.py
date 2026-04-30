@@ -57,6 +57,7 @@ from servicenow_api.servicenow_models import (
     FlowGraph,
     FlowNode,
     FlowReportResult,
+<<<<<<< HEAD
     HRProfileModel,
     ImportSet,
     ImportSetModel,
@@ -72,6 +73,17 @@ from servicenow_api.servicenow_models import (
     Table,
     TableModel,
     Task,
+=======
+)
+from agent_utilities.base_utilities import get_logger
+from agent_utilities.agent_utilities import get_agent_workspace
+from agent_utilities.core.decorators import require_auth
+from agent_utilities.core.exceptions import (
+    AuthError,
+    UnauthorizedError,
+    ParameterError,
+    MissingParameterError,
+>>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
 )
 
 logger = get_logger(__name__)
@@ -458,6 +470,7 @@ class Api:
                     url=self.auth_url,
                     data=encoded_data_str,
                     headers=self.auth_headers,
+                    timeout=30,
                 )
                 response = response.json()
                 self.token = response["access_token"]
@@ -512,7 +525,10 @@ class Api:
         encoded_data_str = urlencode(refresh_data)
         try:
             response = requests.post(
-                url=self.auth_url, data=encoded_data_str, headers=self.auth_headers
+                url=self.auth_url,
+                data=encoded_data_str,
+                headers=self.auth_headers,
+                timeout=30,
             )
             response.raise_for_status()
             json_response = response.json()
