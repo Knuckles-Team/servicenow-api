@@ -8,7 +8,7 @@ version = "1.7.0"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
-requires-python = ">=3.10"
+requires-python = ">=3.11, <3.14"
 dependencies = [ "agent-utilities>=0.2.31",]
 [[project.authors]]
 name = "Audel Rouhi"
