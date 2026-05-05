@@ -28,6 +28,8 @@ from agent_utilities.base_utilities import to_boolean, to_integer
 from agent_utilities.mcp_utilities import (
     config,
     create_mcp_server,
+    ctx_confirm_destructive,
+    ctx_progress,
 )
 from dotenv import find_dotenv, load_dotenv
 from fastmcp import Context, FastMCP
@@ -35,16 +37,13 @@ from fastmcp.dependencies import Depends
 from fastmcp.utilities.logging import get_logger
 from pydantic import Field
 
-<<<<<<< HEAD
 from servicenow_api.auth import get_client
 from servicenow_api.servicenow_models import (
     FlowReportResult,
     Response,
 )
 
-=======
->>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
-__version__ = "1.9.0"
+__version__ = "1.10.0"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)

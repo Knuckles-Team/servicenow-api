@@ -57,7 +57,6 @@ from servicenow_api.servicenow_models import (
     FlowGraph,
     FlowNode,
     FlowReportResult,
-<<<<<<< HEAD
     HRProfileModel,
     ImportSet,
     ImportSetModel,
@@ -73,17 +72,6 @@ from servicenow_api.servicenow_models import (
     Table,
     TableModel,
     Task,
-=======
-)
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.agent_utilities import get_agent_workspace
-from agent_utilities.core.decorators import require_auth
-from agent_utilities.core.exceptions import (
-    AuthError,
-    UnauthorizedError,
-    ParameterError,
-    MissingParameterError,
->>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
 )
 
 logger = get_logger(__name__)
@@ -4732,7 +4720,7 @@ class Api:
             )
             return Response(response=response, result=parsed_data)
         except ValidationError as e:
-            raise ParameterError(f"Invalid parameters: {e.errors()}")
+            raise ParameterError(f"Invalid parameters: {e.errors()}") from e
         except Exception as e:
             print(f"Request Error: {str(e)}")
             raise
