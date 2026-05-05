@@ -1,15 +1,10 @@
 import os
 from threading import local
-<<<<<<< HEAD
 
 import requests
 from agent_utilities.base_utilities import get_logger, to_boolean
-from agent_utilities.exceptions import AuthError, UnauthorizedError
-
-=======
-from agent_utilities.base_utilities import to_boolean, get_logger
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
->>>>>>> caeb565 (Bump version: 1.6.56 → 1.6.57)
+
 from servicenow_api.api_wrapper import Api
 
 local = local()
@@ -42,7 +37,9 @@ def get_client(
         "jwt_issuer": os.getenv("FASTMCP_SERVER_AUTH_JWT_ISSUER", None),
         "jwt_audience": os.getenv("FASTMCP_SERVER_AUTH_JWT_AUDIENCE", None),
         "jwt_algorithm": os.getenv("FASTMCP_SERVER_AUTH_JWT_ALGORITHM", None),
-        "jwt_secret": os.getenv("FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY", None),
+        "jwt_secret": os.getenv(
+            "FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY", None
+        ),  # nosec B105
         "jwt_required_scopes": os.getenv(
             "FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES", None
         ),
@@ -58,8 +55,8 @@ def get_client(
         exchange_data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
             "subject_token": mcp_token,
-            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",  # nosec B105
+            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",  # nosec B105
             "audience": config["audience"],
             "scope": config["delegated_scopes"],
         }

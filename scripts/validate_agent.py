@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import asyncio
-import sys
-from servicenow_api.servicenow_agent import stream_chat, chat, node_chat
-
 import os
+import sys
+
+from servicenow_api.servicenow_agent import chat, node_chat, stream_chat
 
 __version__ = "0.1.0"
 

@@ -7,71 +7,6 @@ ci:
   autoupdate_schedule: 'monthly'
 
 repos:
-<<<<<<< HEAD
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: check-added-large-files
-        args: ["--maxkb=2000"]
-        exclude: ^uv\.lock$
-      - id: check-ast
-        exclude: ^(tests/|test/|scripts/|script/)
-      - id: check-yaml
-      - id: check-toml
-      - id: check-json
-      - id: fix-byte-order-marker
-        exclude: .gitignore
-      - id: check-merge-conflict
-      - id: detect-private-key
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: no-commit-to-branch
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.11
-    hooks:
-      - id: ruff-check
-        args: ["--fix", "--ignore=E402,B008,E501"]
-        exclude: ^(tests/|test/|scripts/|script/)
-      - id: ruff-format
-        exclude: ^(tests/|test/|scripts/|script/)
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [pydantic, types-PyYAML, types-requests, types-setuptools]
-        args: ["--ignore-missing-imports"]
-  - repo: https://github.com/jendrikseipp/vulture
-    rev: v2.16
-    hooks:
-      - id: vulture
-        pass_filenames: false
-        args: [ ".", "--min-confidence", "95", "--exclude", "node_modules,dotnet" ]
-        require_serial: true
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
-    hooks:
-      - id: codespell
-        args: ["-L", "ans,linar,nam,tread,ot,", "--ignore-words=.codespellignore"]
-        exclude: ^(tests/|test/|scripts/|script/|.*lock.*)
-  - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.9.1
-    hooks:
-      - id: nbqa-ruff
-        args: ["--fix"]
-  - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.11.7
-    hooks:
-      - id: uv-lock
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest
-        entry: pytest
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: true
-=======
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0
   hooks:
@@ -126,4 +61,3 @@ repos:
   rev: 1.9.1
   hooks:
   - id: nbqa-ruff
->>>>>>> 4f87888 (chore: manual fixes)

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.9.0"
+version = "1.10.0"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
@@ -38,6 +38,11 @@ target-version = "py310"
 python_version = "3.10"
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[dependency-groups]
+dev = [
+    "pytest-timeout>=2.4.0",
+]
 
 [tool.setuptools.package-data]
 servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**",]

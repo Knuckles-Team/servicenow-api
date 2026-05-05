@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import asyncio
-import httpx
 import json
-import uuid
 import time
+import uuid
+
+import httpx
 
 __version__ = "0.1.0"
 
