@@ -21,7 +21,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.10.0*
+*Version: 1.11.0*
 
 ## Overview
 
@@ -902,3 +902,168 @@ python ./test/test_servicenow_models.py
 ![GitHub User's stars](https://img.shields.io/github/stars/Knucklessg1)
 
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/knuckles-team-servicenow-api-badge.png)](https://mseep.ai/app/knuckles-team-servicenow-api)
+
+
+## MCP Configuration Examples
+
+### 1. Standard IO (stdio) Deployment
+
+```json
+{
+  "mcpServers": {
+    "servicenow-api": {
+      "command": "uv",
+      "args": [
+        "run",
+        "servicenow-mcp"
+      ],
+      "env": {
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGENT_DESCRIPTION": "<YOUR_AGENT_DESCRIPTION>",
+        "AGENT_SYSTEM_PROMPT": "<YOUR_AGENT_SYSTEM_PROMPT>",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DEFAULT_AGENT_NAME": "<YOUR_DEFAULT_AGENT_NAME>",
+        "DELEGATED_SCOPES": "<YOUR_DELEGATED_SCOPES>",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "ENABLE_DELEGATION": "<YOUR_ENABLE_DELEGATION>",
+        "FASTMCP_SERVER_AUTH_JWT_ALGORITHM": "<YOUR_FASTMCP_SERVER_AUTH_JWT_ALGORITHM>",
+        "FASTMCP_SERVER_AUTH_JWT_AUDIENCE": "<YOUR_FASTMCP_SERVER_AUTH_JWT_AUDIENCE>",
+        "FASTMCP_SERVER_AUTH_JWT_ISSUER": "<YOUR_FASTMCP_SERVER_AUTH_JWT_ISSUER>",
+        "FASTMCP_SERVER_AUTH_JWT_JWKS_URI": "<YOUR_FASTMCP_SERVER_AUTH_JWT_JWKS_URI>",
+        "FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY": "<YOUR_FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY>",
+        "FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES": "<YOUR_FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES>",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "LLM_API_KEY": "<YOUR_LLM_API_KEY>",
+        "LLM_BASE_URL": "<YOUR_LLM_BASE_URL>",
+        "MCP_URL": "<YOUR_MCP_URL>",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "MODEL_ID": "<YOUR_MODEL_ID>",
+        "OIDC_CLIENT_ID": "<YOUR_OIDC_CLIENT_ID>",
+        "OIDC_CLIENT_SECRET": "<YOUR_OIDC_CLIENT_SECRET>",
+        "OIDC_CONFIG_URL": "<YOUR_OIDC_CONFIG_URL>",
+        "OPENAPI_CLIENT_ID": "<YOUR_OPENAPI_CLIENT_ID>",
+        "OPENAPI_CLIENT_SECRET": "<YOUR_OPENAPI_CLIENT_SECRET>",
+        "OPENAPI_PASSWORD": "<YOUR_OPENAPI_PASSWORD>",
+        "OPENAPI_USERNAME": "<YOUR_OPENAPI_USERNAME>",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_AUDIENCE": "<YOUR_SERVICENOW_AUDIENCE>",
+        "SERVICENOW_CLIENT_ID": "<YOUR_SERVICENOW_CLIENT_ID>",
+        "SERVICENOW_CLIENT_SECRET": "<YOUR_SERVICENOW_CLIENT_SECRET>",
+        "SERVICENOW_INSTANCE": "<YOUR_SERVICENOW_INSTANCE>",
+        "SERVICENOW_PASSWORD": "<YOUR_SERVICENOW_PASSWORD>",
+        "SERVICENOW_RETURN_LIMIT": "<YOUR_SERVICENOW_RETURN_LIMIT>",
+        "SERVICENOW_SSL_VERIFY": "<YOUR_SERVICENOW_SSL_VERIFY>",
+        "SERVICENOW_USERNAME": "<YOUR_SERVICENOW_USERNAME>",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
+      }
+    }
+  }
+}
+```
+
+### 2. Streamable HTTP (SSE) Deployment
+
+```json
+{
+  "mcpServers": {
+    "servicenow-api": {
+      "command": "uv",
+      "args": [
+        "run",
+        "servicenow-mcp",
+        "--transport",
+        "http",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "env": {
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGENT_DESCRIPTION": "<YOUR_AGENT_DESCRIPTION>",
+        "AGENT_SYSTEM_PROMPT": "<YOUR_AGENT_SYSTEM_PROMPT>",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DEFAULT_AGENT_NAME": "<YOUR_DEFAULT_AGENT_NAME>",
+        "DELEGATED_SCOPES": "<YOUR_DELEGATED_SCOPES>",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "ENABLE_DELEGATION": "<YOUR_ENABLE_DELEGATION>",
+        "FASTMCP_SERVER_AUTH_JWT_ALGORITHM": "<YOUR_FASTMCP_SERVER_AUTH_JWT_ALGORITHM>",
+        "FASTMCP_SERVER_AUTH_JWT_AUDIENCE": "<YOUR_FASTMCP_SERVER_AUTH_JWT_AUDIENCE>",
+        "FASTMCP_SERVER_AUTH_JWT_ISSUER": "<YOUR_FASTMCP_SERVER_AUTH_JWT_ISSUER>",
+        "FASTMCP_SERVER_AUTH_JWT_JWKS_URI": "<YOUR_FASTMCP_SERVER_AUTH_JWT_JWKS_URI>",
+        "FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY": "<YOUR_FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY>",
+        "FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES": "<YOUR_FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES>",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "LLM_API_KEY": "<YOUR_LLM_API_KEY>",
+        "LLM_BASE_URL": "<YOUR_LLM_BASE_URL>",
+        "MCP_URL": "<YOUR_MCP_URL>",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "MODEL_ID": "<YOUR_MODEL_ID>",
+        "OIDC_CLIENT_ID": "<YOUR_OIDC_CLIENT_ID>",
+        "OIDC_CLIENT_SECRET": "<YOUR_OIDC_CLIENT_SECRET>",
+        "OIDC_CONFIG_URL": "<YOUR_OIDC_CONFIG_URL>",
+        "OPENAPI_CLIENT_ID": "<YOUR_OPENAPI_CLIENT_ID>",
+        "OPENAPI_CLIENT_SECRET": "<YOUR_OPENAPI_CLIENT_SECRET>",
+        "OPENAPI_PASSWORD": "<YOUR_OPENAPI_PASSWORD>",
+        "OPENAPI_USERNAME": "<YOUR_OPENAPI_USERNAME>",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_AUDIENCE": "<YOUR_SERVICENOW_AUDIENCE>",
+        "SERVICENOW_CLIENT_ID": "<YOUR_SERVICENOW_CLIENT_ID>",
+        "SERVICENOW_CLIENT_SECRET": "<YOUR_SERVICENOW_CLIENT_SECRET>",
+        "SERVICENOW_INSTANCE": "<YOUR_SERVICENOW_INSTANCE>",
+        "SERVICENOW_PASSWORD": "<YOUR_SERVICENOW_PASSWORD>",
+        "SERVICENOW_RETURN_LIMIT": "<YOUR_SERVICENOW_RETURN_LIMIT>",
+        "SERVICENOW_SSL_VERIFY": "<YOUR_SERVICENOW_SSL_VERIFY>",
+        "SERVICENOW_USERNAME": "<YOUR_SERVICENOW_USERNAME>",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
+      }
+    }
+  }
+}
+```
