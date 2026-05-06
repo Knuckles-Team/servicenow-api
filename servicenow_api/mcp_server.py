@@ -43,7 +43,7 @@ from servicenow_api.servicenow_models import (
     Response,
 )
 
-__version__ = "1.12.0"
+__version__ = "1.12.1"
 
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
