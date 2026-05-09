@@ -1,0 +1,14 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'README.md'
+
+jobs:
+  publish-pages:
+    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@latest
