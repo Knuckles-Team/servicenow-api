@@ -33,7 +33,8 @@ class ApplicationServiceModel(BaseModel):
     api_parameters: dict | None = Field(description="API Parameters", default=None)
 
     @field_validator("application_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate 'application_id' to ensure it is a valid string.
 
@@ -51,7 +52,8 @@ class ApplicationServiceModel(BaseModel):
         return v
 
     @field_validator("mode")
-    def convert_to_lowercase(_cls, value):
+    @classmethod
+    def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
 
@@ -66,7 +68,8 @@ class ApplicationServiceModel(BaseModel):
         return str(value).lower()
 
     @field_validator("mode")
-    def validate_mode(_cls, v):
+    @classmethod
+    def validate_mode(cls, v):
         if v is not None and v in ["full", "shallow"]:
             raise ValueError("Invalid optional params")
         return v
@@ -98,7 +101,8 @@ class CMDBModel(BaseModel):
     cmdb_id: str | None = None
 
     @field_validator("cmdb_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate 'cmdb_id' to ensure it is a valid string.
 
@@ -156,7 +160,8 @@ class CMDBInstanceModel(BaseModel):
         "sysparm_query",
         "source",
     )
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
         return v
@@ -205,13 +210,15 @@ class CMDBIngestModel(BaseModel):
     data: dict | None = None
 
     @field_validator("data_source_sys_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         if v is not None and not isinstance(v, str):
             raise ValueError("Invalid optional params")
         return v
 
     @field_validator("records")
-    def validate_list_parameters(_cls, v):
+    @classmethod
+    def validate_list_parameters(cls, v):
         if v is not None and not isinstance(v, list):
             raise ValueError("Invalid optional params")
         return v
@@ -337,7 +344,8 @@ class CICDModel(BaseModel):
         "update_set_name",
         "description",
     )
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -355,7 +363,8 @@ class CICDModel(BaseModel):
         return v
 
     @field_validator("app_scope_sys_ids", "remote_update_set_ids")
-    def validate_list_parameters(_cls, v):
+    @classmethod
+    def validate_list_parameters(cls, v):
         """
         Validate specific list parameters to ensure they are lists.
 
@@ -376,7 +385,8 @@ class CICDModel(BaseModel):
         return v
 
     @field_validator("browser_name")
-    def convert_to_lowercase(_cls, value):
+    @classmethod
+    def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
 
@@ -391,7 +401,8 @@ class CICDModel(BaseModel):
         return value
 
     @field_validator("browser_name")
-    def validate_browser_name(_cls, v):
+    @classmethod
+    def validate_browser_name(cls, v):
         """
         Validate the 'browser_name' parameter to ensure it is a valid browser name.
 
@@ -409,7 +420,8 @@ class CICDModel(BaseModel):
         return v
 
     @model_validator(mode="before")
-    def build_data(_cls, values):
+    @classmethod
+    def build_data(cls, values: dict) -> dict:
         """
         Build API parameters.
 
@@ -563,7 +575,8 @@ class ChangeManagementModel(BaseModel):
         "template_sys_id",
         "worker_sys_id",
     )
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -581,7 +594,8 @@ class ChangeManagementModel(BaseModel):
         return v
 
     @field_validator("state", "change_type")
-    def convert_to_lowercase(_cls, value):
+    @classmethod
+    def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
 
@@ -596,7 +610,8 @@ class ChangeManagementModel(BaseModel):
         return str(value).lower()
 
     @field_validator("change_type")
-    def validate_change_type(_cls, v):
+    @classmethod
+    def validate_change_type(cls, v):
         """
         Validate the 'change_type' parameter to ensure it is a valid change type.
 
@@ -614,7 +629,8 @@ class ChangeManagementModel(BaseModel):
         return v
 
     @field_validator("association_type")
-    def validate_association_type(_cls, v):
+    @classmethod
+    def validate_association_type(cls, v):
         """
         Validate the 'association_type' parameter to ensure it is a valid association type.
 
@@ -632,7 +648,8 @@ class ChangeManagementModel(BaseModel):
         return v
 
     @field_validator("state")
-    def validate_state(_cls, v):
+    @classmethod
+    def validate_state(cls, v):
         """
         Validate the 'state' parameter to ensure it is a valid state.
 
@@ -650,7 +667,8 @@ class ChangeManagementModel(BaseModel):
         return v
 
     @model_validator(mode="before")
-    def build_data(_cls, values):
+    @classmethod
+    def build_data(cls, values: dict) -> dict:
         """
         Build API parameters.
 
@@ -714,7 +732,8 @@ class ImportSetModel(BaseModel):
     data: dict | None = None
 
     @field_validator("table", "import_set_sys_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -761,7 +780,8 @@ class IncidentModel(BaseModel):
     )
 
     @field_validator("incident_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -784,7 +804,8 @@ class IncidentModel(BaseModel):
         "sysparm_query_no_domain",
         "sysparm_suppress_pagination_header",
     )
-    def convert_to_lowercase(_cls, value):
+    @classmethod
+    def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
 
@@ -799,7 +820,8 @@ class IncidentModel(BaseModel):
         return str(value).lower()
 
     @field_validator("sysparm_view")
-    def validate_sysparm_view(_cls, v):
+    @classmethod
+    def validate_sysparm_view(cls, v):
         """
         Validate the 'sysparm_view' parameter to ensure it is a valid view.
 
@@ -817,7 +839,8 @@ class IncidentModel(BaseModel):
         return v
 
     @field_validator("sysparm_display_value")
-    def validate_sysparm_display_value(_cls, v):
+    @classmethod
+    def validate_sysparm_display_value(cls, v):
         """
         Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
 
@@ -972,7 +995,8 @@ class TableModel(BaseModel):
     )
 
     @field_validator("table", "table_record_sys_id")
-    def validate_string_parameters(_cls, v):
+    @classmethod
+    def validate_string_parameters(cls, v):
         """
         Validate specific string parameters to ensure they are valid strings.
 
@@ -995,7 +1019,8 @@ class TableModel(BaseModel):
         "sysparm_query_no_domain",
         "sysparm_suppress_pagination_header",
     )
-    def convert_to_lowercase(_cls, value):
+    @classmethod
+    def convert_to_lowercase(cls, value):
         """
         Convert specified parameters to lowercase.
 
@@ -1010,7 +1035,8 @@ class TableModel(BaseModel):
         return str(value).lower()
 
     @field_validator("sysparm_view")
-    def validate_sysparm_view(_cls, v):
+    @classmethod
+    def validate_sysparm_view(cls, v):
         """
         Validate the 'sysparm_view' parameter to ensure it is a valid view.
 
@@ -1028,7 +1054,8 @@ class TableModel(BaseModel):
         return v
 
     @field_validator("sysparm_display_value")
-    def validate_sysparm_display_value(_cls, v):
+    @classmethod
+    def validate_sysparm_display_value(cls, v):
         """
         Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
 

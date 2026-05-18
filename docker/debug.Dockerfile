@@ -75,14 +75,17 @@ ENV HOST=${HOST} \
     UV_SYSTEM_PYTHON=1 \
     UV_COMPILE_BYTECODE=1
 
+# For local debugging
+WORKDIR /app
+COPY . /app
 RUN apt-get update \
     && apt-get install -y default-jre ripgrep tree fd-find curl nano \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
-     && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
+    && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
     && mkdir -p /root/.config \
-    && echo 'eval "$(starship init bash)"' >> /root/.bashrc \ \
-    uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.15.0
+    && echo 'eval "$(starship init bash)"' >> /root/.bashrc \
+    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow .[all]
 
-COPY starship.toml /root/.config/starship.toml
+COPY docker/starship.toml /root/.config/starship.toml
 
 CMD ["servicenow-mcp"]

@@ -1,11 +1,22 @@
+"""ServiceNow Authentication Module.
+
+Authentication priority:
+1. **OIDC Delegation** — If ``ENABLE_DELEGATION`` is active, exchanges
+   the IdP-issued user token for a downstream ServiceNow access token
+   via RFC 8693 Token Exchange using the shared ``delegated_auth`` helper.
+2. **Basic Auth** — Falls back to ``SERVICENOW_USERNAME`` /
+   ``SERVICENOW_PASSWORD`` with optional OAuth client credentials.
+
+See ``docs/guides/oauth_sso.md`` in agent-utilities for full details.
+"""
+
 import os
 from threading import local
 
-import requests
 from agent_utilities.base_utilities import get_logger, to_boolean
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
 
-from servicenow_api.api_wrapper import Api
+from servicenow_api.api_client import Api
 
 local = local()
 logger = get_logger(__name__)
@@ -18,66 +29,47 @@ def get_client(
     client_secret=os.getenv("SERVICENOW_CLIENT_SECRET", None),
     verify: bool = to_boolean(string=os.getenv("SERVICENOW_SSL_VERIFY", "True")),
 ) -> Api:
-    """
-    Single entry point for ServiceNow clients.
+    """Single entry point for ServiceNow clients.
 
     Auto-detects auth method:
-    1. Delegation → Exchanges MCP token
+    1. OIDC Delegation → exchanges MCP token via shared helper
     2. Basic auth → username/password (env fallback)
     """
-    config = {
-        "enable_delegation": to_boolean(os.environ.get("ENABLE_DELEGATION", "False")),
-        "audience": os.environ.get("SERVICENOW_AUDIENCE", None),
-        "delegated_scopes": os.environ.get("DELEGATED_SCOPES", "api"),
-        "token_endpoint": None,
-        "oidc_client_id": os.environ.get("OIDC_CLIENT_ID", None),
-        "oidc_client_secret": os.environ.get("OIDC_CLIENT_SECRET", None),
-        "oidc_config_url": os.environ.get("OIDC_CONFIG_URL", None),
-        "jwt_jwks_uri": os.getenv("FASTMCP_SERVER_AUTH_JWT_JWKS_URI", None),
-        "jwt_issuer": os.getenv("FASTMCP_SERVER_AUTH_JWT_ISSUER", None),
-        "jwt_audience": os.getenv("FASTMCP_SERVER_AUTH_JWT_AUDIENCE", None),
-        "jwt_algorithm": os.getenv("FASTMCP_SERVER_AUTH_JWT_ALGORITHM", None),
-        "jwt_secret": os.getenv(
-            "FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY", None
-        ),  # nosec B105
-        "jwt_required_scopes": os.getenv(
-            "FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES", None
-        ),
-    }
+    from agent_utilities.mcp.delegated_auth import (
+        get_delegated_token,
+        get_user_identity,
+        is_delegation_enabled,
+    )
+
     instance = os.getenv("SERVICENOW_INSTANCE")
     if not instance:
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 
-    mcp_token = getattr(local, "user_token", None)
-
-    if config.get("enable_delegation", False) and mcp_token:
-        logger.info("Delegating MCP token to ServiceNow")
-        exchange_data = {
-            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "subject_token": mcp_token,
-            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",  # nosec B105
-            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",  # nosec B105
-            "audience": config["audience"],
-            "scope": config["delegated_scopes"],
-        }
+    # --- Path 1: OIDC Delegation (RFC 8693 Token Exchange) ---
+    if is_delegation_enabled():
         try:
-            resp = requests.post(
-                config["token_endpoint"],
-                data=exchange_data,
-                auth=(config["oidc_client_id"], config["oidc_client_secret"]),
+            delegated_token = get_delegated_token(
+                audience=os.environ.get("AUDIENCE", instance),
+                scopes=os.environ.get("DELEGATED_SCOPES", "api"),
                 verify=verify,
-                timeout=30,
             )
-            resp.raise_for_status()
-            sn_token = resp.json()["access_token"]
-            return Api(url=instance, token=sn_token, verify=verify)
+            identity = get_user_identity()
+            logger.info(
+                "Using OIDC delegated token for ServiceNow API",
+                extra={
+                    "user_email": identity.get("email"),
+                    "instance": instance,
+                },
+            )
+            return Api(url=instance, token=delegated_token, verify=verify)
         except Exception as e:
-            print(f"Delegation failed: {e}")
-            logger.error("Delegation failed", extra={"error": str(e)})
+            logger.error("OIDC delegation failed", extra={"error": str(e)})
             raise
 
+    # --- Path 2: Basic Auth (username/password + optional OAuth client) ---
     try:
         if username or password:
+            logger.info("Using username/password credentials for ServiceNow API")
             return Api(
                 url=instance,
                 username=username,

@@ -3,8 +3,8 @@ services:
   servicenow-mcp:
     # image: docker.io/knucklessg1/servicenow:latest
     build:
-     context: . # Debug
-     dockerfile: debug.Dockerfile
+     context: .. # Debug
+     dockerfile: docker/debug.Dockerfile
     container_name: servicenow-mcp
     hostname: servicenow-mcp
     command: [ "servicenow-mcp" ]
@@ -17,9 +17,9 @@ services:
         max-file: "3"
     restart: always
     volumes:
-      - ./mcp:/app
+      - ../mcp:/app
     env_file:
-      - .env
+      - ../.env
     environment:
       - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"
@@ -60,8 +60,8 @@ services:
   servicenow-agent:
     # image: docker.io/knucklessg1/servicenow:latest
     build:
-      context: . # Debug
-      dockerfile: debug.Dockerfile
+      context: .. # Debug
+      dockerfile: docker/debug.Dockerfile
     container_name: servicenow-agent
     hostname: servicenow-agent
     command: [ "servicenow-agent" ]
@@ -76,7 +76,7 @@ services:
         max-file: "3"
     restart: always
     env_file:
-      - .env
+      - ../.env
     environment:
       - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"

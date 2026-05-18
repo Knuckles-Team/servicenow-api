@@ -3,6 +3,7 @@
 import base64
 import gzip
 import json
+import sys
 from base64 import b64encode
 from collections import defaultdict
 from datetime import datetime
@@ -464,7 +465,8 @@ class Api:
                 self.token = response["access_token"]
             except Exception as e:
                 print(
-                    f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}"
+                    f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}",
+                    file=sys.stderr,
                 )
                 raise e
             self.headers = {
@@ -524,10 +526,10 @@ class Api:
             parsed_data = Authentication.model_validate(json_response)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid response data: {ve.errors()}")
+            print(f"Invalid response data: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during token refresh: {e}")
+            print(f"Error during token refresh: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -558,10 +560,12 @@ class Api:
             parsed_data = CMDBService.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -591,10 +595,12 @@ class Api:
             parsed_data = CMDB.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -633,10 +639,10 @@ class Api:
                 return Response(response=response, result=result_data)
             return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -673,10 +679,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -708,10 +714,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -750,10 +756,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -790,10 +796,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -830,10 +836,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -872,10 +878,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -910,10 +916,10 @@ class Api:
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -947,10 +953,10 @@ class Api:
                 response=response, result=BatchResponse.model_validate(json_response)
             )
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -982,10 +988,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1017,10 +1025,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1052,10 +1062,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1093,10 +1105,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1128,10 +1142,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1173,10 +1189,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1215,10 +1233,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1255,10 +1275,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1282,10 +1304,10 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid response data: {ve.errors()}")
+            print(f"Invalid response data: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1320,10 +1342,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1355,10 +1379,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1396,10 +1422,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1431,10 +1459,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1466,10 +1496,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1509,10 +1541,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1554,10 +1588,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1601,10 +1637,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1645,10 +1683,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1689,10 +1729,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1724,10 +1766,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1762,10 +1806,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1801,10 +1847,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1839,10 +1887,12 @@ class Api:
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1873,7 +1923,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1898,7 +1948,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1923,7 +1973,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1951,7 +2001,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -1980,7 +2030,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2013,7 +2063,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2046,7 +2096,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2071,7 +2121,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2096,7 +2146,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2133,7 +2183,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2169,7 +2219,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2190,7 +2240,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2224,7 +2274,7 @@ class Api:
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2315,10 +2365,12 @@ class Api:
 
             return Response(response=first_response, result=change_requests_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2352,10 +2404,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2389,10 +2443,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2475,10 +2531,12 @@ class Api:
 
             return Response(response=first_response, result=tasks_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2519,10 +2577,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2556,10 +2616,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2593,10 +2655,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2680,10 +2744,12 @@ class Api:
                 response=first_response, result=standard_change_templates_data
             )
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2769,10 +2835,12 @@ class Api:
 
             return Response(response=first_response, result=change_models_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2806,10 +2874,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2843,10 +2913,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2880,10 +2952,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2931,10 +3005,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -2974,10 +3050,12 @@ class Api:
             parsed_data = Task.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3023,10 +3101,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3060,10 +3140,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3097,10 +3179,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3134,10 +3218,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3178,10 +3264,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3227,10 +3315,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3264,10 +3354,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3310,10 +3402,12 @@ class Api:
             parsed_data = Task.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3353,10 +3447,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3395,10 +3491,12 @@ class Api:
             parsed_data = Task.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3437,10 +3535,12 @@ class Api:
             parsed_data = ChangeRequest.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3474,10 +3574,12 @@ class Api:
             parsed_data = ImportSet.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3513,10 +3615,12 @@ class Api:
             parsed_data = ImportSet.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3552,10 +3656,12 @@ class Api:
             parsed_data = [ImportSet.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3609,10 +3715,12 @@ class Api:
             parsed_data = [Incident.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3646,10 +3754,12 @@ class Api:
             parsed_data = Incident.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3684,10 +3794,12 @@ class Api:
             parsed_data = Incident.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3736,10 +3848,12 @@ class Api:
             parsed_data = [Article.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3798,10 +3912,12 @@ class Api:
             parsed_data = Article.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3839,10 +3955,12 @@ class Api:
             parsed_data = Attachment.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3884,10 +4002,12 @@ class Api:
             parsed_data = [Article.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3929,10 +4049,12 @@ class Api:
             parsed_data = [Article.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -3966,10 +4088,12 @@ class Api:
             parsed_data = Table.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4027,10 +4151,12 @@ class Api:
             parsed_data = [Table.model_validate(item) for item in result_data]
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4064,10 +4190,12 @@ class Api:
             parsed_data = Table.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4109,10 +4237,12 @@ class Api:
             parsed_data = Table.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4154,10 +4284,12 @@ class Api:
             parsed_data = Table.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4193,10 +4325,12 @@ class Api:
             parsed_data = Table.model_validate(result_data)
             return Response(response=response, result=parsed_data)
         except ValidationError as ve:
-            print(f"Invalid parameters or response data: {ve.errors()}")
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4220,7 +4354,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4249,7 +4383,7 @@ class Api:
                 ),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4289,7 +4423,7 @@ class Api:
                 ),
             )
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4323,7 +4457,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4351,7 +4485,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4394,7 +4528,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4418,7 +4552,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4448,7 +4582,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4465,10 +4599,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4488,10 +4622,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4513,10 +4647,10 @@ class Api:
                 result=Attachment.model_validate(response.json().get("result")),
             )
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4550,10 +4684,10 @@ class Api:
                 result=Attachment.model_validate(response.json().get("result")),
             )
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4572,10 +4706,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4600,10 +4734,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4620,10 +4754,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4642,10 +4776,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4665,10 +4799,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4685,10 +4819,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4722,7 +4856,7 @@ class Api:
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}") from e
         except Exception as e:
-            print(f"Request Error: {str(e)}")
+            print(f"Request Error: {str(e)}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4748,10 +4882,10 @@ class Api:
                 result=CheckServiceQualificationRequest.model_validate(response.json()),
             )
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4800,10 +4934,10 @@ class Api:
 
             return Response(response=response, result=result)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4843,10 +4977,10 @@ class Api:
                 result=CheckServiceQualificationRequest.model_validate(response.json()),
             )
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4868,10 +5002,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4892,10 +5026,10 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4928,10 +5062,10 @@ class Api:
 
             return Response(response=response, result=result)
         except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}")
+            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth
@@ -4953,7 +5087,7 @@ class Api:
             response.raise_for_status()
             return Response(response=response, result={"status": "deleted"})
         except Exception as e:
-            print(f"Error during API call: {e}")
+            print(f"Error during API call: {e}", file=sys.stderr)
             raise
 
     @require_auth

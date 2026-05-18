@@ -28,7 +28,11 @@ def mock_session():
 def test_servicenow_api_brute_force(mock_session):
     # Patch require_auth to be a no-op decorator
     with patch("servicenow_api.api_client.require_auth", lambda x: x):
-        from servicenow_api.api_client import Api, decode_values, extract_action_details
+        from servicenow_api.api_client import (
+            Api,
+            decode_values,
+            extract_action_details,
+        )
 
         with patch.dict("os.environ", {"SERVICENOW_INSTANCE": "http://test"}):
             api = Api(url="http://test", username="test", password="test")

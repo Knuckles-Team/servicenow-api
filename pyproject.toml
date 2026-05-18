@@ -9,7 +9,7 @@ description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.11, <3.14"
-dependencies = [ "agent-utilities>=0.9.0",]
+dependencies = [ "agent-utilities>=0.11.0",]
 [[project.authors]]
 name = "Audel Rouhi"
 email = "knucklessg1@gmail.com"
@@ -18,10 +18,10 @@ email = "knucklessg1@gmail.com"
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-utilities[mcp]>=0.9.0",]
-agent = [ "agent-utilities[agent,logfire]>=0.9.0",]
-all = [ "agent-utilities[mcp,agent,logfire]>=0.9.0",]
-test = [ "pytest", "pytest-asyncio",]
+mcp = [ "agent-utilities[mcp]>=0.11.0",]
+agent = [ "agent-utilities[agent,logfire]>=0.11.0",]
+all = [ "agent-utilities[mcp,agent,logfire]>=0.11.0",]
+test = [ "pytest", "pytest-asyncio", "pytest-cov",]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
@@ -53,3 +53,6 @@ ignore = [ "E402", "E501", "B008",]
 
 [tool.setuptools.packages.find]
 where = [ ".",]
+
+[tool.vulture]
+ignore_names = ["request", "config"]
