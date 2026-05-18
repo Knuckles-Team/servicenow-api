@@ -35,7 +35,7 @@ from pydantic import Field
 from servicenow_api.auth import get_client
 from servicenow_api.servicenow_models import FlowReportResult, Response
 
-__version__ = "1.15.0"
+__version__ = "1.16.0"
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
 DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
