@@ -1,9 +1,14 @@
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import os
 import sys
 from typing import List
 
 import pytest
-from conftest import reason
+
+reason = "Skipped"
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 

@@ -6,15 +6,15 @@ import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from servicenow_api.servicenow_api import Api
+from servicenow_api.api_client import Api
 
 
-@patch("servicenow_api.servicenow_api.get_agent_workspace")
-@patch("servicenow_api.servicenow_api.Api.get_table")
-@patch("servicenow_api.servicenow_api.Api.collect_graph_for_roots")
-@patch("servicenow_api.servicenow_api.find_connected_components")
-@patch("servicenow_api.servicenow_api.graph_to_mermaid_multi")
-@patch("servicenow_api.servicenow_api.build_polished_markdown")
+@patch("servicenow_api.api_client.get_agent_workspace")
+@patch("servicenow_api.api_client.Api.get_table")
+@patch("servicenow_api.api_client.Api.collect_graph_for_roots")
+@patch("servicenow_api.api_client.find_connected_components")
+@patch("servicenow_api.api_client.graph_to_mermaid_multi")
+@patch("servicenow_api.api_client.build_polished_markdown")
 @patch("requests.Session.get")
 @patch("builtins.open", new_callable=MagicMock)
 def test_workflow_to_mermaid_path(

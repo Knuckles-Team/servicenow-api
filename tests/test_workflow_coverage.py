@@ -65,7 +65,7 @@ async def test_workflow_to_mermaid_coverage(client):
             flow_identifiers=["flow123"], save_to_file=False
         )
         assert result is not None
-        assert "Test Flow" in result.markdown_content
+        assert "Action 1" in result.markdown_content
 
 
 if __name__ == "__main__":

@@ -3,8 +3,8 @@ services:
   servicenow-agent:
     # image: docker.io/knucklessg1/servicenow:latest
     build:
-      context: . # Debug
-      dockerfile: debug.Dockerfile
+      context: .. # Debug
+      dockerfile: docker/debug.Dockerfile
     container_name: servicenow-agent
     hostname: servicenow-agent
     command: [ "servicenow-agent" ]
@@ -17,9 +17,9 @@ services:
         max-file: "3"
     restart: always
     volumes:
-      - ./workspace:/app/workspace
+      - ../workspace:/app/workspace
     env_file:
-      - .env
+      - ../.env
     environment:
       - "PYTHONUNBUFFERED=1"
       - "HOST=0.0.0.0"

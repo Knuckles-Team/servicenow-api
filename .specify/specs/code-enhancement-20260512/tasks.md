@@ -1,0 +1,85 @@
+# Tasks: Code Enhancement: servicenow-api
+
+Generated: 2026-05-12T14:14:41.033437+00:00
+Skipped informational: 4
+
+- [ ] [P] **T001** [Project Analysis] Detected 2 agent skill(s) — will grade in CE-026
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T002** [Codebase Optimization] 7 functions exceed 200 lines (actionable refactoring targets): register_change_m
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T003** [Codebase Optimization] Monolithic: mcp_server.py (3012L) — 5 functions with high complexity (worst: reg
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T004** [Codebase Optimization] Monolithic: api_wrapper.py (5408L) — 4 functions with high complexity (worst: Ap
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T005** [Codebase Optimization] Monolithic: servicenow_models.py (3092L) — 1 functions with high complexity (wor
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T006** [Codebase Optimization] 10 functions with nesting depth >4
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T007** [Test Coverage] 28 potential doc-test drift items
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T008** [Documentation & Governance] README.md missing sections: installation
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T009** [Documentation & Governance] README missing: Has a Table of Contents
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T010** [Documentation & Governance] README missing: References /docs directory material
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T011** [Architecture & Design Patterns] SRP: 4 modules exceed 500 lines (god modules)
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T012** [Architecture & Design Patterns] SRP: 1 classes have >15 methods
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T013** [Architecture & Design Patterns] No discernible layer architecture (no domain/service/adapter separation)
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T014** [Architecture & Design Patterns] Low dependency injection ratio: 1%
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T015** [Concept Traceability] Low traceability ratio: 0% concepts fully traced
+  - Priority: P4-Enhancement | Effort: Medium
+- [ ] [P] **T016** [Concept Traceability] 51 test functions missing concept markers
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T017** [Concept Traceability] 303 significant functions (>10 lines) missing concept markers in docstrings
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T018** [Linting & Formatting] Total lint findings: 435 (high/error: 422, medium/warning: 13, low: 0)
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T019** [Pre-Commit Compliance] 1 hook(s) may be outdated: ruff-pre-commit
+  - Priority: P2-Medium | Effort: Small
+- [ ] [P] **T020** [Test Execution] 7 test execution error(s)
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T021** [Directory Organization] 2 directories with >20 files: servicenow_api/servicenow_flow_reports, servicenow
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T022** [Directory Organization] 2 rogue/throwaway scripts detected (fix_*, validate_*, patch_*, etc.): scripts/v
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T023** [Version Sync Analysis] Found 15 file(s) with version '1.15.0' that are NOT tracked in .bumpversion.cfg:
+  - Priority: P2-Medium | Effort: Small
+- [ ] [P] **T024** [Version Sync Analysis]   - .mypy_cache/3.13/pydantic/_migration.meta.json
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T025** [Version Sync Analysis]   - .mypy_cache/3.13/pydantic/errors.meta.json
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T026** [Version Sync Analysis]   - .mypy_cache/3.13/pydantic/functional_validators.meta.json
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T027** [Version Sync Analysis]   - .mypy_cache/3.13/pydantic/__init__.meta.json
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T028** [Version Sync Analysis]   - .mypy_cache/3.13/pydantic/warnings.meta.json
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T029** [Version Sync Analysis]   ... and 10 more.
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T030** [Changelog Audit] CHANGELOG.md exists but could not be parsed — check format compliance
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T031** [Changelog Audit] No changelog entries within the last 30 days
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T032** [Changelog Audit] keepachangelog not installed — pip install 'universal-skills[code-enhancer]'
+  - Priority: P3-Low | Effort: Small
+- [ ] [P] **T033** [Pytest Quality] 1 test files exceed 500 lines — split into focused modules
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T034** [Pytest Quality] Test directory lacks subdirectory organization (consider unit/, integration/, e2
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T035** [Pytest Quality] No @pytest.mark.parametrize usage — consider data-driven tests
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T036** [Pytest Quality] 5 tests have no assertions
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T037** [Pytest Quality] 24 tests use weak assertions (assert result is not None, assert True, etc.)
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T038** [Pytest Quality] 6 tests exceed 100 lines — likely doing too much per test
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T039** [Environment Variables] Undocumented env vars: ENABLE_OTEL, OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_EXPORTER_O
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T040** [Environment Variables] 51 Python env vars not in .env.example: ACCOUNTTOOL, ACTIVITY_SUBSCRIPTIONSTOOL,
+  - Priority: P3-Low | Effort: Medium

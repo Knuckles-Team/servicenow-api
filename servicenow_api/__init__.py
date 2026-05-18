@@ -7,7 +7,7 @@ import inspect
 __all__: list[str] = []
 
 CORE_MODULES = [
-    "servicenow_api.api_wrapper",
+    "servicenow_api.api_client",
     "servicenow_api.servicenow_models",
 ]
 

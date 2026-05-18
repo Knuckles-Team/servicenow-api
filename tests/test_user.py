@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.skip(reason="Requires live instance/integration environment")
+
+
 def test_get_users(api_client):
     """Test retrieving users from sys_user table."""
     response = api_client.get_table(table="sys_user", sysparm_limit=5)
