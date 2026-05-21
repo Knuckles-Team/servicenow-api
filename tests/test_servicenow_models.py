@@ -8,35 +8,35 @@ reason = "Skipped"
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 try:
+    from typing import Any
+
+    from pydantic import BaseModel
+
     import servicenow_api
     from servicenow_api.servicenow_models import (
         CICD,
+        CMDB,
+        ApplicationServiceModel,
+        Article,
+        Authentication,
         BatchInstallResult,
-        Schedule,
+        ChangeManagementModel,
         ChangeRequest,
+        CICDModel,
+        CMDBModel,
+        CMDBService,
+        ImportSetModel,
+        ImportSetResult,
+        IncidentModel,
+        KnowledgeManagement,
+        KnowledgeManagementModel,
+        Response,
+        Schedule,
+        Service,
         State,
         Table,
-        Service,
-        CMDBService,
-        CMDB,
-        ImportSetResult,
-        KnowledgeManagement,
-        Article,
-        Task,
-        Authentication,
-    )
-    from typing import Any
-    from pydantic import BaseModel
-    from servicenow_api.servicenow_models import (
-        ApplicationServiceModel,
-        CMDBModel,
-        CICDModel,
-        ChangeManagementModel,
-        IncidentModel,
-        ImportSetModel,
-        KnowledgeManagementModel,
         TableModel,
-        Response,
+        Task,
     )
 
 except ImportError:

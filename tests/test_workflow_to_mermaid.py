@@ -1,7 +1,8 @@
 import os
 import sys
-from unittest.mock import MagicMock, patch
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))

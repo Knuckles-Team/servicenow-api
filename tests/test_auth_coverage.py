@@ -2,11 +2,12 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-import pytest
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+import pytest
+
 from servicenow_api.auth import get_client
-import requests
 
 
 def test_get_client_no_instance():

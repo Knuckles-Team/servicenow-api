@@ -4,15 +4,7 @@ import os
 import sys
 import warnings
 
-from agent_utilities import (
-    build_system_prompt_from_workspace,
-    create_agent_parser,
-    create_graph_agent_server,
-    initialize_workspace,
-    load_identity,
-)
-
-__version__ = "1.16.0"
+__version__ = "1.16.1"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,23 +14,38 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-initialize_workspace()
-meta = load_identity()
-DEFAULT_AGENT_NAME = os.getenv("DEFAULT_AGENT_NAME", meta.get("name", "Servicenow Api"))
-DEFAULT_AGENT_DESCRIPTION = os.getenv(
-    "AGENT_DESCRIPTION",
-    meta.get(
-        "description",
-        "AI agent for ServiceNow Api management.",
-    ),
-)
-DEFAULT_AGENT_SYSTEM_PROMPT = os.getenv(
-    "AGENT_SYSTEM_PROMPT",
-    meta.get("content") or build_system_prompt_from_workspace(),
-)
+DEFAULT_AGENT_NAME = None
+DEFAULT_AGENT_DESCRIPTION = None
+DEFAULT_AGENT_SYSTEM_PROMPT = None
 
 
 def agent_server():
+    from agent_utilities import (
+        build_system_prompt_from_workspace,
+        create_agent_parser,
+        create_agent_server,
+        initialize_workspace,
+        load_identity,
+    )
+
+    global DEFAULT_AGENT_NAME, DEFAULT_AGENT_DESCRIPTION, DEFAULT_AGENT_SYSTEM_PROMPT
+    initialize_workspace()
+    meta = load_identity()
+    DEFAULT_AGENT_NAME = os.getenv(
+        "DEFAULT_AGENT_NAME", meta.get("name", "Servicenow Api")
+    )
+    DEFAULT_AGENT_DESCRIPTION = os.getenv(
+        "AGENT_DESCRIPTION",
+        meta.get(
+            "description",
+            "AI agent for ServiceNow Api management.",
+        ),
+    )
+    DEFAULT_AGENT_SYSTEM_PROMPT = os.getenv(
+        "AGENT_SYSTEM_PROMPT",
+        meta.get("content") or build_system_prompt_from_workspace(),
+    )
+
     warnings.filterwarnings("ignore", message=".*urllib3.*or chardet.*")
     warnings.filterwarnings("ignore", category=DeprecationWarning, module="fastmcp")
 
@@ -51,7 +58,7 @@ def agent_server():
         logger.debug("Debug mode enabled")
 
     # Start server using the auto-discovery pattern (from mcp_config.json)
-    create_graph_agent_server(
+    create_agent_server(
         mcp_url=args.mcp_url,
         mcp_config=args.mcp_config or "mcp_config.json",
         host=args.host,

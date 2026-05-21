@@ -1,9 +1,8 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import inspect
-import requests
 import asyncio
-from pathlib import Path
+import inspect
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 @pytest.fixture
@@ -94,14 +93,14 @@ def test_servicenow_api_brute_force(mock_session):
 
             try:
                 method(**kwargs)
-            except Exception as e:
+            except Exception:
                 pass
 
 
 def test_mcp_server_coverage(mock_session):
-    from servicenow_api.mcp_server import FastMCP
-    from servicenow_api.auth import get_client
     import servicenow_api.mcp_server as mcp_mod
+    from servicenow_api.auth import get_client
+    from servicenow_api.mcp_server import FastMCP
 
     # We need to initialize the MCP server to register tools
     mcp = FastMCP("ServiceNow")
@@ -152,7 +151,7 @@ def test_mcp_server_coverage(mock_session):
                     await tool.fn(**target_params)
                 else:
                     tool.fn(**target_params)
-            except Exception as e:
+            except Exception:
                 pass
 
     loop = asyncio.new_event_loop()
@@ -161,10 +160,10 @@ def test_mcp_server_coverage(mock_session):
 
 
 def test_agent_server_coverage():
-    from servicenow_api import agent_server
     import servicenow_api.agent_server as mod
+    from servicenow_api.agent_server import agent_server
 
-    with patch("servicenow_api.agent_server.create_graph_agent_server") as mock_s:
+    with patch("agent_utilities.create_agent_server") as mock_s:
         with patch("sys.argv", ["agent_server.py"]):
             if inspect.isfunction(agent_server):
                 agent_server()

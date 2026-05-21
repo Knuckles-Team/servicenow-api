@@ -1,8 +1,8 @@
-import pytest
-import asyncio
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from servicenow_api.mcp_server import get_mcp_instance
-from servicenow_api.servicenow_models import Response
 
 
 @pytest.fixture
