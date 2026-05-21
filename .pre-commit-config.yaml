@@ -40,7 +40,7 @@ repos:
   hooks:
   - id: vulture
     pass_filenames: false
-    args: [".", "vulture_whitelist.py", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist']     # or 100 if you want very high confidence only
+    args: [".", "vulture_whitelist.py", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist,servicenow_models.py']     # or 100 if you want very high confidence only
     require_serial: true
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.2
@@ -106,3 +106,12 @@ repos:
   rev: v3.0.1
   hooks:
   - id: docker-compose-check
+
+- repo: local
+  hooks:
+  - id: verify-api-integration
+    name: Verify API-to-MCP Integration Coverage
+    entry: python scripts/verify_api_integration.py --local
+    language: system
+    pass_filenames: false
+    always_run: true

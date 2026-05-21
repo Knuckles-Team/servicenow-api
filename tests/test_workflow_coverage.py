@@ -1,8 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import MagicMock, patch
+
 from servicenow_api.api_client import Api
-from servicenow_api.servicenow_models import FlowGraph, FlowNode, FlowEdge
 
 
 @pytest.fixture
@@ -12,7 +13,6 @@ def client():
         patch("requests.post") as mock_post,
         patch("requests.get") as mock_get,
     ):
-
         # Mock responses for auth/subscribers
         res = MagicMock(spec=requests.Response)
         res.status_code = 200
@@ -35,7 +35,6 @@ async def test_workflow_to_mermaid_coverage(client):
         patch("servicenow_api.api_client.decode_values", return_value={}),
         patch("servicenow_api.api_client.determine_node_type", return_value="action"),
     ):
-
         mock_meta.return_value = {
             "name": "Test Flow",
             "description": "Desc",

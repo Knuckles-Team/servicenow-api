@@ -4,7 +4,6 @@ pytestmark = pytest.mark.integration
 
 import os
 import sys
-from typing import List
 
 import pytest
 
@@ -32,7 +31,7 @@ def test_servicenow_api():
     token = os.environ.get("token", default="NA")
     client = servicenow_api.Api(url=servicenow_url, token=token, verify=False)
     table = client.get_table(table="users")
-    assert table == List
+    assert table == list
 
 
 if __name__ == "__main__":

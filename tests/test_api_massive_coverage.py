@@ -1,6 +1,8 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import MagicMock, patch
+
 from servicenow_api.api_client import Api
 from servicenow_api.servicenow_models import Response
 
@@ -12,7 +14,6 @@ def mock_session():
         patch("requests.post") as mock_post,
         patch("requests.get") as mock_get,
     ):
-
         session = mock_sess.return_value
 
         # Mock responses

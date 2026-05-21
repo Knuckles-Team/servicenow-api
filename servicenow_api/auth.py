@@ -16,9 +16,9 @@ from threading import local
 from agent_utilities.base_utilities import get_logger, to_boolean
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
 
+local = local()
 from servicenow_api.api_client import Api
 
-local = local()
 logger = get_logger(__name__)
 
 

@@ -1,8 +1,6 @@
 import os
 import re
 
-import pytest
-
 # Paths
 ROOT_DIR = "/home/apps/workspace/agent-packages/agents/servicenow-api"
 WORKSPACE_DIR = "/home/apps/workspace/agent-packages"
@@ -17,7 +15,7 @@ def extract_concepts_from_overview(filepath):
         return set()
 
     concepts = set()
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         for line in f:
             if not line.strip().startswith("|"):
                 continue
@@ -48,7 +46,7 @@ def extract_concepts_from_codebase(directory):
             if file.endswith((".py", ".ts", ".tsx", ".md")):
                 filepath = os.path.join(root, file)
                 try:
-                    with open(filepath, "r", encoding="utf-8") as f:
+                    with open(filepath, encoding="utf-8") as f:
                         content = f.read()
                         matches = re.findall(r"CONCEPT:([A-Z]+-\d+(?:\.\d+)?)", content)
                         found_concepts.update(matches)
