@@ -2,89 +2,34 @@ FROM python:3-slim
 
 ARG HOST=0.0.0.0
 ARG PORT=8000
-ARG TRANSPORT="http"
+ARG TRANSPORT="stdio"
 ARG AUTH_TYPE="none"
-ARG FASTMCP_SERVER_AUTH="fastmcp.server.auth.providers.jwt.JWTVerifier"
-ARG FASTMCP_SERVER_AUTH_JWT_JWKS_URI="https://auth.company.com/.well-known/jwks.json"
-ARG FASTMCP_SERVER_AUTH_JWT_ISSUER="https://auth.company.com"
-ARG FASTMCP_SERVER_AUTH_JWT_AUDIENCE="servicenow-mcp"
-ARG FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES="read:data,write:data"
-ARG FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY="your-shared-secret-key-minimum-32-chars"
-ARG FASTMCP_SERVER_AUTH_JWT_ALGORITHM="HS256"
-ARG FASTMCP_SERVER_AUTH_JWT_ISSUER="internal-auth-service"
-ARG FASTMCP_SERVER_AUTH_JWT_AUDIENCE="mcp-internal-api"
-ARG TOKEN_JWKS_URI=""
-ARG TOKEN_ISSUER=""
-ARG TOKEN_AUDIENCE=""
-ARG TOKEN_ALGORITHM=""
-ARG TOKEN_SECRET=""
-ARG TOKEN_PUBLIC_KEY=""
-ARG REQUIRED_SCOPES=""
-ARG OAUTH_UPSTREAM_AUTH_ENDPOINT=""
-ARG OAUTH_UPSTREAM_TOKEN_ENDPOINT=""
-ARG OAUTH_UPSTREAM_CLIENT_ID=""
-ARG OAUTH_UPSTREAM_CLIENT_SECRET=""
-ARG OAUTH_BASE_URL=""
-ARG OIDC_CONFIG_URL=""
-ARG OIDC_CLIENT_ID=""
-ARG OIDC_CLIENT_SECRET=""
-ARG OIDC_BASE_URL=""
-ARG REMOTE_AUTH_SERVERS=""
-ARG REMOTE_BASE_URL=""
-ARG ALLOWED_CLIENT_REDIRECT_URIS=""
-ARG EUNOMIA_TYPE="none"
-ARG EUNOMIA_POLICY_FILE="mcp_policies.json"
-ARG EUNOMIA_REMOTE_URL=""
-ARG OPENAPI_FILE=""
 
 ENV HOST=${HOST} \
     PORT=${PORT} \
     TRANSPORT=${TRANSPORT} \
     AUTH_TYPE=${AUTH_TYPE} \
-    FASTMCP_SERVER_AUTH=${FASTMCP_SERVER_AUTH} \
-    FASTMCP_SERVER_AUTH_JWT_JWKS_URI=${FASTMCP_SERVER_AUTH_JWT_JWKS_URI} \
-    FASTMCP_SERVER_AUTH_JWT_ISSUER=${FASTMCP_SERVER_AUTH_JWT_ISSUER} \
-    FASTMCP_SERVER_AUTH_JWT_AUDIENCE=${FASTMCP_SERVER_AUTH_JWT_AUDIENCE} \
-    FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES=${FASTMCP_SERVER_AUTH_JWT_REQUIRED_SCOPES} \
-    FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY=${FASTMCP_SERVER_AUTH_JWT_PUBLIC_KEY} \
-    FASTMCP_SERVER_AUTH_JWT_ALGORITHM=${FASTMCP_SERVER_AUTH_JWT_ALGORITHM} \
-    FASTMCP_SERVER_AUTH_JWT_ISSUER=${FASTMCP_SERVER_AUTH_JWT_ISSUER} \
-    FASTMCP_SERVER_AUTH_JWT_AUDIENCE=${FASTMCP_SERVER_AUTH_JWT_AUDIENCE} \
-    TOKEN_JWKS_URI=${TOKEN_JWKS_URI} \
-    TOKEN_ISSUER=${TOKEN_ISSUER} \
-    TOKEN_AUDIENCE=${TOKEN_AUDIENCE} \
-    OAUTH_UPSTREAM_AUTH_ENDPOINT=${OAUTH_UPSTREAM_AUTH_ENDPOINT} \
-    OAUTH_UPSTREAM_TOKEN_ENDPOINT=${OAUTH_UPSTREAM_TOKEN_ENDPOINT} \
-    OAUTH_UPSTREAM_CLIENT_ID=${OAUTH_UPSTREAM_CLIENT_ID} \
-    OAUTH_UPSTREAM_CLIENT_SECRET=${OAUTH_UPSTREAM_CLIENT_SECRET} \
-    OAUTH_BASE_URL=${OAUTH_BASE_URL} \
-    OIDC_CONFIG_URL=${OIDC_CONFIG_URL} \
-    OIDC_CLIENT_ID=${OIDC_CLIENT_ID} \
-    OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET} \
-    OIDC_BASE_URL=${OIDC_BASE_URL} \
-    REMOTE_AUTH_SERVERS=${REMOTE_AUTH_SERVERS} \
-    REMOTE_BASE_URL=${REMOTE_BASE_URL} \
-    ALLOWED_CLIENT_REDIRECT_URIS=${ALLOWED_CLIENT_REDIRECT_URIS} \
-    EUNOMIA_TYPE=${EUNOMIA_TYPE} \
-    EUNOMIA_POLICY_FILE=${EUNOMIA_POLICY_FILE} \
-    EUNOMIA_REMOTE_URL=${EUNOMIA_REMOTE_URL} \
     PYTHONUNBUFFERED=1 \
-    OPENAPI_FILE=${OPENAPI_FILE} \
-    PATH="/root/.local/bin:${PATH}" \
+    PATH="/root/.local/bin:/usr/local/bin:${PATH}" \
     UV_HTTP_TIMEOUT=3600 \
     UV_SYSTEM_PYTHON=1 \
     UV_COMPILE_BYTECODE=1
 
-# For local debugging
-WORKDIR /app
-COPY . /app
+# Install base dependencies, uv, and starship shell prompt
 RUN apt-get update \
     && apt-get install -y default-jre ripgrep tree fd-find curl nano \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
     && mkdir -p /root/.config \
-    && echo 'eval "$(starship init bash)"' >> /root/.bashrc \
-    && uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow .[all]
+    && echo "eval \"\$(starship init bash)\"" >> /root/.bashrc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . /app
+
+# Compile and install package in-place
+RUN uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow .[all]
 
 COPY docker/starship.toml /root/.config/starship.toml
 

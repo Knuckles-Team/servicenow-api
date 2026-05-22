@@ -21,7 +21,8 @@ text = "MIT"
 mcp = [ "agent-utilities[mcp]>=0.11.0",]
 agent = [ "agent-utilities[agent,logfire]>=0.11.0",]
 all = [ "agent-utilities[mcp,agent,logfire]>=0.11.0",]
-test = [ "pytest", "pytest-asyncio", "pytest-cov",]
+test = [
+    "pytest-xdist>=3.6.0", "pytest", "pytest-asyncio", "pytest-cov",]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
