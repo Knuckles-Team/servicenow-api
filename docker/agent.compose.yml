@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  servicenow-api-mcp:
+    image: knucklessg1/servicenow-api:latest
+    container_name: servicenow-api-mcp
+    hostname: servicenow-api-mcp
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HOST=0.0.0.0
+      - PORT=8000
+      - TRANSPORT=streamable-http
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  servicenow-api-agent:
+    image: knucklessg1/servicenow-api:latest
+    container_name: servicenow-api-agent
+    hostname: servicenow-api-agent
+    restart: always
+    depends_on:
+      - servicenow-api-mcp
+    env_file:
+      - ../.env
+    command: [ "servicenow-agent" ]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HOST=0.0.0.0
+      - PORT=9004
+      - MCP_URL=http://servicenow-api-mcp:8000/mcp
+      - PROVIDER=${PROVIDER:-openai}
+      - MODEL_ID=${MODEL_ID:-gpt-4o}
+      - ENABLE_WEB_UI=True
+      - ENABLE_OTEL=True
+    ports:
+      - "9004:9004"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9004/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

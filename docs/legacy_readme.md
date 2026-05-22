@@ -105,12 +105,12 @@ Configure your IDE's `mcp.json` to launch the MCP server via `uvx`:
       "env": {
         "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
         "SERVICENOW_USERNAME": "your_servicenow_username_here",
+        "SERVICENOW_PASSWORD": "your_servicenow_password_here",
         "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
+        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
         "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
         "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
-        "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
+        "PYTHONUNBUFFERED": "your_pythonunbuffered_here"
       }
     }
   }
@@ -118,37 +118,7 @@ Configure your IDE's `mcp.json` to launch the MCP server via `uvx`:
 ```
 
 #### Streamable-HTTP Transport (Recommended for production deployments)
-Configure your client's `mcp.json` to launch the Streamable-HTTP server via `uvx` with explicit host and port definition:
-
-```json
-{
-  "mcpServers": {
-    "servicenow-api": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "servicenow-api",
-        "servicenow-mcp"
-      ],
-      "env": {
-        "TRANSPORT": "streamable-http",
-        "HOST": "0.0.0.0",
-        "PORT": "8000",
-        "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
-        "SERVICENOW_USERNAME": "your_servicenow_username_here",
-        "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
-        "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
-        "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
-        "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
-      }
-    }
-  }
-}
-```
-
-Alternatively, connect to a pre-deployed remote or local Streamable-HTTP instance:
+To run the server as a long-running Streamable-HTTP service:
 
 ```json
 {
@@ -170,12 +140,12 @@ docker run -d \
   -e PORT=8000 \
   -e SERVICENOW_INSTANCE="your_value" \
   -e SERVICENOW_USERNAME="your_value" \
+  -e SERVICENOW_PASSWORD="your_value" \
   -e SERVICENOW_CLIENT_ID="your_value" \
+  -e SERVICENOW_CLIENT_SECRET="your_value" \
   -e SERVICENOW_SSL_VERIFY="your_value" \
   -e DEBUG="your_value" \
   -e PYTHONUNBUFFERED="your_value" \
-  -e SERVICENOW_PASSWORD="your_value" \
-  -e SERVICENOW_CLIENT_SECRET="your_value" \
   knucklessg1/servicenow-api:latest
 ```
 
@@ -192,12 +162,12 @@ To start the interactive command-line agent:
 # Set credentials
 export SERVICENOW_INSTANCE="your_value"
 export SERVICENOW_USERNAME="your_value"
+export SERVICENOW_PASSWORD="your_value"
 export SERVICENOW_CLIENT_ID="your_value"
+export SERVICENOW_CLIENT_SECRET="your_value"
 export SERVICENOW_SSL_VERIFY="your_value"
 export DEBUG="your_value"
 export PYTHONUNBUFFERED="your_value"
-export SERVICENOW_PASSWORD="your_value"
-export SERVICENOW_CLIENT_SECRET="your_value"
 
 # Run the agent server
 servicenow-agent --provider openai --model-id gpt-4o
