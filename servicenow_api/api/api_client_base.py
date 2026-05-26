@@ -3,13 +3,22 @@
 import base64
 import gzip
 import json
+import sys
+from base64 import b64encode
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlencode
 
+import requests
+import urllib3
 from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.workspace import get_agent_workspace  # noqa: F401
-from agent_utilities.decorators import require_auth  # noqa: F401
+from agent_utilities.core.exceptions import (
+    AuthError,
+    MissingParameterError,
+    ParameterError,
+    UnauthorizedError,
+)
 
 from servicenow_api.servicenow_models import (
     FlowGraph,
@@ -230,7 +239,7 @@ def find_connected_components(graph: FlowGraph) -> list[FlowGraph]:
 def graph_to_mermaid_multi(
     graph: FlowGraph,
     root_sys_ids: list[str],
-    all_metadata: dict[str, dict[str, Any]] | None = None,
+    all_metadata: dict[str, dict[str, Any]] = None,
 ) -> str:
     lines = ["flowchart TD"]
 
@@ -346,22 +355,95 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     return md
 
 
-from servicenow_api.api.api_client_change import ServiceNowApiChange
-from servicenow_api.api.api_client_cmdb import ServiceNowApiCmdb
-from servicenow_api.api.api_client_devops import ServiceNowApiDevops
-from servicenow_api.api.api_client_incident import ServiceNowApiIncident
-from servicenow_api.api.api_client_knowledge import ServiceNowApiKnowledge
-from servicenow_api.api.api_client_other import ServiceNowApiOther
-from servicenow_api.api.api_client_system import ServiceNowApiSystem
+class ServiceNowApiBase:
+    def __init__(
+        self,
+        url: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
+        token: str | None = None,
+        grant_type: str | None = "password",
+        proxies: dict | None = None,
+        verify: bool | None = True,
+    ):
+        if url is None:
+            raise MissingParameterError
 
+        self._session = requests.Session()
+        self.base_url = url
+        self.auth_url = f"{self.base_url}/oauth_token.do"
+        self.url = ""
+        self.headers = None
+        self.auth_headers = None
+        self.auth_data = None
+        self.encoded_auth_data = None
+        self.token = None
+        self.verify = verify
+        self.proxies = proxies
 
-class Api(
-    ServiceNowApiSystem,
-    ServiceNowApiChange,
-    ServiceNowApiCmdb,
-    ServiceNowApiDevops,
-    ServiceNowApiIncident,
-    ServiceNowApiKnowledge,
-    ServiceNowApiOther,
-):
-    pass
+        if self.verify is False:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        if token:
+            self.token = token
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            }
+        elif username and password and client_id and client_secret:
+            self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            self.auth_data = {
+                "grant_type": grant_type,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "username": username,
+                "password": password,
+            }
+            encoded_data_str = urlencode(self.auth_data)
+            response = None
+            try:
+                response = requests.post(
+                    url=self.auth_url,
+                    data=encoded_data_str,
+                    headers=self.auth_headers,
+                    timeout=30,
+                )
+                response = response.json()
+                self.token = response["access_token"]
+            except Exception as e:
+                print(
+                    f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}",
+                    file=sys.stderr,
+                )
+                raise e
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            }
+        elif username and password:
+            user_pass = f"{username}:{password}".encode()
+            user_pass_encoded = b64encode(user_pass).decode()
+            self.headers = {
+                "Authorization": f"Basic {user_pass_encoded}",
+                "Content-Type": "application/json",
+            }
+        else:
+            raise MissingParameterError
+
+        self.url = f"{self.base_url}/api"
+
+        response = self._session.get(
+            url=f"{self.url}/subscribers",
+            headers=self.headers,
+            verify=self.verify,
+            proxies=self.proxies,
+        )
+
+        if response.status_code == 403:
+            raise UnauthorizedError
+        elif response.status_code == 401:
+            raise AuthError
+        elif response.status_code == 404:
+            raise ParameterError

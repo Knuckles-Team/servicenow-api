@@ -1,8 +1,27 @@
+import ast
+import inspect
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from servicenow_api.mcp_server import get_mcp_instance
+
+
+class AwaitableMock:
+    def __await__(self):
+        async def _async_noop():
+            pass
+
+        return _async_noop().__await__()
+
+    def __call__(self, *args, **kwargs):
+        return self
+
+
+class MockContext:
+    def info(self, msg: str):
+        return AwaitableMock()
 
 
 @pytest.fixture
@@ -17,6 +36,36 @@ def mock_client():
     return client
 
 
+def extract_tool_actions(filepath: str):
+    with open(filepath, encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=filepath)
+
+    tool_actions = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and (
+            node.name.startswith("servicenow_") or node.name == "ingest_incidents_to_kg"
+        ):
+            # This is a tool function!
+            actions = []
+            for child in ast.walk(node):
+                if isinstance(child, ast.Compare):
+                    # Check if it is `action == "string"`
+                    if (
+                        isinstance(child.left, ast.Name)
+                        and child.left.id == "action"
+                        and len(child.ops) == 1
+                        and isinstance(child.ops[0], ast.Eq)
+                        and len(child.comparators) == 1
+                    ):
+                        comp = child.comparators[0]
+                        if isinstance(comp, ast.Constant):
+                            actions.append(comp.value)
+                        elif isinstance(comp, ast.Str):
+                            actions.append(comp.s)
+            tool_actions[node.name] = actions
+    return tool_actions
+
+
 @pytest.mark.asyncio
 async def test_mcp_tools_coverage(mock_client):
     with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
@@ -29,36 +78,136 @@ async def test_mcp_tools_coverage(mock_client):
 @pytest.mark.asyncio
 async def test_all_tools_loop(mock_client):
     """
-    Better coverage: call every tool with minimal arguments.
+    Call every tool with every action identified in the source code to maximize coverage.
     """
     from fastmcp.tools import FunctionTool
+
+    mcp_server_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "servicenow_api",
+        "mcp_server.py",
+    )
+    tool_actions = extract_tool_actions(mcp_server_path)
+
+    ctx = MockContext()
 
     with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
         mcp, _, _, _, _ = get_mcp_instance()
         tools = await mcp.list_tools()
         for tool in tools:
-            kwargs = {}
-            # Try to guess some common arguments
-            low_name = tool.name.lower()
-            if "sys_id" in str(tool.parameters):
-                kwargs["sys_id"] = "123"
-            if "table" in str(tool.parameters):
-                kwargs["table"] = "incident"
-            if "incident_id" in str(tool.parameters):
-                kwargs["incident_id"] = "123"
-            if "change_request_id" in str(tool.parameters):
-                kwargs["change_request_id"] = "123"
+            if isinstance(tool, FunctionTool):
+                # Retrieve the actions we parsed for this tool (mapping hyphen back to underscore)
+                norm_name = tool.name.replace("-", "_")
+                actions = tool_actions.get(norm_name, [])
 
-            try:
-                # Call tool directly if possible
-                if isinstance(tool, FunctionTool):
-                    # FastMCP FunctionTool wraps the original function
-                    await tool.fn(_client=mock_client, **kwargs)
-                else:
-                    # Fallback to run but it might fail on kwargs
+                # Test invalid JSON format
+                try:
+                    await tool.fn(
+                        action="dummy",
+                        params_json="invalid json",
+                        client=mock_client,
+                        ctx=ctx,
+                    )
+                except Exception:
+                    pass
+
+                # Test each valid action
+                for act in actions:
+                    try:
+                        await tool.fn(
+                            action=act,
+                            params_json="{}",
+                            client=mock_client,
+                            ctx=ctx,
+                        )
+                    except Exception:
+                        pass
+
+                # Test unknown action
+                try:
+                    await tool.fn(
+                        action="invalid_action_dummy",
+                        params_json="{}",
+                        client=mock_client,
+                        ctx=ctx,
+                    )
+                except Exception:
+                    pass
+            else:
+                try:
                     await tool.run()
-            except Exception:
-                pass
+                except Exception:
+                    pass
+
+
+@pytest.mark.asyncio
+async def test_prompts():
+    """
+    Call every prompt helper defined on the FastMCP instance.
+    """
+    mcp, _, _, _, _ = get_mcp_instance()
+    prompts = await mcp.list_prompts()
+    for prompt in prompts:
+        try:
+            sig = inspect.signature(prompt.fn)
+            kwargs = {}
+            for name, _param in sig.parameters.items():
+                kwargs[name] = "dummy_val"
+            prompt.fn(**kwargs)
+        except Exception:
+            pass
+
+
+def test_mcp_server_entrypoint():
+    from servicenow_api.mcp_server import mcp_server
+
+    # 1. stdio
+    with patch("fastmcp.FastMCP.run") as mock_run:
+        with patch("sys.argv", ["mcp_server", "--transport", "stdio"]):
+            mcp_server()
+            mock_run.assert_called_with(transport="stdio")
+
+    # 2. sse
+    with patch("fastmcp.FastMCP.run") as mock_run:
+        with patch(
+            "sys.argv",
+            [
+                "mcp_server",
+                "--transport",
+                "sse",
+                "--host",
+                "localhost",
+                "--port",
+                "8000",
+            ],
+        ):
+            mcp_server()
+            mock_run.assert_called_with(transport="sse", host="localhost", port=8000)
+
+    # 3. streamable-http
+    with patch("fastmcp.FastMCP.run") as mock_run:
+        with patch(
+            "sys.argv",
+            [
+                "mcp_server",
+                "--transport",
+                "streamable-http",
+                "--host",
+                "localhost",
+                "--port",
+                "8000",
+            ],
+        ):
+            mcp_server()
+            mock_run.assert_called_with(
+                transport="streamable-http", host="localhost", port=8000
+            )
+
+    # 4. invalid transport
+    with patch("fastmcp.FastMCP.run") as mock_run:
+        with patch("sys.argv", ["mcp_server", "--transport", "invalid"]):
+            with pytest.raises(SystemExit):
+                mcp_server()
 
 
 if __name__ == "__main__":

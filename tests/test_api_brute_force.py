@@ -35,6 +35,9 @@ def mock_session():
 
 
 def test_all_api_methods_brute_force(mock_session):
+    """
+    CONCEPT:ECO-4.0: Tool Interface & MCP Factory
+    """
     client = Api(url="http://test.com", username="user", password="pass")
 
     # Success pass
@@ -80,11 +83,11 @@ def test_all_api_methods_brute_force(mock_session):
                     val = {"short_description": "test"}
                 elif "payload" in low_name:
                     val = {"test": "val"}
-                elif param.annotation == bool:
+                elif param.annotation is bool:
                     val = True
-                elif param.annotation == int:
+                elif param.annotation is int:
                     val = 10
-                elif param.annotation == list or "list" in low_name:
+                elif param.annotation is list or "list" in low_name:
                     val = ["test"]
 
                 if param.default == inspect.Parameter.empty:

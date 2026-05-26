@@ -1,12 +1,23 @@
 def test_server_startup():
-    """Validates that the server module can start successfully."""
-    # If this is not an agent, just pass
-    import os
+    """
+    CONCEPT:OS-5.0: Agent OS Kernel & XDG Paths
+    Validates that the server module can start successfully and lazy loads attributes.
+    """
+    import servicenow_api
 
-    if not os.path.exists("agent_server.py") and not any(
-        os.path.exists(os.path.join(d, "agent_server.py")) for d in ["src", "agent"]
-    ):
-        return
+    # Assert basic package exposure and structures
+    assert hasattr(servicenow_api, "Api")
+    assert servicenow_api.Api is not None
 
-    print("Startup tests handled correctly.")
-    pass
+    # Assert dynamic lazy attributes are retrievable
+    assert hasattr(servicenow_api, "_MCP_AVAILABLE")
+    assert hasattr(servicenow_api, "_AGENT_AVAILABLE")
+    assert isinstance(servicenow_api._MCP_AVAILABLE, bool)
+    assert isinstance(servicenow_api._AGENT_AVAILABLE, bool)
+
+    # Check that dir exposes elements
+    attrs = dir(servicenow_api)
+    assert "Api" in attrs
+    assert "_expose_members" not in attrs
+
+    print("Startup tests verified successfully with assertions.")

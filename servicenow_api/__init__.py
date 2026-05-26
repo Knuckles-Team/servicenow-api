@@ -75,4 +75,4 @@ def __getattr__(name: str) -> Any:
 
 
 def __dir__() -> list[str]:
-    return sorted(list(globals().keys()) + __all__)
+    return sorted(list(k for k in globals().keys() if not k.startswith("_")) + __all__)

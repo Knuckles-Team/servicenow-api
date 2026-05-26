@@ -1,0 +1,277 @@
+{
+  "feature_id": "code-enhancement-20260524",
+  "title": "Code Enhancement: servicenow-api",
+  "created": "2026-05-24T04:17:16.235030+00:00",
+  "overview": "Automated code enhancement review for servicenow-api. Covers 17 analysis domains.",
+  "user_stories": [
+    {
+      "role": "developer",
+      "action": "address Project Analysis findings (grade: C, score: 74)",
+      "value": "improve project project analysis from C to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Codebase Optimization findings (grade: F, score: 47)",
+      "value": "improve project codebase optimization from F to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Architecture & Design Patterns findings (grade: F, score: 55)",
+      "value": "improve project architecture & design patterns from F to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Concept Traceability findings (grade: F, score: 24)",
+      "value": "improve project concept traceability from F to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Test Execution findings (grade: F, score: 25)",
+      "value": "improve project test execution from F to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Changelog Audit findings (grade: C, score: 75)",
+      "value": "improve project changelog audit from C to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Pytest Quality findings (grade: F, score: 58)",
+      "value": "improve project pytest quality from F to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address Environment Variables findings (grade: D, score: 60)",
+      "value": "improve project environment variables from D to at least B (80+)"
+    },
+    {
+      "role": "developer",
+      "action": "address analyze_xdg_kg findings (grade: F, score: 0)",
+      "value": "improve project analyze_xdg_kg from F to at least B (80+)"
+    }
+  ],
+  "functional_requirements": [
+    {
+      "id": "FR-001",
+      "description": "Detected 2 agent skill(s) \u2014 will grade in CE-026",
+      "testable": true
+    },
+    {
+      "id": "FR-002",
+      "description": "Minor update: pytest-xdist 3.6.0 (constraint \u2014 not installed) -> 3.8.0",
+      "testable": true
+    },
+    {
+      "id": "FR-003",
+      "description": "Minor update: agent-utilities 0.2.40 (installed) -> 0.16.0",
+      "testable": true
+    },
+    {
+      "id": "FR-004",
+      "description": "4 functions exceed 200 lines (actionable refactoring targets): test_api_client_exhaustive_methods (264L), test_servicenow_change_requests_responses (247L), test_servicenow_change_request_responses (240L), workflow_to_mermaid (223L)",
+      "testable": true
+    },
+    {
+      "id": "FR-005",
+      "description": "Monolithic: mcp_server.py (1401L) \u2014 4 functions with high complexity (worst: get_mcp_instance at 180L, CC=50); Low cohesion: 40 distinct concepts in one file",
+      "testable": true
+    },
+    {
+      "id": "FR-006",
+      "description": "Monolithic: api_client_other.py (1395L) \u2014 2 functions with high complexity (worst: extract_action_details at 57L, CC=29); Low cohesion: 24 distinct concepts in one file",
+      "testable": true
+    },
+    {
+      "id": "FR-007",
+      "description": "Monolithic: api_client_cmdb.py (1257L) \u2014 3 functions with high complexity (worst: ServiceNowApiCmdb.collect_graph_for_roots at 179L, CC=33); Low cohesion: 24 distinct concepts in one file",
+      "testable": true
+    },
+    {
+      "id": "FR-008",
+      "description": "33 functions with nesting depth >4",
+      "testable": true
+    },
+    {
+      "id": "FR-009",
+      "description": "1 flat directories with >15 Python files: servicenow_api/mcp",
+      "testable": true
+    },
+    {
+      "id": "FR-010",
+      "description": "12 potential doc-test drift items",
+      "testable": true
+    },
+    {
+      "id": "FR-011",
+      "description": "README.md missing sections: usage|quick start",
+      "testable": true
+    },
+    {
+      "id": "FR-012",
+      "description": "2 broken internal links in README.md",
+      "testable": true
+    },
+    {
+      "id": "FR-013",
+      "description": "README missing: Has a Table of Contents",
+      "testable": true
+    },
+    {
+      "id": "FR-014",
+      "description": "README missing: Has usage examples with code blocks",
+      "testable": true
+    },
+    {
+      "id": "FR-015",
+      "description": "SRP: 10 modules exceed 500 lines (god modules)",
+      "testable": true
+    },
+    {
+      "id": "FR-016",
+      "description": "SRP: 4 classes have >15 methods",
+      "testable": true
+    },
+    {
+      "id": "FR-017",
+      "description": "No discernible layer architecture (no domain/service/adapter separation)",
+      "testable": true
+    },
+    {
+      "id": "FR-018",
+      "description": "Low dependency injection ratio: 1%",
+      "testable": true
+    },
+    {
+      "id": "FR-019",
+      "description": "30 Python files at top level \u2014 consider package organization",
+      "testable": true
+    },
+    {
+      "id": "FR-020",
+      "description": "Low traceability ratio: 3% concepts fully traced",
+      "testable": true
+    },
+    {
+      "id": "FR-021",
+      "description": "37 orphaned concepts (only in one source)",
+      "testable": true
+    },
+    {
+      "id": "FR-022",
+      "description": "78 test functions missing concept markers",
+      "testable": true
+    },
+    {
+      "id": "FR-023",
+      "description": "361 significant functions (>10 lines) missing concept markers in docstrings",
+      "testable": true
+    },
+    {
+      "id": "FR-024",
+      "description": "Total lint findings: 0 (high/error: 0, medium/warning: 0, low: 0)",
+      "testable": true
+    },
+    {
+      "id": "FR-025",
+      "description": "1 hook(s) may be outdated: ruff-pre-commit",
+      "testable": true
+    },
+    {
+      "id": "FR-026",
+      "description": "2 directories with >20 files: servicenow_api/mcp, servicenow_api/skills/servicenow-sdk-docs/references",
+      "testable": true
+    },
+    {
+      "id": "FR-027",
+      "description": "2 rogue/throwaway scripts detected (fix_*, validate_*, patch_*, etc.): scripts/validate_agent.py, scripts/validate_a2a_agent.py",
+      "testable": true
+    },
+    {
+      "id": "FR-028",
+      "description": "CHANGELOG.md exists but could not be parsed \u2014 check format compliance",
+      "testable": true
+    },
+    {
+      "id": "FR-029",
+      "description": "No changelog entries within the last 30 days",
+      "testable": true
+    },
+    {
+      "id": "FR-030",
+      "description": "keepachangelog not installed \u2014 pip install 'universal-skills[code-enhancer]'",
+      "testable": true
+    },
+    {
+      "id": "FR-031",
+      "description": "2 test files exceed 500 lines \u2014 split into focused modules",
+      "testable": true
+    },
+    {
+      "id": "FR-032",
+      "description": "Test directory lacks subdirectory organization (consider unit/, integration/, e2e/)",
+      "testable": true
+    },
+    {
+      "id": "FR-033",
+      "description": "No @pytest.mark.parametrize usage \u2014 consider data-driven tests",
+      "testable": true
+    },
+    {
+      "id": "FR-034",
+      "description": "5 tests have no assertions",
+      "testable": true
+    },
+    {
+      "id": "FR-035",
+      "description": "24 tests use weak assertions (assert result is not None, assert True, etc.)",
+      "testable": true
+    },
+    {
+      "id": "FR-036",
+      "description": "4 tests have excessive mocking (>5 mocks) \u2014 test behavior, not implementation",
+      "testable": true
+    },
+    {
+      "id": "FR-037",
+      "description": "8 tests exceed 100 lines \u2014 likely doing too much per test",
+      "testable": true
+    },
+    {
+      "id": "FR-038",
+      "description": "Only 25% of env vars documented in README.md",
+      "testable": true
+    },
+    {
+      "id": "FR-039",
+      "description": "Undocumented env vars: ACCOUNTTOOL, ACTIVITY_SUBSCRIPTIONSTOOL, AGGREGATETOOL, APPLICATIONTOOL, ATTACHMENTTOOL, AUDIENCE, AUTHTOOL, AUTH_TYPE, BATCHTOOL, CHANGE_MANAGEMENTTOOL",
+      "testable": true
+    },
+    {
+      "id": "FR-040",
+      "description": "11 Python env vars not in .env.example: AUDIENCE, DELEGATED_SCOPES, LLM_API_KEY, LLM_BASE_URL, MCP_URL",
+      "testable": true
+    },
+    {
+      "id": "FR-041",
+      "description": "Analysis error: No module named 'agent_utilities.knowledge_graph'",
+      "testable": true
+    }
+  ],
+  "success_criteria": [
+    {
+      "metric": "Overall GPA",
+      "current": 2.06,
+      "target": 3.0
+    },
+    {
+      "metric": "Domains at B or above",
+      "current": 8,
+      "target": 17
+    },
+    {
+      "metric": "Actionable findings",
+      "current": 41,
+      "target": 0
+    }
+  ]
+}
