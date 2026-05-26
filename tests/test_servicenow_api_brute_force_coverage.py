@@ -44,8 +44,12 @@ def test_servicenow_api_brute_force(mock_session):
         # Call some complex methods directly with data
         try:
             api.workflow_to_mermaid(flow_identifiers=["test"], save_to_file=False)
-        except:
+        except Exception:
             pass
+
+        assert api is not None
+        assert api.base_url == "http://test"
+        assert api._session is not None
 
         # Hyper-aggressive brute force: pass ALL common parameters to every method
         common_kwargs = {
@@ -67,7 +71,6 @@ def test_servicenow_api_brute_force(mock_session):
             "attributes": {},
             "source": "discovery",
             "rel_sys_id": "1",
-            "className": "cmdb_ci_server",
             "child_id": "1",
             "parent_id": "1",
             "type": "test",
@@ -98,23 +101,24 @@ def test_servicenow_api_brute_force(mock_session):
 
 
 def test_mcp_server_coverage(mock_session):
-    import servicenow_api.mcp_server as mcp_mod
+    import inspect
+    from typing import Any
+    from unittest.mock import patch, MagicMock
+    from servicenow_api.mcp_server import get_mcp_instance
     from servicenow_api.auth import get_client
-    from servicenow_api.mcp_server import FastMCP
 
-    # We need to initialize the MCP server to register tools
-    mcp = FastMCP("ServiceNow")
-
-    # Call all register_*_tools functions
-    for name, func in inspect.getmembers(mcp_mod, predicate=inspect.isfunction):
-        if name.startswith("register_") and name != "register_prompts":
-            func(mcp)
+    mcp = None
+    tool_objs = []
 
     # Trigger tools
     async def run_tools():
+        nonlocal mcp, tool_objs
         # Get client for tools that use Depends(get_client)
         with patch.dict("os.environ", {"SERVICENOW_INSTANCE": "http://test"}):
             client = get_client(username="test", password="test")
+
+        with patch("servicenow_api.mcp_server.get_client", return_value=client):
+            mcp, _, _, _, _ = get_mcp_instance()
 
         tool_objs = (
             await mcp.list_tools()
@@ -122,10 +126,9 @@ def test_mcp_server_coverage(mock_session):
             else mcp.list_tools()
         )
         for tool in tool_objs:
-            tool_name = tool.name
             try:
                 # Mock context and dependencies
-                target_params = {}
+                target_params: dict[str, Any] = {}
                 # Extract parameters from the tool function
                 sig = inspect.signature(tool.fn)
                 for p_name, p in sig.parameters.items():
@@ -136,9 +139,9 @@ def test_mcp_server_coverage(mock_session):
                     ):
                         if "id" in p_name:
                             target_params[p_name] = "1"
-                        elif p.annotation == int:
+                        elif p.annotation is int:
                             target_params[p_name] = 1
-                        elif p.annotation == bool:
+                        elif p.annotation is bool:
                             target_params[p_name] = True
                         else:
                             target_params[p_name] = "test"
@@ -153,6 +156,10 @@ def test_mcp_server_coverage(mock_session):
                     tool.fn(**target_params)
             except Exception:
                 pass
+
+        assert mcp is not None
+        assert len(tool_objs) > 0
+        assert any("incident" in t.name or "change" in t.name for t in tool_objs)
 
     loop = asyncio.new_event_loop()
     loop.run_until_complete(run_tools())

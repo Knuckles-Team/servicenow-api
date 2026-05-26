@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.11-slim
 
 ARG HOST=0.0.0.0
 ARG PORT=8000

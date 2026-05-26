@@ -1,0 +1,87 @@
+# Tasks: Code Enhancement: servicenow-api
+
+Generated: 2026-05-24T04:17:16.235030+00:00
+Skipped informational: 5
+
+- [ ] [P] **T001** [Project Analysis] Detected 2 agent skill(s) — will grade in CE-026
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T002** [Dependency Audit] Minor update: pytest-xdist 3.6.0 (constraint — not installed) -> 3.8.0
+  - Priority: P3-Low | Effort: Small
+- [ ] [P] **T003** [Dependency Audit] Minor update: agent-utilities 0.2.40 (installed) -> 0.16.0
+  - Priority: P3-Low | Effort: Small
+- [ ] [P] **T004** [Codebase Optimization] 4 functions exceed 200 lines (actionable refactoring targets): test_api_client_e
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T005** [Codebase Optimization] Monolithic: mcp_server.py (1401L) — 4 functions with high complexity (worst: get
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T006** [Codebase Optimization] Monolithic: api_client_other.py (1395L) — 2 functions with high complexity (worst
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T007** [Codebase Optimization] Monolithic: api_client_cmdb.py (1257L) — 3 functions with high complexity (worst
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T008** [Codebase Optimization] 33 functions with nesting depth >4
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T009** [Codebase Optimization] 1 flat directories with >15 Python files: servicenow_api/mcp
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T010** [Test Coverage] 12 potential doc-test drift items
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T011** [Documentation & Governance] README.md missing sections: usage|quick start
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T012** [Documentation & Governance] 2 broken internal links in README.md
+  - Priority: P4-Enhancement | Effort: Medium
+- [ ] [P] **T013** [Documentation & Governance] README missing: Has a Table of Contents
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T014** [Documentation & Governance] README missing: Has usage examples with code blocks
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T015** [Architecture & Design Patterns] SRP: 10 modules exceed 500 lines (god modules)
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T016** [Architecture & Design Patterns] SRP: 4 classes have >15 methods
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T017** [Architecture & Design Patterns] No discernible layer architecture (no domain/service/adapter separation)
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T018** [Architecture & Design Patterns] Low dependency injection ratio: 1%
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T019** [Architecture & Design Patterns] 30 Python files at top level — consider package organization
+  - Priority: P2-Medium | Effort: Large
+- [ ] [P] **T020** [Concept Traceability] Low traceability ratio: 3% concepts fully traced
+  - Priority: P4-Enhancement | Effort: Medium
+- [ ] [P] **T021** [Concept Traceability] 37 orphaned concepts (only in one source)
+  - Priority: P4-Enhancement | Effort: Medium
+- [ ] [P] **T022** [Concept Traceability] 78 test functions missing concept markers
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T023** [Concept Traceability] 361 significant functions (>10 lines) missing concept markers in docstrings
+  - Priority: P4-Enhancement | Effort: Small
+- [ ] [P] **T024** [Linting & Formatting] Total lint findings: 0 (high/error: 0, medium/warning: 0, low: 0)
+  - Priority: P4-Enhancement | Effort: Medium
+- [ ] [P] **T025** [Pre-Commit Compliance] 1 hook(s) may be outdated: ruff-pre-commit
+  - Priority: P2-Medium | Effort: Small
+- [ ] [P] **T026** [Directory Organization] 2 directories with >20 files: servicenow_api/mcp, servicenow_api/skills/servicen
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T027** [Directory Organization] 2 rogue/throwaway scripts detected (fix_*, validate_*, patch_*, etc.): scripts/v
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T028** [Changelog Audit] CHANGELOG.md exists but could not be parsed — check format compliance
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T029** [Changelog Audit] No changelog entries within the last 30 days
+  - Priority: P3-Low | Effort: Medium
+- [ ] [P] **T030** [Changelog Audit] keepachangelog not installed — pip install 'universal-skills[code-enhancer]'
+  - Priority: P3-Low | Effort: Small
+- [ ] [P] **T031** [Pytest Quality] 2 test files exceed 500 lines — split into focused modules
+  - Priority: P1-High | Effort: Large
+- [ ] [P] **T032** [Pytest Quality] Test directory lacks subdirectory organization (consider unit/, integration/, e2
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T033** [Pytest Quality] No @pytest.mark.parametrize usage — consider data-driven tests
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T034** [Pytest Quality] 5 tests have no assertions
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T035** [Pytest Quality] 24 tests use weak assertions (assert result is not None, assert True, etc.)
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T036** [Pytest Quality] 4 tests have excessive mocking (>5 mocks) — test behavior, not implementation
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T037** [Pytest Quality] 8 tests exceed 100 lines — likely doing too much per test
+  - Priority: P1-High | Effort: Medium
+- [ ] [P] **T038** [Environment Variables] Only 25% of env vars documented in README.md
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T039** [Environment Variables] Undocumented env vars: ACCOUNTTOOL, ACTIVITY_SUBSCRIPTIONSTOOL, AGGREGATETOOL, A
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T040** [Environment Variables] 11 Python env vars not in .env.example: AUDIENCE, DELEGATED_SCOPES, LLM_API_KEY,
+  - Priority: P2-Medium | Effort: Medium
+- [ ] [P] **T041** [analyze_xdg_kg] Analysis error: No module named 'agent_utilities.knowledge_graph'
+  - Priority: P1-High | Effort: Medium

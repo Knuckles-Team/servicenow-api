@@ -27,11 +27,14 @@ reason = "do not run on MacOS or windows OR dependency is not installed OR " + r
     reason=reason,
 )
 def test_servicenow_api():
+    """
+    CONCEPT:ECO-4.0: Tool Interface & MCP Factory
+    """
     servicenow_url = "http://servicenow.com/api/"
     token = os.environ.get("token", default="NA")
     client = servicenow_api.Api(url=servicenow_url, token=token, verify=False)
     table = client.get_table(table="users")
-    assert table == list
+    assert table is list
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@
 
 This agent wraps the Python ServiceNow API Wrapper API. You can interact with it programmatically or via its integrated execution entrypoints.
 
-Detailed instructions on how to use the underlying API wrappers, extended schema bindings, and developer SDK references are maintained in [docs/index.md](file:///home/apps/workspace/agent-packages/agents/servicenow-api/docs/index.md).
+Detailed instructions on how to use the underlying API wrappers, extended schema bindings, and developer SDK references are maintained in [docs/index.md](docs/index.md).
 
 ---
 
@@ -54,38 +54,59 @@ This server utilizes dynamic Action-Routed tools to optimize token overhead and 
 ### Available MCP Tools
 | Tool Module | Toggle Env Var | Enabled by Default | Description & Nested Methods |
 |-------------|----------------|--------------------|------------------------------|
-| **Misc** | `MISCTOOL` | `True` | Manage ingest incidents to kg operations. |
-| **Flows** | `FLOWSTOOL` | `True` | Manage workflow to mermaid operations. |
-| **Application** | `APPLICATIONTOOL` | `True` | Manage get application operations. |
-| **Cmdb** | `CMDBTOOL` | `True` | Manage servicenow cmdb operations. Action-routed methods: `get_cmdb`, `delete_cmdb_relation`, `get_cmdb_instances`, `get_cmdb_instance`, `create_cmdb_instance`, `update_cmdb_instance`, `patch_cmdb_instance`, `create_cmdb_relation`, `ingest_cmdb_data`. |
-| **Cicd** | `CICDTOOL` | `True` | Manage servicenow cicd operations. Action-routed methods: `batch_install_result`, `instance_scan_progress`, `progress`, `batch_install`, `batch_rollback`, `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `full_scan`, `point_scan`, `combo_suite_scan`, `suite_scan`. |
-| **Plugins** | `PLUGINSTOOL` | `True` | Manage servicenow plugins operations. Action-routed methods: `activate_plugin`, `rollback_plugin`. |
-| **Source Control** | `SOURCE_CONTROLTOOL` | `True` | Manage servicenow source control operations. Action-routed methods: `apply_remote_source_control_changes`, `import_repository`. |
-| **Testing** | `TESTINGTOOL` | `True` | Manage run test suite operations. |
-| **Update Sets** | `UPDATE_SETSTOOL` | `True` | Manage servicenow update sets operations. Action-routed methods: `update_set_create`, `update_set_retrieve`, `update_set_preview`, `update_set_commit`, `update_set_commit_multiple`, `update_set_back_out`. |
-| **Batch** | `BATCHTOOL` | `True` | Manage batch request operations. |
-| **Change Management** | `CHANGE_MANAGEMENTTOOL` | `True` | Manage servicenow change management operations. Action-routed methods: `get_change_requests`, `get_change_request_nextstate`, `get_change_request_schedule`, `get_change_request_tasks`, `get_change_request`, `get_change_request_ci`, `get_change_request_conflict`, `get_standard_change_request_templates`, `get_change_request_models`, `get_standard_change_request_model`, `get_standard_change_request_template`, `get_change_request_worker`, `create_change_request`, `create_change_request_task`, `create_change_request_ci_association`, `calculate_standard_change_request_risk`, `check_change_request_conflict`, `refresh_change_request_impacted_services`, `approve_change_request`, `update_change_request`, `update_change_request_first_available`, `update_change_request_task`, `delete_change_request`, `delete_change_request_task`, `delete_change_request_conflict_scan`. |
-| **Cilifecycle** | `CILIFECYCLETOOL` | `True` | Manage servicenow cilifecycle operations. Action-routed methods: `check_ci_lifecycle_compat_actions`, `register_ci_lifecycle_operator`, `unregister_ci_lifecycle_operator`. |
-| **Devops** | `DEVOPSTOOL` | `True` | Manage servicenow devops operations. Action-routed methods: `check_devops_change_control`, `register_devops_artifact`. |
-| **Import Sets** | `IMPORT_SETSTOOL` | `True` | Manage servicenow import sets operations. Action-routed methods: `get_import_set`, `insert_import_set`, `insert_multiple_import_sets`. |
-| **Incidents** | `INCIDENTSTOOL` | `True` | Manage servicenow incidents operations. Action-routed methods: `get_incidents`, `create_incident`. |
-| **Knowledge Management** | `KNOWLEDGE_MANAGEMENTTOOL` | `True` | Manage servicenow knowledge management operations. Action-routed methods: `get_knowledge_articles`, `get_knowledge_article`, `get_knowledge_article_attachment`, `get_featured_knowledge_article`, `get_most_viewed_knowledge_articles`. |
-| **Table Api** | `TABLE_APITOOL` | `True` | Manage servicenow table api operations. Action-routed methods: `delete_table_record`, `get_table`, `get_table_record`, `patch_table_record`, `update_table_record`, `add_table_record`. |
-| **Auth** | `AUTHTOOL` | `True` | Manage refresh auth token operations. |
-| **Custom Api** | `CUSTOM_APITOOL` | `True` | Manage api request operations. |
-| **Email** | `EMAILTOOL` | `True` | Manage send email operations. |
-| **Data Classification** | `DATA_CLASSIFICATIONTOOL` | `True` | Manage get data classification operations. |
-| **Attachment** | `ATTACHMENTTOOL` | `True` | Manage servicenow attachment operations. Action-routed methods: `get_attachment`, `upload_attachment`, `delete_attachment`. |
-| **Aggregate** | `AGGREGATETOOL` | `True` | Manage get stats operations. |
-| **Activity Subscriptions** | `ACTIVITY_SUBSCRIPTIONSTOOL` | `True` | Manage get activity subscriptions operations. |
-| **Account** | `ACCOUNTTOOL` | `True` | Manage get account operations. |
-| **Hr** | `HRTOOL` | `True` | Manage get hr profile operations. |
-| **Metricbase** | `METRICBASETOOL` | `True` | Manage metricbase insert operations. |
-| **Service Qualification** | `SERVICE_QUALIFICATIONTOOL` | `True` | Manage servicenow service qualification operations. Action-routed methods: `check_service_qualification`, `get_service_qualification`, `process_service_qualification_result`. |
-| **Ppm** | `PPMTOOL` | `True` | Manage servicenow ppm operations. Action-routed methods: `insert_cost_plans`, `insert_project_tasks`. |
-| **Product Inventory** | `PRODUCT_INVENTORYTOOL` | `True` | Manage servicenow product inventory operations. Action-routed methods: `get_product_inventory`, `delete_product_inventory`. |
+| **Misc** | `MISC_TOOL` | `True` | Manage ingest incidents to kg operations. |
+| **Flows** | `FLOWS_TOOL` | `True` | Manage servicenow flows operations. Action-routed methods: `collect_graph_for_roots`, `get_flow_metadata`, `workflow_to_mermaid`. |
+| **Application** | `APPLICATION_TOOL` | `True` | Manage servicenow application operations. Action-routed methods: `get_application`. |
+| **Cmdb** | `CMDB_TOOL` | `True` | Manage servicenow cmdb operations. Action-routed methods: `create_cmdb_instance`, `create_cmdb_relation`, `delete_cmdb_relation`, `get_cmdb`, `get_cmdb_instance`, `get_cmdb_instances`, `ingest_cmdb_data`, `patch_cmdb_instance`, `update_cmdb_instance`. |
+| **Cicd** | `CICD_TOOL` | `True` | Manage servicenow cicd operations. Action-routed methods: `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `batch_install`, `batch_install_result`, `batch_rollback`, `combo_suite_scan`, `full_scan`, `instance_scan_progress`, `point_scan`, `progress`, `suite_scan`. |
+| **Plugins** | `PLUGINS_TOOL` | `True` | Manage servicenow plugins operations. Action-routed methods: `activate_plugin`, `rollback_plugin`. |
+| **Source Control** | `SOURCE_CONTROL_TOOL` | `True` | Manage servicenow source control operations. Action-routed methods: `apply_remote_source_control_changes`, `import_repository`. |
+| **Testing** | `TESTING_TOOL` | `True` | Manage servicenow testing operations. Action-routed methods: `run_test_suite`. |
+| **Update Sets** | `UPDATE_SETS_TOOL` | `True` | Manage servicenow update sets operations. Action-routed methods: `update_set_back_out`, `update_set_commit`, `update_set_commit_multiple`, `update_set_create`, `update_set_preview`, `update_set_retrieve`. |
+| **Batch** | `BATCH_TOOL` | `True` | Manage servicenow batch operations. Action-routed methods: `batch_request`. |
+| **Change Management** | `CHANGE_MANAGEMENT_TOOL` | `True` | Manage servicenow change management operations. Action-routed methods: `approve_change_request`, `calculate_standard_change_request_risk`, `check_change_request_conflict`, `create_change_request`, `create_change_request_ci_association`, `create_change_request_task`, `delete_change_request`, `delete_change_request_conflict_scan`, `delete_change_request_task`, `get_change_request`, `get_change_request_ci`, `get_change_request_conflict`, `get_change_request_models`, `get_change_request_nextstate`, `get_change_request_schedule`, `get_change_request_tasks`, `get_change_request_worker`, `get_change_requests`, `get_standard_change_request_model`, `get_standard_change_request_template`, `get_standard_change_request_templates`, `refresh_change_request_impacted_services`, `update_change_request`, `update_change_request_first_available`, `update_change_request_task`. |
+| **Cilifecycle** | `CILIFECYCLE_TOOL` | `True` | Manage servicenow cilifecycle operations. Action-routed methods: `add_ci_lifecycle_action`, `check_ci_lifecycle_compat_actions`, `check_ci_lifecycle_lease_expired`, `check_ci_lifecycle_not_allowed_action`, `check_ci_lifecycle_not_allowed_ops_transition`, `check_ci_lifecycle_requestor_valid`, `delete_ci_lifecycle_action`, `extend_ci_lifecycle_lease`, `get_ci_lifecycle_active_actions`, `get_ci_lifecycle_status`, `register_ci_lifecycle_operator`, `set_ci_lifecycle_status`, `unregister_ci_lifecycle_operator`. |
+| **Devops** | `DEVOPS_TOOL` | `True` | Manage servicenow devops operations. Action-routed methods: `check_devops_change_control`, `check_devops_step_mapping`, `get_devops_change_info`, `get_devops_code_schema`, `get_devops_onboarding_status`, `get_devops_orchestration_schema`, `get_devops_plan_schema`, `register_devops_artifact`. |
+| **Import Sets** | `IMPORT_SETS_TOOL` | `True` | Manage servicenow import sets operations. Action-routed methods: `get_import_set`, `insert_import_set`, `insert_multiple_import_sets`. |
+| **Incidents** | `INCIDENTS_TOOL` | `True` | Manage servicenow incidents operations. Action-routed methods: `create_incident`, `get_incident`, `get_incidents`. |
+| **Knowledge Management** | `KNOWLEDGE_MANAGEMENT_TOOL` | `True` | Manage servicenow knowledge management operations. Action-routed methods: `get_featured_knowledge_article`, `get_knowledge_article`, `get_knowledge_article_attachment`, `get_knowledge_articles`, `get_most_viewed_knowledge_articles`. |
+| **Table Api** | `TABLE_API_TOOL` | `True` | Manage servicenow table api operations. Action-routed methods: `add_table_record`, `delete_table_record`, `get_table`, `get_table_record`, `patch_table_record`, `update_table_record`. |
+| **Auth** | `AUTH_TOOL` | `True` | Manage servicenow auth operations. Action-routed methods: `refresh_auth_token`. |
+| **Custom Api** | `CUSTOM_API_TOOL` | `True` | Manage servicenow custom api operations. Action-routed methods: `api_request`. |
+| **Email** | `EMAIL_TOOL` | `True` | Manage servicenow email operations. Action-routed methods: `send_email`. |
+| **Data Classification** | `DATA_CLASSIFICATION_TOOL` | `True` | Manage servicenow data classification operations. Action-routed methods: `get_data_classification`. |
+| **Aggregate** | `AGGREGATE_TOOL` | `True` | Manage servicenow aggregate operations. Action-routed methods: `get_stats`. |
+| **Activity Subscriptions** | `ACTIVITY_SUBSCRIPTIONS_TOOL` | `True` | Manage servicenow activity subscriptions operations. Action-routed methods: `get_activity_subscriptions`. |
+| **Account** | `ACCOUNT_TOOL` | `True` | Manage servicenow account operations. Action-routed methods: `get_account`. |
+| **Hr** | `HR_TOOL` | `True` | Manage servicenow hr operations. Action-routed methods: `get_hr_profile`. |
+| **Metricbase** | `METRICBASE_TOOL` | `True` | Manage servicenow metricbase operations. Action-routed methods: `metricbase_insert`. |
+| **Attachment** | `ATTACHMENT_TOOL` | `True` | Manage servicenow attachment operations. Action-routed methods: `delete_attachment`, `get_attachment`, `upload_attachment`. |
+| **Service Qualification** | `SERVICE_QUALIFICATION_TOOL` | `True` | Manage servicenow service qualification operations. Action-routed methods: `check_service_qualification`, `get_service_qualification`, `process_service_qualification_result`. |
+| **Ppm** | `PPM_TOOL` | `True` | Manage servicenow ppm operations. Action-routed methods: `insert_cost_plans`, `insert_project_tasks`. |
+| **Product Inventory** | `PRODUCT_INVENTORY_TOOL` | `True` | Manage servicenow product inventory operations. Action-routed methods: `delete_product_inventory`, `get_product_inventory`. |
 
-Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/mcp.md](file:///home/apps/workspace/agent-packages/agents/servicenow-api/docs/mcp.md).
+Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/mcp.md](docs/mcp.md).
+
+### Dynamic Tool Selection & Visibility
+
+This MCP server supports dynamic toolset selection and visibility filtering at runtime. This allows you to restrict the set of exposed tools in order to prevent blowing up the LLM's context window.
+
+You can configure tool filtering via multiple input channels:
+
+- **CLI Arguments:** Pass `--tools` or `--toolsets` (or their disabled counterparts `--disabled-tools` and `--disabled-toolsets`) during startup.
+- **Environment Variables:** Define standard environment variables:
+  - `MCP_ENABLED_TOOLS` / `MCP_DISABLED_TOOLS`
+  - `MCP_ENABLED_TAGS` / `MCP_DISABLED_TAGS`
+- **HTTP SSE Request Headers:** Pass custom headers during transport initialization:
+  - `x-mcp-enabled-tools` / `x-mcp-disabled-tools`
+  - `x-mcp-enabled-tags` / `x-mcp-disabled-tags`
+- **HTTP SSE Request Query Parameters:** Append query parameters directly to your transport connection URL:
+  - `?tools=tool1,tool2`
+  - `?tags=tag1`
+
+When query strings or parameters are supplied, an LLM-free **Knowledge Graph resolution layer** (using `DynamicToolOrchestrator`) matches query intents against known tool tags, names, or descriptions, with safe fallback and automated 24-hour background cache refreshing.
+
+---
 
 ### MCP Configuration Examples
 
@@ -271,7 +292,7 @@ services:
 
 ```
 
-Detailed graph node architecture explanations, custom skill configurations, and agentic trace guides are available in [docs/agent.md](file:///home/apps/workspace/agent-packages/agents/servicenow-api/docs/agent.md).
+Detailed graph node architecture explanations, custom skill configurations, and agentic trace guides are available in [docs/agent.md](docs/agent.md).
 
 ---
 

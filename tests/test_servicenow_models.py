@@ -8,11 +8,8 @@ reason = "Skipped"
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 try:
-    from typing import Any
-
     from pydantic import BaseModel
 
-    import servicenow_api
     from servicenow_api.servicenow_models import (
         CICD,
         CMDB,
@@ -39,9 +36,9 @@ try:
         Task,
     )
 
-except ImportError:
+except ImportError as err:
     skip = True
-    raise ("ERROR IMPORTING", ImportError)
+    raise ImportError("ERROR IMPORTING") from err
 else:
     skip = False
 

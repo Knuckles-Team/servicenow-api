@@ -41,7 +41,7 @@ def get_client(
         is_delegation_enabled,
     )
 
-    instance = os.getenv("SERVICENOW_INSTANCE")
+    instance = os.getenv("SERVICENOW_URL") or os.getenv("SERVICENOW_INSTANCE")
     if not instance:
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 

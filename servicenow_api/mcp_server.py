@@ -44,7 +44,6 @@ DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
     string=os.getenv("SERVICENOW_SSL_VERIFY", "True")
 )
 
-
 def register_misc_tools(mcp: FastMCP):
     @mcp.tool(tags={"kg_ingestion"})
     async def ingest_incidents_to_kg(
@@ -71,11 +70,12 @@ def register_misc_tools(mcp: FastMCP):
 
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_flows_tools(mcp: FastMCP):
     @mcp.tool(tags={"flows"})
-    async def workflow_to_mermaid(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_flows(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'workflow_to_mermaid', 'collect_graph_for_roots', 'get_flow_metadata'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -84,7 +84,7 @@ def register_flows_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage workflow to mermaid operations."""
+        """Manage servicenow flows operations."""
         if ctx:
             ctx.info("Executing tool...")
         import json
@@ -96,13 +96,20 @@ def register_flows_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "workflow_to_mermaid":
+            return client.workflow_to_mermaid(**kwargs)
+        if action == "collect_graph_for_roots":
+            return client.collect_graph_for_roots(**kwargs)
+        if action == "get_flow_metadata":
+            return client.get_flow_metadata(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_application_tools(mcp: FastMCP):
     @mcp.tool(tags={"application"})
-    async def get_application(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_application(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_application'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -111,9 +118,9 @@ def register_application_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage get application operations."""
+        """Manage servicenow application operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -123,8 +130,9 @@ def register_application_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "get_application":
+            return client.get_application(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_cmdb_tools(mcp: FastMCP):
     @mcp.tool(tags={"cmdb"})
@@ -171,7 +179,6 @@ def register_cmdb_tools(mcp: FastMCP):
         if action == "ingest_cmdb_data":
             return client.ingest_cmdb_data(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_cicd_tools(mcp: FastMCP):
     @mcp.tool(tags={"cicd"})
@@ -225,7 +232,6 @@ def register_cicd_tools(mcp: FastMCP):
             return client.suite_scan(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_plugins_tools(mcp: FastMCP):
     @mcp.tool(tags={"plugins"})
     async def servicenow_plugins(
@@ -257,7 +263,6 @@ def register_plugins_tools(mcp: FastMCP):
         if action == "rollback_plugin":
             return client.rollback_plugin(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_source_control_tools(mcp: FastMCP):
     @mcp.tool(tags={"source_control"})
@@ -291,11 +296,12 @@ def register_source_control_tools(mcp: FastMCP):
             return client.import_repository(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_testing_tools(mcp: FastMCP):
     @mcp.tool(tags={"testing"})
-    async def run_test_suite(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_testing(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'run_test_suite'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -304,9 +310,9 @@ def register_testing_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage run test suite operations."""
+        """Manage servicenow testing operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -316,8 +322,9 @@ def register_testing_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "run_test_suite":
+            return client.run_test_suite(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_update_sets_tools(mcp: FastMCP):
     @mcp.tool(tags={"update_sets"})
@@ -359,11 +366,12 @@ def register_update_sets_tools(mcp: FastMCP):
             return client.update_set_back_out(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_batch_tools(mcp: FastMCP):
     @mcp.tool(tags={"batch"})
-    async def batch_request(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_batch(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'batch_request'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -372,9 +380,9 @@ def register_batch_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage batch request operations."""
+        """Manage servicenow batch operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -384,8 +392,9 @@ def register_batch_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "batch_request":
+            return client.batch_request(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_change_management_tools(mcp: FastMCP):
     @mcp.tool(tags={"change_management"})
@@ -465,12 +474,11 @@ def register_change_management_tools(mcp: FastMCP):
             return client.delete_change_request_conflict_scan(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_cilifecycle_tools(mcp: FastMCP):
     @mcp.tool(tags={"cilifecycle"})
     async def servicenow_cilifecycle(
         action: str = Field(
-            description="Action to perform. Must be one of: 'check_ci_lifecycle_compat_actions', 'register_ci_lifecycle_operator', 'unregister_ci_lifecycle_operator'"
+            description="Action to perform. Must be one of: 'check_ci_lifecycle_compat_actions', 'register_ci_lifecycle_operator', 'unregister_ci_lifecycle_operator', 'add_ci_lifecycle_action', 'check_ci_lifecycle_lease_expired', 'check_ci_lifecycle_not_allowed_action', 'check_ci_lifecycle_not_allowed_ops_transition', 'check_ci_lifecycle_requestor_valid', 'delete_ci_lifecycle_action', 'extend_ci_lifecycle_lease', 'get_ci_lifecycle_active_actions', 'get_ci_lifecycle_status', 'set_ci_lifecycle_status'"
         ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
@@ -482,7 +490,7 @@ def register_cilifecycle_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow cilifecycle operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -498,14 +506,33 @@ def register_cilifecycle_tools(mcp: FastMCP):
             return client.register_ci_lifecycle_operator(**kwargs)
         if action == "unregister_ci_lifecycle_operator":
             return client.unregister_ci_lifecycle_operator(**kwargs)
+        if action == "add_ci_lifecycle_action":
+            return client.add_ci_lifecycle_action(**kwargs)
+        if action == "check_ci_lifecycle_lease_expired":
+            return client.check_ci_lifecycle_lease_expired(**kwargs)
+        if action == "check_ci_lifecycle_not_allowed_action":
+            return client.check_ci_lifecycle_not_allowed_action(**kwargs)
+        if action == "check_ci_lifecycle_not_allowed_ops_transition":
+            return client.check_ci_lifecycle_not_allowed_ops_transition(**kwargs)
+        if action == "check_ci_lifecycle_requestor_valid":
+            return client.check_ci_lifecycle_requestor_valid(**kwargs)
+        if action == "delete_ci_lifecycle_action":
+            return client.delete_ci_lifecycle_action(**kwargs)
+        if action == "extend_ci_lifecycle_lease":
+            return client.extend_ci_lifecycle_lease(**kwargs)
+        if action == "get_ci_lifecycle_active_actions":
+            return client.get_ci_lifecycle_active_actions(**kwargs)
+        if action == "get_ci_lifecycle_status":
+            return client.get_ci_lifecycle_status(**kwargs)
+        if action == "set_ci_lifecycle_status":
+            return client.set_ci_lifecycle_status(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_devops_tools(mcp: FastMCP):
     @mcp.tool(tags={"devops"})
     async def servicenow_devops(
         action: str = Field(
-            description="Action to perform. Must be one of: 'check_devops_change_control', 'register_devops_artifact'"
+            description="Action to perform. Must be one of: 'check_devops_change_control', 'register_devops_artifact', 'check_devops_step_mapping', 'get_devops_change_info', 'get_devops_code_schema', 'get_devops_onboarding_status', 'get_devops_orchestration_schema', 'get_devops_plan_schema'"
         ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
@@ -517,7 +544,7 @@ def register_devops_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow devops operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -531,8 +558,19 @@ def register_devops_tools(mcp: FastMCP):
             return client.check_devops_change_control(**kwargs)
         if action == "register_devops_artifact":
             return client.register_devops_artifact(**kwargs)
+        if action == "check_devops_step_mapping":
+            return client.check_devops_step_mapping(**kwargs)
+        if action == "get_devops_change_info":
+            return client.get_devops_change_info(**kwargs)
+        if action == "get_devops_code_schema":
+            return client.get_devops_code_schema(**kwargs)
+        if action == "get_devops_onboarding_status":
+            return client.get_devops_onboarding_status(**kwargs)
+        if action == "get_devops_orchestration_schema":
+            return client.get_devops_orchestration_schema(**kwargs)
+        if action == "get_devops_plan_schema":
+            return client.get_devops_plan_schema(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_import_sets_tools(mcp: FastMCP):
     @mcp.tool(tags={"import_sets"})
@@ -568,12 +606,11 @@ def register_import_sets_tools(mcp: FastMCP):
             return client.insert_multiple_import_sets(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(tags={"incidents"})
     async def servicenow_incidents(
         action: str = Field(
-            description="Action to perform. Must be one of: 'get_incidents', 'create_incident'"
+            description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident'"
         ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
@@ -585,7 +622,7 @@ def register_incidents_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow incidents operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -599,8 +636,9 @@ def register_incidents_tools(mcp: FastMCP):
             return client.get_incidents(**kwargs)
         if action == "create_incident":
             return client.create_incident(**kwargs)
+        if action == "get_incident":
+            return client.get_incident(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_knowledge_management_tools(mcp: FastMCP):
     @mcp.tool(tags={"knowledge_management"})
@@ -639,7 +677,6 @@ def register_knowledge_management_tools(mcp: FastMCP):
         if action == "get_most_viewed_knowledge_articles":
             return client.get_most_viewed_knowledge_articles(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_table_api_tools(mcp: FastMCP):
     @mcp.tool(tags={"table_api"})
@@ -681,11 +718,12 @@ def register_table_api_tools(mcp: FastMCP):
             return client.add_table_record(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_auth_tools(mcp: FastMCP):
     @mcp.tool(tags={"auth"})
-    async def refresh_auth_token(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_auth(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'refresh_auth_token'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -694,7 +732,7 @@ def register_auth_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage refresh auth token operations."""
+        """Manage servicenow auth operations."""
         if ctx:
             ctx.info("Executing tool...")
         import json
@@ -706,13 +744,16 @@ def register_auth_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "refresh_auth_token":
+            return client.refresh_auth_token(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_custom_api_tools(mcp: FastMCP):
     @mcp.tool(tags={"custom_api"})
-    async def api_request(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_custom_api(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'api_request'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -721,7 +762,7 @@ def register_custom_api_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage api request operations."""
+        """Manage servicenow custom api operations."""
         if ctx:
             ctx.info("Executing tool...")
         import json
@@ -733,13 +774,16 @@ def register_custom_api_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "api_request":
+            return client.api_request(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_email_tools(mcp: FastMCP):
     @mcp.tool(tags={"email"})
-    async def send_email(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_email(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'send_email'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -748,7 +792,7 @@ def register_email_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage send email operations."""
+        """Manage servicenow email operations."""
         if ctx:
             ctx.info("Executing tool...")
         import json
@@ -760,13 +804,16 @@ def register_email_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "send_email":
+            return client.send_email(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_data_classification_tools(mcp: FastMCP):
     @mcp.tool(tags={"data_classification"})
-    async def get_data_classification(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    async def servicenow_data_classification(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_data_classification'"
+        ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
         ),
@@ -775,7 +822,7 @@ def register_data_classification_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage get data classification operations."""
+        """Manage servicenow data classification operations."""
         if ctx:
             ctx.info("Executing tool...")
         import json
@@ -787,8 +834,159 @@ def register_data_classification_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        if action == "get_data_classification":
+            return client.get_data_classification(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+def register_aggregate_tools(mcp: FastMCP):
+    @mcp.tool(tags={"aggregate"})
+    async def servicenow_aggregate(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_stats'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow aggregate operations."""
+        if ctx:
+            ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception as e:
+            return {"error": f"Invalid params_json: {e}"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if action == "get_stats":
+            return client.get_stats(**kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+def register_activity_subscriptions_tools(mcp: FastMCP):
+    @mcp.tool(tags={"activity_subscriptions"})
+    async def servicenow_activity_subscriptions(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_activity_subscriptions'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow activity subscriptions operations."""
+        if ctx:
+            ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception as e:
+            return {"error": f"Invalid params_json: {e}"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if action == "get_activity_subscriptions":
+            return client.get_activity_subscriptions(**kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+def register_account_tools(mcp: FastMCP):
+    @mcp.tool(tags={"account"})
+    async def servicenow_account(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_account'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow account operations."""
+        if ctx:
+            ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception as e:
+            return {"error": f"Invalid params_json: {e}"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if action == "get_account":
+            return client.get_account(**kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+def register_hr_tools(mcp: FastMCP):
+    @mcp.tool(tags={"hr"})
+    async def servicenow_hr(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_hr_profile'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow hr operations."""
+        if ctx:
+            ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception as e:
+            return {"error": f"Invalid params_json: {e}"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if action == "get_hr_profile":
+            return client.get_hr_profile(**kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+def register_metricbase_tools(mcp: FastMCP):
+    @mcp.tool(tags={"metricbase"})
+    async def servicenow_metricbase(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'metricbase_insert'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow metricbase operations."""
+        if ctx:
+            ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception as e:
+            return {"error": f"Invalid params_json: {e}"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        if action == "metricbase_insert":
+            return client.metricbase_insert(**kwargs)
+        raise ValueError(f"Unknown action: {action}")
 
 def register_attachment_tools(mcp: FastMCP):
     @mcp.tool(tags={"attachment"})
@@ -824,142 +1022,6 @@ def register_attachment_tools(mcp: FastMCP):
             return client.delete_attachment(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
-def register_aggregate_tools(mcp: FastMCP):
-    @mcp.tool(tags={"aggregate"})
-    async def get_stats(
-        action: str = Field(description="Action to perform. Must be one of: "),
-        params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
-        ),
-        client=Depends(get_client),
-        ctx: Context | None = Field(
-            default=None, description="MCP context for progress reporting"
-        ),
-    ) -> dict:
-        """Manage get stats operations."""
-        if ctx:
-            ctx.info("Executing tool...")
-        import json
-
-        try:
-            kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
-
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        raise ValueError(f"Unknown action: {action}")
-
-
-def register_activity_subscriptions_tools(mcp: FastMCP):
-    @mcp.tool(tags={"activity_subscriptions"})
-    async def get_activity_subscriptions(
-        action: str = Field(description="Action to perform. Must be one of: "),
-        params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
-        ),
-        client=Depends(get_client),
-        ctx: Context | None = Field(
-            default=None, description="MCP context for progress reporting"
-        ),
-    ) -> dict:
-        """Manage get activity subscriptions operations."""
-        if ctx:
-            ctx.info("Executing tool...")
-        import json
-
-        try:
-            kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
-
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        raise ValueError(f"Unknown action: {action}")
-
-
-def register_account_tools(mcp: FastMCP):
-    @mcp.tool(tags={"account"})
-    async def get_account(
-        action: str = Field(description="Action to perform. Must be one of: "),
-        params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
-        ),
-        client=Depends(get_client),
-        ctx: Context | None = Field(
-            default=None, description="MCP context for progress reporting"
-        ),
-    ) -> dict:
-        """Manage get account operations."""
-        if ctx:
-            ctx.info("Executing tool...")
-        import json
-
-        try:
-            kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
-
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        raise ValueError(f"Unknown action: {action}")
-
-
-def register_hr_tools(mcp: FastMCP):
-    @mcp.tool(tags={"hr"})
-    async def get_hr_profile(
-        action: str = Field(description="Action to perform. Must be one of: "),
-        params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
-        ),
-        client=Depends(get_client),
-        ctx: Context | None = Field(
-            default=None, description="MCP context for progress reporting"
-        ),
-    ) -> dict:
-        """Manage get hr profile operations."""
-        if ctx:
-            ctx.info("Executing tool...")
-        import json
-
-        try:
-            kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
-
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        raise ValueError(f"Unknown action: {action}")
-
-
-def register_metricbase_tools(mcp: FastMCP):
-    @mcp.tool(tags={"metricbase"})
-    async def metricbase_insert(
-        action: str = Field(description="Action to perform. Must be one of: "),
-        params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
-        ),
-        client=Depends(get_client),
-        ctx: Context | None = Field(
-            default=None, description="MCP context for progress reporting"
-        ),
-    ) -> dict:
-        """Manage metricbase insert operations."""
-        if ctx:
-            ctx.info("Executing tool...")
-        import json
-
-        try:
-            kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
-
-        kwargs = {k: v for k, v in kwargs.items() if v is not None}
-
-        raise ValueError(f"Unknown action: {action}")
-
-
 def register_service_qualification_tools(mcp: FastMCP):
     @mcp.tool(tags={"service_qualification"})
     async def servicenow_service_qualification(
@@ -994,7 +1056,6 @@ def register_service_qualification_tools(mcp: FastMCP):
             return client.process_service_qualification_result(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_ppm_tools(mcp: FastMCP):
     @mcp.tool(tags={"ppm"})
     async def servicenow_ppm(
@@ -1027,7 +1088,6 @@ def register_ppm_tools(mcp: FastMCP):
             return client.insert_project_tasks(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
-
 def register_product_inventory_tools(mcp: FastMCP):
     @mcp.tool(tags={"product_inventory"})
     async def servicenow_product_inventory(
@@ -1059,7 +1119,6 @@ def register_product_inventory_tools(mcp: FastMCP):
         if action == "delete_product_inventory":
             return client.delete_product_inventory(**kwargs)
         raise ValueError(f"Unknown action: {action}")
-
 
 def register_prompts(mcp: FastMCP):
 
@@ -1102,8 +1161,7 @@ def register_prompts(mcp: FastMCP):
         """
         return f"Query the ServiceNow table '{table}' with sysparm_query: '{sysparm_query}' and sysparm_fields: '{sysparm_fields}'. Use the get_table tool with appropriate parameters."
 
-
-def get_mcp_instance() -> tuple[Any, Any, Any, Any]:
+def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     """Initialize and return the MCP instance, args, and middlewares."""
     load_dotenv(find_dotenv())
     args, mcp, middlewares = create_mcp_server(
@@ -1284,7 +1342,6 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any]:
     registered_tags = []
     return (mcp, args, middlewares, registered_tags, imported_tools)
 
-
 def mcp_server() -> None:
     mcp, args, middlewares, registered_tags, imported_tools = get_mcp_instance()
     print("\nStarting ServiceNow MCP Server", file=sys.stderr)
@@ -1305,7 +1362,6 @@ def mcp_server() -> None:
     else:
         logger.error("Invalid transport", extra={"transport": args.transport})
         sys.exit(1)
-
 
 if __name__ == "__main__":
     mcp_server()
