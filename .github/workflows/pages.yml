@@ -11,4 +11,4 @@ on:
 
 jobs:
   publish-pages:
-    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@latest
+    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@main
