@@ -33,7 +33,7 @@ from dotenv import find_dotenv, load_dotenv
 
 from servicenow_api.auth import get_client
 
-__version__ = "1.19.0"
+__version__ = "1.20.0"
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
 DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
@@ -43,6 +43,7 @@ DEFAULT_SERVICENOW_CLIENT_SECRET = os.getenv("SERVICENOW_CLIENT_SECRET", None)
 DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
     string=os.getenv("SERVICENOW_SSL_VERIFY", "True")
 )
+
 
 def register_misc_tools(mcp: FastMCP):
     @mcp.tool(tags={"kg_ingestion"})
@@ -69,6 +70,7 @@ def register_misc_tools(mcp: FastMCP):
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_flows_tools(mcp: FastMCP):
     @mcp.tool(tags={"flows"})
@@ -104,6 +106,7 @@ def register_flows_tools(mcp: FastMCP):
             return client.get_flow_metadata(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_application_tools(mcp: FastMCP):
     @mcp.tool(tags={"application"})
     async def servicenow_application(
@@ -133,6 +136,7 @@ def register_application_tools(mcp: FastMCP):
         if action == "get_application":
             return client.get_application(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_cmdb_tools(mcp: FastMCP):
     @mcp.tool(tags={"cmdb"})
@@ -179,6 +183,7 @@ def register_cmdb_tools(mcp: FastMCP):
         if action == "ingest_cmdb_data":
             return client.ingest_cmdb_data(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_cicd_tools(mcp: FastMCP):
     @mcp.tool(tags={"cicd"})
@@ -232,6 +237,7 @@ def register_cicd_tools(mcp: FastMCP):
             return client.suite_scan(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_plugins_tools(mcp: FastMCP):
     @mcp.tool(tags={"plugins"})
     async def servicenow_plugins(
@@ -263,6 +269,7 @@ def register_plugins_tools(mcp: FastMCP):
         if action == "rollback_plugin":
             return client.rollback_plugin(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_source_control_tools(mcp: FastMCP):
     @mcp.tool(tags={"source_control"})
@@ -296,6 +303,7 @@ def register_source_control_tools(mcp: FastMCP):
             return client.import_repository(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_testing_tools(mcp: FastMCP):
     @mcp.tool(tags={"testing"})
     async def servicenow_testing(
@@ -325,6 +333,7 @@ def register_testing_tools(mcp: FastMCP):
         if action == "run_test_suite":
             return client.run_test_suite(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_update_sets_tools(mcp: FastMCP):
     @mcp.tool(tags={"update_sets"})
@@ -366,6 +375,7 @@ def register_update_sets_tools(mcp: FastMCP):
             return client.update_set_back_out(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_batch_tools(mcp: FastMCP):
     @mcp.tool(tags={"batch"})
     async def servicenow_batch(
@@ -395,6 +405,7 @@ def register_batch_tools(mcp: FastMCP):
         if action == "batch_request":
             return client.batch_request(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_change_management_tools(mcp: FastMCP):
     @mcp.tool(tags={"change_management"})
@@ -474,6 +485,7 @@ def register_change_management_tools(mcp: FastMCP):
             return client.delete_change_request_conflict_scan(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_cilifecycle_tools(mcp: FastMCP):
     @mcp.tool(tags={"cilifecycle"})
     async def servicenow_cilifecycle(
@@ -528,6 +540,7 @@ def register_cilifecycle_tools(mcp: FastMCP):
             return client.set_ci_lifecycle_status(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_devops_tools(mcp: FastMCP):
     @mcp.tool(tags={"devops"})
     async def servicenow_devops(
@@ -572,6 +585,7 @@ def register_devops_tools(mcp: FastMCP):
             return client.get_devops_plan_schema(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_import_sets_tools(mcp: FastMCP):
     @mcp.tool(tags={"import_sets"})
     async def servicenow_import_sets(
@@ -606,6 +620,7 @@ def register_import_sets_tools(mcp: FastMCP):
             return client.insert_multiple_import_sets(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(tags={"incidents"})
     async def servicenow_incidents(
@@ -639,6 +654,7 @@ def register_incidents_tools(mcp: FastMCP):
         if action == "get_incident":
             return client.get_incident(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_knowledge_management_tools(mcp: FastMCP):
     @mcp.tool(tags={"knowledge_management"})
@@ -677,6 +693,7 @@ def register_knowledge_management_tools(mcp: FastMCP):
         if action == "get_most_viewed_knowledge_articles":
             return client.get_most_viewed_knowledge_articles(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_table_api_tools(mcp: FastMCP):
     @mcp.tool(tags={"table_api"})
@@ -718,6 +735,7 @@ def register_table_api_tools(mcp: FastMCP):
             return client.add_table_record(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_auth_tools(mcp: FastMCP):
     @mcp.tool(tags={"auth"})
     async def servicenow_auth(
@@ -747,6 +765,7 @@ def register_auth_tools(mcp: FastMCP):
         if action == "refresh_auth_token":
             return client.refresh_auth_token(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_custom_api_tools(mcp: FastMCP):
     @mcp.tool(tags={"custom_api"})
@@ -778,6 +797,7 @@ def register_custom_api_tools(mcp: FastMCP):
             return client.api_request(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_email_tools(mcp: FastMCP):
     @mcp.tool(tags={"email"})
     async def servicenow_email(
@@ -807,6 +827,7 @@ def register_email_tools(mcp: FastMCP):
         if action == "send_email":
             return client.send_email(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_data_classification_tools(mcp: FastMCP):
     @mcp.tool(tags={"data_classification"})
@@ -838,6 +859,7 @@ def register_data_classification_tools(mcp: FastMCP):
             return client.get_data_classification(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_aggregate_tools(mcp: FastMCP):
     @mcp.tool(tags={"aggregate"})
     async def servicenow_aggregate(
@@ -867,6 +889,7 @@ def register_aggregate_tools(mcp: FastMCP):
         if action == "get_stats":
             return client.get_stats(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_activity_subscriptions_tools(mcp: FastMCP):
     @mcp.tool(tags={"activity_subscriptions"})
@@ -898,6 +921,7 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
             return client.get_activity_subscriptions(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_account_tools(mcp: FastMCP):
     @mcp.tool(tags={"account"})
     async def servicenow_account(
@@ -927,6 +951,7 @@ def register_account_tools(mcp: FastMCP):
         if action == "get_account":
             return client.get_account(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_hr_tools(mcp: FastMCP):
     @mcp.tool(tags={"hr"})
@@ -958,6 +983,7 @@ def register_hr_tools(mcp: FastMCP):
             return client.get_hr_profile(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_metricbase_tools(mcp: FastMCP):
     @mcp.tool(tags={"metricbase"})
     async def servicenow_metricbase(
@@ -987,6 +1013,7 @@ def register_metricbase_tools(mcp: FastMCP):
         if action == "metricbase_insert":
             return client.metricbase_insert(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_attachment_tools(mcp: FastMCP):
     @mcp.tool(tags={"attachment"})
@@ -1022,6 +1049,7 @@ def register_attachment_tools(mcp: FastMCP):
             return client.delete_attachment(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_service_qualification_tools(mcp: FastMCP):
     @mcp.tool(tags={"service_qualification"})
     async def servicenow_service_qualification(
@@ -1056,6 +1084,7 @@ def register_service_qualification_tools(mcp: FastMCP):
             return client.process_service_qualification_result(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_ppm_tools(mcp: FastMCP):
     @mcp.tool(tags={"ppm"})
     async def servicenow_ppm(
@@ -1088,6 +1117,7 @@ def register_ppm_tools(mcp: FastMCP):
             return client.insert_project_tasks(**kwargs)
         raise ValueError(f"Unknown action: {action}")
 
+
 def register_product_inventory_tools(mcp: FastMCP):
     @mcp.tool(tags={"product_inventory"})
     async def servicenow_product_inventory(
@@ -1119,6 +1149,7 @@ def register_product_inventory_tools(mcp: FastMCP):
         if action == "delete_product_inventory":
             return client.delete_product_inventory(**kwargs)
         raise ValueError(f"Unknown action: {action}")
+
 
 def register_prompts(mcp: FastMCP):
 
@@ -1160,6 +1191,7 @@ def register_prompts(mcp: FastMCP):
         Generates a prompt for querying a ServiceNow table.
         """
         return f"Query the ServiceNow table '{table}' with sysparm_query: '{sysparm_query}' and sysparm_fields: '{sysparm_fields}'. Use the get_table tool with appropriate parameters."
+
 
 def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     """Initialize and return the MCP instance, args, and middlewares."""
@@ -1342,6 +1374,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     registered_tags = []
     return (mcp, args, middlewares, registered_tags, imported_tools)
 
+
 def mcp_server() -> None:
     mcp, args, middlewares, registered_tags, imported_tools = get_mcp_instance()
     print("\nStarting ServiceNow MCP Server", file=sys.stderr)
@@ -1362,6 +1395,7 @@ def mcp_server() -> None:
     else:
         logger.error("Invalid transport", extra={"transport": args.transport})
         sys.exit(1)
+
 
 if __name__ == "__main__":
     mcp_server()

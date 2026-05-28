@@ -5,7 +5,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "LM Studio (local)",
       "options": {
-        "baseURL": "http://10.0.0.18:1234/v1"
+        "baseURL": "http://vllm.arpa/v1"
       },
       "models": {
         "qwen/qwen3.5-9b": {
