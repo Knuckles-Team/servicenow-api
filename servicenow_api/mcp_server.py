@@ -33,7 +33,7 @@ from dotenv import find_dotenv, load_dotenv
 
 from servicenow_api.auth import get_client
 
-__version__ = "1.22.1"
+__version__ = "1.23.0"
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
 DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
