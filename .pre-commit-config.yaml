@@ -115,3 +115,11 @@ repos:
     language: system
     pass_filenames: false
     always_run: true
+- repo: local
+  hooks:
+  - id: security-sanitizer
+    name: Security and Garbage Sanitizer
+    entry: python scripts/security_sanitizer.py
+    language: python
+    pass_filenames: false
+    always_run: true
