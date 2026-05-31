@@ -10,16 +10,19 @@ ENV HOST=${HOST} \
     TRANSPORT=${TRANSPORT} \
     AUTH_TYPE=${AUTH_TYPE} \
     PYTHONUNBUFFERED=1 \
-    PATH="/root/.local/bin:/usr/local/bin:${PATH}" \
+    PATH="/usr/local/cargo/bin:/root/.local/bin:/usr/local/bin:${PATH}" \
     UV_HTTP_TIMEOUT=3600 \
     UV_SYSTEM_PYTHON=1 \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    RUSTUP_HOME="/usr/local/rustup" \
+    CARGO_HOME="/usr/local/cargo"
 
 # Install base dependencies, uv, and starship shell prompt
 RUN apt-get update \
-    && apt-get install -y default-jre ripgrep tree fd-find curl nano \
+    && apt-get install -y default-jre ripgrep tree fd-find curl nano build-essential cmake libssl-dev libcurl4-openssl-dev pkg-config \
     && curl -LsSf https://astral.sh/uv/install.sh | sh \
     && curl -sS https://starship.rs/install.sh | sh -s -- --yes \
+    && curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile minimal \
     && mkdir -p /root/.config \
     && echo "eval \"\$(starship init bash)\"" >> /root/.bashrc \
     && apt-get clean \
