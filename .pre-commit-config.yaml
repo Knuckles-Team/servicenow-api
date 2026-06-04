@@ -64,16 +64,16 @@ repos:
   - id: nbqa-ruff
 - repo: local
   hooks:
-      - id: check-mermaid
-        name: Check Mermaid syntax
-        entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/mermaid_linter.py
-        language: system
-        files: \.md$
-        pass_filenames: true
+  - id: check-mermaid
+    name: Check Mermaid syntax
+    entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/mermaid_linter.py
+    language: system
+    files: \.md$
+    pass_filenames: true
   - id: check-stubs
     name: Check for Active Stubs and TODOs
     entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/check_stubs.py
-    language: python
+    language: system
     types: [python]
   - id: mermaid-validate
     name: mermaid-validate

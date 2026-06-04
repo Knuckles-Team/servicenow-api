@@ -1,5 +1,8 @@
 # AGENTS.md
 
+> Claude Code loads this file via `CLAUDE.md` (`@AGENTS.md` import) — the two stay
+> in sync. Edit **this** file, not `CLAUDE.md`.
+
 ## Tech Stack & Architecture
 - Language/Version: Python 3.10+
 - Core Libraries: `agent-utilities`, `fastmcp`, `pydantic-ai`
@@ -152,3 +155,28 @@ uv run pytest --timeout=60 -k "test_name_pattern"
 - Use `~/workspace/scratch/` for temporary scripts and experiments
 - Use `~/workspace/reports/` for command output and reports
 - Keep test scripts in the `tests/` directory following proper pytest conventions
+
+## ⛔ Keep the Repository Root Pristine — No Scratch / Temp / Debug Files
+
+**The repository ROOT must contain only canonical project files** (packaging,
+config, docs, lockfiles). The only hidden directories allowed at root are
+`.git/`, `.github/`, and `.specify/` (plus a local, git-ignored `.venv/`).
+
+**NEVER write any of the following — anywhere in the repo, and ESPECIALLY at the root:**
+- One-off / debug / migration scripts: `fix_*.py`, `migrate_*.py`, `refactor_*.py`,
+  `replace_*.py`, `update_*.py`, `debug_*.py`, or `test_*.py` **at the root**
+  (real tests live in `tests/` only).
+- Databases / data dumps: `*.db`, `*.db-wal`, `*.sqlite*`, `*.corrupted`.
+- Logs / command output: `*.log`, scratch `*.txt`, `*.orig`, `*.rej`, `*.bak`.
+- Build artifacts: `*.tsbuildinfo`, compiled binaries, coverage files.
+- AI agent scratch directories: `.agent/`, `.agents/`, `.agent_data/`, `.tmp/`,
+  `.hypothesis/`, or any per-tool cache committed to git.
+- Any file that is NOT production source, a test in `tests/`, documentation, or
+  a recognized config/lockfile.
+
+**Why:** scratch at the root leaks private paths/credentials, bloats the tree,
+and erodes a pristine codebase.
+
+**Where scratch goes instead:** `~/workspace/scratch/` (experiments),
+`~/workspace/reports/` (command output); tests go in `tests/` (pytest).
+Before finishing a task, run `git status` and confirm no stray root files were added.
