@@ -13,7 +13,8 @@ ENV HOST=${HOST} \
     PATH="/root/.local/bin:/usr/local/bin:${PATH}" \
     UV_HTTP_TIMEOUT=3600 \
     UV_SYSTEM_PYTHON=1 \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
 # Install base dependencies, uv, and starship shell prompt
 RUN apt-get update \
@@ -26,10 +27,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . /app
 
 # Compile and install package in-place
-RUN uv pip install --system --upgrade --verbose --no-cache --break-system-packages --prerelease=allow servicenow-api[all]>=1.33.0
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[all]>=1.33.0
+
+COPY . /app
 
 COPY docker/starship.toml /root/.config/starship.toml
 
