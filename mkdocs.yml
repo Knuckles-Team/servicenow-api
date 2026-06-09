@@ -1,35 +1,64 @@
 site_name: "servicenow-api"
+site_description: "Python ServiceNow API + MCP Server + A2A Agent — a typed, deterministic ServiceNow tool surface for the agent-utilities ecosystem."
+site_url: "https://knuckles-team.github.io/servicenow-api/"
 repo_name: "Knuckles-Team/servicenow-api"
 repo_url: "https://github.com/Knuckles-Team/servicenow-api"
+edit_uri: "edit/main/docs/"
+copyright: "Copyright &copy; Knuckles-Team — MIT licensed"
+
 theme:
   name: material
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/graph-outline
+  favicon: https://raw.githubusercontent.com/squidfunk/mkdocs-material/master/material/templates/assets/images/favicon.png
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.top
+    - navigation.tracking
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.footer
+    - toc.follow
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-    - scheme: slate
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: indigo
       accent: indigo
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
-  icon:
-    repo: fontawesome/brands/github
+
 plugins:
   - search
+
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -37,12 +66,28 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - admonition
   - pymdownx.details
   - attr_list
+  - md_in_html
   - tables
   - toc:
       permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Knuckles-Team/servicenow-api
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/servicenow-api/
+
 nav:
   - Home: index.md
   - Overview: overview.md
+  - Installation: installation.md
+  - Deployment: deployment.md
+  - Usage (API / CLI / MCP): usage.md
+  - Concepts: concepts.md
