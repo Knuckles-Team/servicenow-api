@@ -181,6 +181,24 @@ and erodes a pristine codebase.
 `~/workspace/reports/` (command output); tests go in `tests/` (pytest).
 Before finishing a task, run `git status` and confirm no stray root files were added.
 
+## Quality Bar — Leave the Codebase Clean (REQUIRED)
+
+After completing any code change, run the project's pre-commit suite and drive it
+**fully green** before committing:
+
+```bash
+pre-commit run --all-files
+```
+
+Resolve **every** issue it reports — failures, lint errors, type errors, and
+warnings — **including problems that pre-date your change and were not caused by
+your edits**. The standing goal is a clean, working codebase with **no errors and
+no warnings**. Do not silence checks (`# noqa`, `# type: ignore`, `SKIP=`,
+`--no-verify`) to force green unless the exception is already documented in this
+file as a known, unavoidable limitation. Only commit once `pre-commit run
+--all-files` passes cleanly; if a check legitimately cannot pass, stop and explain
+why rather than bypassing it.
+
 ## Working with Git Worktrees (multi-session)
 
 Multiple agents/sessions work the `agent-packages/*` repos concurrently. **Do not
