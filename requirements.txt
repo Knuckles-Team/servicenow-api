@@ -1,1 +1,1 @@
-agent-utilities>=0.45.0
+agent-utilities>=0.47.0
