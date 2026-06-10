@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://knuckles-team.github.io/servicenow-api/concepts/">
+        <link rel="canonical" href="https://knuckles-team.github.io/servicenow-api/usage/">
       
       
-        <link rel="prev" href="../usage/">
+        <link rel="prev" href="../deployment/">
       
+      
+        <link rel="next" href="../concepts/">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>Concepts - servicenow-api</title>
+        <title>Usage (API / CLI / MCP) - servicenow-api</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#concept-registry-servicenow-api" class="md-skip">
+        <a href="#usage-api-cli-mcp" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Concepts
+              Usage (API / CLI / MCP)
             
           </span>
         </div>
@@ -308,9 +310,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../usage/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -327,11 +331,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../concepts/" class="md-tabs__link">
         
   
   
@@ -507,33 +509,6 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../usage/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Usage (API / CLI / MCP)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -553,7 +528,7 @@
   <span class="md-ellipsis">
     
   
-    Concepts
+    Usage (API / CLI / MCP)
   
 
     
@@ -571,7 +546,7 @@
   <span class="md-ellipsis">
     
   
-    Concepts
+    Usage (API / CLI / MCP)
   
 
     
@@ -597,10 +572,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-specific-concepts" class="md-nav__link">
+  <a href="#as-an-mcp-server" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project-Specific Concepts
+        As an MCP server
       
     </span>
   </a>
@@ -608,10 +583,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cross-project-references-from-agent-utilities" class="md-nav__link">
+  <a href="#as-a-python-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-Project References (from agent-utilities)
+        As a Python API
       
     </span>
   </a>
@@ -619,10 +594,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#synergy-with-agent-utilities" class="md-nav__link">
+  <a href="#as-a-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Synergy with agent-utilities
+        As a CLI
       
     </span>
   </a>
@@ -633,6 +608,33 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -664,10 +666,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-specific-concepts" class="md-nav__link">
+  <a href="#as-an-mcp-server" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project-Specific Concepts
+        As an MCP server
       
     </span>
   </a>
@@ -675,10 +677,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cross-project-references-from-agent-utilities" class="md-nav__link">
+  <a href="#as-a-python-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-Project References (from agent-utilities)
+        As a Python API
       
     </span>
   </a>
@@ -686,10 +688,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#synergy-with-agent-utilities" class="md-nav__link">
+  <a href="#as-a-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Synergy with agent-utilities
+        As a CLI
       
     </span>
   </a>
@@ -716,224 +718,89 @@
   
 
 
-<h1 id="concept-registry-servicenow-api">Concept Registry — servicenow-api<a class="headerlink" href="#concept-registry-servicenow-api" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><strong>Prefix</strong>: <code>CONCEPT:SNOW-*</code>
-<strong>Version</strong>: 1.19.0
-<strong>Bridge</strong>: <a href="https://github.com/Knuckles-Team/agent-utilities/blob/main/docs/concepts.md"><code>CONCEPT:ECO-4.0</code></a> (Unified Toolkit Ingestion)</p>
-</blockquote>
-<hr />
-<h2 id="project-specific-concepts">Project-Specific Concepts<a class="headerlink" href="#project-specific-concepts" title="Permanent link">&para;</a></h2>
+<h1 id="usage-api-cli-mcp">Usage — API / CLI / MCP<a class="headerlink" href="#usage-api-cli-mcp" title="Permanent link">&para;</a></h1>
+<p><code>servicenow-api</code> exposes the same capability three ways: as <strong>MCP tools</strong> an agent
+calls, as a <strong>Python API</strong> (<code>Api</code>) you import, and as a <strong>command-line</strong> server. The
+full ServiceNow domain coverage and concept registry are in <a href="../overview/">Overview</a>
+and <a href="../concepts/">Concepts</a>.</p>
+<h2 id="as-an-mcp-server">As an MCP server<a class="headerlink" href="#as-an-mcp-server" title="Permanent link">&para;</a></h2>
+<p>Once <a href="../deployment/">deployed</a>, the server registers consolidated, action-routed
+tools — one per ServiceNow domain. Each domain is toggled by its own <code>*TOOL</code>
+environment variable (all default to enabled).</p>
 <table>
 <thead>
 <tr>
-<th>Concept ID</th>
-<th>Name</th>
-<th>Description</th>
+<th>Group</th>
+<th>Domains</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>CONCEPT:SNOW-001</code></td>
-<td>Account Operations</td>
-<td>MCP tool domain <code>account</code> — Action-routed dynamic tool registration</td>
+<td>Service Management</td>
+<td><code>incidents</code>, <code>change_management</code>, <code>cmdb</code>, <code>cilifecycle</code></td>
 </tr>
 <tr>
-<td><code>CONCEPT:SNOW-002</code></td>
-<td>Activity Subscriptions Operations</td>
-<td>MCP tool domain <code>activity_subscriptions</code> — Action-routed dynamic tool registration</td>
+<td>Knowledge &amp; HR</td>
+<td><code>knowledge_management</code>, <code>hr</code></td>
 </tr>
 <tr>
-<td><code>CONCEPT:SNOW-003</code></td>
-<td>Aggregate Operations</td>
-<td>MCP tool domain <code>aggregate</code> — Action-routed dynamic tool registration</td>
+<td>Platform &amp; Data</td>
+<td><code>table_api</code>, <code>import_sets</code>, <code>data_classification</code>, <code>attachment</code>, <code>aggregate</code></td>
 </tr>
 <tr>
-<td><code>CONCEPT:SNOW-004</code></td>
-<td>Application Operations</td>
-<td>MCP tool domain <code>application</code> — Action-routed dynamic tool registration</td>
+<td>DevOps &amp; Delivery</td>
+<td><code>devops</code>, <code>cicd</code>, <code>source_control</code>, <code>update_sets</code>, <code>testing</code>, <code>flows</code></td>
 </tr>
 <tr>
-<td><code>CONCEPT:SNOW-005</code></td>
-<td>Attachment Operations</td>
-<td>MCP tool domain <code>attachment</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-006</code></td>
-<td>Authentication &amp; Session Management</td>
-<td>MCP tool domain <code>auth</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-007</code></td>
-<td>Batch Operations</td>
-<td>MCP tool domain <code>batch</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-008</code></td>
-<td>Change Management Operations</td>
-<td>MCP tool domain <code>change_management</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-009</code></td>
-<td>Cicd Operations</td>
-<td>MCP tool domain <code>cicd</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-010</code></td>
-<td>Cilifecycle Operations</td>
-<td>MCP tool domain <code>cilifecycle</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-011</code></td>
-<td>Configuration Management DB</td>
-<td>MCP tool domain <code>cmdb</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-012</code></td>
-<td>Custom Api Operations</td>
-<td>MCP tool domain <code>custom_api</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-013</code></td>
-<td>Data Classification Operations</td>
-<td>MCP tool domain <code>data_classification</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-014</code></td>
-<td>Devops Operations</td>
-<td>MCP tool domain <code>devops</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-015</code></td>
-<td>Email Operations</td>
-<td>MCP tool domain <code>email</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-016</code></td>
-<td>Flows Operations</td>
-<td>MCP tool domain <code>flows</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-017</code></td>
-<td>Hr Operations</td>
-<td>MCP tool domain <code>hr</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-018</code></td>
-<td>Import Sets Operations</td>
-<td>MCP tool domain <code>import_sets</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-019</code></td>
-<td>Incident Management</td>
-<td>MCP tool domain <code>incidents</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-020</code></td>
-<td>Knowledge Management Operations</td>
-<td>MCP tool domain <code>knowledge_management</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-021</code></td>
-<td>Metricbase Operations</td>
-<td>MCP tool domain <code>metricbase</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-022</code></td>
-<td>Misc Operations</td>
-<td>MCP tool domain <code>misc</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-023</code></td>
-<td>Plugins Operations</td>
-<td>MCP tool domain <code>plugins</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-024</code></td>
-<td>Ppm Operations</td>
-<td>MCP tool domain <code>ppm</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-025</code></td>
-<td>Product Inventory Operations</td>
-<td>MCP tool domain <code>product_inventory</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-026</code></td>
-<td>Service Qualification Operations</td>
-<td>MCP tool domain <code>service_qualification</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-027</code></td>
-<td>Source Control Operations</td>
-<td>MCP tool domain <code>source_control</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-028</code></td>
-<td>Table Api Operations</td>
-<td>MCP tool domain <code>table_api</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-029</code></td>
-<td>Testing Operations</td>
-<td>MCP tool domain <code>testing</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SNOW-030</code></td>
-<td>Update Sets Operations</td>
-<td>MCP tool domain <code>update_sets</code> — Action-routed dynamic tool registration</td>
+<td>Operations</td>
+<td><code>account</code>, <code>auth</code>, <code>batch</code>, <code>email</code>, <code>plugins</code>, <code>custom_api</code>, <code>misc</code></td>
 </tr>
 </tbody>
 </table>
-<h2 id="cross-project-references-from-agent-utilities">Cross-Project References (from agent-utilities)<a class="headerlink" href="#cross-project-references-from-agent-utilities" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Concept ID</th>
-<th>Name</th>
-<th>Origin</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>CONCEPT:ECO-4.0</code></td>
-<td>Unified Toolkit Ingestion</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:ORCH-1.2</code></td>
-<td>Confidence-Gated Router</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:OS-5.1</code></td>
-<td>Prompt Injection Defense</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:OS-5.2</code></td>
-<td>Cognitive Scheduler</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:OS-5.3</code></td>
-<td>Guardrail Engine</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:OS-5.4</code></td>
-<td>Audit Logging</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:KG-2.0</code></td>
-<td>Knowledge Graph Core</td>
-<td>agent-utilities</td>
-</tr>
-</tbody>
-</table>
-<h2 id="synergy-with-agent-utilities">Synergy with agent-utilities<a class="headerlink" href="#synergy-with-agent-utilities" title="Permanent link">&para;</a></h2>
-<p>This project integrates with <code>agent-utilities</code> via <code>CONCEPT:ECO-4.0</code> (Unified Toolkit Ingestion). The <code>servicenow_api</code> MCP server registers its tools with the agent-utilities FastMCP middleware, enabling automatic discovery, telemetry, and Knowledge Graph ingestion of all SNOW-* concepts.</p>
+<p>Example agent prompts that map onto these tools:</p>
+<ul>
+<li><em>"Open incident INC0010001 and show its current state"</em> → the <code>incidents</code> tool</li>
+<li><em>"List change requests scheduled for this week"</em> → the <code>change_management</code> tool</li>
+<li><em>"Look up the CMDB CI for host <code>app-01</code>"</em> → the <code>cmdb</code> tool</li>
+</ul>
+<h2 id="as-a-python-api">As a Python API<a class="headerlink" href="#as-a-python-api" title="Permanent link">&para;</a></h2>
+<p><code>Api</code> is a session-based ServiceNow REST client; every domain method validates its
+inputs with Pydantic models and returns a structured <code>Response</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">servicenow_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">Api</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">api</span> <span class="o">=</span> <span class="n">Api</span><span class="p">(</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://your-instance.service-now.com&quot;</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;your_password&quot;</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># Reads</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">incidents</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_incidents</span><span class="p">()</span>                          <span class="c1"># list of incident records</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">incident</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_incident</span><span class="p">(</span><span class="n">incident_id</span><span class="o">=</span><span class="s2">&quot;&lt;sys_id&gt;&quot;</span><span class="p">)</span>      <span class="c1"># a single incident</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="n">changes</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_change_requests</span><span class="p">()</span>                      <span class="c1"># change requests</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">ci</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_cmdb</span><span class="p">(</span><span class="n">cmdb_id</span><span class="o">=</span><span class="s2">&quot;&lt;sys_id&gt;&quot;</span><span class="p">)</span>                    <span class="c1"># CMDB configuration item</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">records</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">get_table</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="s2">&quot;incident&quot;</span><span class="p">)</span>                <span class="c1"># raw Table API read</span>
+</span></code></pre></div>
+<p>Build a client straight from the environment:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">servicenow_api.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_client</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">api</span> <span class="o">=</span> <span class="n">get_client</span><span class="p">()</span>        <span class="c1"># reads SERVICENOW_* from the environment / .env,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                          <span class="c1"># auto-detecting OIDC delegation or basic auth</span>
+</span></code></pre></div>
+<h2 id="as-a-cli">As a CLI<a class="headerlink" href="#as-a-cli" title="Permanent link">&para;</a></h2>
+<p>Both servers are installed as console scripts and accept transport and binding flags.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># MCP server (stdio by default)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>servicenow-mcp
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>servicenow-mcp<span class="w"> </span>--transport<span class="w"> </span>streamable-http<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># A2A agent server (consumes the MCP tools over MCP_URL)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nv">MCP_URL</span><span class="o">=</span>http://localhost:8000/mcp<span class="w"> </span><span class="nv">PROVIDER</span><span class="o">=</span>openai<span class="w"> </span><span class="nv">MODEL_ID</span><span class="o">=</span>gpt-4o<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span>servicenow-agent
+</span></code></pre></div>
+<p>Each domain tool reads only the configuration it needs and remains inactive when the
+corresponding credentials or <code>*TOOL</code> toggle are absent. See <a href="../deployment/">Deployment</a>
+for the full environment table and the long-lived server topology.</p>
 
 
 
@@ -971,7 +838,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Usage (API / CLI / MCP)">
+          <a href="../deployment/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Deployment">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -981,11 +848,27 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Usage (API / CLI / MCP)
+                Deployment
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../concepts/" class="md-footer__link md-footer__link--next" aria-label="Next: Concepts">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Concepts
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
