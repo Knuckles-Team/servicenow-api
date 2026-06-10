@@ -3,13 +3,13 @@
 # pushed image ~43% (no default-jre/dev-tools/source) so layer pushes finish well
 # inside the registry's blob-upload window even under concurrency.
 FROM python:3.11-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_SYSTEM_PYTHON=1 \
     UV_HTTP_TIMEOUT=3600
 RUN --mount=type=cache,target=/root/.cache/uv \
-    pip install --no-cache-dir uv \
-    && uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[all]>=1.33.0
+    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[all]>=1.33.0
 
 FROM python:3.11-slim
 
