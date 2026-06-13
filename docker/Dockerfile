@@ -8,6 +8,12 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_SYSTEM_PYTHON=1 \
     UV_HTTP_TIMEOUT=3600
+# Some [all] deps (e.g. hnswlib, an agent-utilities transitive) ship no manylinux
+# wheel and build from sdist, needing a C++ toolchain. Install it in the builder
+# only — the final stage copies just /usr/local, so no compiler ships.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential \
+    && rm -rf /var/lib/apt/lists/*
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[all]>=1.35.0
 
