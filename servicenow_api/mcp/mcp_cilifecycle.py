@@ -3,6 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp_utilities import resolve_action
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -35,6 +36,29 @@ def register_cilifecycle_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "check_ci_lifecycle_compat_actions",
+                "register_ci_lifecycle_operator",
+                "unregister_ci_lifecycle_operator",
+                "add_ci_lifecycle_action",
+                "check_ci_lifecycle_lease_expired",
+                "check_ci_lifecycle_not_allowed_action",
+                "check_ci_lifecycle_not_allowed_ops_transition",
+                "check_ci_lifecycle_requestor_valid",
+                "delete_ci_lifecycle_action",
+                "extend_ci_lifecycle_lease",
+                "get_ci_lifecycle_active_actions",
+                "get_ci_lifecycle_status",
+                "set_ci_lifecycle_status",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "check_ci_lifecycle_compat_actions":
             return client.check_ci_lifecycle_compat_actions(**kwargs)
