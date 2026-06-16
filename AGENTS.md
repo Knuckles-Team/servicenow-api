@@ -255,3 +255,15 @@ alone).
 4. **Clean up** — remove the worktree and delete the merged branch:
    `rm_worktree remove <repo> <branch> --delete-branch`; `rm_worktree prune` clears
    stale entries. (Raw-git: `git worktree remove <path> && git branch -d <branch>`.)
+
+<!-- BEGIN concept-coordination (generated) -->
+## Concept-ID Coordination (multi-session)
+
+Working in parallel with other sessions/worktrees? **Reserve a concept id before you write its `CONCEPT:` marker** so two sessions never collide:
+
+```bash
+agent-utilities --json concept reserve --ns KG-2   # or a package prefix, e.g. KEY
+```
+
+Full protocol (ledger, merge=union, reconcile, MCP/REST): <https://knuckles-team.github.io/agent-utilities/concept_coordination/>
+<!-- END concept-coordination (generated) -->
