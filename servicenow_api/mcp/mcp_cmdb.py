@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -57,21 +57,21 @@ def register_cmdb_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_cmdb":
-            return client.get_cmdb(**kwargs)
+            return await run_blocking(client.get_cmdb, **kwargs)
         if action == "delete_cmdb_relation":
-            return client.delete_cmdb_relation(**kwargs)
+            return await run_blocking(client.delete_cmdb_relation, **kwargs)
         if action == "get_cmdb_instances":
-            return client.get_cmdb_instances(**kwargs)
+            return await run_blocking(client.get_cmdb_instances, **kwargs)
         if action == "get_cmdb_instance":
-            return client.get_cmdb_instance(**kwargs)
+            return await run_blocking(client.get_cmdb_instance, **kwargs)
         if action == "create_cmdb_instance":
-            return client.create_cmdb_instance(**kwargs)
+            return await run_blocking(client.create_cmdb_instance, **kwargs)
         if action == "update_cmdb_instance":
-            return client.update_cmdb_instance(**kwargs)
+            return await run_blocking(client.update_cmdb_instance, **kwargs)
         if action == "patch_cmdb_instance":
-            return client.patch_cmdb_instance(**kwargs)
+            return await run_blocking(client.patch_cmdb_instance, **kwargs)
         if action == "create_cmdb_relation":
-            return client.create_cmdb_relation(**kwargs)
+            return await run_blocking(client.create_cmdb_relation, **kwargs)
         if action == "ingest_cmdb_data":
-            return client.ingest_cmdb_data(**kwargs)
+            return await run_blocking(client.ingest_cmdb_data, **kwargs)
         raise ValueError(f"Unknown action: {action}")

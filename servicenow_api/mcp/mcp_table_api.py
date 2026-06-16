@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -54,15 +54,15 @@ def register_table_api_tools(mcp: FastMCP):
         action = resolved
 
         if action == "delete_table_record":
-            return client.delete_table_record(**kwargs)
+            return await run_blocking(client.delete_table_record, **kwargs)
         if action == "get_table":
-            return client.get_table(**kwargs)
+            return await run_blocking(client.get_table, **kwargs)
         if action == "get_table_record":
-            return client.get_table_record(**kwargs)
+            return await run_blocking(client.get_table_record, **kwargs)
         if action == "patch_table_record":
-            return client.patch_table_record(**kwargs)
+            return await run_blocking(client.patch_table_record, **kwargs)
         if action == "update_table_record":
-            return client.update_table_record(**kwargs)
+            return await run_blocking(client.update_table_record, **kwargs)
         if action == "add_table_record":
-            return client.add_table_record(**kwargs)
+            return await run_blocking(client.add_table_record, **kwargs)
         raise ValueError(f"Unknown action: {action}")

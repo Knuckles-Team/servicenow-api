@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -47,9 +47,9 @@ def register_incidents_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_incidents":
-            return client.get_incidents(**kwargs)
+            return await run_blocking(client.get_incidents, **kwargs)
         if action == "create_incident":
-            return client.create_incident(**kwargs)
+            return await run_blocking(client.create_incident, **kwargs)
         if action == "get_incident":
-            return client.get_incident(**kwargs)
+            return await run_blocking(client.get_incident, **kwargs)
         raise ValueError(f"Unknown action: {action}")

@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -51,9 +51,11 @@ def register_service_qualification_tools(mcp: FastMCP):
         action = resolved
 
         if action == "check_service_qualification":
-            return client.check_service_qualification(**kwargs)
+            return await run_blocking(client.check_service_qualification, **kwargs)
         if action == "get_service_qualification":
-            return client.get_service_qualification(**kwargs)
+            return await run_blocking(client.get_service_qualification, **kwargs)
         if action == "process_service_qualification_result":
-            return client.process_service_qualification_result(**kwargs)
+            return await run_blocking(
+                client.process_service_qualification_result, **kwargs
+            )
         raise ValueError(f"Unknown action: {action}")

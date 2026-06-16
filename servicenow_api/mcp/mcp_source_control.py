@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -47,7 +47,9 @@ def register_source_control_tools(mcp: FastMCP):
         action = resolved
 
         if action == "apply_remote_source_control_changes":
-            return client.apply_remote_source_control_changes(**kwargs)
+            return await run_blocking(
+                client.apply_remote_source_control_changes, **kwargs
+            )
         if action == "import_repository":
-            return client.import_repository(**kwargs)
+            return await run_blocking(client.import_repository, **kwargs)
         raise ValueError(f"Unknown action: {action}")

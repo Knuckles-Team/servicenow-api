@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -43,5 +43,5 @@ def register_batch_tools(mcp: FastMCP):
         action = resolved
 
         if action == "batch_request":
-            return client.batch_request(**kwargs)
+            return await run_blocking(client.batch_request, **kwargs)
         raise ValueError(f"Unknown action: {action}")

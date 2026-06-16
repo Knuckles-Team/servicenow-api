@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -60,27 +60,27 @@ def register_cicd_tools(mcp: FastMCP):
         action = resolved
 
         if action == "batch_install_result":
-            return client.batch_install_result(**kwargs)
+            return await run_blocking(client.batch_install_result, **kwargs)
         if action == "instance_scan_progress":
-            return client.instance_scan_progress(**kwargs)
+            return await run_blocking(client.instance_scan_progress, **kwargs)
         if action == "progress":
-            return client.progress(**kwargs)
+            return await run_blocking(client.progress, **kwargs)
         if action == "batch_install":
-            return client.batch_install(**kwargs)
+            return await run_blocking(client.batch_install, **kwargs)
         if action == "batch_rollback":
-            return client.batch_rollback(**kwargs)
+            return await run_blocking(client.batch_rollback, **kwargs)
         if action == "app_repo_install":
-            return client.app_repo_install(**kwargs)
+            return await run_blocking(client.app_repo_install, **kwargs)
         if action == "app_repo_publish":
-            return client.app_repo_publish(**kwargs)
+            return await run_blocking(client.app_repo_publish, **kwargs)
         if action == "app_repo_rollback":
-            return client.app_repo_rollback(**kwargs)
+            return await run_blocking(client.app_repo_rollback, **kwargs)
         if action == "full_scan":
-            return client.full_scan(**kwargs)
+            return await run_blocking(client.full_scan, **kwargs)
         if action == "point_scan":
-            return client.point_scan(**kwargs)
+            return await run_blocking(client.point_scan, **kwargs)
         if action == "combo_suite_scan":
-            return client.combo_suite_scan(**kwargs)
+            return await run_blocking(client.combo_suite_scan, **kwargs)
         if action == "suite_scan":
-            return client.suite_scan(**kwargs)
+            return await run_blocking(client.suite_scan, **kwargs)
         raise ValueError(f"Unknown action: {action}")
