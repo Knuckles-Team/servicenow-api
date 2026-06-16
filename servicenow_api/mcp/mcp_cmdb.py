@@ -3,6 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp_utilities import resolve_action
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -35,6 +36,25 @@ def register_cmdb_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_cmdb",
+                "delete_cmdb_relation",
+                "get_cmdb_instances",
+                "get_cmdb_instance",
+                "create_cmdb_instance",
+                "update_cmdb_instance",
+                "patch_cmdb_instance",
+                "create_cmdb_relation",
+                "ingest_cmdb_data",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_cmdb":
             return client.get_cmdb(**kwargs)

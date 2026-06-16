@@ -28,6 +28,7 @@ from agent_utilities.base_utilities import to_boolean
 from agent_utilities.mcp_utilities import (
     config,
     create_mcp_server,
+    resolve_action,
 )
 from dotenv import find_dotenv, load_dotenv
 
@@ -69,6 +70,11 @@ def register_misc_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, [], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -97,6 +103,15 @@ def register_flows_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["workflow_to_mermaid", "collect_graph_for_roots", "get_flow_metadata"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "workflow_to_mermaid":
             return client.workflow_to_mermaid(**kwargs)
@@ -133,6 +148,11 @@ def register_application_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["get_application"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_application":
             return client.get_application(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -163,6 +183,25 @@ def register_cmdb_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_cmdb",
+                "delete_cmdb_relation",
+                "get_cmdb_instances",
+                "get_cmdb_instance",
+                "create_cmdb_instance",
+                "update_cmdb_instance",
+                "patch_cmdb_instance",
+                "create_cmdb_relation",
+                "ingest_cmdb_data",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_cmdb":
             return client.get_cmdb(**kwargs)
@@ -210,6 +249,28 @@ def register_cicd_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "batch_install_result",
+                "instance_scan_progress",
+                "progress",
+                "batch_install",
+                "batch_rollback",
+                "app_repo_install",
+                "app_repo_publish",
+                "app_repo_rollback",
+                "full_scan",
+                "point_scan",
+                "combo_suite_scan",
+                "suite_scan",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "batch_install_result":
             return client.batch_install_result(**kwargs)
@@ -264,6 +325,13 @@ def register_plugins_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action, ["activate_plugin", "rollback_plugin"], service="servicenow-api"
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "activate_plugin":
             return client.activate_plugin(**kwargs)
         if action == "rollback_plugin":
@@ -296,6 +364,15 @@ def register_source_control_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["apply_remote_source_control_changes", "import_repository"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "apply_remote_source_control_changes":
             return client.apply_remote_source_control_changes(**kwargs)
@@ -330,6 +407,11 @@ def register_testing_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["run_test_suite"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "run_test_suite":
             return client.run_test_suite(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -360,6 +442,22 @@ def register_update_sets_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "update_set_create",
+                "update_set_retrieve",
+                "update_set_preview",
+                "update_set_commit",
+                "update_set_commit_multiple",
+                "update_set_back_out",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "update_set_create":
             return client.update_set_create(**kwargs)
@@ -402,6 +500,11 @@ def register_batch_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["batch_request"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "batch_request":
             return client.batch_request(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -432,6 +535,41 @@ def register_change_management_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_change_requests",
+                "get_change_request_nextstate",
+                "get_change_request_schedule",
+                "get_change_request_tasks",
+                "get_change_request",
+                "get_change_request_ci",
+                "get_change_request_conflict",
+                "get_standard_change_request_templates",
+                "get_change_request_models",
+                "get_standard_change_request_model",
+                "get_standard_change_request_template",
+                "get_change_request_worker",
+                "create_change_request",
+                "create_change_request_task",
+                "create_change_request_ci_association",
+                "calculate_standard_change_request_risk",
+                "check_change_request_conflict",
+                "refresh_change_request_impacted_services",
+                "approve_change_request",
+                "update_change_request",
+                "update_change_request_first_available",
+                "update_change_request_task",
+                "delete_change_request",
+                "delete_change_request_task",
+                "delete_change_request_conflict_scan",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_change_requests":
             return client.get_change_requests(**kwargs)
@@ -512,6 +650,29 @@ def register_cilifecycle_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            [
+                "check_ci_lifecycle_compat_actions",
+                "register_ci_lifecycle_operator",
+                "unregister_ci_lifecycle_operator",
+                "add_ci_lifecycle_action",
+                "check_ci_lifecycle_lease_expired",
+                "check_ci_lifecycle_not_allowed_action",
+                "check_ci_lifecycle_not_allowed_ops_transition",
+                "check_ci_lifecycle_requestor_valid",
+                "delete_ci_lifecycle_action",
+                "extend_ci_lifecycle_lease",
+                "get_ci_lifecycle_active_actions",
+                "get_ci_lifecycle_status",
+                "set_ci_lifecycle_status",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "check_ci_lifecycle_compat_actions":
             return client.check_ci_lifecycle_compat_actions(**kwargs)
         if action == "register_ci_lifecycle_operator":
@@ -567,6 +728,24 @@ def register_devops_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            [
+                "check_devops_change_control",
+                "register_devops_artifact",
+                "check_devops_step_mapping",
+                "get_devops_change_info",
+                "get_devops_code_schema",
+                "get_devops_onboarding_status",
+                "get_devops_orchestration_schema",
+                "get_devops_plan_schema",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "check_devops_change_control":
             return client.check_devops_change_control(**kwargs)
         if action == "register_devops_artifact":
@@ -612,6 +791,15 @@ def register_import_sets_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            ["get_import_set", "insert_import_set", "insert_multiple_import_sets"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_import_set":
             return client.get_import_set(**kwargs)
         if action == "insert_import_set":
@@ -647,6 +835,15 @@ def register_incidents_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            ["get_incidents", "create_incident", "get_incident"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_incidents":
             return client.get_incidents(**kwargs)
         if action == "create_incident":
@@ -681,6 +878,21 @@ def register_knowledge_management_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_knowledge_articles",
+                "get_knowledge_article",
+                "get_knowledge_article_attachment",
+                "get_featured_knowledge_article",
+                "get_most_viewed_knowledge_articles",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_knowledge_articles":
             return client.get_knowledge_articles(**kwargs)
@@ -720,6 +932,22 @@ def register_table_api_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "delete_table_record",
+                "get_table",
+                "get_table_record",
+                "patch_table_record",
+                "update_table_record",
+                "add_table_record",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "delete_table_record":
             return client.delete_table_record(**kwargs)
@@ -762,6 +990,13 @@ def register_auth_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action, ["refresh_auth_token"], service="servicenow-api"
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "refresh_auth_token":
             return client.refresh_auth_token(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -792,6 +1027,11 @@ def register_custom_api_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(action, ["api_request"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "api_request":
             return client.api_request(**kwargs)
@@ -824,6 +1064,11 @@ def register_email_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["send_email"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "send_email":
             return client.send_email(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -854,6 +1099,13 @@ def register_data_classification_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action, ["get_data_classification"], service="servicenow-api"
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_data_classification":
             return client.get_data_classification(**kwargs)
@@ -886,6 +1138,11 @@ def register_aggregate_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["get_stats"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_stats":
             return client.get_stats(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -916,6 +1173,13 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action, ["get_activity_subscriptions"], service="servicenow-api"
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_activity_subscriptions":
             return client.get_activity_subscriptions(**kwargs)
@@ -948,6 +1212,11 @@ def register_account_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(action, ["get_account"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_account":
             return client.get_account(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -978,6 +1247,11 @@ def register_hr_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(action, ["get_hr_profile"], service="servicenow-api")
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_hr_profile":
             return client.get_hr_profile(**kwargs)
@@ -1010,6 +1284,13 @@ def register_metricbase_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action, ["metricbase_insert"], service="servicenow-api"
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "metricbase_insert":
             return client.metricbase_insert(**kwargs)
         raise ValueError(f"Unknown action: {action}")
@@ -1040,6 +1321,15 @@ def register_attachment_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["get_attachment", "upload_attachment", "delete_attachment"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_attachment":
             return client.get_attachment(**kwargs)
@@ -1076,6 +1366,19 @@ def register_service_qualification_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            [
+                "check_service_qualification",
+                "get_service_qualification",
+                "process_service_qualification_result",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "check_service_qualification":
             return client.check_service_qualification(**kwargs)
         if action == "get_service_qualification":
@@ -1111,6 +1414,15 @@ def register_ppm_tools(mcp: FastMCP):
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            ["insert_cost_plans", "insert_project_tasks"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "insert_cost_plans":
             return client.insert_cost_plans(**kwargs)
         if action == "insert_project_tasks":
@@ -1143,6 +1455,15 @@ def register_product_inventory_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["get_product_inventory", "delete_product_inventory"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_product_inventory":
             return client.get_product_inventory(**kwargs)
