@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -47,9 +47,9 @@ def register_attachment_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_attachment":
-            return client.get_attachment(**kwargs)
+            return await run_blocking(client.get_attachment, **kwargs)
         if action == "upload_attachment":
-            return client.upload_attachment(**kwargs)
+            return await run_blocking(client.upload_attachment, **kwargs)
         if action == "delete_attachment":
-            return client.delete_attachment(**kwargs)
+            return await run_blocking(client.delete_attachment, **kwargs)
         raise ValueError(f"Unknown action: {action}")

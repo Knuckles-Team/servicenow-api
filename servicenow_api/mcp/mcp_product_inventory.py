@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -47,7 +47,7 @@ def register_product_inventory_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_product_inventory":
-            return client.get_product_inventory(**kwargs)
+            return await run_blocking(client.get_product_inventory, **kwargs)
         if action == "delete_product_inventory":
-            return client.delete_product_inventory(**kwargs)
+            return await run_blocking(client.delete_product_inventory, **kwargs)
         raise ValueError(f"Unknown action: {action}")

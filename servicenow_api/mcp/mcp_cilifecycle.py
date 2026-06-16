@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -61,29 +61,37 @@ def register_cilifecycle_tools(mcp: FastMCP):
         action = resolved
 
         if action == "check_ci_lifecycle_compat_actions":
-            return client.check_ci_lifecycle_compat_actions(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_compat_actions, **kwargs
+            )
         if action == "register_ci_lifecycle_operator":
-            return client.register_ci_lifecycle_operator(**kwargs)
+            return await run_blocking(client.register_ci_lifecycle_operator, **kwargs)
         if action == "unregister_ci_lifecycle_operator":
-            return client.unregister_ci_lifecycle_operator(**kwargs)
+            return await run_blocking(client.unregister_ci_lifecycle_operator, **kwargs)
         if action == "add_ci_lifecycle_action":
-            return client.add_ci_lifecycle_action(**kwargs)
+            return await run_blocking(client.add_ci_lifecycle_action, **kwargs)
         if action == "check_ci_lifecycle_lease_expired":
-            return client.check_ci_lifecycle_lease_expired(**kwargs)
+            return await run_blocking(client.check_ci_lifecycle_lease_expired, **kwargs)
         if action == "check_ci_lifecycle_not_allowed_action":
-            return client.check_ci_lifecycle_not_allowed_action(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_not_allowed_action, **kwargs
+            )
         if action == "check_ci_lifecycle_not_allowed_ops_transition":
-            return client.check_ci_lifecycle_not_allowed_ops_transition(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_not_allowed_ops_transition, **kwargs
+            )
         if action == "check_ci_lifecycle_requestor_valid":
-            return client.check_ci_lifecycle_requestor_valid(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_requestor_valid, **kwargs
+            )
         if action == "delete_ci_lifecycle_action":
-            return client.delete_ci_lifecycle_action(**kwargs)
+            return await run_blocking(client.delete_ci_lifecycle_action, **kwargs)
         if action == "extend_ci_lifecycle_lease":
-            return client.extend_ci_lifecycle_lease(**kwargs)
+            return await run_blocking(client.extend_ci_lifecycle_lease, **kwargs)
         if action == "get_ci_lifecycle_active_actions":
-            return client.get_ci_lifecycle_active_actions(**kwargs)
+            return await run_blocking(client.get_ci_lifecycle_active_actions, **kwargs)
         if action == "get_ci_lifecycle_status":
-            return client.get_ci_lifecycle_status(**kwargs)
+            return await run_blocking(client.get_ci_lifecycle_status, **kwargs)
         if action == "set_ci_lifecycle_status":
-            return client.set_ci_lifecycle_status(**kwargs)
+            return await run_blocking(client.set_ci_lifecycle_status, **kwargs)
         raise ValueError(f"Unknown action: {action}")

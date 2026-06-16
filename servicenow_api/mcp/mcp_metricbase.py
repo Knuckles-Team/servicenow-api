@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -45,5 +45,5 @@ def register_metricbase_tools(mcp: FastMCP):
         action = resolved
 
         if action == "metricbase_insert":
-            return client.metricbase_insert(**kwargs)
+            return await run_blocking(client.metricbase_insert, **kwargs)
         raise ValueError(f"Unknown action: {action}")
