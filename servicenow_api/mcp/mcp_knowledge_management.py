@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -53,13 +53,15 @@ def register_knowledge_management_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_knowledge_articles":
-            return client.get_knowledge_articles(**kwargs)
+            return await run_blocking(client.get_knowledge_articles, **kwargs)
         if action == "get_knowledge_article":
-            return client.get_knowledge_article(**kwargs)
+            return await run_blocking(client.get_knowledge_article, **kwargs)
         if action == "get_knowledge_article_attachment":
-            return client.get_knowledge_article_attachment(**kwargs)
+            return await run_blocking(client.get_knowledge_article_attachment, **kwargs)
         if action == "get_featured_knowledge_article":
-            return client.get_featured_knowledge_article(**kwargs)
+            return await run_blocking(client.get_featured_knowledge_article, **kwargs)
         if action == "get_most_viewed_knowledge_articles":
-            return client.get_most_viewed_knowledge_articles(**kwargs)
+            return await run_blocking(
+                client.get_most_viewed_knowledge_articles, **kwargs
+            )
         raise ValueError(f"Unknown action: {action}")

@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -47,9 +47,9 @@ def register_flows_tools(mcp: FastMCP):
         action = resolved
 
         if action == "workflow_to_mermaid":
-            return client.workflow_to_mermaid(**kwargs)
+            return await run_blocking(client.workflow_to_mermaid, **kwargs)
         if action == "collect_graph_for_roots":
-            return client.collect_graph_for_roots(**kwargs)
+            return await run_blocking(client.collect_graph_for_roots, **kwargs)
         if action == "get_flow_metadata":
-            return client.get_flow_metadata(**kwargs)
+            return await run_blocking(client.get_flow_metadata, **kwargs)
         raise ValueError(f"Unknown action: {action}")

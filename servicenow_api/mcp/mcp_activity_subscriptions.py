@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -45,5 +45,5 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_activity_subscriptions":
-            return client.get_activity_subscriptions(**kwargs)
+            return await run_blocking(client.get_activity_subscriptions, **kwargs)
         raise ValueError(f"Unknown action: {action}")

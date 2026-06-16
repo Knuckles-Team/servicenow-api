@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -54,15 +54,15 @@ def register_update_sets_tools(mcp: FastMCP):
         action = resolved
 
         if action == "update_set_create":
-            return client.update_set_create(**kwargs)
+            return await run_blocking(client.update_set_create, **kwargs)
         if action == "update_set_retrieve":
-            return client.update_set_retrieve(**kwargs)
+            return await run_blocking(client.update_set_retrieve, **kwargs)
         if action == "update_set_preview":
-            return client.update_set_preview(**kwargs)
+            return await run_blocking(client.update_set_preview, **kwargs)
         if action == "update_set_commit":
-            return client.update_set_commit(**kwargs)
+            return await run_blocking(client.update_set_commit, **kwargs)
         if action == "update_set_commit_multiple":
-            return client.update_set_commit_multiple(**kwargs)
+            return await run_blocking(client.update_set_commit_multiple, **kwargs)
         if action == "update_set_back_out":
-            return client.update_set_back_out(**kwargs)
+            return await run_blocking(client.update_set_back_out, **kwargs)
         raise ValueError(f"Unknown action: {action}")
