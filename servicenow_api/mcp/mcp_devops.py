@@ -3,6 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp_utilities import resolve_action
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -35,6 +36,24 @@ def register_devops_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "check_devops_change_control",
+                "register_devops_artifact",
+                "check_devops_step_mapping",
+                "get_devops_change_info",
+                "get_devops_code_schema",
+                "get_devops_onboarding_status",
+                "get_devops_orchestration_schema",
+                "get_devops_plan_schema",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "check_devops_change_control":
             return client.check_devops_change_control(**kwargs)

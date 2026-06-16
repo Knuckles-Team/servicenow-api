@@ -3,6 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp_utilities import resolve_action
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -35,6 +36,28 @@ def register_cicd_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "batch_install_result",
+                "instance_scan_progress",
+                "progress",
+                "batch_install",
+                "batch_rollback",
+                "app_repo_install",
+                "app_repo_publish",
+                "app_repo_rollback",
+                "full_scan",
+                "point_scan",
+                "combo_suite_scan",
+                "suite_scan",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "batch_install_result":
             return client.batch_install_result(**kwargs)
