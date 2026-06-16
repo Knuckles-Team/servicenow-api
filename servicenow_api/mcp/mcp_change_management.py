@@ -3,6 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp_utilities import resolve_action
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -35,6 +36,41 @@ def register_change_management_tools(mcp: FastMCP):
             return {"error": f"Invalid params_json: {e}"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_change_requests",
+                "get_change_request_nextstate",
+                "get_change_request_schedule",
+                "get_change_request_tasks",
+                "get_change_request",
+                "get_change_request_ci",
+                "get_change_request_conflict",
+                "get_standard_change_request_templates",
+                "get_change_request_models",
+                "get_standard_change_request_model",
+                "get_standard_change_request_template",
+                "get_change_request_worker",
+                "create_change_request",
+                "create_change_request_task",
+                "create_change_request_ci_association",
+                "calculate_standard_change_request_risk",
+                "check_change_request_conflict",
+                "refresh_change_request_impacted_services",
+                "approve_change_request",
+                "update_change_request",
+                "update_change_request_first_available",
+                "update_change_request_task",
+                "delete_change_request",
+                "delete_change_request_task",
+                "delete_change_request_conflict_scan",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
 
         if action == "get_change_requests":
             return client.get_change_requests(**kwargs)
