@@ -29,6 +29,7 @@ from agent_utilities.mcp_utilities import (
     config,
     create_mcp_server,
     resolve_action,
+    run_blocking,
 )
 from dotenv import find_dotenv, load_dotenv
 
@@ -114,11 +115,11 @@ def register_flows_tools(mcp: FastMCP):
         action = resolved
 
         if action == "workflow_to_mermaid":
-            return client.workflow_to_mermaid(**kwargs)
+            return await run_blocking(client.workflow_to_mermaid, **kwargs)
         if action == "collect_graph_for_roots":
-            return client.collect_graph_for_roots(**kwargs)
+            return await run_blocking(client.collect_graph_for_roots, **kwargs)
         if action == "get_flow_metadata":
-            return client.get_flow_metadata(**kwargs)
+            return await run_blocking(client.get_flow_metadata, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -154,7 +155,7 @@ def register_application_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_application":
-            return client.get_application(**kwargs)
+            return await run_blocking(client.get_application, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -204,23 +205,23 @@ def register_cmdb_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_cmdb":
-            return client.get_cmdb(**kwargs)
+            return await run_blocking(client.get_cmdb, **kwargs)
         if action == "delete_cmdb_relation":
-            return client.delete_cmdb_relation(**kwargs)
+            return await run_blocking(client.delete_cmdb_relation, **kwargs)
         if action == "get_cmdb_instances":
-            return client.get_cmdb_instances(**kwargs)
+            return await run_blocking(client.get_cmdb_instances, **kwargs)
         if action == "get_cmdb_instance":
-            return client.get_cmdb_instance(**kwargs)
+            return await run_blocking(client.get_cmdb_instance, **kwargs)
         if action == "create_cmdb_instance":
-            return client.create_cmdb_instance(**kwargs)
+            return await run_blocking(client.create_cmdb_instance, **kwargs)
         if action == "update_cmdb_instance":
-            return client.update_cmdb_instance(**kwargs)
+            return await run_blocking(client.update_cmdb_instance, **kwargs)
         if action == "patch_cmdb_instance":
-            return client.patch_cmdb_instance(**kwargs)
+            return await run_blocking(client.patch_cmdb_instance, **kwargs)
         if action == "create_cmdb_relation":
-            return client.create_cmdb_relation(**kwargs)
+            return await run_blocking(client.create_cmdb_relation, **kwargs)
         if action == "ingest_cmdb_data":
-            return client.ingest_cmdb_data(**kwargs)
+            return await run_blocking(client.ingest_cmdb_data, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -273,29 +274,29 @@ def register_cicd_tools(mcp: FastMCP):
         action = resolved
 
         if action == "batch_install_result":
-            return client.batch_install_result(**kwargs)
+            return await run_blocking(client.batch_install_result, **kwargs)
         if action == "instance_scan_progress":
-            return client.instance_scan_progress(**kwargs)
+            return await run_blocking(client.instance_scan_progress, **kwargs)
         if action == "progress":
-            return client.progress(**kwargs)
+            return await run_blocking(client.progress, **kwargs)
         if action == "batch_install":
-            return client.batch_install(**kwargs)
+            return await run_blocking(client.batch_install, **kwargs)
         if action == "batch_rollback":
-            return client.batch_rollback(**kwargs)
+            return await run_blocking(client.batch_rollback, **kwargs)
         if action == "app_repo_install":
-            return client.app_repo_install(**kwargs)
+            return await run_blocking(client.app_repo_install, **kwargs)
         if action == "app_repo_publish":
-            return client.app_repo_publish(**kwargs)
+            return await run_blocking(client.app_repo_publish, **kwargs)
         if action == "app_repo_rollback":
-            return client.app_repo_rollback(**kwargs)
+            return await run_blocking(client.app_repo_rollback, **kwargs)
         if action == "full_scan":
-            return client.full_scan(**kwargs)
+            return await run_blocking(client.full_scan, **kwargs)
         if action == "point_scan":
-            return client.point_scan(**kwargs)
+            return await run_blocking(client.point_scan, **kwargs)
         if action == "combo_suite_scan":
-            return client.combo_suite_scan(**kwargs)
+            return await run_blocking(client.combo_suite_scan, **kwargs)
         if action == "suite_scan":
-            return client.suite_scan(**kwargs)
+            return await run_blocking(client.suite_scan, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -333,9 +334,9 @@ def register_plugins_tools(mcp: FastMCP):
         action = resolved
 
         if action == "activate_plugin":
-            return client.activate_plugin(**kwargs)
+            return await run_blocking(client.activate_plugin, **kwargs)
         if action == "rollback_plugin":
-            return client.rollback_plugin(**kwargs)
+            return await run_blocking(client.rollback_plugin, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -375,9 +376,11 @@ def register_source_control_tools(mcp: FastMCP):
         action = resolved
 
         if action == "apply_remote_source_control_changes":
-            return client.apply_remote_source_control_changes(**kwargs)
+            return await run_blocking(
+                client.apply_remote_source_control_changes, **kwargs
+            )
         if action == "import_repository":
-            return client.import_repository(**kwargs)
+            return await run_blocking(client.import_repository, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -413,7 +416,7 @@ def register_testing_tools(mcp: FastMCP):
         action = resolved
 
         if action == "run_test_suite":
-            return client.run_test_suite(**kwargs)
+            return await run_blocking(client.run_test_suite, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -460,17 +463,17 @@ def register_update_sets_tools(mcp: FastMCP):
         action = resolved
 
         if action == "update_set_create":
-            return client.update_set_create(**kwargs)
+            return await run_blocking(client.update_set_create, **kwargs)
         if action == "update_set_retrieve":
-            return client.update_set_retrieve(**kwargs)
+            return await run_blocking(client.update_set_retrieve, **kwargs)
         if action == "update_set_preview":
-            return client.update_set_preview(**kwargs)
+            return await run_blocking(client.update_set_preview, **kwargs)
         if action == "update_set_commit":
-            return client.update_set_commit(**kwargs)
+            return await run_blocking(client.update_set_commit, **kwargs)
         if action == "update_set_commit_multiple":
-            return client.update_set_commit_multiple(**kwargs)
+            return await run_blocking(client.update_set_commit_multiple, **kwargs)
         if action == "update_set_back_out":
-            return client.update_set_back_out(**kwargs)
+            return await run_blocking(client.update_set_back_out, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -506,7 +509,7 @@ def register_batch_tools(mcp: FastMCP):
         action = resolved
 
         if action == "batch_request":
-            return client.batch_request(**kwargs)
+            return await run_blocking(client.batch_request, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -572,55 +575,71 @@ def register_change_management_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_change_requests":
-            return client.get_change_requests(**kwargs)
+            return await run_blocking(client.get_change_requests, **kwargs)
         if action == "get_change_request_nextstate":
-            return client.get_change_request_nextstate(**kwargs)
+            return await run_blocking(client.get_change_request_nextstate, **kwargs)
         if action == "get_change_request_schedule":
-            return client.get_change_request_schedule(**kwargs)
+            return await run_blocking(client.get_change_request_schedule, **kwargs)
         if action == "get_change_request_tasks":
-            return client.get_change_request_tasks(**kwargs)
+            return await run_blocking(client.get_change_request_tasks, **kwargs)
         if action == "get_change_request":
-            return client.get_change_request(**kwargs)
+            return await run_blocking(client.get_change_request, **kwargs)
         if action == "get_change_request_ci":
-            return client.get_change_request_ci(**kwargs)
+            return await run_blocking(client.get_change_request_ci, **kwargs)
         if action == "get_change_request_conflict":
-            return client.get_change_request_conflict(**kwargs)
+            return await run_blocking(client.get_change_request_conflict, **kwargs)
         if action == "get_standard_change_request_templates":
-            return client.get_standard_change_request_templates(**kwargs)
+            return await run_blocking(
+                client.get_standard_change_request_templates, **kwargs
+            )
         if action == "get_change_request_models":
-            return client.get_change_request_models(**kwargs)
+            return await run_blocking(client.get_change_request_models, **kwargs)
         if action == "get_standard_change_request_model":
-            return client.get_standard_change_request_model(**kwargs)
+            return await run_blocking(
+                client.get_standard_change_request_model, **kwargs
+            )
         if action == "get_standard_change_request_template":
-            return client.get_standard_change_request_template(**kwargs)
+            return await run_blocking(
+                client.get_standard_change_request_template, **kwargs
+            )
         if action == "get_change_request_worker":
-            return client.get_change_request_worker(**kwargs)
+            return await run_blocking(client.get_change_request_worker, **kwargs)
         if action == "create_change_request":
-            return client.create_change_request(**kwargs)
+            return await run_blocking(client.create_change_request, **kwargs)
         if action == "create_change_request_task":
-            return client.create_change_request_task(**kwargs)
+            return await run_blocking(client.create_change_request_task, **kwargs)
         if action == "create_change_request_ci_association":
-            return client.create_change_request_ci_association(**kwargs)
+            return await run_blocking(
+                client.create_change_request_ci_association, **kwargs
+            )
         if action == "calculate_standard_change_request_risk":
-            return client.calculate_standard_change_request_risk(**kwargs)
+            return await run_blocking(
+                client.calculate_standard_change_request_risk, **kwargs
+            )
         if action == "check_change_request_conflict":
-            return client.check_change_request_conflict(**kwargs)
+            return await run_blocking(client.check_change_request_conflict, **kwargs)
         if action == "refresh_change_request_impacted_services":
-            return client.refresh_change_request_impacted_services(**kwargs)
+            return await run_blocking(
+                client.refresh_change_request_impacted_services, **kwargs
+            )
         if action == "approve_change_request":
-            return client.approve_change_request(**kwargs)
+            return await run_blocking(client.approve_change_request, **kwargs)
         if action == "update_change_request":
-            return client.update_change_request(**kwargs)
+            return await run_blocking(client.update_change_request, **kwargs)
         if action == "update_change_request_first_available":
-            return client.update_change_request_first_available(**kwargs)
+            return await run_blocking(
+                client.update_change_request_first_available, **kwargs
+            )
         if action == "update_change_request_task":
-            return client.update_change_request_task(**kwargs)
+            return await run_blocking(client.update_change_request_task, **kwargs)
         if action == "delete_change_request":
-            return client.delete_change_request(**kwargs)
+            return await run_blocking(client.delete_change_request, **kwargs)
         if action == "delete_change_request_task":
-            return client.delete_change_request_task(**kwargs)
+            return await run_blocking(client.delete_change_request_task, **kwargs)
         if action == "delete_change_request_conflict_scan":
-            return client.delete_change_request_conflict_scan(**kwargs)
+            return await run_blocking(
+                client.delete_change_request_conflict_scan, **kwargs
+            )
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -674,31 +693,39 @@ def register_cilifecycle_tools(mcp: FastMCP):
         action = resolved
 
         if action == "check_ci_lifecycle_compat_actions":
-            return client.check_ci_lifecycle_compat_actions(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_compat_actions, **kwargs
+            )
         if action == "register_ci_lifecycle_operator":
-            return client.register_ci_lifecycle_operator(**kwargs)
+            return await run_blocking(client.register_ci_lifecycle_operator, **kwargs)
         if action == "unregister_ci_lifecycle_operator":
-            return client.unregister_ci_lifecycle_operator(**kwargs)
+            return await run_blocking(client.unregister_ci_lifecycle_operator, **kwargs)
         if action == "add_ci_lifecycle_action":
-            return client.add_ci_lifecycle_action(**kwargs)
+            return await run_blocking(client.add_ci_lifecycle_action, **kwargs)
         if action == "check_ci_lifecycle_lease_expired":
-            return client.check_ci_lifecycle_lease_expired(**kwargs)
+            return await run_blocking(client.check_ci_lifecycle_lease_expired, **kwargs)
         if action == "check_ci_lifecycle_not_allowed_action":
-            return client.check_ci_lifecycle_not_allowed_action(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_not_allowed_action, **kwargs
+            )
         if action == "check_ci_lifecycle_not_allowed_ops_transition":
-            return client.check_ci_lifecycle_not_allowed_ops_transition(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_not_allowed_ops_transition, **kwargs
+            )
         if action == "check_ci_lifecycle_requestor_valid":
-            return client.check_ci_lifecycle_requestor_valid(**kwargs)
+            return await run_blocking(
+                client.check_ci_lifecycle_requestor_valid, **kwargs
+            )
         if action == "delete_ci_lifecycle_action":
-            return client.delete_ci_lifecycle_action(**kwargs)
+            return await run_blocking(client.delete_ci_lifecycle_action, **kwargs)
         if action == "extend_ci_lifecycle_lease":
-            return client.extend_ci_lifecycle_lease(**kwargs)
+            return await run_blocking(client.extend_ci_lifecycle_lease, **kwargs)
         if action == "get_ci_lifecycle_active_actions":
-            return client.get_ci_lifecycle_active_actions(**kwargs)
+            return await run_blocking(client.get_ci_lifecycle_active_actions, **kwargs)
         if action == "get_ci_lifecycle_status":
-            return client.get_ci_lifecycle_status(**kwargs)
+            return await run_blocking(client.get_ci_lifecycle_status, **kwargs)
         if action == "set_ci_lifecycle_status":
-            return client.set_ci_lifecycle_status(**kwargs)
+            return await run_blocking(client.set_ci_lifecycle_status, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -747,21 +774,21 @@ def register_devops_tools(mcp: FastMCP):
         action = resolved
 
         if action == "check_devops_change_control":
-            return client.check_devops_change_control(**kwargs)
+            return await run_blocking(client.check_devops_change_control, **kwargs)
         if action == "register_devops_artifact":
-            return client.register_devops_artifact(**kwargs)
+            return await run_blocking(client.register_devops_artifact, **kwargs)
         if action == "check_devops_step_mapping":
-            return client.check_devops_step_mapping(**kwargs)
+            return await run_blocking(client.check_devops_step_mapping, **kwargs)
         if action == "get_devops_change_info":
-            return client.get_devops_change_info(**kwargs)
+            return await run_blocking(client.get_devops_change_info, **kwargs)
         if action == "get_devops_code_schema":
-            return client.get_devops_code_schema(**kwargs)
+            return await run_blocking(client.get_devops_code_schema, **kwargs)
         if action == "get_devops_onboarding_status":
-            return client.get_devops_onboarding_status(**kwargs)
+            return await run_blocking(client.get_devops_onboarding_status, **kwargs)
         if action == "get_devops_orchestration_schema":
-            return client.get_devops_orchestration_schema(**kwargs)
+            return await run_blocking(client.get_devops_orchestration_schema, **kwargs)
         if action == "get_devops_plan_schema":
-            return client.get_devops_plan_schema(**kwargs)
+            return await run_blocking(client.get_devops_plan_schema, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -801,11 +828,11 @@ def register_import_sets_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_import_set":
-            return client.get_import_set(**kwargs)
+            return await run_blocking(client.get_import_set, **kwargs)
         if action == "insert_import_set":
-            return client.insert_import_set(**kwargs)
+            return await run_blocking(client.insert_import_set, **kwargs)
         if action == "insert_multiple_import_sets":
-            return client.insert_multiple_import_sets(**kwargs)
+            return await run_blocking(client.insert_multiple_import_sets, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -845,11 +872,11 @@ def register_incidents_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_incidents":
-            return client.get_incidents(**kwargs)
+            return await run_blocking(client.get_incidents, **kwargs)
         if action == "create_incident":
-            return client.create_incident(**kwargs)
+            return await run_blocking(client.create_incident, **kwargs)
         if action == "get_incident":
-            return client.get_incident(**kwargs)
+            return await run_blocking(client.get_incident, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -895,15 +922,17 @@ def register_knowledge_management_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_knowledge_articles":
-            return client.get_knowledge_articles(**kwargs)
+            return await run_blocking(client.get_knowledge_articles, **kwargs)
         if action == "get_knowledge_article":
-            return client.get_knowledge_article(**kwargs)
+            return await run_blocking(client.get_knowledge_article, **kwargs)
         if action == "get_knowledge_article_attachment":
-            return client.get_knowledge_article_attachment(**kwargs)
+            return await run_blocking(client.get_knowledge_article_attachment, **kwargs)
         if action == "get_featured_knowledge_article":
-            return client.get_featured_knowledge_article(**kwargs)
+            return await run_blocking(client.get_featured_knowledge_article, **kwargs)
         if action == "get_most_viewed_knowledge_articles":
-            return client.get_most_viewed_knowledge_articles(**kwargs)
+            return await run_blocking(
+                client.get_most_viewed_knowledge_articles, **kwargs
+            )
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -950,17 +979,17 @@ def register_table_api_tools(mcp: FastMCP):
         action = resolved
 
         if action == "delete_table_record":
-            return client.delete_table_record(**kwargs)
+            return await run_blocking(client.delete_table_record, **kwargs)
         if action == "get_table":
-            return client.get_table(**kwargs)
+            return await run_blocking(client.get_table, **kwargs)
         if action == "get_table_record":
-            return client.get_table_record(**kwargs)
+            return await run_blocking(client.get_table_record, **kwargs)
         if action == "patch_table_record":
-            return client.patch_table_record(**kwargs)
+            return await run_blocking(client.patch_table_record, **kwargs)
         if action == "update_table_record":
-            return client.update_table_record(**kwargs)
+            return await run_blocking(client.update_table_record, **kwargs)
         if action == "add_table_record":
-            return client.add_table_record(**kwargs)
+            return await run_blocking(client.add_table_record, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -998,7 +1027,7 @@ def register_auth_tools(mcp: FastMCP):
         action = resolved
 
         if action == "refresh_auth_token":
-            return client.refresh_auth_token(**kwargs)
+            return await run_blocking(client.refresh_auth_token, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1034,7 +1063,7 @@ def register_custom_api_tools(mcp: FastMCP):
         action = resolved
 
         if action == "api_request":
-            return client.api_request(**kwargs)
+            return await run_blocking(client.api_request, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1070,7 +1099,7 @@ def register_email_tools(mcp: FastMCP):
         action = resolved
 
         if action == "send_email":
-            return client.send_email(**kwargs)
+            return await run_blocking(client.send_email, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1108,7 +1137,7 @@ def register_data_classification_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_data_classification":
-            return client.get_data_classification(**kwargs)
+            return await run_blocking(client.get_data_classification, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1144,7 +1173,7 @@ def register_aggregate_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_stats":
-            return client.get_stats(**kwargs)
+            return await run_blocking(client.get_stats, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1182,7 +1211,7 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_activity_subscriptions":
-            return client.get_activity_subscriptions(**kwargs)
+            return await run_blocking(client.get_activity_subscriptions, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1218,7 +1247,7 @@ def register_account_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_account":
-            return client.get_account(**kwargs)
+            return await run_blocking(client.get_account, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1254,7 +1283,7 @@ def register_hr_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_hr_profile":
-            return client.get_hr_profile(**kwargs)
+            return await run_blocking(client.get_hr_profile, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1292,7 +1321,7 @@ def register_metricbase_tools(mcp: FastMCP):
         action = resolved
 
         if action == "metricbase_insert":
-            return client.metricbase_insert(**kwargs)
+            return await run_blocking(client.metricbase_insert, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1332,11 +1361,11 @@ def register_attachment_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_attachment":
-            return client.get_attachment(**kwargs)
+            return await run_blocking(client.get_attachment, **kwargs)
         if action == "upload_attachment":
-            return client.upload_attachment(**kwargs)
+            return await run_blocking(client.upload_attachment, **kwargs)
         if action == "delete_attachment":
-            return client.delete_attachment(**kwargs)
+            return await run_blocking(client.delete_attachment, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1380,11 +1409,13 @@ def register_service_qualification_tools(mcp: FastMCP):
         action = resolved
 
         if action == "check_service_qualification":
-            return client.check_service_qualification(**kwargs)
+            return await run_blocking(client.check_service_qualification, **kwargs)
         if action == "get_service_qualification":
-            return client.get_service_qualification(**kwargs)
+            return await run_blocking(client.get_service_qualification, **kwargs)
         if action == "process_service_qualification_result":
-            return client.process_service_qualification_result(**kwargs)
+            return await run_blocking(
+                client.process_service_qualification_result, **kwargs
+            )
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1424,9 +1455,9 @@ def register_ppm_tools(mcp: FastMCP):
         action = resolved
 
         if action == "insert_cost_plans":
-            return client.insert_cost_plans(**kwargs)
+            return await run_blocking(client.insert_cost_plans, **kwargs)
         if action == "insert_project_tasks":
-            return client.insert_project_tasks(**kwargs)
+            return await run_blocking(client.insert_project_tasks, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1466,9 +1497,9 @@ def register_product_inventory_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_product_inventory":
-            return client.get_product_inventory(**kwargs)
+            return await run_blocking(client.get_product_inventory, **kwargs)
         if action == "delete_product_inventory":
-            return client.delete_product_inventory(**kwargs)
+            return await run_blocking(client.delete_product_inventory, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 

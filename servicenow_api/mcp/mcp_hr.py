@@ -3,7 +3,7 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
-from agent_utilities.mcp_utilities import resolve_action
+from agent_utilities.mcp_utilities import resolve_action, run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -43,5 +43,5 @@ def register_hr_tools(mcp: FastMCP):
         action = resolved
 
         if action == "get_hr_profile":
-            return client.get_hr_profile(**kwargs)
+            return await run_blocking(client.get_hr_profile, **kwargs)
         raise ValueError(f"Unknown action: {action}")
