@@ -28,10 +28,9 @@ from agent_utilities.mcp_utilities import (
     config,
     create_mcp_server,
     load_config,
-    register_verbose_tools,
+    register_tool_surface,
     resolve_action,
     run_blocking,
-    tool_mode,
 )
 
 from servicenow_api.api_client import Api
@@ -1548,8 +1547,6 @@ def register_prompts(mcp: FastMCP):
 def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     """Initialize and return the MCP instance, args, and middlewares."""
     load_config()
-    mode = tool_mode()
-    condensed = mode in ("condensed", "both")
     args, mcp, middlewares = create_mcp_server(
         name="ServiceNow",
         version=__version__,
@@ -1616,106 +1613,13 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
             print(f"OpenAPI import failed: {exc}", file=sys.stderr)
             logger.error("OpenAPI import failed", extra={"error": str(exc)})
             sys.exit(1)
-    DEFAULT_MISCTOOL = condensed and setting("MISCTOOL", True)
-    if DEFAULT_MISCTOOL:
-        register_misc_tools(mcp)
-    DEFAULT_FLOWSTOOL = condensed and setting("FLOWSTOOL", True)
-    if DEFAULT_FLOWSTOOL:
-        register_flows_tools(mcp)
-    DEFAULT_APPLICATIONTOOL = condensed and setting("APPLICATIONTOOL", True)
-    if DEFAULT_APPLICATIONTOOL:
-        register_application_tools(mcp)
-    DEFAULT_CMDBTOOL = condensed and setting("CMDBTOOL", True)
-    if DEFAULT_CMDBTOOL:
-        register_cmdb_tools(mcp)
-    DEFAULT_CICDTOOL = condensed and setting("CICDTOOL", True)
-    if DEFAULT_CICDTOOL:
-        register_cicd_tools(mcp)
-    DEFAULT_PLUGINSTOOL = condensed and setting("PLUGINSTOOL", True)
-    if DEFAULT_PLUGINSTOOL:
-        register_plugins_tools(mcp)
-    DEFAULT_SOURCE_CONTROLTOOL = condensed and setting("SOURCE_CONTROLTOOL", True)
-    if DEFAULT_SOURCE_CONTROLTOOL:
-        register_source_control_tools(mcp)
-    DEFAULT_TESTINGTOOL = condensed and setting("TESTINGTOOL", True)
-    if DEFAULT_TESTINGTOOL:
-        register_testing_tools(mcp)
-    DEFAULT_UPDATE_SETSTOOL = condensed and setting("UPDATE_SETSTOOL", True)
-    if DEFAULT_UPDATE_SETSTOOL:
-        register_update_sets_tools(mcp)
-    DEFAULT_BATCHTOOL = condensed and setting("BATCHTOOL", True)
-    if DEFAULT_BATCHTOOL:
-        register_batch_tools(mcp)
-    DEFAULT_CHANGE_MANAGEMENTTOOL = condensed and setting("CHANGE_MANAGEMENTTOOL", True)
-    if DEFAULT_CHANGE_MANAGEMENTTOOL:
-        register_change_management_tools(mcp)
-    DEFAULT_CILIFECYCLETOOL = condensed and setting("CILIFECYCLETOOL", True)
-    if DEFAULT_CILIFECYCLETOOL:
-        register_cilifecycle_tools(mcp)
-    DEFAULT_DEVOPSTOOL = condensed and setting("DEVOPSTOOL", True)
-    if DEFAULT_DEVOPSTOOL:
-        register_devops_tools(mcp)
-    DEFAULT_IMPORT_SETSTOOL = condensed and setting("IMPORT_SETSTOOL", True)
-    if DEFAULT_IMPORT_SETSTOOL:
-        register_import_sets_tools(mcp)
-    DEFAULT_INCIDENTSTOOL = condensed and setting("INCIDENTSTOOL", True)
-    if DEFAULT_INCIDENTSTOOL:
-        register_incidents_tools(mcp)
-    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = condensed and setting(
-        "KNOWLEDGE_MANAGEMENTTOOL", True
+    registered_tags = register_tool_surface(
+        mcp,
+        client_cls=Api,
+        get_client=get_client,
+        service="servicenow-api",
+        tools_module=sys.modules[__name__],
     )
-    if DEFAULT_KNOWLEDGE_MANAGEMENTTOOL:
-        register_knowledge_management_tools(mcp)
-    DEFAULT_TABLE_APITOOL = condensed and setting("TABLE_APITOOL", True)
-    if DEFAULT_TABLE_APITOOL:
-        register_table_api_tools(mcp)
-    DEFAULT_AUTHTOOL = condensed and setting("AUTHTOOL", True)
-    if DEFAULT_AUTHTOOL:
-        register_auth_tools(mcp)
-    DEFAULT_CUSTOM_APITOOL = condensed and setting("CUSTOM_APITOOL", True)
-    if DEFAULT_CUSTOM_APITOOL:
-        register_custom_api_tools(mcp)
-    DEFAULT_EMAILTOOL = condensed and setting("EMAILTOOL", True)
-    if DEFAULT_EMAILTOOL:
-        register_email_tools(mcp)
-    DEFAULT_DATA_CLASSIFICATIONTOOL = condensed and setting(
-        "DATA_CLASSIFICATIONTOOL", True
-    )
-    if DEFAULT_DATA_CLASSIFICATIONTOOL:
-        register_data_classification_tools(mcp)
-    DEFAULT_ATTACHMENTTOOL = condensed and setting("ATTACHMENTTOOL", True)
-    if DEFAULT_ATTACHMENTTOOL:
-        register_attachment_tools(mcp)
-    DEFAULT_AGGREGATETOOL = condensed and setting("AGGREGATETOOL", True)
-    if DEFAULT_AGGREGATETOOL:
-        register_aggregate_tools(mcp)
-    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = condensed and setting(
-        "ACTIVITY_SUBSCRIPTIONSTOOL", True
-    )
-    if DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL:
-        register_activity_subscriptions_tools(mcp)
-    DEFAULT_ACCOUNTTOOL = condensed and setting("ACCOUNTTOOL", True)
-    if DEFAULT_ACCOUNTTOOL:
-        register_account_tools(mcp)
-    DEFAULT_HRTOOL = condensed and setting("HRTOOL", True)
-    if DEFAULT_HRTOOL:
-        register_hr_tools(mcp)
-    DEFAULT_METRICBASETOOL = condensed and setting("METRICBASETOOL", True)
-    if DEFAULT_METRICBASETOOL:
-        register_metricbase_tools(mcp)
-    DEFAULT_SERVICE_QUALIFICATIONTOOL = condensed and setting(
-        "SERVICE_QUALIFICATIONTOOL", True
-    )
-    if DEFAULT_SERVICE_QUALIFICATIONTOOL:
-        register_service_qualification_tools(mcp)
-    DEFAULT_PPMTOOL = condensed and setting("PPMTOOL", True)
-    if DEFAULT_PPMTOOL:
-        register_ppm_tools(mcp)
-    DEFAULT_PRODUCT_INVENTORYTOOL = condensed and setting("PRODUCT_INVENTORYTOOL", True)
-    if DEFAULT_PRODUCT_INVENTORYTOOL:
-        register_product_inventory_tools(mcp)
-    if mode in ("verbose", "both"):
-        register_verbose_tools(mcp, Api, get_client, service="servicenow-api")
     register_prompts(mcp)
     for tool in imported_tools:
         mcp.add_tool(tool)
@@ -1723,7 +1627,6 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
         mcp.add_resource(resource)
     for mw in middlewares:
         mcp.add_middleware(mw)
-    registered_tags = []
     return (mcp, args, middlewares, registered_tags, imported_tools)
 
 
