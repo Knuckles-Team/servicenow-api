@@ -55,6 +55,17 @@ Detailed instructions on how to use the underlying API wrappers, extended schema
 
 This server utilizes dynamic Action-Routed tools to optimize token overhead and maximize IDE compatibility.
 
+### Tool surface — `MCP_TOOL_MODE`
+
+Set `MCP_TOOL_MODE` (in the shared `~/.config/agent-utilities/config.json` or env) to choose the surface:
+
+- `condensed` (default) — the action-routed tools below (`servicenow_<domain>(action, params_json)`).
+- `verbose` — one named, documented 1:1 tool per API method (`servicenow_get_cmdb_instance(...)`), tagged `verbose`.
+- `both` — register both sets.
+
+Filter the verbose set with `--tools tag:verbose` / `MCP_ENABLED_TAGS=verbose`. See the
+agent-utilities guide *MCP Tool Modes* for details.
+
 ### Available MCP Tools
 | Tool Module | Toggle Env Var | Enabled by Default | Description & Nested Methods |
 |-------------|----------------|--------------------|------------------------------|
