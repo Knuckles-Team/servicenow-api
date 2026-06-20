@@ -96,6 +96,13 @@ repos:
     language: system
     pass_filenames: false
     always_run: true
+  - id: mcp-readme-table
+    name: sync MCP tools table in README
+    entry: |-
+      bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.readme_tools; else python -m agent_utilities.mcp.readme_tools; fi'
+    language: system
+    files: ^(README\.md|.*/mcp_server\.py|.*/mcp/.*\.py)$
+    pass_filenames: false
   - id: check-bumpversion
     name: validate bumpversion config
     entry: |-

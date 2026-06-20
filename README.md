@@ -67,38 +67,46 @@ Filter the verbose set with `--tools tag:verbose` / `MCP_ENABLED_TAGS=verbose`. 
 agent-utilities guide *MCP Tool Modes* for details.
 
 ### Available MCP Tools
-| Tool Module | Toggle Env Var | Enabled by Default | Description & Nested Methods |
-|-------------|----------------|--------------------|------------------------------|
-| **Misc** | `MISC_TOOL` | `True` | Manage ingest incidents to kg operations. |
-| **Flows** | `FLOWS_TOOL` | `True` | Manage servicenow flows operations. Action-routed methods: `collect_graph_for_roots`, `get_flow_metadata`, `workflow_to_mermaid`. |
-| **Application** | `APPLICATION_TOOL` | `True` | Manage servicenow application operations. Action-routed methods: `get_application`. |
-| **Cmdb** | `CMDB_TOOL` | `True` | Manage servicenow cmdb operations. Action-routed methods: `create_cmdb_instance`, `create_cmdb_relation`, `delete_cmdb_relation`, `get_cmdb`, `get_cmdb_instance`, `get_cmdb_instances`, `ingest_cmdb_data`, `patch_cmdb_instance`, `update_cmdb_instance`. |
-| **Cicd** | `CICD_TOOL` | `True` | Manage servicenow cicd operations. Action-routed methods: `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `batch_install`, `batch_install_result`, `batch_rollback`, `combo_suite_scan`, `full_scan`, `instance_scan_progress`, `point_scan`, `progress`, `suite_scan`. |
-| **Plugins** | `PLUGINS_TOOL` | `True` | Manage servicenow plugins operations. Action-routed methods: `activate_plugin`, `rollback_plugin`. |
-| **Source Control** | `SOURCE_CONTROL_TOOL` | `True` | Manage servicenow source control operations. Action-routed methods: `apply_remote_source_control_changes`, `import_repository`. |
-| **Testing** | `TESTING_TOOL` | `True` | Manage servicenow testing operations. Action-routed methods: `run_test_suite`. |
-| **Update Sets** | `UPDATE_SETS_TOOL` | `True` | Manage servicenow update sets operations. Action-routed methods: `update_set_back_out`, `update_set_commit`, `update_set_commit_multiple`, `update_set_create`, `update_set_preview`, `update_set_retrieve`. |
-| **Batch** | `BATCH_TOOL` | `True` | Manage servicenow batch operations. Action-routed methods: `batch_request`. |
-| **Change Management** | `CHANGE_MANAGEMENT_TOOL` | `True` | Manage servicenow change management operations. Action-routed methods: `approve_change_request`, `calculate_standard_change_request_risk`, `check_change_request_conflict`, `create_change_request`, `create_change_request_ci_association`, `create_change_request_task`, `delete_change_request`, `delete_change_request_conflict_scan`, `delete_change_request_task`, `get_change_request`, `get_change_request_ci`, `get_change_request_conflict`, `get_change_request_models`, `get_change_request_nextstate`, `get_change_request_schedule`, `get_change_request_tasks`, `get_change_request_worker`, `get_change_requests`, `get_standard_change_request_model`, `get_standard_change_request_template`, `get_standard_change_request_templates`, `refresh_change_request_impacted_services`, `update_change_request`, `update_change_request_first_available`, `update_change_request_task`. |
-| **Cilifecycle** | `CILIFECYCLE_TOOL` | `True` | Manage servicenow cilifecycle operations. Action-routed methods: `add_ci_lifecycle_action`, `check_ci_lifecycle_compat_actions`, `check_ci_lifecycle_lease_expired`, `check_ci_lifecycle_not_allowed_action`, `check_ci_lifecycle_not_allowed_ops_transition`, `check_ci_lifecycle_requestor_valid`, `delete_ci_lifecycle_action`, `extend_ci_lifecycle_lease`, `get_ci_lifecycle_active_actions`, `get_ci_lifecycle_status`, `register_ci_lifecycle_operator`, `set_ci_lifecycle_status`, `unregister_ci_lifecycle_operator`. |
-| **Devops** | `DEVOPS_TOOL` | `True` | Manage servicenow devops operations. Action-routed methods: `check_devops_change_control`, `check_devops_step_mapping`, `get_devops_change_info`, `get_devops_code_schema`, `get_devops_onboarding_status`, `get_devops_orchestration_schema`, `get_devops_plan_schema`, `register_devops_artifact`. |
-| **Import Sets** | `IMPORT_SETS_TOOL` | `True` | Manage servicenow import sets operations. Action-routed methods: `get_import_set`, `insert_import_set`, `insert_multiple_import_sets`. |
-| **Incidents** | `INCIDENTS_TOOL` | `True` | Manage servicenow incidents operations. Action-routed methods: `create_incident`, `get_incident`, `get_incidents`. |
-| **Knowledge Management** | `KNOWLEDGE_MANAGEMENT_TOOL` | `True` | Manage servicenow knowledge management operations. Action-routed methods: `get_featured_knowledge_article`, `get_knowledge_article`, `get_knowledge_article_attachment`, `get_knowledge_articles`, `get_most_viewed_knowledge_articles`. |
-| **Table Api** | `TABLE_API_TOOL` | `True` | Manage servicenow table api operations. Action-routed methods: `add_table_record`, `delete_table_record`, `get_table`, `get_table_record`, `patch_table_record`, `update_table_record`. |
-| **Auth** | `AUTH_TOOL` | `True` | Manage servicenow auth operations. Action-routed methods: `refresh_auth_token`. |
-| **Custom Api** | `CUSTOM_API_TOOL` | `True` | Manage servicenow custom api operations. Action-routed methods: `api_request`. |
-| **Email** | `EMAIL_TOOL` | `True` | Manage servicenow email operations. Action-routed methods: `send_email`. |
-| **Data Classification** | `DATA_CLASSIFICATION_TOOL` | `True` | Manage servicenow data classification operations. Action-routed methods: `get_data_classification`. |
-| **Aggregate** | `AGGREGATE_TOOL` | `True` | Manage servicenow aggregate operations. Action-routed methods: `get_stats`. |
-| **Activity Subscriptions** | `ACTIVITY_SUBSCRIPTIONS_TOOL` | `True` | Manage servicenow activity subscriptions operations. Action-routed methods: `get_activity_subscriptions`. |
-| **Account** | `ACCOUNT_TOOL` | `True` | Manage servicenow account operations. Action-routed methods: `get_account`. |
-| **Hr** | `HR_TOOL` | `True` | Manage servicenow hr operations. Action-routed methods: `get_hr_profile`. |
-| **Metricbase** | `METRICBASE_TOOL` | `True` | Manage servicenow metricbase operations. Action-routed methods: `metricbase_insert`. |
-| **Attachment** | `ATTACHMENT_TOOL` | `True` | Manage servicenow attachment operations. Action-routed methods: `delete_attachment`, `get_attachment`, `upload_attachment`. |
-| **Service Qualification** | `SERVICE_QUALIFICATION_TOOL` | `True` | Manage servicenow service qualification operations. Action-routed methods: `check_service_qualification`, `get_service_qualification`, `process_service_qualification_result`. |
-| **Ppm** | `PPM_TOOL` | `True` | Manage servicenow ppm operations. Action-routed methods: `insert_cost_plans`, `insert_project_tasks`. |
-| **Product Inventory** | `PRODUCT_INVENTORY_TOOL` | `True` | Manage servicenow product inventory operations. Action-routed methods: `delete_product_inventory`, `get_product_inventory`. |
+
+The table below is auto-generated from the MCP server — do not edit by hand.
+
+<!-- MCP-TOOLS-TABLE:START -->
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `ingest_incidents_to_kg` | `KG_INGESTIONTOOL` | Manage ingest incidents to kg operations. |
+| `servicenow_account` | `ACCOUNTTOOL` | Manage servicenow account operations. |
+| `servicenow_activity_subscriptions` | `ACTIVITY_SUBSCRIPTIONSTOOL` | Manage servicenow activity subscriptions operations. |
+| `servicenow_aggregate` | `AGGREGATETOOL` | Manage servicenow aggregate operations. |
+| `servicenow_application` | `APPLICATIONTOOL` | Manage servicenow application operations. |
+| `servicenow_attachment` | `ATTACHMENTTOOL` | Manage servicenow attachment operations. |
+| `servicenow_auth` | `AUTHTOOL` | Manage servicenow auth operations. |
+| `servicenow_batch` | `BATCHTOOL` | Manage servicenow batch operations. |
+| `servicenow_change_management` | `CHANGE_MANAGEMENTTOOL` | Manage servicenow change management operations. |
+| `servicenow_cicd` | `CICDTOOL` | Manage servicenow cicd operations. |
+| `servicenow_cilifecycle` | `CILIFECYCLETOOL` | Manage servicenow cilifecycle operations. |
+| `servicenow_cmdb` | `CMDBTOOL` | Manage servicenow cmdb operations. |
+| `servicenow_custom_api` | `CUSTOM_APITOOL` | Manage servicenow custom api operations. |
+| `servicenow_data_classification` | `DATA_CLASSIFICATIONTOOL` | Manage servicenow data classification operations. |
+| `servicenow_devops` | `DEVOPSTOOL` | Manage servicenow devops operations. |
+| `servicenow_email` | `EMAILTOOL` | Manage servicenow email operations. |
+| `servicenow_flows` | `FLOWSTOOL` | Manage servicenow flows operations. |
+| `servicenow_hr` | `HRTOOL` | Manage servicenow hr operations. |
+| `servicenow_import_sets` | `IMPORT_SETSTOOL` | Manage servicenow import sets operations. |
+| `servicenow_incidents` | `INCIDENTSTOOL` | Manage servicenow incidents operations. |
+| `servicenow_knowledge_management` | `KNOWLEDGE_MANAGEMENTTOOL` | Manage servicenow knowledge management operations. |
+| `servicenow_metricbase` | `METRICBASETOOL` | Manage servicenow metricbase operations. |
+| `servicenow_plugins` | `PLUGINSTOOL` | Manage servicenow plugins operations. |
+| `servicenow_ppm` | `PPMTOOL` | Manage servicenow ppm operations. |
+| `servicenow_product_inventory` | `PRODUCT_INVENTORYTOOL` | Manage servicenow product inventory operations. |
+| `servicenow_service_qualification` | `SERVICE_QUALIFICATIONTOOL` | Manage servicenow service qualification operations. |
+| `servicenow_source_control` | `SOURCE_CONTROLTOOL` | Manage servicenow source control operations. |
+| `servicenow_table_api` | `TABLE_APITOOL` | Manage servicenow table api operations. |
+| `servicenow_testing` | `TESTINGTOOL` | Manage servicenow testing operations. |
+| `servicenow_update_sets` | `UPDATE_SETSTOOL` | Manage servicenow update sets operations. |
+
+_30 action-routed tools (default `MCP_TOOL_MODE=condensed`). Each is enabled unless its toggle is set false; set `MCP_TOOL_MODE=verbose` (or `both`) for the 1:1 per-operation surface. Auto-generated — do not edit._
+<!-- MCP-TOOLS-TABLE:END -->
 
 Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/mcp.md](docs/mcp.md).
 
