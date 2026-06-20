@@ -18,33 +18,33 @@ warnings.filterwarnings("ignore", message=".*urllib3.*or charset_normalizer.*")
 import asyncio
 import json
 import logging
-import os
 import sys
 from threading import local
 from typing import Any
 
 import httpx
-from agent_utilities.base_utilities import to_boolean
+from agent_utilities.core.config import setting
 from agent_utilities.mcp_utilities import (
     config,
     create_mcp_server,
+    load_config,
+    register_verbose_tools,
     resolve_action,
     run_blocking,
+    tool_mode,
 )
-from dotenv import find_dotenv, load_dotenv
 
+from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
 
 __version__ = "1.38.0"
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
-DEFAULT_SERVICENOW_USERNAME = os.getenv("SERVICENOW_USERNAME", None)
-DEFAULT_SERVICENOW_PASSWORD = os.getenv("SERVICENOW_PASSWORD", None)
-DEFAULT_SERVICENOW_CLIENT_ID = os.getenv("SERVICENOW_CLIENT_ID", None)
-DEFAULT_SERVICENOW_CLIENT_SECRET = os.getenv("SERVICENOW_CLIENT_SECRET", None)
-DEFAULT_SERVICENOW_SSL_VERIFY = to_boolean(
-    string=os.getenv("SERVICENOW_SSL_VERIFY", "True")
-)
+DEFAULT_SERVICENOW_USERNAME = setting("SERVICENOW_USERNAME", None)
+DEFAULT_SERVICENOW_PASSWORD = setting("SERVICENOW_PASSWORD", None)
+DEFAULT_SERVICENOW_CLIENT_ID = setting("SERVICENOW_CLIENT_ID", None)
+DEFAULT_SERVICENOW_CLIENT_SECRET = setting("SERVICENOW_CLIENT_SECRET", None)
+DEFAULT_SERVICENOW_SSL_VERIFY = setting("SERVICENOW_SSL_VERIFY", True)
 
 
 def register_misc_tools(mcp: FastMCP):
@@ -1547,7 +1547,9 @@ def register_prompts(mcp: FastMCP):
 
 def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     """Initialize and return the MCP instance, args, and middlewares."""
-    load_dotenv(find_dotenv())
+    load_config()
+    mode = tool_mode()
+    condensed = mode in ("condensed", "both")
     args, mcp, middlewares = create_mcp_server(
         name="ServiceNow",
         version=__version__,
@@ -1576,10 +1578,10 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
                         )
                     print("Using incoming JWT for OpenAPI import", file=sys.stderr)
                 else:
-                    username = args.openapi_username or os.getenv("OPENAPI_USERNAME")
-                    password = args.openapi_password or os.getenv("OPENAPI_PASSWORD")
-                    client_id = args.openapi_client_id or os.getenv("OPENAPI_CLIENT_ID")
-                    client_secret = args.openapi_client_secret or os.getenv(
+                    username = args.openapi_username or setting("OPENAPI_USERNAME")
+                    password = args.openapi_password or setting("OPENAPI_PASSWORD")
+                    client_id = args.openapi_client_id or setting("OPENAPI_CLIENT_ID")
+                    client_secret = args.openapi_client_secret or setting(
                         "OPENAPI_CLIENT_SECRET"
                     )
                     if not (username and password) and (
@@ -1614,108 +1616,106 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
             print(f"OpenAPI import failed: {exc}", file=sys.stderr)
             logger.error("OpenAPI import failed", extra={"error": str(exc)})
             sys.exit(1)
-    DEFAULT_MISCTOOL = to_boolean(os.getenv("MISCTOOL", "True"))
+    DEFAULT_MISCTOOL = condensed and setting("MISCTOOL", True)
     if DEFAULT_MISCTOOL:
         register_misc_tools(mcp)
-    DEFAULT_FLOWSTOOL = to_boolean(os.getenv("FLOWSTOOL", "True"))
+    DEFAULT_FLOWSTOOL = condensed and setting("FLOWSTOOL", True)
     if DEFAULT_FLOWSTOOL:
         register_flows_tools(mcp)
-    DEFAULT_APPLICATIONTOOL = to_boolean(os.getenv("APPLICATIONTOOL", "True"))
+    DEFAULT_APPLICATIONTOOL = condensed and setting("APPLICATIONTOOL", True)
     if DEFAULT_APPLICATIONTOOL:
         register_application_tools(mcp)
-    DEFAULT_CMDBTOOL = to_boolean(os.getenv("CMDBTOOL", "True"))
+    DEFAULT_CMDBTOOL = condensed and setting("CMDBTOOL", True)
     if DEFAULT_CMDBTOOL:
         register_cmdb_tools(mcp)
-    DEFAULT_CICDTOOL = to_boolean(os.getenv("CICDTOOL", "True"))
+    DEFAULT_CICDTOOL = condensed and setting("CICDTOOL", True)
     if DEFAULT_CICDTOOL:
         register_cicd_tools(mcp)
-    DEFAULT_PLUGINSTOOL = to_boolean(os.getenv("PLUGINSTOOL", "True"))
+    DEFAULT_PLUGINSTOOL = condensed and setting("PLUGINSTOOL", True)
     if DEFAULT_PLUGINSTOOL:
         register_plugins_tools(mcp)
-    DEFAULT_SOURCE_CONTROLTOOL = to_boolean(os.getenv("SOURCE_CONTROLTOOL", "True"))
+    DEFAULT_SOURCE_CONTROLTOOL = condensed and setting("SOURCE_CONTROLTOOL", True)
     if DEFAULT_SOURCE_CONTROLTOOL:
         register_source_control_tools(mcp)
-    DEFAULT_TESTINGTOOL = to_boolean(os.getenv("TESTINGTOOL", "True"))
+    DEFAULT_TESTINGTOOL = condensed and setting("TESTINGTOOL", True)
     if DEFAULT_TESTINGTOOL:
         register_testing_tools(mcp)
-    DEFAULT_UPDATE_SETSTOOL = to_boolean(os.getenv("UPDATE_SETSTOOL", "True"))
+    DEFAULT_UPDATE_SETSTOOL = condensed and setting("UPDATE_SETSTOOL", True)
     if DEFAULT_UPDATE_SETSTOOL:
         register_update_sets_tools(mcp)
-    DEFAULT_BATCHTOOL = to_boolean(os.getenv("BATCHTOOL", "True"))
+    DEFAULT_BATCHTOOL = condensed and setting("BATCHTOOL", True)
     if DEFAULT_BATCHTOOL:
         register_batch_tools(mcp)
-    DEFAULT_CHANGE_MANAGEMENTTOOL = to_boolean(
-        os.getenv("CHANGE_MANAGEMENTTOOL", "True")
-    )
+    DEFAULT_CHANGE_MANAGEMENTTOOL = condensed and setting("CHANGE_MANAGEMENTTOOL", True)
     if DEFAULT_CHANGE_MANAGEMENTTOOL:
         register_change_management_tools(mcp)
-    DEFAULT_CILIFECYCLETOOL = to_boolean(os.getenv("CILIFECYCLETOOL", "True"))
+    DEFAULT_CILIFECYCLETOOL = condensed and setting("CILIFECYCLETOOL", True)
     if DEFAULT_CILIFECYCLETOOL:
         register_cilifecycle_tools(mcp)
-    DEFAULT_DEVOPSTOOL = to_boolean(os.getenv("DEVOPSTOOL", "True"))
+    DEFAULT_DEVOPSTOOL = condensed and setting("DEVOPSTOOL", True)
     if DEFAULT_DEVOPSTOOL:
         register_devops_tools(mcp)
-    DEFAULT_IMPORT_SETSTOOL = to_boolean(os.getenv("IMPORT_SETSTOOL", "True"))
+    DEFAULT_IMPORT_SETSTOOL = condensed and setting("IMPORT_SETSTOOL", True)
     if DEFAULT_IMPORT_SETSTOOL:
         register_import_sets_tools(mcp)
-    DEFAULT_INCIDENTSTOOL = to_boolean(os.getenv("INCIDENTSTOOL", "True"))
+    DEFAULT_INCIDENTSTOOL = condensed and setting("INCIDENTSTOOL", True)
     if DEFAULT_INCIDENTSTOOL:
         register_incidents_tools(mcp)
-    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = to_boolean(
-        os.getenv("KNOWLEDGE_MANAGEMENTTOOL", "True")
+    DEFAULT_KNOWLEDGE_MANAGEMENTTOOL = condensed and setting(
+        "KNOWLEDGE_MANAGEMENTTOOL", True
     )
     if DEFAULT_KNOWLEDGE_MANAGEMENTTOOL:
         register_knowledge_management_tools(mcp)
-    DEFAULT_TABLE_APITOOL = to_boolean(os.getenv("TABLE_APITOOL", "True"))
+    DEFAULT_TABLE_APITOOL = condensed and setting("TABLE_APITOOL", True)
     if DEFAULT_TABLE_APITOOL:
         register_table_api_tools(mcp)
-    DEFAULT_AUTHTOOL = to_boolean(os.getenv("AUTHTOOL", "True"))
+    DEFAULT_AUTHTOOL = condensed and setting("AUTHTOOL", True)
     if DEFAULT_AUTHTOOL:
         register_auth_tools(mcp)
-    DEFAULT_CUSTOM_APITOOL = to_boolean(os.getenv("CUSTOM_APITOOL", "True"))
+    DEFAULT_CUSTOM_APITOOL = condensed and setting("CUSTOM_APITOOL", True)
     if DEFAULT_CUSTOM_APITOOL:
         register_custom_api_tools(mcp)
-    DEFAULT_EMAILTOOL = to_boolean(os.getenv("EMAILTOOL", "True"))
+    DEFAULT_EMAILTOOL = condensed and setting("EMAILTOOL", True)
     if DEFAULT_EMAILTOOL:
         register_email_tools(mcp)
-    DEFAULT_DATA_CLASSIFICATIONTOOL = to_boolean(
-        os.getenv("DATA_CLASSIFICATIONTOOL", "True")
+    DEFAULT_DATA_CLASSIFICATIONTOOL = condensed and setting(
+        "DATA_CLASSIFICATIONTOOL", True
     )
     if DEFAULT_DATA_CLASSIFICATIONTOOL:
         register_data_classification_tools(mcp)
-    DEFAULT_ATTACHMENTTOOL = to_boolean(os.getenv("ATTACHMENTTOOL", "True"))
+    DEFAULT_ATTACHMENTTOOL = condensed and setting("ATTACHMENTTOOL", True)
     if DEFAULT_ATTACHMENTTOOL:
         register_attachment_tools(mcp)
-    DEFAULT_AGGREGATETOOL = to_boolean(os.getenv("AGGREGATETOOL", "True"))
+    DEFAULT_AGGREGATETOOL = condensed and setting("AGGREGATETOOL", True)
     if DEFAULT_AGGREGATETOOL:
         register_aggregate_tools(mcp)
-    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = to_boolean(
-        os.getenv("ACTIVITY_SUBSCRIPTIONSTOOL", "True")
+    DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL = condensed and setting(
+        "ACTIVITY_SUBSCRIPTIONSTOOL", True
     )
     if DEFAULT_ACTIVITY_SUBSCRIPTIONSTOOL:
         register_activity_subscriptions_tools(mcp)
-    DEFAULT_ACCOUNTTOOL = to_boolean(os.getenv("ACCOUNTTOOL", "True"))
+    DEFAULT_ACCOUNTTOOL = condensed and setting("ACCOUNTTOOL", True)
     if DEFAULT_ACCOUNTTOOL:
         register_account_tools(mcp)
-    DEFAULT_HRTOOL = to_boolean(os.getenv("HRTOOL", "True"))
+    DEFAULT_HRTOOL = condensed and setting("HRTOOL", True)
     if DEFAULT_HRTOOL:
         register_hr_tools(mcp)
-    DEFAULT_METRICBASETOOL = to_boolean(os.getenv("METRICBASETOOL", "True"))
+    DEFAULT_METRICBASETOOL = condensed and setting("METRICBASETOOL", True)
     if DEFAULT_METRICBASETOOL:
         register_metricbase_tools(mcp)
-    DEFAULT_SERVICE_QUALIFICATIONTOOL = to_boolean(
-        os.getenv("SERVICE_QUALIFICATIONTOOL", "True")
+    DEFAULT_SERVICE_QUALIFICATIONTOOL = condensed and setting(
+        "SERVICE_QUALIFICATIONTOOL", True
     )
     if DEFAULT_SERVICE_QUALIFICATIONTOOL:
         register_service_qualification_tools(mcp)
-    DEFAULT_PPMTOOL = to_boolean(os.getenv("PPMTOOL", "True"))
+    DEFAULT_PPMTOOL = condensed and setting("PPMTOOL", True)
     if DEFAULT_PPMTOOL:
         register_ppm_tools(mcp)
-    DEFAULT_PRODUCT_INVENTORYTOOL = to_boolean(
-        os.getenv("PRODUCT_INVENTORYTOOL", "True")
-    )
+    DEFAULT_PRODUCT_INVENTORYTOOL = condensed and setting("PRODUCT_INVENTORYTOOL", True)
     if DEFAULT_PRODUCT_INVENTORYTOOL:
         register_product_inventory_tools(mcp)
+    if mode in ("verbose", "both"):
+        register_verbose_tools(mcp, Api, get_client, service="servicenow-api")
     register_prompts(mcp)
     for tool in imported_tools:
         mcp.add_tool(tool)

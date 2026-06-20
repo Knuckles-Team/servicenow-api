@@ -10,10 +10,10 @@ Authentication priority:
 See ``docs/guides/oauth_sso.md`` in agent-utilities for full details.
 """
 
-import os
 from threading import local
 
-from agent_utilities.base_utilities import get_logger, to_boolean
+from agent_utilities.base_utilities import get_logger
+from agent_utilities.core.config import setting
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
 
 local = local()
@@ -23,17 +23,19 @@ logger = get_logger(__name__)
 
 
 def get_client(
-    username=os.getenv("SERVICENOW_USERNAME", None),
-    password=os.getenv("SERVICENOW_PASSWORD", None),
-    client_id=os.getenv("SERVICENOW_CLIENT_ID", None),
-    client_secret=os.getenv("SERVICENOW_CLIENT_SECRET", None),
-    verify: bool = to_boolean(string=os.getenv("SERVICENOW_SSL_VERIFY", "True")),
+    username=None,
+    password=None,
+    client_id=None,
+    client_secret=None,
+    verify: bool | None = None,
 ) -> Api:
     """Single entry point for ServiceNow clients.
 
-    Auto-detects auth method:
+    Credentials resolve live through the shared config layer (the one XDG
+    ``config.json`` / env), so they are read at call time rather than frozen at
+    import. Auto-detects auth method:
     1. OIDC Delegation → exchanges MCP token via shared helper
-    2. Basic auth → username/password (env fallback)
+    2. Basic auth → username/password (config fallback)
     """
     from agent_utilities.mcp.delegated_auth import (
         get_delegated_token,
@@ -41,7 +43,17 @@ def get_client(
         is_delegation_enabled,
     )
 
-    instance = os.getenv("SERVICENOW_URL") or os.getenv("SERVICENOW_INSTANCE")
+    username = username if username is not None else setting("SERVICENOW_USERNAME")
+    password = password if password is not None else setting("SERVICENOW_PASSWORD")
+    client_id = client_id if client_id is not None else setting("SERVICENOW_CLIENT_ID")
+    client_secret = (
+        client_secret
+        if client_secret is not None
+        else setting("SERVICENOW_CLIENT_SECRET")
+    )
+    verify = verify if verify is not None else setting("SERVICENOW_SSL_VERIFY", True)
+
+    instance = setting("SERVICENOW_URL") or setting("SERVICENOW_INSTANCE")
     if not instance:
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 
@@ -49,8 +61,8 @@ def get_client(
     if is_delegation_enabled():
         try:
             delegated_token = get_delegated_token(
-                audience=os.environ.get("AUDIENCE", instance),
-                scopes=os.environ.get("DELEGATED_SCOPES", "api"),
+                audience=setting("AUDIENCE", instance),
+                scopes=setting("DELEGATED_SCOPES", "api"),
                 verify=verify,
             )
             identity = get_user_identity()
