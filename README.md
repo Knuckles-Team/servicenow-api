@@ -74,7 +74,7 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
-| `ingest_incidents_to_kg` | `KG_INGESTIONTOOL` | Manage ingest incidents to kg operations. |
+| `ingest_incidents_to_kg` | `MISCTOOL` | Manage ingest incidents to kg operations. |
 | `servicenow_account` | `ACCOUNTTOOL` | Manage servicenow account operations. |
 | `servicenow_activity_subscriptions` | `ACTIVITY_SUBSCRIPTIONSTOOL` | Manage servicenow activity subscriptions operations. |
 | `servicenow_aggregate` | `AGGREGATETOOL` | Manage servicenow aggregate operations. |
