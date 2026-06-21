@@ -1,1 +1,1 @@
-include README.md include requirements.txt recursive-include servicenow_api *.py
+include README.md include requirements.txt recursive-include servicenow_api *.py *.json *.md *.yaml *.yml
