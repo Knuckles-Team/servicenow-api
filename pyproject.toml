@@ -28,6 +28,12 @@ test = [
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
 servicenow-agent = "servicenow_api.agent_server:agent_server"
 
+[project.entry-points."agent_utilities.skill_providers"]
+servicenow-api = "servicenow_api.skills"
+
+[project.entry-points."agent_utilities.prompt_providers"]
+servicenow-api = "servicenow_api.prompts"
+
 [tool.setuptools]
 include-package-data = true
 
@@ -46,7 +52,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**",]
+servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**",]
 
 [tool.ruff.lint]
 select = [ "E", "F", "I", "UP", "B",]
