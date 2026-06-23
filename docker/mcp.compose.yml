@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   servicenow-api-mcp:
-    image: knucklessg1/servicenow-api:latest
+    image: knucklessg1/servicenow-api:mcp
     container_name: servicenow-api-mcp
     hostname: servicenow-api-mcp
     restart: always
