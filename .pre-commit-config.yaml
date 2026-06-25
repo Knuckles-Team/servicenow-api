@@ -103,6 +103,13 @@ repos:
     language: system
     files: ^(README\.md|.*/mcp_server\.py|.*/mcp/.*\.py)$
     pass_filenames: false
+  - id: readme-env-vars
+    name: sync env-vars table in README
+    entry: |-
+      bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.readme_env_vars; else python -m agent_utilities.mcp.readme_env_vars; fi'
+    language: system
+    files: ^(README\.md|\.env\.example)$
+    pass_filenames: false
   - id: check-bumpversion
     name: validate bumpversion config
     entry: |-
