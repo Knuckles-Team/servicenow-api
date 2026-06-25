@@ -369,6 +369,83 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 
 ## Environment Variables
 
+<!-- ENV-VARS-TABLE:START -->
+
+#### Package environment variables
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `HOST` | `0.0.0.0` |  |
+| `PORT` | `8000` |  |
+| `TRANSPORT` | `stdio` | options: stdio, streamable-http, sse |
+| `ENABLE_OTEL` | `True` |  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:8080/api/public/otel` |  |
+| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` | `pk-...` |  |
+| `OTEL_EXPORTER_OTLP_SECRET_KEY` | `sk-...` |  |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` |  |
+| `EUNOMIA_TYPE` | `none` | options: none, embedded, remote |
+| `EUNOMIA_POLICY_FILE` | `mcp_policies.json` |  |
+| `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
+| `SERVICENOW_INSTANCE` | `https://dev350360.service-now.com` |  |
+| `SERVICENOW_USERNAME` | `admin` |  |
+| `SERVICENOW_CLIENT_ID` | — |  |
+| `SERVICENOW_SSL_VERIFY` | `True` |  |
+| `DEBUG` | `False` |  |
+| `PYTHONUNBUFFERED` | `1` |  |
+| `SERVICENOW_PASSWORD` | `your_servicenow_password_here` |  |
+| `SERVICENOW_CLIENT_SECRET` | `your_servicenow_client_secret_here` |  |
+| `MISCTOOL` | `True` |  |
+| `FLOWSTOOL` | `True` |  |
+| `APPLICATIONTOOL` | `True` |  |
+| `CMDBTOOL` | `True` |  |
+| `CICDTOOL` | `True` |  |
+| `PLUGINSTOOL` | `True` |  |
+| `SOURCE_CONTROLTOOL` | `True` |  |
+| `TESTINGTOOL` | `True` |  |
+| `UPDATE_SETSTOOL` | `True` |  |
+| `BATCHTOOL` | `True` |  |
+| `CHANGE_MANAGEMENTTOOL` | `True` |  |
+| `CILIFECYCLETOOL` | `True` |  |
+| `DEVOPSTOOL` | `True` |  |
+| `IMPORT_SETSTOOL` | `True` |  |
+| `INCIDENTSTOOL` | `True` |  |
+| `KNOWLEDGE_MANAGEMENTTOOL` | `True` |  |
+| `TABLE_APITOOL` | `True` |  |
+| `AUTHTOOL` | `True` |  |
+| `CUSTOM_APITOOL` | `True` |  |
+| `EMAILTOOL` | `True` |  |
+| `DATA_CLASSIFICATIONTOOL` | `True` |  |
+| `ATTACHMENTTOOL` | `True` |  |
+| `AGGREGATETOOL` | `True` |  |
+| `ACTIVITY_SUBSCRIPTIONSTOOL` | `True` |  |
+| `ACCOUNTTOOL` | `True` |  |
+| `HRTOOL` | `True` |  |
+| `METRICBASETOOL` | `True` |  |
+| `SERVICE_QUALIFICATIONTOOL` | `True` |  |
+| `PPMTOOL` | `True` |  |
+| `PRODUCT_INVENTORYTOOL` | `True` |  |
+
+#### Inherited agent-utilities variables (apply to every connector)
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `MCP_TOOL_MODE` | `condensed` | Tool surface: `condensed` | `verbose` | `both` |
+| `MCP_ENABLED_TOOLS` | — | Comma-separated tool allow-list |
+| `MCP_DISABLED_TOOLS` | — | Comma-separated tool deny-list |
+| `MCP_ENABLED_TAGS` | — | Comma-separated tag allow-list |
+| `MCP_DISABLED_TAGS` | — | Comma-separated tag deny-list |
+| `MCP_CLIENT_AUTH` | — | Outbound MCP auth (`oidc-client-credentials` for fleet calls) |
+| `OIDC_CLIENT_ID` | — | OIDC client id (service-account auth) |
+| `OIDC_CLIENT_SECRET` | — | OIDC client secret (service-account auth) |
+| `MCP_URL` | `http://localhost:8000/mcp` | URL of the MCP server the agent connects to |
+| `PROVIDER` | `openai` | LLM provider for the agent |
+| `MODEL_ID` | `gpt-4o` | Model id for the agent |
+| `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
+
+_49 package + 12 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+<!-- ENV-VARS-TABLE:END -->
+
+
 Every variable the server reads. See [`.env.example`](.env.example) for a copy-paste
 starting point.
 
