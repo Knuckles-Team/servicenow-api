@@ -72,6 +72,8 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 
 <!-- MCP-TOOLS-TABLE:START -->
 
+#### Condensed action-routed tools (default — `MCP_TOOL_MODE=condensed`)
+
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
 | `ingest_incidents_to_kg` | `MISCTOOL` | Manage ingest incidents to kg operations. |
@@ -105,7 +107,136 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_testing` | `TESTINGTOOL` | Manage servicenow testing operations. |
 | `servicenow_update_sets` | `UPDATE_SETSTOOL` | Manage servicenow update sets operations. |
 
-_30 action-routed tools (default `MCP_TOOL_MODE=condensed`). Each is enabled unless its toggle is set false; set `MCP_TOOL_MODE=verbose` (or `both`) for the 1:1 per-operation surface. Auto-generated — do not edit._
+#### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
+
+<details>
+<summary>119 per-operation tools — one per public API method (click to expand)</summary>
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `servicenow_activate_plugin` | `DEVOPSTOOL` | Activate a plugin based on the provided plugin_id. |
+| `servicenow_add_ci_lifecycle_action` | `CMDBTOOL` | Adds a specified CI action to a specified list of CIs. |
+| `servicenow_add_table_record` | `SYSTEMTOOL` | Add a new record to the specified table. |
+| `servicenow_api_request` | `SYSTEMTOOL` | Invoke the api_request operation. |
+| `servicenow_app_repo_install` | `DEVOPSTOOL` | Install an application from the repository based on the provided parameters. |
+| `servicenow_app_repo_publish` | `DEVOPSTOOL` | Publish an application to the repository based on the provided parameters. |
+| `servicenow_app_repo_rollback` | `DEVOPSTOOL` | Rollback an application in the repository based on the provided parameters. |
+| `servicenow_apply_remote_source_control_changes` | `OTHERTOOL` | Apply remote source control changes based on the provided parameters. |
+| `servicenow_approve_change_request` | `CHANGETOOL` | Approve or reject a change request. |
+| `servicenow_batch_install` | `OTHERTOOL` | Initiate a batch installation with the provided parameters. |
+| `servicenow_batch_install_result` | `OTHERTOOL` | Get the result of a batch installation based on the provided result ID. |
+| `servicenow_batch_request` | `OTHERTOOL` | Sends multiple REST API requests in a single call. |
+| `servicenow_batch_rollback` | `OTHERTOOL` | Rollback a batch installation based on the provided rollback ID. |
+| `servicenow_calculate_standard_change_request_risk` | `CHANGETOOL` | Calculate and update the risk of a standard change request. |
+| `servicenow_check_change_request_conflict` | `CHANGETOOL` | Check for conflicts in a change request. |
+| `servicenow_check_ci_lifecycle_compat_actions` | `CMDBTOOL` | Determines whether two specified CI actions are compatible. |
+| `servicenow_check_ci_lifecycle_lease_expired` | `CMDBTOOL` | Determines whether the lease has expired for the requester. |
+| `servicenow_check_ci_lifecycle_not_allowed_action` | `CMDBTOOL` | Determines whether a specified CI action is not allowed. |
+| `servicenow_check_ci_lifecycle_not_allowed_ops_transition` | `CMDBTOOL` | Determines whether an operational state transition is allowed. |
+| `servicenow_check_ci_lifecycle_requestor_valid` | `CMDBTOOL` | Determines whether the specified user is a valid requester. |
+| `servicenow_check_devops_change_control` | `DEVOPSTOOL` | Checks if the orchestration task is under change control. |
+| `servicenow_check_devops_step_mapping` | `DEVOPSTOOL` | Verifies that the information being passed is valid for the creation of an orchestration task. |
+| `servicenow_check_service_qualification` | `OTHERTOOL` | Creates a technical service qualification request. |
+| `servicenow_collect_graph_for_roots` | `CMDBTOOL` | Invoke the collect_graph_for_roots operation. |
+| `servicenow_combo_suite_scan` | `OTHERTOOL` | Initiate a suite scan for a combo based on the provided combo_sys_id. |
+| `servicenow_create_change_request` | `CHANGETOOL` | Create a new change request. |
+| `servicenow_create_change_request_ci_association` | `CHANGETOOL` | Create associations between a change request and configuration items (CIs). |
+| `servicenow_create_change_request_task` | `CHANGETOOL` | Create a new task associated with a change request. |
+| `servicenow_create_cmdb_instance` | `CMDBTOOL` | Creates a single configuration item (CI). |
+| `servicenow_create_cmdb_relation` | `CMDBTOOL` | Adds an inbound and/or outbound relation to the specified CI. |
+| `servicenow_create_incident` | `INCIDENTTOOL` | Create a new incident record. |
+| `servicenow_delete_attachment` | `OTHERTOOL` | Invoke the delete_attachment operation. |
+| `servicenow_delete_change_request` | `CHANGETOOL` | Delete a change request. |
+| `servicenow_delete_change_request_conflict_scan` | `CHANGETOOL` | Delete conflict scan information associated with a change request. |
+| `servicenow_delete_change_request_task` | `CHANGETOOL` | Delete a task associated with a change request. |
+| `servicenow_delete_ci_lifecycle_action` | `CMDBTOOL` | Removes a configuration item (CI) action for a list of CIs. |
+| `servicenow_delete_cmdb_relation` | `CMDBTOOL` | Deletes the relation for the specified configuration item (CI). |
+| `servicenow_delete_product_inventory` | `OTHERTOOL` | Deletes a specified product inventory record. |
+| `servicenow_delete_table_record` | `SYSTEMTOOL` | Delete a record from the specified table. |
+| `servicenow_extend_ci_lifecycle_lease` | `CMDBTOOL` | Extends the specified CI action's lease expiration time. |
+| `servicenow_full_scan` | `OTHERTOOL` | Initiate a full instance scan. |
+| `servicenow_get_account` | `OTHERTOOL` | Invoke the get_account operation. |
+| `servicenow_get_activity_subscriptions` | `OTHERTOOL` | Invoke the get_activity_subscriptions operation. |
+| `servicenow_get_application` | `OTHERTOOL` | Get information about an application. |
+| `servicenow_get_attachment` | `OTHERTOOL` | Invoke the get_attachment operation. |
+| `servicenow_get_change_request` | `CHANGETOOL` | Retrieve details of a specific change request. |
+| `servicenow_get_change_request_ci` | `CHANGETOOL` | Retrieve the configuration item (CI) associated with a change request. |
+| `servicenow_get_change_request_conflict` | `CHANGETOOL` | Retrieve conflict information associated with a change request. |
+| `servicenow_get_change_request_models` | `CHANGETOOL` | Retrieve change request models based on specified parameters. |
+| `servicenow_get_change_request_nextstate` | `CHANGETOOL` | Retrieve the next state of a specific change request. |
+| `servicenow_get_change_request_schedule` | `CHANGETOOL` | Retrieve the schedule of a change request based on CI sys ID. |
+| `servicenow_get_change_request_tasks` | `CHANGETOOL` | Retrieve tasks associated with a specific change request. |
+| `servicenow_get_change_request_worker` | `CHANGETOOL` | Retrieve details of a change request worker. |
+| `servicenow_get_change_requests` | `CHANGETOOL` | Retrieve change requests based on specified parameters. |
+| `servicenow_get_ci_lifecycle_active_actions` | `CMDBTOOL` | Returns a list of active CI actions for the specified CI. |
+| `servicenow_get_ci_lifecycle_status` | `CMDBTOOL` | Returns the current operational state for the specified CI. |
+| `servicenow_get_cmdb` | `CMDBTOOL` | Get Configuration Management Database (CMDB) information based on specified parameters. |
+| `servicenow_get_cmdb_instance` | `CMDBTOOL` | Returns attributes and relationship information for a specified CI record. |
+| `servicenow_get_cmdb_instances` | `CMDBTOOL` | Returns the available configuration items (CI) for a specified CMDB class. |
+| `servicenow_get_data_classification` | `OTHERTOOL` | Invoke the get_data_classification operation. |
+| `servicenow_get_devops_change_info` | `DEVOPSTOOL` | Retrieves change request details for a specified orchestration pipeline execution. |
+| `servicenow_get_devops_code_schema` | `DEVOPSTOOL` | Returns the schema object for a specified code resource. |
+| `servicenow_get_devops_onboarding_status` | `DEVOPSTOOL` | Returns the current status of the specified onboarding event. |
+| `servicenow_get_devops_orchestration_schema` | `DEVOPSTOOL` | Returns the schema object for a specified orchestration resource. |
+| `servicenow_get_devops_plan_schema` | `DEVOPSTOOL` | Returns the schema object for a specific plan. |
+| `servicenow_get_featured_knowledge_article` | `KNOWLEDGETOOL` | Get featured Knowledge Base articles. |
+| `servicenow_get_flow_metadata` | `SYSTEMTOOL` | Fetch rich metadata for any flow/subflow. |
+| `servicenow_get_hr_profile` | `OTHERTOOL` | Invoke the get_hr_profile operation. |
+| `servicenow_get_import_set` | `OTHERTOOL` | Get details of a specific import set record. |
+| `servicenow_get_incident` | `INCIDENTTOOL` | Retrieve details of a specific incident record. |
+| `servicenow_get_incidents` | `INCIDENTTOOL` | Retrieve details of incident records. |
+| `servicenow_get_knowledge_article` | `KNOWLEDGETOOL` | Get Knowledge Base article. |
+| `servicenow_get_knowledge_article_attachment` | `KNOWLEDGETOOL` | Get Knowledge Base article attachment. |
+| `servicenow_get_knowledge_articles` | `KNOWLEDGETOOL` | Get all Knowledge Base articles. |
+| `servicenow_get_most_viewed_knowledge_articles` | `KNOWLEDGETOOL` | Get most viewed Knowledge Base articles. |
+| `servicenow_get_product_inventory` | `OTHERTOOL` | Retrieves a list of all product inventories. |
+| `servicenow_get_service_qualification` | `OTHERTOOL` | Retrieves a technical qualification request by ID or list all. |
+| `servicenow_get_standard_change_request_model` | `CHANGETOOL` | Retrieve details of a standard change request model. |
+| `servicenow_get_standard_change_request_template` | `CHANGETOOL` | Retrieve details of a standard change request template. |
+| `servicenow_get_standard_change_request_templates` | `CHANGETOOL` | Retrieve standard change request templates based on specified parameters. |
+| `servicenow_get_stats` | `SYSTEMTOOL` | Invoke the get_stats operation. |
+| `servicenow_get_table` | `SYSTEMTOOL` | Get records from the specified table based on provided parameters. |
+| `servicenow_get_table_record` | `SYSTEMTOOL` | Get a specific record from the specified table. |
+| `servicenow_import_repository` | `DEVOPSTOOL` | Import a repository based on the provided parameters. |
+| `servicenow_ingest_cmdb_data` | `CMDBTOOL` | Inserts records into the Import Set table associated with the data source. |
+| `servicenow_insert_cost_plans` | `OTHERTOOL` | Creates cost plans. |
+| `servicenow_insert_import_set` | `OTHERTOOL` | Insert a new record into the specified import set. |
+| `servicenow_insert_multiple_import_sets` | `OTHERTOOL` | Insert multiple records into the specified import set. |
+| `servicenow_insert_project_tasks` | `OTHERTOOL` | Creates a project and associated project tasks. |
+| `servicenow_instance_scan_progress` | `OTHERTOOL` | Get progress information for an instance scan based on the provided progress ID. |
+| `servicenow_metricbase_insert` | `OTHERTOOL` | Invoke the metricbase_insert operation. |
+| `servicenow_patch_cmdb_instance` | `CMDBTOOL` | Replaces attributes in the specified CI record (PATCH). |
+| `servicenow_patch_table_record` | `SYSTEMTOOL` | Partially update a record in the specified table. |
+| `servicenow_point_scan` | `OTHERTOOL` | Initiate a point instance scan based on the provided parameters. |
+| `servicenow_process_service_qualification_result` | `OTHERTOOL` | Processes a technical service qualification result. |
+| `servicenow_progress` | `OTHERTOOL` | Get progress information based on the provided progress ID. |
+| `servicenow_refresh_auth_token` | `SYSTEMTOOL` | Refresh the authentication token |
+| `servicenow_refresh_change_request_impacted_services` | `CHANGETOOL` | Refresh impacted services for a change request. |
+| `servicenow_register_ci_lifecycle_operator` | `CMDBTOOL` | Registers an operator for a non-workflow user. |
+| `servicenow_register_devops_artifact` | `DEVOPSTOOL` | Enables orchestration tools to register artifacts into a ServiceNow instance. |
+| `servicenow_rollback_plugin` | `DEVOPSTOOL` | Rollback a plugin based on the provided plugin_id. |
+| `servicenow_run_test_suite` | `OTHERTOOL` | Run a test suite based on the provided parameters. |
+| `servicenow_send_email` | `SYSTEMTOOL` | Invoke the send_email operation. |
+| `servicenow_set_ci_lifecycle_status` | `CMDBTOOL` | Sets the operational state for a specified list of CIs. |
+| `servicenow_suite_scan` | `OTHERTOOL` | Initiate a suite scan based on the provided suite_sys_id and sys_ids. |
+| `servicenow_unregister_ci_lifecycle_operator` | `CMDBTOOL` | Unregisters an operator for non-workflow users. |
+| `servicenow_update_change_request` | `CHANGETOOL` | Update details of a change request. |
+| `servicenow_update_change_request_first_available` | `CHANGETOOL` | Update the schedule of a change request to the first available slot. |
+| `servicenow_update_change_request_task` | `CHANGETOOL` | Update details of a task associated with a change request. |
+| `servicenow_update_cmdb_instance` | `CMDBTOOL` | Updates the specified CI record (PUT). |
+| `servicenow_update_set_back_out` | `DEVOPSTOOL` | Backs out an installation operation that was performed on an update set with a given sys_id. |
+| `servicenow_update_set_commit` | `DEVOPSTOOL` | Commits an update set with a given sys_id. |
+| `servicenow_update_set_commit_multiple` | `DEVOPSTOOL` | Commits multiple update sets in a single request according to the order that they're provided. |
+| `servicenow_update_set_create` | `DEVOPSTOOL` | Creates a new update set and inserts the new record in the Update Sets [sys_update_set] table. |
+| `servicenow_update_set_preview` | `DEVOPSTOOL` | Previews an update set to check for any conflicts and retrieve progress information about the update set operation. |
+| `servicenow_update_set_retrieve` | `DEVOPSTOOL` | Retrieves an update set with a given sys_id and allows you to remove the existing retrieved update set from the instance. |
+| `servicenow_update_table_record` | `SYSTEMTOOL` | Fully update a record in the specified table. |
+| `servicenow_upload_attachment` | `OTHERTOOL` | Invoke the upload_attachment operation. |
+| `servicenow_workflow_to_mermaid` | `SYSTEMTOOL` | Generates a Mermaid diagram representing the relationships between ServiceNow flows and subflows. |
+
+</details>
+
+_30 action-routed tool(s) (default) · 119 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (`condensed` default · `verbose` 1:1 · `both`). Auto-generated — do not edit._
 <!-- MCP-TOOLS-TABLE:END -->
 
 Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/mcp.md](docs/mcp.md).
@@ -387,6 +518,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `EUNOMIA_POLICY_FILE` | `mcp_policies.json` |  |
 | `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
 | `SERVICENOW_INSTANCE` | `https://dev350360.service-now.com` |  |
+| `SERVICENOW_URL` | `https://dev350360.service-now.com` | alias for SERVICENOW_INSTANCE |
 | `SERVICENOW_USERNAME` | `admin` |  |
 | `SERVICENOW_CLIENT_ID` | — |  |
 | `SERVICENOW_SSL_VERIFY` | `True` |  |
@@ -394,6 +526,12 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `PYTHONUNBUFFERED` | `1` |  |
 | `SERVICENOW_PASSWORD` | `your_servicenow_password_here` |  |
 | `SERVICENOW_CLIENT_SECRET` | `your_servicenow_client_secret_here` |  |
+| `AUDIENCE` | — | downstream token audience (defaults to the ServiceNow instance) |
+| `DELEGATED_SCOPES` | `api` | scopes requested during token exchange |
+| `OPENAPI_USERNAME` | `your_openapi_username_here` |  |
+| `OPENAPI_PASSWORD` | `your_openapi_password_here` |  |
+| `OPENAPI_CLIENT_ID` | `your_openapi_client_id_here` |  |
+| `OPENAPI_CLIENT_SECRET` | `your_openapi_client_secret_here` |  |
 | `MISCTOOL` | `True` |  |
 | `FLOWSTOOL` | `True` |  |
 | `APPLICATIONTOOL` | `True` |  |
@@ -442,7 +580,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `MODEL_ID` | `gpt-4o` | Model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_49 package + 12 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+_56 package + 12 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 
