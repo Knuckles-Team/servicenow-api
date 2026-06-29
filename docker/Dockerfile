@@ -28,12 +28,12 @@ RUN apt-get update \
 # Slim MCP-only dependency closure.
 FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[mcp]>=1.38.0
+    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[mcp]>=2.0.0
 
 # Full agent runtime dependency closure.
 FROM builder-base AS builder-agent
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[agent]>=1.38.0
+    uv pip install --system --upgrade --break-system-packages --prerelease=allow servicenow-api[agent]>=2.0.0
 
 FROM python:3.11-slim AS runtime-base
 ARG HOST=0.0.0.0
