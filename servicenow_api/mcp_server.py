@@ -36,7 +36,7 @@ from agent_utilities.mcp_utilities import (
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 logger = get_logger(name="ServicenowMCP")
 logger.setLevel(logging.DEBUG)
 DEFAULT_SERVICENOW_USERNAME = setting("SERVICENOW_USERNAME", None)
