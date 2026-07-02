@@ -264,21 +264,20 @@ When query strings or parameters are supplied, an LLM-free **Knowledge Graph res
 
 ### MCP Configuration Examples
 
-> **Install the slim `[mcp]` extra.** All examples below install
-> `servicenow-api[mcp]` — the MCP-server extra that pulls only the FastMCP /
-> FastAPI tooling (`agent-utilities[mcp]`). It deliberately **excludes** the heavy
-> agent runtime (the epistemic-graph engine, `pydantic-ai`, `dspy`, `llama-index`,
-> `tree-sitter`), so `uvx`/container installs are dramatically smaller and faster.
-> Use the full `[agent]` extra only when you need the integrated Pydantic AI agent
-> (see [Installation](#installation)).
+<!-- MCP-CONFIG-EXAMPLES:START -->
 
-#### stdio Transport (Recommended for local IDEs e.g., Cursor, Claude Desktop)
-Configure your IDE's `mcp.json` to launch the MCP server via `uvx`:
+> **Install the slim `[mcp]` extra.** All examples install `servicenow-api[mcp]` — the
+> MCP-server extra that pulls only the FastMCP / FastAPI tooling (`agent-utilities[mcp]`).
+> It deliberately **excludes** the heavy agent runtime (`pydantic-ai`, the epistemic-graph
+> engine, `dspy`, `llama-index`), so `uvx` / container installs are far smaller. Use the
+> full `[agent]` extra only when you need the integrated Pydantic AI agent.
+
+#### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
+    "servicenow-mcp": {
       "command": "uvx",
       "args": [
         "--from",
@@ -286,58 +285,129 @@ Configure your IDE's `mcp.json` to launch the MCP server via `uvx`:
         "servicenow-mcp"
       ],
       "env": {
-        "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
-        "SERVICENOW_USERNAME": "your_servicenow_username_here",
-        "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
-        "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
-        "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
+        "MCP_TOOL_MODE": "condensed",
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUDIENCE": "",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DELEGATED_SCOPES": "api",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "OPENAPI_CLIENT_ID": "your_openapi_client_id_here",
+        "OPENAPI_PASSWORD": "your_openapi_password_here",
+        "OPENAPI_USERNAME": "your_openapi_username_here",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_CLIENT_ID": "",
+        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_INSTANCE": "https://dev350360.service-now.com",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
+        "SERVICENOW_URL": "https://dev350360.service-now.com",
+        "SERVICENOW_USERNAME": "admin",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
       }
     }
   }
 }
 ```
 
-#### Streamable-HTTP Transport (Recommended for production deployments)
-Configure your client's `mcp.json` to launch the Streamable-HTTP server via `uvx` with explicit host and port definition:
+#### Streamable-HTTP Transport (networked / production)
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
+    "servicenow-mcp": {
       "command": "uvx",
       "args": [
         "--from",
         "servicenow-api[mcp]",
-        "servicenow-mcp"
+        "servicenow-mcp",
+        "--transport",
+        "streamable-http",
+        "--port",
+        "8000"
       ],
       "env": {
         "TRANSPORT": "streamable-http",
         "HOST": "0.0.0.0",
         "PORT": "8000",
-        "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
-        "SERVICENOW_USERNAME": "your_servicenow_username_here",
-        "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
-        "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
-        "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
+        "MCP_TOOL_MODE": "condensed",
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUDIENCE": "",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DELEGATED_SCOPES": "api",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "OPENAPI_CLIENT_ID": "your_openapi_client_id_here",
+        "OPENAPI_PASSWORD": "your_openapi_password_here",
+        "OPENAPI_USERNAME": "your_openapi_username_here",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_CLIENT_ID": "",
+        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_INSTANCE": "https://dev350360.service-now.com",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
+        "SERVICENOW_URL": "https://dev350360.service-now.com",
+        "SERVICENOW_USERNAME": "admin",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
       }
     }
   }
 }
 ```
 
-Alternatively, connect to a pre-deployed remote or local Streamable-HTTP instance:
+Alternatively, connect to a pre-deployed Streamable-HTTP instance by `url`:
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
-      "url": "http://localhost:8000/servicenow-api/mcp"
+    "servicenow-mcp": {
+      "url": "http://localhost:8000/servicenow-mcp/mcp"
     }
   }
 }
@@ -347,29 +417,58 @@ Deploying the Streamable-HTTP server via Docker:
 
 ```bash
 docker run -d \
-  --name servicenow-api-mcp \
+  --name servicenow-mcp-mcp \
   -p 8000:8000 \
   -e TRANSPORT=streamable-http \
+  -e HOST=0.0.0.0 \
   -e PORT=8000 \
-  -e SERVICENOW_INSTANCE="your_value" \
-  -e SERVICENOW_USERNAME="your_value" \
-  -e SERVICENOW_CLIENT_ID="your_value" \
-  -e SERVICENOW_SSL_VERIFY="your_value" \
-  -e DEBUG="your_value" \
-  -e PYTHONUNBUFFERED="your_value" \
-  -e SERVICENOW_PASSWORD="your_value" \
-  -e SERVICENOW_CLIENT_SECRET="your_value" \
+  -e MCP_TOOL_MODE=condensed \
+  -e ACCOUNTTOOL=True \
+  -e ACTIVITY_SUBSCRIPTIONSTOOL=True \
+  -e AGGREGATETOOL=True \
+  -e APPLICATIONTOOL=True \
+  -e ATTACHMENTTOOL=True \
+  -e AUDIENCE="" \
+  -e AUTHTOOL=True \
+  -e BATCHTOOL=True \
+  -e CHANGE_MANAGEMENTTOOL=True \
+  -e CICDTOOL=True \
+  -e CILIFECYCLETOOL=True \
+  -e CMDBTOOL=True \
+  -e CUSTOM_APITOOL=True \
+  -e DATA_CLASSIFICATIONTOOL=True \
+  -e DELEGATED_SCOPES=api \
+  -e DEVOPSTOOL=True \
+  -e EMAILTOOL=True \
+  -e FLOWSTOOL=True \
+  -e HRTOOL=True \
+  -e IMPORT_SETSTOOL=True \
+  -e INCIDENTSTOOL=True \
+  -e KNOWLEDGE_MANAGEMENTTOOL=True \
+  -e METRICBASETOOL=True \
+  -e MISCTOOL=True \
+  -e OPENAPI_CLIENT_ID=your_openapi_client_id_here \
+  -e OPENAPI_PASSWORD=your_openapi_password_here \
+  -e OPENAPI_USERNAME=your_openapi_username_here \
+  -e PLUGINSTOOL=True \
+  -e PPMTOOL=True \
+  -e PRODUCT_INVENTORYTOOL=True \
+  -e SERVICENOW_CLIENT_ID="" \
+  -e SERVICENOW_CLIENT_SECRET=your_servicenow_client_secret_here \
+  -e SERVICENOW_INSTANCE=https://dev350360.service-now.com \
+  -e SERVICENOW_PASSWORD=your_servicenow_password_here \
+  -e SERVICENOW_URL=https://dev350360.service-now.com \
+  -e SERVICENOW_USERNAME=admin \
+  -e SERVICE_QUALIFICATIONTOOL=True \
+  -e SOURCE_CONTROLTOOL=True \
+  -e TABLE_APITOOL=True \
+  -e TESTINGTOOL=True \
+  -e UPDATE_SETSTOOL=True \
   knucklessg1/servicenow-api:mcp
 ```
 
-> The `:mcp` tag is the **slim MCP-server image** (built from
-> `docker/Dockerfile --target mcp`, installing `servicenow-api[mcp]`). The default
-> `:latest` tag is the **full agent image** (`--target agent`, `servicenow-api[agent]`)
-> which also bundles the Pydantic AI agent and the epistemic-graph engine — use it
-> when you run `servicenow-agent` (the agent), not just the MCP server. See
-> [Container images](#container-images-mcp-vs-agent).
-
----
+_Auto-generated from the code-read env surface (`MCP_TOOL_MODE` + package vars) — do not edit._
+<!-- MCP-CONFIG-EXAMPLES:END -->
 
 <!-- BEGIN GENERATED: additional-deployment-options -->
 ### Additional Deployment Options
