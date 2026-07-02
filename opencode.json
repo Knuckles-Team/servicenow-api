@@ -8,11 +8,11 @@
         "baseURL": "http://vllm.arpa/v1"
       },
       "models": {
-        "qwen/qwen3.6-35b-a3b": {
+        "qwen/qwen3.6-27b": {
           "name": "Qwen 3.6-35B-A3B"
         }
       }
     }
   },
-  "model": "lmstudio/qwen/qwen3.6-35b-a3b"
+  "model": "lmstudio/qwen/qwen3.6-27b"
 }
