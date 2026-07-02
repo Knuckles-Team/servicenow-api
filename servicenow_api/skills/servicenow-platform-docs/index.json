@@ -1,0 +1,30 @@
+[
+  {
+    "id": "flow-designer",
+    "title": "Flow Designer / Workflow Studio",
+    "path": "reference/flow-designer.md",
+    "source_url": "https://www.servicenow.com/docs/bundle/zurich-build-workflows/page/administer/flow-designer/concept/flow-designer.html",
+    "summary": "No-code/low-code automation on the Now Platform: flows, subflows, actions, triggers, flow logic, decision tables, data pills, and spokes (IntegrationHub). Workflow Studio is the centralized automation hub over the flow engine."
+  },
+  {
+    "id": "app-engine-studio",
+    "title": "App Engine Studio / Application Studio",
+    "path": "reference/app-engine-studio.md",
+    "source_url": "https://www.servicenow.com/docs/bundle/zurich-application-development/page/build/app-engine-studio/concept/aes-overview.html",
+    "summary": "Low-code (AES) and pro-code (Studio) building of scoped applications: tables/fields, forms/questions, experiences/UI, flows/playbooks, roles, templates, and governance via App Engine Management Center (AEMC)."
+  },
+  {
+    "id": "irm-grc",
+    "title": "Integrated Risk Management (IRM / GRC)",
+    "path": "reference/irm-grc.md",
+    "source_url": "https://www.servicenow.com/products/integrated-risk-management.html",
+    "summary": "GRC suite: Policy & Compliance, Risk Management, Advanced Risk, Profiles, Vendor/TPRM, Privacy, and Audit. Entity/profile framework, risk lifecycle, controls & attestation, indicators, and continuous monitoring; scoped tables (sn_risk_*, sn_compliance_*, sn_audit_*, sn_vdr_*)."
+  },
+  {
+    "id": "secops",
+    "title": "Security Operations (SecOps)",
+    "path": "reference/secops.md",
+    "source_url": "https://www.servicenow.com/docs/bundle/xanadu-security-management/page/product/security-operations/concept/understanding-secops.html",
+    "summary": "SOAR engine on the Now Platform: Security Incident Response, Vulnerability Response, Configuration Compliance, and Threat Intelligence. Playbooks, CMDB correlation, MITRE ATT&CK, and deep IT collaboration; scoped tables (sn_si_*, sn_vul_*)."
+  }
+]

@@ -1,6 +1,20 @@
 import argparse
 import os
+import re
 import shutil
+
+# Markdown docs in the sdk repo whose name/lead content match these keywords are
+# harvested into references/cli-*.md so the CLI/auth surface stays refreshed.
+CLI_DOC_KEYWORDS = (
+    "cli",
+    "command",
+    "now-sdk",
+    "auth",
+    "install",
+    "getting-started",
+    "quickstart",
+    "usage",
+)
 
 
 def merge_readmes(sdk_readme_path, examples_readme_path):
@@ -111,18 +125,68 @@ def process_samples(source_dir, skill_dir):
     return samples
 
 
-def generate_skill_md(target_path, samples, merged_readme_content):
+def process_cli_docs(sdk_path, skill_dir):
+    """Mirror CLI / auth / command reference docs from the ServiceNow/sdk repo
+    into references/cli-*.md so the SDK CLI surface stays refreshed alongside the
+    Fluent samples. Best-effort: returns a list of {'id','title'} for the SKILL.md
+    index, or [] if no CLI-oriented docs are found."""
+    ref_dir = os.path.join(skill_dir, "references")
+    os.makedirs(ref_dir, exist_ok=True)
+
+    # Candidate markdown docs: the repo README plus anything under docs/.
+    candidates = []
+    root_readme = os.path.join(sdk_path, "README.md")
+    if os.path.exists(root_readme):
+        candidates.append(root_readme)
+    docs_dir = os.path.join(sdk_path, "docs")
+    if os.path.isdir(docs_dir):
+        for root, _, files in os.walk(docs_dir):
+            for file in sorted(files):
+                if file.endswith(".md"):
+                    candidates.append(os.path.join(root, file))
+
+    cli_docs = []
+    for path in candidates:
+        name = os.path.splitext(os.path.basename(path))[0].lower()
+        with open(path) as f:
+            content = f.read()
+        # Keep docs that look CLI / auth / command oriented.
+        haystack = (name + "\n" + content[:2000]).lower()
+        if not any(keyword in haystack for keyword in CLI_DOC_KEYWORDS):
+            continue
+
+        slug = re.sub(r"[^a-z0-9]+", "-", name).strip("-") or "doc"
+        doc_id = f"cli-{slug}"
+        title = f"SDK CLI: {slug.replace('-', ' ').title()}"
+        for line in content.splitlines():
+            if line.startswith("# "):
+                title = line.lstrip("# ").strip()
+                break
+
+        with open(os.path.join(ref_dir, f"{doc_id}.md"), "w") as f:
+            f.write(f"# {title}\n\n")
+            f.write(
+                "> Auto-harvested from the ServiceNow/sdk repo "
+                f"(`{os.path.relpath(path, sdk_path)}`).\n\n"
+            )
+            f.write(content)
+        cli_docs.append({"id": doc_id, "title": title})
+    return cli_docs
+
+
+def generate_skill_md(target_path, samples, merged_readme_content, cli_docs=None):
     samples.sort(key=lambda x: x["title"])
+    cli_docs = cli_docs or []
 
     # Extract some context from merged README if possible
     content = f"""---
-name: servicenow-sdk
+name: servicenow-sdk-docs
 description: A comprehensive, self-contained collection of ServiceNow SDK (Fluent API) examples and core documentation. Use this when the agent needs to reference how to use the ServiceNow SDK for various components like Tables, REST APIs, UI Actions, Script Includes, etc. All source code is bundled within the skill for portability.
 license: MIT
 tags: [servicenow, sdk, fluent-api, examples, typescript, reference, self-contained]
 metadata:
   author: Antigravity
-  version: '0.2.1'
+  version: '0.3.0'
 ---
 # ServiceNow SDK Documentation (Self-Contained)
 
@@ -139,6 +203,11 @@ metadata:
         content += (
             f"- [{sample['title']}](references/{sample['id']}.md) - {short_desc}\n"
         )
+
+    if cli_docs:
+        content += "\n## SDK CLI & Tooling Reference\n\n"
+        for doc in cli_docs:
+            content += f"- [{doc['title']}](references/{doc['id']}.md)\n"
 
     content += """
 ---
@@ -191,10 +260,18 @@ def main():
     # 2. Process samples
     samples = process_samples(args.examples_path, args.target)
 
-    # 3. Generate SKILL.md
-    generate_skill_md(os.path.join(args.target, "SKILL.md"), samples, merged_readme)
+    # 3. Harvest CLI / auth docs from the sdk repo into references/cli-*.md
+    cli_docs = process_cli_docs(args.sdk_path, args.target)
 
-    print(f"Successfully generated documentation skill at {args.target}")
+    # 4. Generate SKILL.md
+    generate_skill_md(
+        os.path.join(args.target, "SKILL.md"), samples, merged_readme, cli_docs
+    )
+
+    print(
+        f"Successfully generated documentation skill at {args.target} "
+        f"({len(samples)} samples, {len(cli_docs)} CLI docs)"
+    )
 
 
 if __name__ == "__main__":
