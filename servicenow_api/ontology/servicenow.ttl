@@ -1,0 +1,70 @@
+@prefix fibo-fi: <https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/> .
+@prefix fibo-org: <https://spec.edmcouncil.org/fibo/ontology/FND/Organizations/Organizations/> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix : <http://knuckles.team/kg#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:Change a owl:Class ;
+    rdfs:label "Change" ;
+    rdfs:comment """A planned addition, modification, or removal of something
+    that could affect IT services (ServiceNow change_request table).""" .
+
+:Incident a owl:Class ;
+    rdfs:label "Incident" ;
+    rdfs:comment """An unplanned interruption or degradation of an IT service
+    (ServiceNow incident table). ArchiMate: Application → ApplicationEvent.""" .
+
+:affects a owl:ObjectProperty ;
+    rdfs:label "affects" ;
+    rdfs:comment "Links an Incident or Change to the ConfigurationItem it impacts." ;
+    rdfs:range :ConfigurationItem .
+
+:assignedTo a owl:ObjectProperty ;
+    rdfs:label "assigned to" ;
+    rdfs:comment "Links an Incident or Change to the Person responsible for it." ;
+    rdfs:range :Person .
+
+:number a owl:DatatypeProperty ;
+    rdfs:label "number" ;
+    rdfs:comment "Human-readable ServiceNow record number (e.g. INC0010001)." ;
+    rdfs:range xsd:string .
+
+:priority a owl:DatatypeProperty ;
+    rdfs:label "priority" ;
+    rdfs:comment "Priority of the incident or change (e.g. 1 - Critical)." ;
+    rdfs:range xsd:string .
+
+:shortDescription a owl:DatatypeProperty ;
+    rdfs:label "short description" ;
+    rdfs:comment "Brief summary of the ITSM record or configuration item." ;
+    rdfs:range xsd:string .
+
+:state a owl:DatatypeProperty ;
+    rdfs:label "state" ;
+    rdfs:comment "Lifecycle state of the record (e.g. New, In Progress, Closed)." ;
+    rdfs:range xsd:string .
+
+<http://knuckles.team/kg/servicenow> a owl:Ontology ;
+    rdfs:label "ServiceNow ITSM Ontology" ;
+    rdfs:comment """ServiceNow IT Service Management extensions: incidents,
+    changes, and CMDB configuration items, with their affected-CI and assignee
+    relationships.
+
+    CONCEPT:KG-2.9 — Self-registering source extractors.""" ;
+    owl:imports <http://knuckles.team/kg> .
+
+:ConfigurationItem a owl:Class ;
+    rdfs:label "Configuration Item" ;
+    rdfs:comment """A managed component tracked in the CMDB (server, service,
+    application, ...) (ServiceNow cmdb_ci table).""" .
+
+:Person a owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:comment "An individual who may be assigned ITSM records." .
+
