@@ -34,6 +34,12 @@ servicenow-api = "servicenow_api.skills"
 [project.entry-points."agent_utilities.prompt_providers"]
 servicenow-api = "servicenow_api.prompts"
 
+# CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
+# agent-utilities hub (incidents, changes, CMDB items). Resolved via
+# iter_provider_dirs like the skill/prompt providers.
+[project.entry-points."agent_utilities.ontology_providers"]
+servicenow-api = "servicenow_api.ontology"
+
 [tool.setuptools]
 include-package-data = true
 
@@ -52,7 +58,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**",]
+servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**", "ontology/**",]
 
 [tool.ruff.lint]
 select = [ "E", "F", "I", "UP", "B",]
