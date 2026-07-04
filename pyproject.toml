@@ -34,6 +34,13 @@ servicenow-api = "servicenow_api.skills"
 [project.entry-points."agent_utilities.prompt_providers"]
 servicenow-api = "servicenow_api.prompts"
 
+# CONCEPT:AU-KG.ingest.mcp-tool-connector — register servicenow-api as a source
+# connector so source_sync can mirror ITSM records into the KG (presets in
+# servicenow_api/connectors/mcp_source_presets.json; native typed-node ingestion
+# in servicenow_api.kg_ingest).
+[project.entry-points."agent_utilities.source_connector_providers"]
+servicenow-api = "servicenow_api.connectors"
+
 # CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
 # agent-utilities hub (incidents, changes, CMDB items). Resolved via
 # iter_provider_dirs like the skill/prompt providers.
@@ -58,7 +65,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**", "ontology/**",]
+servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**", "ontology/**", "connectors/**",]
 
 [tool.ruff.lint]
 select = [ "E", "F", "I", "UP", "B",]
