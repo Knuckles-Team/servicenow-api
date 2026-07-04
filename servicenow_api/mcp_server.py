@@ -47,35 +47,42 @@ DEFAULT_SERVICENOW_SSL_VERIFY = setting("SERVICENOW_SSL_VERIFY", True)
 
 
 def register_misc_tools(mcp: FastMCP):
-    @mcp.tool(tags={"kg_ingestion"})
-    async def ingest_incidents_to_kg(
-        action: str = Field(description="Action to perform. Must be one of: "),
+    @mcp.tool(tags={"kg_ingestion", "kg"})
+    async def servicenow_ingest_incidents(
         params_json: str = Field(
-            default="{}", description="JSON string of parameters to pass to the action."
+            default="{}",
+            description="JSON string of get_incidents filters (e.g. sysparm_limit, sysparm_query, sysparm_display_value).",
         ),
         client=Depends(get_client),
         ctx: Context | None = Field(
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Manage ingest incidents to kg operations."""
+        """Natively ingest ServiceNow incidents into epistemic-graph as typed :Incident nodes.
+
+        Lists incidents via the ServiceNow API and pushes them (with their affected
+        :ConfigurationItem and :Person assignee, via :affects / :assignedTo links) into the
+        knowledge graph through the fast engine client. Best-effort: returns
+        ``{"ingested": None}`` when no engine is reachable.
+        CONCEPT:AU-KG.ingest.enterprise-source-extractor.
+        """
         if ctx:
-            ctx.info("Executing tool...")
-        import json
+            await ctx.info("Ingesting ServiceNow incidents into the knowledge graph...")
+
+        from servicenow_api.kg_ingest import ingest_incidents
 
         try:
-            kwargs = json.loads(params_json)
+            kwargs = json.loads(params_json) if params_json else {}
         except Exception as e:
             return {"error": f"Invalid params_json: {e}"}
-
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        resolved = resolve_action(action, [], service="servicenow-api")
-        if isinstance(resolved, dict):
-            return resolved
-        action = resolved
-
-        raise ValueError(f"Unknown action: {action}")
+        resp = await run_blocking(client.get_incidents, **kwargs)
+        data = getattr(resp, "result", resp)
+        records = data if isinstance(data, list) else [data]
+        records = [r for r in records if r is not None]
+        result = ingest_incidents(records)
+        return {"listed": len(records), "ingested": result}
 
 
 def register_flows_tools(mcp: FastMCP):
