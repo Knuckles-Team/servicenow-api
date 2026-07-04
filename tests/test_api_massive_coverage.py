@@ -254,7 +254,7 @@ def test_servicenow_models_exhaustive_validation():
 
 def test_api_client_exhaustive_methods(mock_session):
     """
-    CONCEPT:ECO-4.0: Tool Interface & MCP Factory
+    CONCEPT:AU-ECO.messaging.native-backend-abstraction: Tool Interface & MCP Factory
     """
     from agent_utilities.core.exceptions import MissingParameterError
 
