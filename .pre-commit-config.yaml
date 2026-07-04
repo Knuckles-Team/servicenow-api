@@ -64,6 +64,12 @@ repos:
   - id: nbqa-ruff
 - repo: local
   hooks:
+  - id: okf-no-legacy-concepts
+    name: OKF-CIS — no legacy CONCEPT ids
+    entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/check_no_legacy_markers.py .
+    language: system
+    pass_filenames: false
+    always_run: true
   - id: check-mermaid
     name: Check Mermaid syntax
     entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/mermaid_linter.py
