@@ -1,4 +1,4 @@
-"""ServiceNow ITSM ontology contribution (CONCEPT:KG-2.320).
+"""ServiceNow ITSM ontology contribution (CONCEPT:AU-KG.ontology.federation-provider-leg).
 
 Data-only subpackage: it carries ``servicenow.ttl`` (the ``owl:Ontology``
 ``http://knuckles.team/kg/servicenow`` module — incidents, changes, CMDB

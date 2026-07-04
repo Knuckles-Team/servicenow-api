@@ -1,6 +1,6 @@
 def test_server_startup():
     """
-    CONCEPT:OS-5.0: Agent OS Kernel & XDG Paths
+    CONCEPT:AU-OS.safety.doom-loop-detection: Agent OS Kernel & XDG Paths
     Validates that the server module can start successfully and lazy loads attributes.
     """
     import servicenow_api
