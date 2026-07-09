@@ -1,5 +1,6 @@
 ---
 name: servicenow-platform-utilities
+skill_type: skill
 description: >-
   ServiceNow cross-domain platform helpers — send notification email, render deployed
   Flow Designer flows to Mermaid and read flow metadata, fetch data-classification and

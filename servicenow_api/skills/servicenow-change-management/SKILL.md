@@ -1,5 +1,6 @@
 ---
 name: servicenow-change-management
+skill_type: skill
 description: >-
   ITSM change-management operations on the ServiceNow Change API via the
   servicenow-api MCP server — the full change-request lifecycle: query changes,

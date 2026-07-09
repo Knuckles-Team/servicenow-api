@@ -1,5 +1,6 @@
 ---
 name: servicenow-incident-management
+skill_type: skill
 description: >-
   ITSM incident operations on the ServiceNow Incident API via the servicenow-api
   MCP server — list, read, and create incident records with the domain-typed

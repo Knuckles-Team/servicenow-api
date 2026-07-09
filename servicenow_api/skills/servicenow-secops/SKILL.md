@@ -1,5 +1,6 @@
 ---
 name: servicenow-secops
+skill_type: skill
 description: >-
   ServiceNow Security Operations (SecOps) — Security Incident Response (SIR),
   Vulnerability Response (VR), and Threat Intelligence (TI). Use when the agent must

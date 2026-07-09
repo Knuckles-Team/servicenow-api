@@ -1,5 +1,6 @@
 ---
 name: servicenow-cmdb
+skill_type: skill
 description: >-
   ITOM CMDB operations on the ServiceNow CMDB + CI Lifecycle Management APIs via
   the servicenow-api MCP server — query configuration items by class, read a CI

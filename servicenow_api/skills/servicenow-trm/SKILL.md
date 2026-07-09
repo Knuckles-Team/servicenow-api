@@ -1,5 +1,6 @@
 ---
 name: servicenow-trm
+skill_type: skill
 description: >-
   ServiceNow Technology Reference Model / Application Portfolio Management (APM) —
   manage the technology & software portfolio, software-product lifecycle (Approved /

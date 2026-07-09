@@ -1,5 +1,6 @@
 ---
 name: servicenow-sdk-lifecycle
+skill_type: skill
 description: >-
   The procedural spine for building ServiceNow applications as code with the
   `now-sdk` (`@servicenow/sdk`) CLI — the ordered lifecycle from init → auth →

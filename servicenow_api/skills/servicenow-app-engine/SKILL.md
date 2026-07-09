@@ -1,5 +1,6 @@
 ---
 name: servicenow-app-engine
+skill_type: skill
 description: >-
   Build scoped ServiceNow applications as metadata-as-code — the scope/`x_`
   prefix/now.config.json anatomy, how Fluent artifacts assemble into a whole app

@@ -1,5 +1,6 @@
 ---
 name: servicenow-telecom-tmf
+skill_type: skill
 description: >-
   ServiceNow Telecom (TSM/TSOM) TM Forum Open APIs — drives service qualification
   (TMF645), product inventory (TMF637), account (TMF666/629), and any other TM Forum

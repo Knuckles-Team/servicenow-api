@@ -1,5 +1,6 @@
 ---
 name: servicenow-cicd-devops
+skill_type: skill
 description: >-
   ServiceNow release-engineering surface — CI/CD app install/scan/rollback, DevOps
   change-control & artifact registration, update-set create/preview/commit/back-out,

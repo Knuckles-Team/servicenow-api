@@ -1,5 +1,6 @@
 ---
 name: servicenow-hr-ppm
+skill_type: skill
 description: >-
   ServiceNow HR Service Delivery and Project Portfolio Management surface — fetch an
   employee HR profile and insert PPM cost plans and project tasks via the servicenow-api

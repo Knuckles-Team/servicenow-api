@@ -1,5 +1,6 @@
 ---
 name: servicenow-platform-docs
+skill_type: skill
 description: >-
   ServiceNow PRODUCT documentation (concepts, not code) for the Now Platform
   build/automation and security/risk suites the fleet unifies: Flow Designer /
