@@ -1,5 +1,6 @@
 ---
 name: servicenow-table-api
+skill_type: skill
 description: >-
   Foundational ServiceNow data access — generic Table API CRUD, Aggregate/stats
   roll-ups, and raw REST escape-hatch via the servicenow-api MCP server. Use when

@@ -1,5 +1,6 @@
 ---
 name: servicenow-knowledge
+skill_type: skill
 description: >-
   Read access to the ServiceNow Knowledge Management (KSM) API via the
   servicenow-api MCP server — search/list knowledge articles, fetch a single

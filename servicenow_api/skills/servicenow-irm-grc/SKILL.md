@@ -1,5 +1,6 @@
 ---
 name: servicenow-irm-grc
+skill_type: skill
 description: >-
   ServiceNow Integrated Risk Management / GRC — the ServiceNow equivalent of RSA
   Archer (GRC) and OneTrust (privacy). Covers Risk Management, Policy & Compliance,

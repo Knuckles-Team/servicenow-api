@@ -1,5 +1,6 @@
 ---
 name: servicenow-workflow-studio
+skill_type: skill
 description: >-
   Author ServiceNow Flow Designer flows, subflows, and actions as code with the
   Fluent `@servicenow/sdk/automation` API (`Flow`, `Subflow`, `wfa.trigger`,

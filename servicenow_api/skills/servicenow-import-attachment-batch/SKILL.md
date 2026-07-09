@@ -1,5 +1,6 @@
 ---
 name: servicenow-import-attachment-batch
+skill_type: skill
 description: >-
   ServiceNow data-ingest, file, and batched-REST surface — push rows through Import
   Sets (single & bulk), upload/get/delete record attachments, and bundle many REST
