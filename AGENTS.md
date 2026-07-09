@@ -266,3 +266,25 @@ agent-utilities --json concept reserve --ns EG-KG.compute.backend   # or a packa
 
 Full protocol (ledger, merge=union, reconcile, MCP/REST): <https://knuckles-team.github.io/agent-utilities/concept_coordination/>
 <!-- END concept-coordination (generated) -->
+
+## Version & lockfile drift edict (keep the version mirrors AND the lock in sync)
+
+The two most common release-breakers in this fleet are **version drift** (the version in
+`pyproject.toml`/`.bumpversion.cfg` advancing while `README.md`, `docker/Dockerfile`, and the
+module `__version__`s lag) and a **stale `uv.lock`** (shipping known-vulnerable transitive deps).
+A version mismatch makes the next `bump-my-version` throw `VersionNotFoundException`; a stale lock
+is what Dependabot flags. Rules:
+
+1. **Never hand-edit a version string.** Change the version ONLY via
+   `bump-my-version bump {patch|minor|major}` (a.k.a. `bump2version`), which rewrites every file
+   registered in `.bumpversion.cfg` in one atomic, tagged commit. If you edited the version in
+   `pyproject.toml` by hand, you created drift — revert and use the bumper.
+2. **Every version-bearing file must be registered in `.bumpversion.cfg`** — at minimum
+   `pyproject.toml` AND `README.md`, plus `docker/Dockerfile` and any module `__version__`. Never
+   add a file that embeds the version without a `[bumpversion:file:...]` entry for it.
+3. **Re-lock on every dependency change.** After editing `pyproject.toml` deps/extras, run
+   `uv lock` and commit `uv.lock` in the SAME change. The `uv-lock` pre-commit hook runs with
+   `--locked` and fails on drift — never bypass it. The committed `uv.lock` is the
+   Dependabot/security surface.
+4. **Patch CVEs with a version floor at the source, then re-lock.** `uv` resolves one version
+   graph-wide, so a lower-bound in the extra that pulls a dependency raises it for the whole lock.
