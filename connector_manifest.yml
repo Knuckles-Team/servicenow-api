@@ -1,0 +1,175 @@
+connector: servicenow-api
+ontology_source: servicenow
+schema_version: '1'
+resources:
+- name: Change
+  label: Change
+  id_prefix: change
+  relations: []
+- name: ConfigurationItem
+  label: Configuration Item
+  id_prefix: configurationitem
+  relations: []
+- name: Incident
+  label: Incident
+  id_prefix: incident
+  relations: []
+- name: KnowledgeArticle
+  label: Knowledge Article
+  id_prefix: knowledgearticle
+  relations: []
+- name: Person
+  label: Person
+  id_prefix: person
+  relations: []
+actions:
+- id: run_graph_flow
+  name: Graph Flow Execution
+  description: Execute a workflow through the agent's graph orchestration engine
+events:
+- name: servicenow-incidents.updated
+  resource: incident
+  description: "Watermark event for 'servicenow-incidents' \u2014 advances on sys_updated_on (mcp_source_presets.json)."
+- name: servicenow-knowledge.updated
+  resource: knowledge_article
+  description: "Watermark event for 'servicenow-knowledge' \u2014 advances on sys_updated_on (mcp_source_presets.json)."
+identity:
+  id_field:
+    incident: sys_id
+    knowledge_article: sys_id
+  title_field:
+    incident: short_description
+    knowledge_article: short_description
+  text_field:
+    incident: description
+    knowledge_article: content
+  updated_field:
+    incident: sys_updated_on
+    knowledge_article: sys_updated_on
+permissions:
+  acl_fields: []
+  tenant_field: null
+  read_roles: []
+schema_mappings:
+  Change:
+    ontology_class: null
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  ConfigurationItem:
+    ontology_class: null
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  Incident:
+    ontology_class: Incident
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  KnowledgeArticle:
+    ontology_class: Document
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  Person:
+    ontology_class: Person
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+sync:
+- preset: servicenow-incidents
+  server: servicenow-api
+  tool: servicenow_incidents
+  action: get_incidents
+  records_path: result
+  id_field: sys_id
+  title_field: short_description
+  text_field: description
+  updated_field: sys_updated_on
+  pagination: offset
+  doc_type: incident
+  raw:
+    server: servicenow-api
+    tool: servicenow_incidents
+    action: get_incidents
+    records_path: result
+    id_field: sys_id
+    title_field: short_description
+    text_field: description
+    updated_field: sys_updated_on
+    pagination: offset
+    page_kind: offset
+    page_param: sysparm_offset
+    page_size_param: sysparm_limit
+    doc_type: incident
+- preset: servicenow-knowledge
+  server: servicenow-api
+  tool: servicenow_knowledge_management
+  action: get_knowledge_articles
+  records_path: result
+  id_field: sys_id
+  title_field: short_description
+  text_field: content
+  updated_field: sys_updated_on
+  pagination: offset
+  doc_type: knowledge_article
+  raw:
+    server: servicenow-api
+    tool: servicenow_knowledge_management
+    action: get_knowledge_articles
+    records_path: result
+    id_field: sys_id
+    title_field: short_description
+    text_field: content
+    updated_field: sys_updated_on
+    pagination: offset
+    page_kind: offset
+    page_param: sysparm_offset
+    page_size_param: sysparm_limit
+    doc_type: knowledge_article
+provenance:
+  generated_by: scripts/generate_connector_manifests.py
+  generated_at: '2026-07-09T00:00:00Z'
+  source_artifacts:
+  - a2a.json
+  - servicenow_api/connectors/mcp_source_presets.json
+  - servicenow_api/ontology/servicenow.ttl
+  integrity:
+    algorithm: urdna2015-sha256
+    hash: 93c094a3c346daa1097a91e18ee6235942b814ee5b8947cbf4167731a6cfb099
+    triple_count: 34
+  signer: ontology-manifest-generator
+  signature: 110f835ed2f5c5aff8f9877e3f69c091301d4aa91820738c7aba1967358558de
+policy:
+  pii_fields: {}
+  tenant_boundary: null
+  rls: []
+review_todos:
+- "policy.rls / policy.tenant_boundary are unset \u2014 no row-level-security predicate has been reviewed\
+  \ for this connector."
+- "relation 'affects' has no declared rdfs:domain resolving to a known resource in this connector's ontology\
+  \ \u2014 not attached to any resource; verify its true domain manually."
+- "relation 'assignedTo' has no declared rdfs:domain resolving to a known resource in this connector's\
+  \ ontology \u2014 not attached to any resource; verify its true domain manually."
+- "schema_mappings.Change.ontology_class = None [UNRESOLVED \u2014 no crosswalk found by any heuristic]\
+  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.ConfigurationItem.ontology_class = None [UNRESOLVED \u2014 no crosswalk found by any\
+  \ heuristic] \u2014 verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.Incident.ontology_class = 'Incident' [DRAFT \u2014 nearest hub-canonical-class-by-name\
+  \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
+  \ on this crosswalk for reasoning/joins."
+- "schema_mappings.KnowledgeArticle.ontology_class = 'Document' [source ttl rdfs:subClassOf] \u2014 verify\
+  \ manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.Person.ontology_class = 'Person' [DRAFT \u2014 nearest hub-canonical-class-by-name\
+  \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
+  \ on this crosswalk for reasoning/joins."

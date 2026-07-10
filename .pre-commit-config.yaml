@@ -64,6 +64,14 @@ repos:
   - id: nbqa-ruff
 - repo: local
   hooks:
+  - id: check-ontology-integrity
+    name: check connector ontology manifest integrity (C5/X6, fail-closed)
+    entry: |-
+      bash -c '[ -f connector_manifest.yml ] || exit 0; python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/check_connector_manifests.py --manifest connector_manifest.yml'
+    language: system
+    pass_filenames: false
+    always_run: true
+    files: ^(connector_manifest\.yml|.*/ontology/.*\.ttl|.*/connectors/mcp_source_presets\.json|a2a\.json)$
   - id: okf-no-legacy-concepts
     name: OKF-CIS — no legacy CONCEPT ids
     entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/check_no_legacy_markers.py .
