@@ -1,0 +1,207 @@
+connector: servicenow-api
+ontology_source: servicenow
+schema_version: '1'
+resources:
+- name: Change
+  label: Change
+  id_prefix: change
+  relations: []
+- name: ConfigurationItem
+  label: Configuration Item
+  id_prefix: configurationitem
+  relations: []
+- name: Incident
+  label: Incident
+  id_prefix: incident
+  relations: []
+- name: KnowledgeArticle
+  label: Knowledge Article
+  id_prefix: knowledgearticle
+  relations: []
+- name: Person
+  label: Person
+  id_prefix: person
+  relations: []
+actions:
+- id: run_graph_flow
+  name: Graph Flow Execution
+  description: Execute a workflow through the agent's graph orchestration engine
+events:
+- name: servicenow-incidents.updated
+  resource: incident
+  description: "Watermark event for 'servicenow-incidents' \u2014 advances on sys_updated_on (mcp_source_presets.json)."
+- name: servicenow-knowledge.updated
+  resource: knowledge_article
+  description: "Watermark event for 'servicenow-knowledge' \u2014 advances on sys_updated_on (mcp_source_presets.json)."
+identity:
+  id_field:
+    incident: sys_id
+    knowledge_article: sys_id
+  title_field:
+    incident: short_description
+    knowledge_article: short_description
+  text_field:
+    incident: description
+    knowledge_article: content
+  updated_field:
+    incident: sys_updated_on
+    knowledge_article: sys_updated_on
+permissions:
+  acl_fields: []
+  tenant_field: null
+  read_roles: []
+schema_mappings:
+  Change:
+    ontology_class: null
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  ConfigurationItem:
+    ontology_class: null
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  Incident:
+    ontology_class: Incident
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  KnowledgeArticle:
+    ontology_class: Document
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  Person:
+    ontology_class: Person
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+sync:
+- preset: servicenow-incidents
+  server: servicenow-api
+  tool: servicenow_incidents
+  action: get_incidents
+  records_path: result
+  id_field: sys_id
+  title_field: short_description
+  text_field: description
+  updated_field: sys_updated_on
+  pagination: offset
+  doc_type: incident
+  raw:
+    server: servicenow-api
+    tool: servicenow_incidents
+    action: get_incidents
+    records_path: result
+    id_field: sys_id
+    title_field: short_description
+    text_field: description
+    updated_field: sys_updated_on
+    pagination: offset
+    page_kind: offset
+    page_param: sysparm_offset
+    page_size_param: sysparm_limit
+    doc_type: incident
+- preset: servicenow-knowledge
+  server: servicenow-api
+  tool: servicenow_knowledge_management
+  action: get_knowledge_articles
+  records_path: result
+  id_field: sys_id
+  title_field: short_description
+  text_field: content
+  updated_field: sys_updated_on
+  pagination: offset
+  doc_type: knowledge_article
+  raw:
+    server: servicenow-api
+    tool: servicenow_knowledge_management
+    action: get_knowledge_articles
+    records_path: result
+    id_field: sys_id
+    title_field: short_description
+    text_field: content
+    updated_field: sys_updated_on
+    pagination: offset
+    page_kind: offset
+    page_param: sysparm_offset
+    page_size_param: sysparm_limit
+    doc_type: knowledge_article
+provenance:
+  generated_by: scripts/generate_connector_manifests.py
+  generated_at: '2026-07-11T00:00:00Z'
+  source_artifacts:
+  - a2a.json
+  - servicenow_api/connectors/mcp_source_presets.json
+  - servicenow_api/ontology/servicenow.ttl
+  integrity:
+    algorithm: urdna2015-sha256
+    hash: 93c094a3c346daa1097a91e18ee6235942b814ee5b8947cbf4167731a6cfb099
+    triple_count: 34
+  signer: ontology-manifest-generator
+  signature: 25a44bf0b46c9c8cc5f559b5f3f685fe02404ea793bf787b154c1ab8d7773793
+policy:
+  pii_fields: {}
+  tenant_boundary: null
+  rls: []
+review_todos:
+- "policy.rls / policy.tenant_boundary are unset \u2014 no row-level-security predicate has been reviewed\
+  \ for this connector."
+- "relation 'affects' has no declared rdfs:domain resolving to a known resource in this connector's ontology\
+  \ \u2014 not attached to any resource; verify its true domain manually."
+- "relation 'assignedTo' has no declared rdfs:domain resolving to a known resource in this connector's\
+  \ ontology \u2014 not attached to any resource; verify its true domain manually."
+- "schema_mappings.Change.ontology_class = None [UNRESOLVED \u2014 no crosswalk found by any heuristic]\
+  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.ConfigurationItem.ontology_class = None [UNRESOLVED \u2014 no crosswalk found by any\
+  \ heuristic] \u2014 verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.Incident.ontology_class = 'Incident' [DRAFT \u2014 nearest hub-canonical-class-by-name\
+  \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
+  \ on this crosswalk for reasoning/joins."
+- "schema_mappings.KnowledgeArticle.ontology_class = 'Document' [source ttl rdfs:subClassOf] \u2014 verify\
+  \ manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.Person.ontology_class = 'Person' [DRAFT \u2014 nearest hub-canonical-class-by-name\
+  \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
+  \ on this crosswalk for reasoning/joins."
+- "auth: Basic (username+password) by default; upgrades to OAuth2 Resource-Owner-Password-Credentials\
+  \ grant (POST /oauth_token.do, grant_type=password \u2014 NOT client_credentials) when client_id+secret\
+  \ are also set; OIDC delegation checked first if enabled. Env: SERVICENOW_INSTANCE/URL, SERVICENOW_USERNAME,\
+  \ SERVICENOW_PASSWORD, SERVICENOW_CLIENT_ID/SECRET, ENABLE_DELEGATION, DELEGATED_SCOPES (default 'api').\
+  \ Shape: single shared service account (.env.example default user 'admin'); no per-user path unless\
+  \ OIDC delegation is enabled. required_scopes: none named beyond DELEGATED_SCOPES='api' \u2014 verify\
+  \ the service account's ACL/role coverage against actual table access needed."
+- "change_support: snapshot/poll only, via mcp_source_presets.json (hydrate+materialize+writeback \u2014\
+  \ see docs/architecture/kg_connectors_and_ingestion.md section 8 connector inventory for the real, already-shipped\
+  \ wiring). cdc: none (no change-data-capture/replication-log path). webhook: none (any 'webhook' hits\
+  \ in this package's source manage webhooks IN THE REMOTE SYSTEM as a tool capability \u2014 there is\
+  \ no inbound webhook RECEIVER wired to source_sync ingestion for this connector today)."
+- "policy.classification / policy.retention: UNKNOWN \u2014 this connector declares no data classification\
+  \ (e.g. public/internal/confidential/restricted) or retention/legal-hold policy anywhere in its shipped\
+  \ artifacts; do not assume a default. Treat both as manifest_status=draft until an operator reviews\
+  \ the actual data handled and states a classification + retention period explicitly (see policy.pii_fields\
+  \ above for the one heuristic that IS populated)."
+- "quality (SHACL shapes / freshness SLA): UNKNOWN \u2014 no SHACL shape set or freshness contract is\
+  \ declared for this connector's resources; manifest_status=draft for quality until a shape set + freshness\
+  \ SLA is authored and referenced here."
+- "manifest_status: draft \u2014 resources/schema_mappings/sync/actions/events were generated deterministically\
+  \ (zero LLM, zero network) from this connector's OWN shipped artifacts via scripts/generate_connector_manifests.py;\
+  \ the auth/required_scopes/change_support/policy/quality annotations above were added by a manual read-only\
+  \ code survey (not re-verified against a live deployment) as part of AU-P1-6 making this connector's\
+  \ manifest MANDATORY for enterprise activation \u2014 operator sign-off on the ontology_class crosswalks,\
+  \ PII/RLS policy, and the classification/retention/quality gaps above is still required before this\
+  \ manifest should be treated as fully authoritative."
+- "cross-connector note: atlassian-agent, gitlab-api, servicenow-api, microsoft-agent, and leanix-agent\
+  \ all layer a common OIDC_CLIENT_ID/SECRET + ENABLE_DELEGATION + DELEGATED_SCOPES + AUDIENCE RFC-8693-style\
+  \ token-exchange path on top of each connector's own native credential (a shared auth.py pattern across\
+  \ these agent-packages) \u2014 this is the per-user delegated-identity opt-in; the native credential\
+  \ above remains the system-to-system default."
