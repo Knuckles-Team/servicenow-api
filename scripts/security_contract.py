@@ -23,11 +23,14 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 MAX_CONTRACT_BYTES = 128 * 1024
 MAX_EVIDENCE_BYTES = 128 * 1024
 MAX_SBOM_BYTES = 64 * 1024 * 1024
 MAX_COMPONENTS = 100_000
+MAX_LICENSE_DECLARATIONS = 64
+MAX_LICENSE_EXPRESSION_BYTES = 4_096
+MAX_LICENSE_TOKENS = 256
+MAX_LICENSE_NESTING = 32
 MAX_ARGV_ITEMS = 64
 MAX_ARGUMENT_BYTES = 4_096
 MAX_HOOK_OUTPUT_BYTES = 4 * 1024 * 1024
@@ -36,11 +39,201 @@ _SENSITIVE_ENV = re.compile(
     r"(?:^|_)(?:AUTHORIZATION|COOKIE|CREDENTIAL|PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)(?:_|$)",
     re.IGNORECASE,
 )
-_LICENSE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+() -]{0,127}$")
+_SPDX_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+-]{0,127}$")
+_SPDX_OPERATORS = frozenset({"AND", "OR", "WITH"})
 
 
 class SecurityContractError(RuntimeError):
     """A stable, path- and secret-free contract failure."""
+
+
+class _SpdxSyntaxError(ValueError):
+    """An internal, detail-free SPDX parsing failure."""
+
+
+class _SpdxParser:
+    """Parse the bounded current SPDX expression grammar without dependencies."""
+
+    def __init__(self, tokens: tuple[str, ...]) -> None:
+        self._tokens = tokens
+        self._position = 0
+        self._nesting = 0
+
+    def parse(self) -> tuple[Any, ...]:
+        node = self._parse_or()
+        if self._position != len(self._tokens):
+            raise _SpdxSyntaxError
+        return node
+
+    def _peek(self) -> str | None:
+        if self._position >= len(self._tokens):
+            return None
+        return self._tokens[self._position]
+
+    def _take(self) -> str:
+        token = self._peek()
+        if token is None:
+            raise _SpdxSyntaxError
+        self._position += 1
+        return token
+
+    def _parse_or(self) -> tuple[Any, ...]:
+        nodes = [self._parse_and()]
+        while self._peek() == "OR":
+            self._take()
+            nodes.append(self._parse_and())
+        return nodes[0] if len(nodes) == 1 else ("or", tuple(nodes))
+
+    def _parse_and(self) -> tuple[Any, ...]:
+        nodes = [self._parse_with()]
+        while self._peek() == "AND":
+            self._take()
+            nodes.append(self._parse_with())
+        return nodes[0] if len(nodes) == 1 else ("and", tuple(nodes))
+
+    def _parse_with(self) -> tuple[Any, ...]:
+        node = self._parse_primary()
+        if self._peek() != "WITH":
+            return node
+        self._take()
+        exception = self._take()
+        if node[0] != "id" or not _is_spdx_identifier(exception):
+            raise _SpdxSyntaxError
+        return ("with", node[1], exception)
+
+    def _parse_primary(self) -> tuple[Any, ...]:
+        token = self._take()
+        if token == "(":
+            self._nesting += 1
+            if self._nesting > MAX_LICENSE_NESTING:
+                raise _SpdxSyntaxError
+            node = self._parse_or()
+            if self._take() != ")":
+                raise _SpdxSyntaxError
+            self._nesting -= 1
+            return ("group", node)
+        if not _is_spdx_identifier(token):
+            raise _SpdxSyntaxError
+        return ("id", token)
+
+
+def _is_spdx_identifier(value: str) -> bool:
+    return bool(_SPDX_IDENTIFIER.fullmatch(value)) and value not in _SPDX_OPERATORS
+
+
+def _bounded_utf8(value: str, maximum_bytes: int) -> bool:
+    try:
+        return len(value.encode("utf-8")) <= maximum_bytes
+    except UnicodeEncodeError:
+        return False
+
+
+def _tokenize_spdx(expression: str) -> tuple[str, ...]:
+    if (
+        not isinstance(expression, str)
+        or not expression
+        or not _bounded_utf8(expression, MAX_LICENSE_EXPRESSION_BYTES)
+        or "\x00" in expression
+    ):
+        raise _SpdxSyntaxError
+    tokens: list[str] = []
+    position = 0
+    while position < len(expression):
+        character = expression[position]
+        if character.isspace():
+            position += 1
+            continue
+        if character in "()":
+            tokens.append(character)
+            position += 1
+        else:
+            end = position
+            while end < len(expression):
+                candidate = expression[end]
+                if candidate.isspace() or candidate in "()":
+                    break
+                end += 1
+            token = expression[position:end]
+            if token not in _SPDX_OPERATORS and not _is_spdx_identifier(token):
+                raise _SpdxSyntaxError
+            tokens.append(token)
+            position = end
+        if len(tokens) > MAX_LICENSE_TOKENS:
+            raise _SpdxSyntaxError
+    if not tokens:
+        raise _SpdxSyntaxError
+    return tuple(tokens)
+
+
+def _parse_spdx(expression: str) -> tuple[Any, ...]:
+    return _SpdxParser(_tokenize_spdx(expression)).parse()
+
+
+def _spdx_identifiers(node: tuple[Any, ...]) -> set[str]:
+    kind = node[0]
+    if kind == "id":
+        return {node[1]}
+    if kind == "with":
+        return {node[1], node[2]}
+    if kind == "group":
+        return _spdx_identifiers(node[1])
+    identifiers: set[str] = set()
+    for child in node[1]:
+        identifiers.update(_spdx_identifiers(child))
+    return identifiers
+
+
+def _spdx_node_is_allowed(
+    node: tuple[Any, ...],
+    *,
+    allowed: set[str],
+    allowed_exceptions: set[str],
+) -> bool:
+    kind = node[0]
+    if kind == "id":
+        return node[1] in allowed
+    if kind == "with":
+        return node[1] in allowed and node[2] in allowed_exceptions
+    if kind == "group":
+        return _spdx_node_is_allowed(
+            node[1], allowed=allowed, allowed_exceptions=allowed_exceptions
+        )
+    children = node[1]
+    if kind == "and":
+        return all(
+            _spdx_node_is_allowed(
+                child, allowed=allowed, allowed_exceptions=allowed_exceptions
+            )
+            for child in children
+        )
+    if kind == "or":
+        return any(
+            _spdx_node_is_allowed(
+                child, allowed=allowed, allowed_exceptions=allowed_exceptions
+            )
+            for child in children
+        )
+    raise _SpdxSyntaxError
+
+
+def _spdx_expression_is_allowed(
+    expression: str,
+    *,
+    allowed: set[str],
+    allowed_exceptions: set[str],
+    denied: set[str],
+) -> bool:
+    """Evaluate one expression while making every explicit denial terminal."""
+
+    try:
+        node = _parse_spdx(expression)
+    except _SpdxSyntaxError:
+        return False
+    if _spdx_identifiers(node) & denied:
+        return False
+    return _spdx_node_is_allowed(
+        node, allowed=allowed, allowed_exceptions=allowed_exceptions
+    )
 
 
 def _relative_file(root: Path, value: str, *, maximum_bytes: int) -> Path:
@@ -87,7 +280,7 @@ def load_contract(root: Path, reference: str) -> dict[str, Any]:
     )
     if set(contract) != {"version", "hooks", "license_policy"}:
         raise SecurityContractError("security contract fields are invalid")
-    if contract.get("version") != 1 or not isinstance(contract.get("hooks"), dict):
+    if contract.get("version") != 2 or not isinstance(contract.get("hooks"), dict):
         raise SecurityContractError("security contract version is unsupported")
     hooks = contract["hooks"]
     if set(hooks) != set(HOOK_KINDS):
@@ -130,22 +323,27 @@ def load_contract(root: Path, reference: str) -> dict[str, Any]:
     policy = contract["license_policy"]
     if not isinstance(policy, dict) or set(policy) != {
         "allowed",
+        "allowed_exceptions",
         "denied",
-        "allow_unknown",
     }:
         raise SecurityContractError("license policy declaration is invalid")
-    for key in ("allowed", "denied"):
+    for key in ("allowed", "allowed_exceptions", "denied"):
         values = policy[key]
         if (
             not isinstance(values, list)
             or len(values) > 1_024
-            or any(not isinstance(value, str) or not _LICENSE_ID.fullmatch(value) for value in values)
+            or any(
+                not isinstance(value, str) or not _is_spdx_identifier(value)
+                for value in values
+            )
             or len(set(values)) != len(values)
         ):
             raise SecurityContractError("license policy identifiers are invalid")
-    if not isinstance(policy["allow_unknown"], bool) or not policy["allowed"]:
+    if not policy["allowed"]:
         raise SecurityContractError("license policy must declare an allow-list")
-    if set(policy["allowed"]) & set(policy["denied"]):
+    if set(policy["denied"]) & (
+        set(policy["allowed"]) | set(policy["allowed_exceptions"])
+    ):
         raise SecurityContractError("license policy allow and deny lists overlap")
     return contract
 
@@ -173,10 +371,14 @@ def _hook_environment() -> dict[str, str]:
 
 
 def _limit_hook_output() -> None:
-    resource.setrlimit(resource.RLIMIT_FSIZE, (MAX_HOOK_OUTPUT_BYTES, MAX_HOOK_OUTPUT_BYTES))
+    resource.setrlimit(
+        resource.RLIMIT_FSIZE, (MAX_HOOK_OUTPUT_BYTES, MAX_HOOK_OUTPUT_BYTES)
+    )
 
 
-def _validate_hook_evidence(kind: str, hook: dict[str, Any], evidence: dict[str, Any]) -> None:
+def _validate_hook_evidence(
+    kind: str, hook: dict[str, Any], evidence: dict[str, Any]
+) -> None:
     required = {"version", "kind", "passed", "cases", "failures"}
     if not required.issubset(evidence) or evidence.get("version") != 1:
         raise SecurityContractError("security hook evidence schema is invalid")
@@ -221,7 +423,9 @@ def run_hook(root: Path, contract: dict[str, Any], kind: str, result_root: str) 
     try:
         evidence.relative_to(resolved_results)
     except ValueError as exc:
-        raise SecurityContractError("security hook evidence must stay in the result root") from exc
+        raise SecurityContractError(
+            "security hook evidence must stay in the result root"
+        ) from exc
     evidence.unlink(missing_ok=True)
     log_path = results.joinpath(f"{kind}.log")
     try:
@@ -242,7 +446,9 @@ def run_hook(root: Path, contract: dict[str, Any], kind: str, result_root: str) 
             except subprocess.TimeoutExpired as exc:
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
-                raise SecurityContractError("security hook exceeded its time boundary") from exc
+                raise SecurityContractError(
+                    "security hook exceeded its time boundary"
+                ) from exc
     except SecurityContractError:
         raise
     except Exception as exc:
@@ -264,22 +470,39 @@ def run_hook(root: Path, contract: dict[str, Any], kind: str, result_root: str) 
     _validate_hook_evidence(kind, hook, evidence_value)
 
 
-def _component_licenses(component: dict[str, Any]) -> set[str]:
-    values: set[str] = set()
+def _component_licenses(component: dict[str, Any]) -> tuple[tuple[str, ...], bool]:
+    """Return bounded declarations and whether any declaration was malformed."""
+
     licenses = component.get("licenses")
-    if not isinstance(licenses, list):
-        return values
+    if not isinstance(licenses, list) or not licenses:
+        return (), False
+    if len(licenses) > MAX_LICENSE_DECLARATIONS:
+        return (), True
+    values: list[str] = []
+    malformed = False
     for declaration in licenses:
         if not isinstance(declaration, dict):
+            malformed = True
             continue
-        expression = declaration.get("expression")
-        license_value = declaration.get("license")
-        identifier = license_value.get("id") if isinstance(license_value, dict) else None
-        name = license_value.get("name") if isinstance(license_value, dict) else None
-        value = expression or identifier or name
-        if isinstance(value, str) and _LICENSE_ID.fullmatch(value):
-            values.add(value)
-    return values
+        if "expression" in declaration:
+            value = declaration["expression"]
+        else:
+            license_value = declaration.get("license")
+            if not isinstance(license_value, dict):
+                malformed = True
+                continue
+            identifier = license_value.get("id")
+            name = license_value.get("name")
+            value = identifier if isinstance(identifier, str) and identifier else name
+        if (
+            not isinstance(value, str)
+            or not value
+            or not _bounded_utf8(value, MAX_LICENSE_EXPRESSION_BYTES)
+        ):
+            malformed = True
+            continue
+        values.append(value)
+    return tuple(values), malformed
 
 
 def check_licenses(
@@ -288,7 +511,7 @@ def check_licenses(
     sbom_reference: str,
     output_reference: str,
 ) -> None:
-    """Apply an exact, fail-closed license allow/deny policy to CycloneDX."""
+    """Apply bounded SPDX semantics and a fail-closed policy to CycloneDX."""
 
     sbom = _read_json(
         _relative_file(root, sbom_reference, maximum_bytes=MAX_SBOM_BYTES),
@@ -301,19 +524,33 @@ def check_licenses(
         raise SecurityContractError("software bill of materials is invalid")
     policy = contract["license_policy"]
     allowed = set(policy["allowed"])
+    allowed_exceptions = set(policy["allowed_exceptions"])
     denied = set(policy["denied"])
     unknown = 0
     violations = 0
     for component in components:
         if not isinstance(component, dict):
-            raise SecurityContractError("software bill of materials component is invalid")
-        licenses = _component_licenses(component)
+            raise SecurityContractError(
+                "software bill of materials component is invalid"
+            )
+        licenses, malformed = _component_licenses(component)
         if not licenses:
-            unknown += 1
+            if malformed:
+                violations += 1
+            else:
+                unknown += 1
             continue
-        if licenses & denied or any(value not in allowed for value in licenses):
+        if malformed or any(
+            not _spdx_expression_is_allowed(
+                value,
+                allowed=allowed,
+                allowed_exceptions=allowed_exceptions,
+                denied=denied,
+            )
+            for value in licenses
+        ):
             violations += 1
-    passed = violations == 0 and (policy["allow_unknown"] or unknown == 0)
+    passed = violations == 0 and unknown == 0
     if Path(output_reference).is_absolute() or ".." in Path(output_reference).parts:
         raise SecurityContractError("license evidence path is invalid")
     output = root.joinpath(output_reference)
@@ -331,7 +568,7 @@ def check_licenses(
     output.write_text(
         json.dumps(
             {
-                "version": 1,
+                "version": 2,
                 "kind": "license_policy",
                 "passed": passed,
                 "components": len(components),
@@ -343,7 +580,9 @@ def check_licenses(
         encoding="utf-8",
     )
     if not passed:
-        raise SecurityContractError("software bill of materials violates license policy")
+        raise SecurityContractError(
+            "software bill of materials violates license policy"
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
