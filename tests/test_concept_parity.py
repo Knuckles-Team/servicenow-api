@@ -2,8 +2,8 @@ import os
 import re
 
 # Paths
-ROOT_DIR = "/home/apps/workspace/agent-packages/agents/servicenow-api"
-WORKSPACE_DIR = "/home/apps/workspace/agent-packages"
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WORKSPACE_DIR = os.path.dirname(os.path.dirname(ROOT_DIR))
 MASTER_OVERVIEW_PATH = os.path.join(
     WORKSPACE_DIR, "agent-utilities", "docs", "overview.md"
 )

@@ -3,6 +3,8 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp.action_dispatch import resolve_action
+from agent_utilities.mcp.concurrency import run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -32,20 +34,36 @@ def register_update_sets_tools(mcp: FastMCP):
         try:
             kwargs = json.loads(params_json)
         except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            [
+                "update_set_create",
+                "update_set_retrieve",
+                "update_set_preview",
+                "update_set_commit",
+                "update_set_commit_multiple",
+                "update_set_back_out",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "update_set_create":
-            return client.update_set_create(**kwargs)
+            return await run_blocking(client.update_set_create, **kwargs)
         if action == "update_set_retrieve":
-            return client.update_set_retrieve(**kwargs)
+            return await run_blocking(client.update_set_retrieve, **kwargs)
         if action == "update_set_preview":
-            return client.update_set_preview(**kwargs)
+            return await run_blocking(client.update_set_preview, **kwargs)
         if action == "update_set_commit":
-            return client.update_set_commit(**kwargs)
+            return await run_blocking(client.update_set_commit, **kwargs)
         if action == "update_set_commit_multiple":
-            return client.update_set_commit_multiple(**kwargs)
+            return await run_blocking(client.update_set_commit_multiple, **kwargs)
         if action == "update_set_back_out":
-            return client.update_set_back_out(**kwargs)
+            return await run_blocking(client.update_set_back_out, **kwargs)
         raise ValueError(f"Unknown action: {action}")

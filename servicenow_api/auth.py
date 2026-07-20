@@ -10,11 +10,15 @@ Authentication priority:
 See ``docs/guides/oauth_sso.md`` in agent-utilities for full details.
 """
 
-import os
 from threading import local
 
-from agent_utilities.base_utilities import get_logger, to_boolean
+from agent_utilities.base_utilities import get_logger
+from agent_utilities.core.config import setting
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
+from agent_utilities.core.transport_security import (
+    ResolvedTLSProfile,
+    resolve_configured_tls_profile,
+)
 
 local = local()
 from servicenow_api.api_client import Api
@@ -23,17 +27,19 @@ logger = get_logger(__name__)
 
 
 def get_client(
-    username=os.getenv("SERVICENOW_USERNAME", None),
-    password=os.getenv("SERVICENOW_PASSWORD", None),
-    client_id=os.getenv("SERVICENOW_CLIENT_ID", None),
-    client_secret=os.getenv("SERVICENOW_CLIENT_SECRET", None),
-    verify: bool = to_boolean(string=os.getenv("SERVICENOW_SSL_VERIFY", "True")),
+    username=None,
+    password=None,
+    client_id=None,
+    client_secret=None,
+    tls_profile: ResolvedTLSProfile | None = None,
 ) -> Api:
     """Single entry point for ServiceNow clients.
 
-    Auto-detects auth method:
+    Credentials resolve live through the shared config layer (the one XDG
+    ``config.json`` / env), so they are read at call time rather than frozen at
+    import. Auto-detects auth method:
     1. OIDC Delegation → exchanges MCP token via shared helper
-    2. Basic auth → username/password (env fallback)
+    2. Basic auth → username/password (config fallback)
     """
     from agent_utilities.mcp.delegated_auth import (
         get_delegated_token,
@@ -41,7 +47,21 @@ def get_client(
         is_delegation_enabled,
     )
 
-    instance = os.getenv("SERVICENOW_URL") or os.getenv("SERVICENOW_INSTANCE")
+    username = username if username is not None else setting("SERVICENOW_USERNAME")
+    password = password if password is not None else setting("SERVICENOW_PASSWORD")
+    client_id = client_id if client_id is not None else setting("SERVICENOW_CLIENT_ID")
+    client_secret = (
+        client_secret
+        if client_secret is not None
+        else setting("SERVICENOW_CLIENT_SECRET")
+    )
+    profile = tls_profile or resolve_configured_tls_profile(
+        "servicenow",
+        profile_name=setting("SERVICENOW_TLS_PROFILE", "") or None,
+        profile_ref=setting("SERVICENOW_TLS_PROFILE_REF", "") or None,
+    )
+
+    instance = setting("SERVICENOW_URL") or setting("SERVICENOW_INSTANCE")
     if not instance:
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 
@@ -49,21 +69,14 @@ def get_client(
     if is_delegation_enabled():
         try:
             delegated_token = get_delegated_token(
-                audience=os.environ.get("AUDIENCE", instance),
-                scopes=os.environ.get("DELEGATED_SCOPES", "api"),
-                verify=verify,
+                audience=setting("AUDIENCE", instance),
+                scopes=setting("DELEGATED_SCOPES", "api"),
             )
-            identity = get_user_identity()
-            logger.info(
-                "Using OIDC delegated token for ServiceNow API",
-                extra={
-                    "user_email": identity.get("email"),
-                    "instance": instance,
-                },
-            )
-            return Api(url=instance, token=delegated_token, verify=verify)
-        except Exception as e:
-            logger.error("OIDC delegation failed", extra={"error": str(e)})
+            get_user_identity()
+            logger.info("Using OIDC delegated token for ServiceNow API")
+            return Api(url=instance, token=delegated_token, tls_profile=profile)
+        except Exception:
+            logger.error("OIDC delegation failed", extra={"error": "Operation failed"})
             raise
 
     # --- Path 2: Basic Auth (username/password + optional OAuth client) ---
@@ -76,10 +89,10 @@ def get_client(
                 password=password,
                 client_id=client_id,
                 client_secret=client_secret,
-                verify=verify,
+                tls_profile=profile,
             )
     except (AuthError, UnauthorizedError) as e:
-        logger.error(f"ServiceNow authentication failed: {e}")
+        logger.error("Operation failed: error_type=%s", type(e).__name__)
         raise RuntimeError(
             "AUTHENTICATION ERROR: The ServiceNow credentials provided are not valid for the account used. "
             "Please check your SERVICENOW_USERNAME and SERVICENOW_PASSWORD environment variables, "

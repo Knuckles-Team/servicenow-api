@@ -214,3 +214,41 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([__file__])
+
+
+@pytest.mark.asyncio
+async def test_tool_mode_condensed_default(mock_client, monkeypatch):
+    """Default mode = condensed: action-routed tools only, no verbose 1:1 tools."""
+    monkeypatch.delenv("MCP_TOOL_MODE", raising=False)
+    with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
+        mcp, *_ = get_mcp_instance()
+        names = {t.name for t in await mcp.list_tools()}
+    assert "servicenow_cmdb" in names  # condensed action tool
+    assert "servicenow_get_cmdb_instance" not in names  # verbose absent
+
+
+@pytest.mark.asyncio
+async def test_tool_mode_verbose(mock_client, monkeypatch):
+    """verbose mode: one 1:1 tool per Api domain method, condensed absent."""
+    monkeypatch.setenv("MCP_TOOL_MODE", "verbose")
+    with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
+        mcp, *_ = get_mcp_instance()
+        names = {t.name for t in await mcp.list_tools()}
+    assert "servicenow_cmdb" not in names
+    assert "servicenow_get_cmdb_instance" in names
+    # verbose tool names map 1:1 onto public Api methods
+    from servicenow_api.api_client import Api
+
+    method = "get_cmdb_instance"
+    assert callable(getattr(Api, method, None))
+    assert f"servicenow_{method}" in names
+
+
+@pytest.mark.asyncio
+async def test_tool_mode_both_is_union(mock_client, monkeypatch):
+    monkeypatch.setenv("MCP_TOOL_MODE", "both")
+    with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
+        mcp, *_ = get_mcp_instance()
+        names = {t.name for t in await mcp.list_tools()}
+    assert "servicenow_cmdb" in names  # condensed
+    assert "servicenow_get_cmdb_instance" in names  # verbose

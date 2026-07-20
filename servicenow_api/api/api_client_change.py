@@ -36,7 +36,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -394,8 +394,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change{change_type}",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -417,8 +415,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                         url=f"{self.url}/sn_chg_rest/change{change_type}",
                         params=change_request.api_parameters,
                         headers=self.headers,
-                        verify=self.verify,
-                        proxies=self.proxies,
                     )
                     response.raise_for_status()
                     json_response = response.json()
@@ -431,8 +427,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change{change_type}",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -449,7 +443,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_nextstate(self, **kwargs) -> Response:
@@ -473,8 +467,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/nextstate",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -487,7 +479,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_schedule(self, **kwargs) -> Response:
@@ -511,8 +503,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/ci/{change_request.cmdb_ci_sys_id}/schedule",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -525,7 +515,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_tasks(self, **kwargs) -> Response:
@@ -561,8 +551,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -582,8 +570,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                         url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
                         params=change_request.api_parameters,
                         headers=self.headers,
-                        verify=self.verify,
-                        proxies=self.proxies,
                     )
                     response.raise_for_status()
                     json_response = response.json()
@@ -596,8 +582,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -612,7 +596,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request(self, **kwargs) -> Response:
@@ -643,8 +627,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=url,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -657,7 +639,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_ci(self, **kwargs) -> Response:
@@ -681,8 +663,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -695,7 +675,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_conflict(self, **kwargs) -> Response:
@@ -719,8 +699,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -733,7 +711,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_standard_change_request_templates(self, **kwargs) -> Response:
@@ -764,8 +742,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/standard/template",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -787,8 +763,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                         url=f"{self.url}/sn_chg_rest/change/standard/template",
                         params=change_request.api_parameters,
                         headers=self.headers,
-                        verify=self.verify,
-                        proxies=self.proxies,
                     )
                     response.raise_for_status()
                     json_response = response.json()
@@ -801,8 +775,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/standard/template",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -821,7 +793,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_models(self, **kwargs) -> Response:
@@ -856,8 +828,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/model{change_type}",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -879,8 +849,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                         url=f"{self.url}/sn_chg_rest/change/model{change_type}",
                         params=change_request.api_parameters,
                         headers=self.headers,
-                        verify=self.verify,
-                        proxies=self.proxies,
                     )
                     response.raise_for_status()
                     json_response = response.json()
@@ -893,8 +861,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                     url=f"{self.url}/sn_chg_rest/change/model{change_type}",
                     params=change_request.api_parameters,
                     headers=self.headers,
-                    verify=self.verify,
-                    proxies=self.proxies,
                 )
                 response.raise_for_status()
                 first_response = response
@@ -911,7 +877,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_standard_change_request_model(self, **kwargs) -> Response:
@@ -935,8 +901,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/model/{change_request.model_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -949,7 +913,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_standard_change_request_template(self, **kwargs) -> Response:
@@ -973,8 +937,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/standard/template/{change_request.template_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -987,7 +949,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_change_request_worker(self, **kwargs) -> Response:
@@ -1011,8 +973,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_chg_rest/change/worker/{change_request.worker_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1025,7 +985,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_change_request(self, **kwargs) -> Response:
@@ -1063,8 +1023,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change{change_type}{standard_change_template_id}",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1077,7 +1035,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_change_request_task(self, **kwargs) -> Response:
@@ -1107,8 +1065,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change/task",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1121,7 +1077,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_change_request_ci_association(self, **kwargs) -> Response:
@@ -1157,8 +1113,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/ci",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1171,7 +1125,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def calculate_standard_change_request_risk(self, **kwargs) -> Response:
@@ -1195,8 +1149,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.patch(
                 url=f"{self.url}/sn_chg_rest/change/standard/{change_request.change_request_sys_id}/risk",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1209,7 +1161,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_change_request_conflict(self, **kwargs) -> Response:
@@ -1233,8 +1185,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1247,7 +1197,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def refresh_change_request_impacted_services(self, **kwargs) -> Response:
@@ -1271,8 +1221,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/refresh_impacted_services",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1285,7 +1233,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def approve_change_request(self, **kwargs) -> Response:
@@ -1316,8 +1264,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/approvals",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1330,7 +1276,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_change_request(self, **kwargs) -> Response:
@@ -1366,8 +1312,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change{change_type}/{change_request.change_request_sys_id}",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1380,7 +1324,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_change_request_first_available(self, **kwargs) -> Response:
@@ -1404,8 +1348,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.patch(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/schedule/first_available",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1418,7 +1360,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_change_request_task(self, **kwargs) -> Response:
@@ -1451,8 +1393,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task/{change_request.change_request_task_sys_id}",
                 headers=self.headers,
                 json=change_request.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1465,7 +1405,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_change_request(self, **kwargs) -> Response:
@@ -1495,8 +1435,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.delete(
                 url=url,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1509,7 +1447,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_change_request_task(self, **kwargs) -> Response:
@@ -1538,8 +1476,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.delete(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/task/{change_request.task_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1552,7 +1488,7 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_change_request_conflict_scan(self, **kwargs) -> Response:
@@ -1581,8 +1517,6 @@ class ServiceNowApiChange(ServiceNowApiBase):
             response = self._session.delete(
                 url=f"{self.url}/sn_chg_rest/change/{change_request.change_request_sys_id}/conflict",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -1595,5 +1529,5 @@ class ServiceNowApiChange(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise

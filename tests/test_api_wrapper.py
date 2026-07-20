@@ -28,11 +28,11 @@ reason = "do not run on MacOS or windows OR dependency is not installed OR " + r
 )
 def test_servicenow_api():
     """
-    CONCEPT:ECO-4.0: Tool Interface & MCP Factory
+    CONCEPT:AU-ECO.messaging.native-backend-abstraction: Tool Interface & MCP Factory
     """
     servicenow_url = "http://servicenow.com/api/"
     token = os.environ.get("token", default="NA")
-    client = servicenow_api.Api(url=servicenow_url, token=token, verify=False)
+    client = servicenow_api.Api(url=servicenow_url, token=token)
     table = client.get_table(table="users")
     assert isinstance(table.result, list)
 

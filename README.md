@@ -20,7 +20,7 @@
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/servicenow-api)
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/servicenow-api)
 
-*Version: 1.33.0*
+*Version: 2.0.1*
 
 > **Documentation** — Installation, deployment, and usage across the API, CLI, MCP,
 > and A2A agent interfaces are maintained in the
@@ -55,41 +55,191 @@ Detailed instructions on how to use the underlying API wrappers, extended schema
 
 This server utilizes dynamic Action-Routed tools to optimize token overhead and maximize IDE compatibility.
 
-### Available MCP Tools
-| Tool Module | Toggle Env Var | Enabled by Default | Description & Nested Methods |
-|-------------|----------------|--------------------|------------------------------|
-| **Misc** | `MISC_TOOL` | `True` | Manage ingest incidents to kg operations. |
-| **Flows** | `FLOWS_TOOL` | `True` | Manage servicenow flows operations. Action-routed methods: `collect_graph_for_roots`, `get_flow_metadata`, `workflow_to_mermaid`. |
-| **Application** | `APPLICATION_TOOL` | `True` | Manage servicenow application operations. Action-routed methods: `get_application`. |
-| **Cmdb** | `CMDB_TOOL` | `True` | Manage servicenow cmdb operations. Action-routed methods: `create_cmdb_instance`, `create_cmdb_relation`, `delete_cmdb_relation`, `get_cmdb`, `get_cmdb_instance`, `get_cmdb_instances`, `ingest_cmdb_data`, `patch_cmdb_instance`, `update_cmdb_instance`. |
-| **Cicd** | `CICD_TOOL` | `True` | Manage servicenow cicd operations. Action-routed methods: `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `batch_install`, `batch_install_result`, `batch_rollback`, `combo_suite_scan`, `full_scan`, `instance_scan_progress`, `point_scan`, `progress`, `suite_scan`. |
-| **Plugins** | `PLUGINS_TOOL` | `True` | Manage servicenow plugins operations. Action-routed methods: `activate_plugin`, `rollback_plugin`. |
-| **Source Control** | `SOURCE_CONTROL_TOOL` | `True` | Manage servicenow source control operations. Action-routed methods: `apply_remote_source_control_changes`, `import_repository`. |
-| **Testing** | `TESTING_TOOL` | `True` | Manage servicenow testing operations. Action-routed methods: `run_test_suite`. |
-| **Update Sets** | `UPDATE_SETS_TOOL` | `True` | Manage servicenow update sets operations. Action-routed methods: `update_set_back_out`, `update_set_commit`, `update_set_commit_multiple`, `update_set_create`, `update_set_preview`, `update_set_retrieve`. |
-| **Batch** | `BATCH_TOOL` | `True` | Manage servicenow batch operations. Action-routed methods: `batch_request`. |
-| **Change Management** | `CHANGE_MANAGEMENT_TOOL` | `True` | Manage servicenow change management operations. Action-routed methods: `approve_change_request`, `calculate_standard_change_request_risk`, `check_change_request_conflict`, `create_change_request`, `create_change_request_ci_association`, `create_change_request_task`, `delete_change_request`, `delete_change_request_conflict_scan`, `delete_change_request_task`, `get_change_request`, `get_change_request_ci`, `get_change_request_conflict`, `get_change_request_models`, `get_change_request_nextstate`, `get_change_request_schedule`, `get_change_request_tasks`, `get_change_request_worker`, `get_change_requests`, `get_standard_change_request_model`, `get_standard_change_request_template`, `get_standard_change_request_templates`, `refresh_change_request_impacted_services`, `update_change_request`, `update_change_request_first_available`, `update_change_request_task`. |
-| **Cilifecycle** | `CILIFECYCLE_TOOL` | `True` | Manage servicenow cilifecycle operations. Action-routed methods: `add_ci_lifecycle_action`, `check_ci_lifecycle_compat_actions`, `check_ci_lifecycle_lease_expired`, `check_ci_lifecycle_not_allowed_action`, `check_ci_lifecycle_not_allowed_ops_transition`, `check_ci_lifecycle_requestor_valid`, `delete_ci_lifecycle_action`, `extend_ci_lifecycle_lease`, `get_ci_lifecycle_active_actions`, `get_ci_lifecycle_status`, `register_ci_lifecycle_operator`, `set_ci_lifecycle_status`, `unregister_ci_lifecycle_operator`. |
-| **Devops** | `DEVOPS_TOOL` | `True` | Manage servicenow devops operations. Action-routed methods: `check_devops_change_control`, `check_devops_step_mapping`, `get_devops_change_info`, `get_devops_code_schema`, `get_devops_onboarding_status`, `get_devops_orchestration_schema`, `get_devops_plan_schema`, `register_devops_artifact`. |
-| **Import Sets** | `IMPORT_SETS_TOOL` | `True` | Manage servicenow import sets operations. Action-routed methods: `get_import_set`, `insert_import_set`, `insert_multiple_import_sets`. |
-| **Incidents** | `INCIDENTS_TOOL` | `True` | Manage servicenow incidents operations. Action-routed methods: `create_incident`, `get_incident`, `get_incidents`. |
-| **Knowledge Management** | `KNOWLEDGE_MANAGEMENT_TOOL` | `True` | Manage servicenow knowledge management operations. Action-routed methods: `get_featured_knowledge_article`, `get_knowledge_article`, `get_knowledge_article_attachment`, `get_knowledge_articles`, `get_most_viewed_knowledge_articles`. |
-| **Table Api** | `TABLE_API_TOOL` | `True` | Manage servicenow table api operations. Action-routed methods: `add_table_record`, `delete_table_record`, `get_table`, `get_table_record`, `patch_table_record`, `update_table_record`. |
-| **Auth** | `AUTH_TOOL` | `True` | Manage servicenow auth operations. Action-routed methods: `refresh_auth_token`. |
-| **Custom Api** | `CUSTOM_API_TOOL` | `True` | Manage servicenow custom api operations. Action-routed methods: `api_request`. |
-| **Email** | `EMAIL_TOOL` | `True` | Manage servicenow email operations. Action-routed methods: `send_email`. |
-| **Data Classification** | `DATA_CLASSIFICATION_TOOL` | `True` | Manage servicenow data classification operations. Action-routed methods: `get_data_classification`. |
-| **Aggregate** | `AGGREGATE_TOOL` | `True` | Manage servicenow aggregate operations. Action-routed methods: `get_stats`. |
-| **Activity Subscriptions** | `ACTIVITY_SUBSCRIPTIONS_TOOL` | `True` | Manage servicenow activity subscriptions operations. Action-routed methods: `get_activity_subscriptions`. |
-| **Account** | `ACCOUNT_TOOL` | `True` | Manage servicenow account operations. Action-routed methods: `get_account`. |
-| **Hr** | `HR_TOOL` | `True` | Manage servicenow hr operations. Action-routed methods: `get_hr_profile`. |
-| **Metricbase** | `METRICBASE_TOOL` | `True` | Manage servicenow metricbase operations. Action-routed methods: `metricbase_insert`. |
-| **Attachment** | `ATTACHMENT_TOOL` | `True` | Manage servicenow attachment operations. Action-routed methods: `delete_attachment`, `get_attachment`, `upload_attachment`. |
-| **Service Qualification** | `SERVICE_QUALIFICATION_TOOL` | `True` | Manage servicenow service qualification operations. Action-routed methods: `check_service_qualification`, `get_service_qualification`, `process_service_qualification_result`. |
-| **Ppm** | `PPM_TOOL` | `True` | Manage servicenow ppm operations. Action-routed methods: `insert_cost_plans`, `insert_project_tasks`. |
-| **Product Inventory** | `PRODUCT_INVENTORY_TOOL` | `True` | Manage servicenow product inventory operations. Action-routed methods: `delete_product_inventory`, `get_product_inventory`. |
+### Tool surface — `MCP_TOOL_MODE`
 
-Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/mcp.md](docs/mcp.md).
+Set `MCP_TOOL_MODE` (in the shared `~/.config/agent-utilities/config.json` or env) to choose the surface:
+
+- `condensed` (default) — the action-routed tools below (`servicenow_<domain>(action, params_json)`).
+- `verbose` — one named, documented 1:1 tool per API method (`servicenow_get_cmdb_instance(...)`), tagged `verbose`.
+- `both` — register both sets.
+
+Filter the verbose set with `--tools tag:verbose` / `MCP_ENABLED_TAGS=verbose`. See the
+agent-utilities guide *MCP Tool Modes* for details.
+
+### Available MCP Tools
+
+The table below is auto-generated from the MCP server — do not edit by hand.
+
+<!-- MCP-TOOLS-TABLE:START -->
+
+#### Condensed action-routed tools (default — `MCP_TOOL_MODE=condensed`)
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `ingest_incidents_to_kg` | `MISCTOOL` | Manage ingest incidents to kg operations. |
+| `servicenow_account` | `ACCOUNTTOOL` | Manage servicenow account operations. |
+| `servicenow_activity_subscriptions` | `ACTIVITY_SUBSCRIPTIONSTOOL` | Manage servicenow activity subscriptions operations. |
+| `servicenow_aggregate` | `AGGREGATETOOL` | Manage servicenow aggregate operations. |
+| `servicenow_application` | `APPLICATIONTOOL` | Manage servicenow application operations. |
+| `servicenow_attachment` | `ATTACHMENTTOOL` | Manage servicenow attachment operations. |
+| `servicenow_auth` | `AUTHTOOL` | Manage servicenow auth operations. |
+| `servicenow_batch` | `BATCHTOOL` | Manage servicenow batch operations. |
+| `servicenow_change_management` | `CHANGE_MANAGEMENTTOOL` | Manage servicenow change management operations. |
+| `servicenow_cicd` | `CICDTOOL` | Manage servicenow cicd operations. |
+| `servicenow_cilifecycle` | `CILIFECYCLETOOL` | Manage servicenow cilifecycle operations. |
+| `servicenow_cmdb` | `CMDBTOOL` | Manage servicenow cmdb operations. |
+| `servicenow_custom_api` | `CUSTOM_APITOOL` | Manage servicenow custom api operations. |
+| `servicenow_data_classification` | `DATA_CLASSIFICATIONTOOL` | Manage servicenow data classification operations. |
+| `servicenow_devops` | `DEVOPSTOOL` | Manage servicenow devops operations. |
+| `servicenow_email` | `EMAILTOOL` | Manage servicenow email operations. |
+| `servicenow_flows` | `FLOWSTOOL` | Manage servicenow flows operations. |
+| `servicenow_hr` | `HRTOOL` | Manage servicenow hr operations. |
+| `servicenow_import_sets` | `IMPORT_SETSTOOL` | Manage servicenow import sets operations. |
+| `servicenow_incidents` | `INCIDENTSTOOL` | Manage servicenow incidents operations. |
+| `servicenow_knowledge_management` | `KNOWLEDGE_MANAGEMENTTOOL` | Manage servicenow knowledge management operations. |
+| `servicenow_metricbase` | `METRICBASETOOL` | Manage servicenow metricbase operations. |
+| `servicenow_plugins` | `PLUGINSTOOL` | Manage servicenow plugins operations. |
+| `servicenow_ppm` | `PPMTOOL` | Manage servicenow ppm operations. |
+| `servicenow_product_inventory` | `PRODUCT_INVENTORYTOOL` | Manage servicenow product inventory operations. |
+| `servicenow_service_qualification` | `SERVICE_QUALIFICATIONTOOL` | Manage servicenow service qualification operations. |
+| `servicenow_source_control` | `SOURCE_CONTROLTOOL` | Manage servicenow source control operations. |
+| `servicenow_table_api` | `TABLE_APITOOL` | Manage servicenow table api operations. |
+| `servicenow_testing` | `TESTINGTOOL` | Manage servicenow testing operations. |
+| `servicenow_update_sets` | `UPDATE_SETSTOOL` | Manage servicenow update sets operations. |
+
+#### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
+
+<details>
+<summary>119 per-operation tools — one per public API method (click to expand)</summary>
+
+| MCP Tool | Toggle Env Var | Description |
+|----------|----------------|-------------|
+| `servicenow_activate_plugin` | `DEVOPSTOOL` | Activate a plugin based on the provided plugin_id. |
+| `servicenow_add_ci_lifecycle_action` | `CMDBTOOL` | Adds a specified CI action to a specified list of CIs. |
+| `servicenow_add_table_record` | `SYSTEMTOOL` | Add a new record to the specified table. |
+| `servicenow_api_request` | `SYSTEMTOOL` | Invoke the api_request operation. |
+| `servicenow_app_repo_install` | `DEVOPSTOOL` | Install an application from the repository based on the provided parameters. |
+| `servicenow_app_repo_publish` | `DEVOPSTOOL` | Publish an application to the repository based on the provided parameters. |
+| `servicenow_app_repo_rollback` | `DEVOPSTOOL` | Rollback an application in the repository based on the provided parameters. |
+| `servicenow_apply_remote_source_control_changes` | `OTHERTOOL` | Apply remote source control changes based on the provided parameters. |
+| `servicenow_approve_change_request` | `CHANGETOOL` | Approve or reject a change request. |
+| `servicenow_batch_install` | `OTHERTOOL` | Initiate a batch installation with the provided parameters. |
+| `servicenow_batch_install_result` | `OTHERTOOL` | Get the result of a batch installation based on the provided result ID. |
+| `servicenow_batch_request` | `OTHERTOOL` | Sends multiple REST API requests in a single call. |
+| `servicenow_batch_rollback` | `OTHERTOOL` | Rollback a batch installation based on the provided rollback ID. |
+| `servicenow_calculate_standard_change_request_risk` | `CHANGETOOL` | Calculate and update the risk of a standard change request. |
+| `servicenow_check_change_request_conflict` | `CHANGETOOL` | Check for conflicts in a change request. |
+| `servicenow_check_ci_lifecycle_compat_actions` | `CMDBTOOL` | Determines whether two specified CI actions are compatible. |
+| `servicenow_check_ci_lifecycle_lease_expired` | `CMDBTOOL` | Determines whether the lease has expired for the requester. |
+| `servicenow_check_ci_lifecycle_not_allowed_action` | `CMDBTOOL` | Determines whether a specified CI action is not allowed. |
+| `servicenow_check_ci_lifecycle_not_allowed_ops_transition` | `CMDBTOOL` | Determines whether an operational state transition is allowed. |
+| `servicenow_check_ci_lifecycle_requestor_valid` | `CMDBTOOL` | Determines whether the specified user is a valid requester. |
+| `servicenow_check_devops_change_control` | `DEVOPSTOOL` | Checks if the orchestration task is under change control. |
+| `servicenow_check_devops_step_mapping` | `DEVOPSTOOL` | Verifies that the information being passed is valid for the creation of an orchestration task. |
+| `servicenow_check_service_qualification` | `OTHERTOOL` | Creates a technical service qualification request. |
+| `servicenow_collect_graph_for_roots` | `CMDBTOOL` | Invoke the collect_graph_for_roots operation. |
+| `servicenow_combo_suite_scan` | `OTHERTOOL` | Initiate a suite scan for a combo based on the provided combo_sys_id. |
+| `servicenow_create_change_request` | `CHANGETOOL` | Create a new change request. |
+| `servicenow_create_change_request_ci_association` | `CHANGETOOL` | Create associations between a change request and configuration items (CIs). |
+| `servicenow_create_change_request_task` | `CHANGETOOL` | Create a new task associated with a change request. |
+| `servicenow_create_cmdb_instance` | `CMDBTOOL` | Creates a single configuration item (CI). |
+| `servicenow_create_cmdb_relation` | `CMDBTOOL` | Adds an inbound and/or outbound relation to the specified CI. |
+| `servicenow_create_incident` | `INCIDENTTOOL` | Create a new incident record. |
+| `servicenow_delete_attachment` | `OTHERTOOL` | Invoke the delete_attachment operation. |
+| `servicenow_delete_change_request` | `CHANGETOOL` | Delete a change request. |
+| `servicenow_delete_change_request_conflict_scan` | `CHANGETOOL` | Delete conflict scan information associated with a change request. |
+| `servicenow_delete_change_request_task` | `CHANGETOOL` | Delete a task associated with a change request. |
+| `servicenow_delete_ci_lifecycle_action` | `CMDBTOOL` | Removes a configuration item (CI) action for a list of CIs. |
+| `servicenow_delete_cmdb_relation` | `CMDBTOOL` | Deletes the relation for the specified configuration item (CI). |
+| `servicenow_delete_product_inventory` | `OTHERTOOL` | Deletes a specified product inventory record. |
+| `servicenow_delete_table_record` | `SYSTEMTOOL` | Delete a record from the specified table. |
+| `servicenow_extend_ci_lifecycle_lease` | `CMDBTOOL` | Extends the specified CI action's lease expiration time. |
+| `servicenow_full_scan` | `OTHERTOOL` | Initiate a full instance scan. |
+| `servicenow_get_account` | `OTHERTOOL` | Invoke the get_account operation. |
+| `servicenow_get_activity_subscriptions` | `OTHERTOOL` | Invoke the get_activity_subscriptions operation. |
+| `servicenow_get_application` | `OTHERTOOL` | Get information about an application. |
+| `servicenow_get_attachment` | `OTHERTOOL` | Invoke the get_attachment operation. |
+| `servicenow_get_change_request` | `CHANGETOOL` | Retrieve details of a specific change request. |
+| `servicenow_get_change_request_ci` | `CHANGETOOL` | Retrieve the configuration item (CI) associated with a change request. |
+| `servicenow_get_change_request_conflict` | `CHANGETOOL` | Retrieve conflict information associated with a change request. |
+| `servicenow_get_change_request_models` | `CHANGETOOL` | Retrieve change request models based on specified parameters. |
+| `servicenow_get_change_request_nextstate` | `CHANGETOOL` | Retrieve the next state of a specific change request. |
+| `servicenow_get_change_request_schedule` | `CHANGETOOL` | Retrieve the schedule of a change request based on CI sys ID. |
+| `servicenow_get_change_request_tasks` | `CHANGETOOL` | Retrieve tasks associated with a specific change request. |
+| `servicenow_get_change_request_worker` | `CHANGETOOL` | Retrieve details of a change request worker. |
+| `servicenow_get_change_requests` | `CHANGETOOL` | Retrieve change requests based on specified parameters. |
+| `servicenow_get_ci_lifecycle_active_actions` | `CMDBTOOL` | Returns a list of active CI actions for the specified CI. |
+| `servicenow_get_ci_lifecycle_status` | `CMDBTOOL` | Returns the current operational state for the specified CI. |
+| `servicenow_get_cmdb` | `CMDBTOOL` | Get Configuration Management Database (CMDB) information based on specified parameters. |
+| `servicenow_get_cmdb_instance` | `CMDBTOOL` | Returns attributes and relationship information for a specified CI record. |
+| `servicenow_get_cmdb_instances` | `CMDBTOOL` | Returns the available configuration items (CI) for a specified CMDB class. |
+| `servicenow_get_data_classification` | `OTHERTOOL` | Invoke the get_data_classification operation. |
+| `servicenow_get_devops_change_info` | `DEVOPSTOOL` | Retrieves change request details for a specified orchestration pipeline execution. |
+| `servicenow_get_devops_code_schema` | `DEVOPSTOOL` | Returns the schema object for a specified code resource. |
+| `servicenow_get_devops_onboarding_status` | `DEVOPSTOOL` | Returns the current status of the specified onboarding event. |
+| `servicenow_get_devops_orchestration_schema` | `DEVOPSTOOL` | Returns the schema object for a specified orchestration resource. |
+| `servicenow_get_devops_plan_schema` | `DEVOPSTOOL` | Returns the schema object for a specific plan. |
+| `servicenow_get_featured_knowledge_article` | `KNOWLEDGETOOL` | Get featured Knowledge Base articles. |
+| `servicenow_get_flow_metadata` | `SYSTEMTOOL` | Fetch rich metadata for any flow/subflow. |
+| `servicenow_get_hr_profile` | `OTHERTOOL` | Invoke the get_hr_profile operation. |
+| `servicenow_get_import_set` | `OTHERTOOL` | Get details of a specific import set record. |
+| `servicenow_get_incident` | `INCIDENTTOOL` | Retrieve details of a specific incident record. |
+| `servicenow_get_incidents` | `INCIDENTTOOL` | Retrieve details of incident records. |
+| `servicenow_get_knowledge_article` | `KNOWLEDGETOOL` | Get Knowledge Base article. |
+| `servicenow_get_knowledge_article_attachment` | `KNOWLEDGETOOL` | Get Knowledge Base article attachment. |
+| `servicenow_get_knowledge_articles` | `KNOWLEDGETOOL` | Get all Knowledge Base articles. |
+| `servicenow_get_most_viewed_knowledge_articles` | `KNOWLEDGETOOL` | Get most viewed Knowledge Base articles. |
+| `servicenow_get_product_inventory` | `OTHERTOOL` | Retrieves a list of all product inventories. |
+| `servicenow_get_service_qualification` | `OTHERTOOL` | Retrieves a technical qualification request by ID or list all. |
+| `servicenow_get_standard_change_request_model` | `CHANGETOOL` | Retrieve details of a standard change request model. |
+| `servicenow_get_standard_change_request_template` | `CHANGETOOL` | Retrieve details of a standard change request template. |
+| `servicenow_get_standard_change_request_templates` | `CHANGETOOL` | Retrieve standard change request templates based on specified parameters. |
+| `servicenow_get_stats` | `SYSTEMTOOL` | Invoke the get_stats operation. |
+| `servicenow_get_table` | `SYSTEMTOOL` | Get records from the specified table based on provided parameters. |
+| `servicenow_get_table_record` | `SYSTEMTOOL` | Get a specific record from the specified table. |
+| `servicenow_import_repository` | `DEVOPSTOOL` | Import a repository based on the provided parameters. |
+| `servicenow_ingest_cmdb_data` | `CMDBTOOL` | Inserts records into the Import Set table associated with the data source. |
+| `servicenow_insert_cost_plans` | `OTHERTOOL` | Creates cost plans. |
+| `servicenow_insert_import_set` | `OTHERTOOL` | Insert a new record into the specified import set. |
+| `servicenow_insert_multiple_import_sets` | `OTHERTOOL` | Insert multiple records into the specified import set. |
+| `servicenow_insert_project_tasks` | `OTHERTOOL` | Creates a project and associated project tasks. |
+| `servicenow_instance_scan_progress` | `OTHERTOOL` | Get progress information for an instance scan based on the provided progress ID. |
+| `servicenow_metricbase_insert` | `OTHERTOOL` | Invoke the metricbase_insert operation. |
+| `servicenow_patch_cmdb_instance` | `CMDBTOOL` | Replaces attributes in the specified CI record (PATCH). |
+| `servicenow_patch_table_record` | `SYSTEMTOOL` | Partially update a record in the specified table. |
+| `servicenow_point_scan` | `OTHERTOOL` | Initiate a point instance scan based on the provided parameters. |
+| `servicenow_process_service_qualification_result` | `OTHERTOOL` | Processes a technical service qualification result. |
+| `servicenow_progress` | `OTHERTOOL` | Get progress information based on the provided progress ID. |
+| `servicenow_refresh_auth_token` | `SYSTEMTOOL` | Refresh the authentication token |
+| `servicenow_refresh_change_request_impacted_services` | `CHANGETOOL` | Refresh impacted services for a change request. |
+| `servicenow_register_ci_lifecycle_operator` | `CMDBTOOL` | Registers an operator for a non-workflow user. |
+| `servicenow_register_devops_artifact` | `DEVOPSTOOL` | Enables orchestration tools to register artifacts into a ServiceNow instance. |
+| `servicenow_rollback_plugin` | `DEVOPSTOOL` | Rollback a plugin based on the provided plugin_id. |
+| `servicenow_run_test_suite` | `OTHERTOOL` | Run a test suite based on the provided parameters. |
+| `servicenow_send_email` | `SYSTEMTOOL` | Invoke the send_email operation. |
+| `servicenow_set_ci_lifecycle_status` | `CMDBTOOL` | Sets the operational state for a specified list of CIs. |
+| `servicenow_suite_scan` | `OTHERTOOL` | Initiate a suite scan based on the provided suite_sys_id and sys_ids. |
+| `servicenow_unregister_ci_lifecycle_operator` | `CMDBTOOL` | Unregisters an operator for non-workflow users. |
+| `servicenow_update_change_request` | `CHANGETOOL` | Update details of a change request. |
+| `servicenow_update_change_request_first_available` | `CHANGETOOL` | Update the schedule of a change request to the first available slot. |
+| `servicenow_update_change_request_task` | `CHANGETOOL` | Update details of a task associated with a change request. |
+| `servicenow_update_cmdb_instance` | `CMDBTOOL` | Updates the specified CI record (PUT). |
+| `servicenow_update_set_back_out` | `DEVOPSTOOL` | Backs out an installation operation that was performed on an update set with a given sys_id. |
+| `servicenow_update_set_commit` | `DEVOPSTOOL` | Commits an update set with a given sys_id. |
+| `servicenow_update_set_commit_multiple` | `DEVOPSTOOL` | Commits multiple update sets in a single request according to the order that they're provided. |
+| `servicenow_update_set_create` | `DEVOPSTOOL` | Creates a new update set and inserts the new record in the Update Sets [sys_update_set] table. |
+| `servicenow_update_set_preview` | `DEVOPSTOOL` | Previews an update set to check for any conflicts and retrieve progress information about the update set operation. |
+| `servicenow_update_set_retrieve` | `DEVOPSTOOL` | Retrieves an update set with a given sys_id and allows you to remove the existing retrieved update set from the instance. |
+| `servicenow_update_table_record` | `SYSTEMTOOL` | Fully update a record in the specified table. |
+| `servicenow_upload_attachment` | `OTHERTOOL` | Invoke the upload_attachment operation. |
+| `servicenow_workflow_to_mermaid` | `SYSTEMTOOL` | Generates a Mermaid diagram representing the relationships between ServiceNow flows and subflows. |
+
+</details>
+
+_30 action-routed tool(s) (default) · 119 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (`condensed` default · `verbose` 1:1 · `both`). Auto-generated — do not edit._
+<!-- MCP-TOOLS-TABLE:END -->
+
+Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/usage.md](docs/usage.md).
 
 ### Dynamic Tool Selection & Visibility
 
@@ -114,97 +264,230 @@ When query strings or parameters are supplied, an LLM-free **Knowledge Graph res
 
 ### MCP Configuration Examples
 
-#### stdio Transport (Recommended for local IDEs e.g., Cursor, Claude Desktop)
-Configure your IDE's `mcp.json` to launch the MCP server via `uvx`:
+<!-- MCP-CONFIG-EXAMPLES:START -->
+
+> **Install the connector-focused `[mcp]` extra.** Examples use `servicenow-api[mcp]` to add
+> FastMCP / FastAPI through `agent-utilities[mcp]`; the required Agent Utilities core
+> still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
+> enables model orchestration.
+
+#### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
+    "servicenow-mcp": {
       "command": "uvx",
       "args": [
         "--from",
-        "servicenow-api",
+        "servicenow-api[mcp]",
         "servicenow-mcp"
       ],
       "env": {
-        "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
-        "SERVICENOW_USERNAME": "your_servicenow_username_here",
-        "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
-        "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
-        "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
+        "MCP_TOOL_MODE": "intent",
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DELEGATED_SCOPES": "api",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "OPENAPI_CLIENT_ID": "your_openapi_client_id_here",
+        "OPENAPI_CLIENT_SECRET": "your_openapi_client_secret_here",
+        "OPENAPI_PASSWORD": "your_openapi_password_here",
+        "OPENAPI_USERNAME": "your_openapi_username_here",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
+        "SERVICENOW_TLS_PROFILE": "system",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
       }
     }
   }
 }
 ```
 
-#### Streamable-HTTP Transport (Recommended for production deployments)
-Configure your client's `mcp.json` to launch the Streamable-HTTP server via `uvx` with explicit host and port definition:
+Runtime references require an alias-aware launcher such as GraphOS. Other
+launchers must omit those entries and inject the resolved values through their
+own runtime secret boundary.
+
+#### Streamable-HTTP Transport (networked / production)
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
+    "servicenow-mcp": {
       "command": "uvx",
       "args": [
         "--from",
-        "servicenow-api",
-        "servicenow-mcp"
+        "servicenow-api[mcp]",
+        "servicenow-mcp",
+        "--transport",
+        "streamable-http",
+        "--port",
+        "8000"
       ],
       "env": {
         "TRANSPORT": "streamable-http",
-        "HOST": "0.0.0.0",
+        "HOST": "127.0.0.1",
         "PORT": "8000",
-        "SERVICENOW_INSTANCE": "your_servicenow_instance_here",
-        "SERVICENOW_USERNAME": "your_servicenow_username_here",
-        "SERVICENOW_CLIENT_ID": "your_servicenow_client_id_here",
-        "SERVICENOW_SSL_VERIFY": "your_servicenow_ssl_verify_here",
-        "DEBUG": "your_debug_here",
-        "PYTHONUNBUFFERED": "your_pythonunbuffered_here",
+        "MCP_TOOL_MODE": "intent",
+        "ACCOUNTTOOL": "True",
+        "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
+        "AGGREGATETOOL": "True",
+        "APPLICATIONTOOL": "True",
+        "ATTACHMENTTOOL": "True",
+        "AUTHTOOL": "True",
+        "BATCHTOOL": "True",
+        "CHANGE_MANAGEMENTTOOL": "True",
+        "CICDTOOL": "True",
+        "CILIFECYCLETOOL": "True",
+        "CMDBTOOL": "True",
+        "CUSTOM_APITOOL": "True",
+        "DATA_CLASSIFICATIONTOOL": "True",
+        "DELEGATED_SCOPES": "api",
+        "DEVOPSTOOL": "True",
+        "EMAILTOOL": "True",
+        "FLOWSTOOL": "True",
+        "HRTOOL": "True",
+        "IMPORT_SETSTOOL": "True",
+        "INCIDENTSTOOL": "True",
+        "KNOWLEDGE_MANAGEMENTTOOL": "True",
+        "METRICBASETOOL": "True",
+        "MISCTOOL": "True",
+        "OPENAPI_CLIENT_ID": "your_openapi_client_id_here",
+        "OPENAPI_CLIENT_SECRET": "your_openapi_client_secret_here",
+        "OPENAPI_PASSWORD": "your_openapi_password_here",
+        "OPENAPI_USERNAME": "your_openapi_username_here",
+        "PLUGINSTOOL": "True",
+        "PPMTOOL": "True",
+        "PRODUCT_INVENTORYTOOL": "True",
+        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
-        "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here"
+        "SERVICENOW_TLS_PROFILE": "system",
+        "SERVICE_QUALIFICATIONTOOL": "True",
+        "SOURCE_CONTROLTOOL": "True",
+        "TABLE_APITOOL": "True",
+        "TESTINGTOOL": "True",
+        "UPDATE_SETSTOOL": "True"
       }
     }
   }
 }
 ```
 
-Alternatively, connect to a pre-deployed remote or local Streamable-HTTP instance:
+Alternatively, connect to a pre-deployed Streamable-HTTP instance by `url`:
 
 ```json
 {
   "mcpServers": {
-    "servicenow-api": {
-      "url": "http://localhost:8000/servicenow-api/mcp"
+    "servicenow-mcp": {
+      "url": "http://localhost:8000/servicenow-mcp/mcp"
     }
   }
 }
 ```
 
-Deploying the Streamable-HTTP server via Docker:
+Run a reviewed container image as a least-privilege stdio child (no
+listener or published port):
 
 ```bash
-docker run -d \
-  --name servicenow-api-mcp \
-  -p 8000:8000 \
-  -e TRANSPORT=streamable-http \
-  -e PORT=8000 \
-  -e SERVICENOW_INSTANCE="your_value" \
-  -e SERVICENOW_USERNAME="your_value" \
-  -e SERVICENOW_CLIENT_ID="your_value" \
-  -e SERVICENOW_SSL_VERIFY="your_value" \
-  -e DEBUG="your_value" \
-  -e PYTHONUNBUFFERED="your_value" \
-  -e SERVICENOW_PASSWORD="your_value" \
-  -e SERVICENOW_CLIENT_SECRET="your_value" \
-  knucklessg1/servicenow-api:latest
+docker run -i --rm \
+  --read-only \
+  --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --pids-limit=256 \
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
+  -e TRANSPORT=stdio \
+  -e MCP_TOOL_MODE=intent \
+  -e ACCOUNTTOOL=True \
+  -e ACTIVITY_SUBSCRIPTIONSTOOL=True \
+  -e AGGREGATETOOL=True \
+  -e APPLICATIONTOOL=True \
+  -e ATTACHMENTTOOL=True \
+  -e AUTHTOOL=True \
+  -e BATCHTOOL=True \
+  -e CHANGE_MANAGEMENTTOOL=True \
+  -e CICDTOOL=True \
+  -e CILIFECYCLETOOL=True \
+  -e CMDBTOOL=True \
+  -e CUSTOM_APITOOL=True \
+  -e DATA_CLASSIFICATIONTOOL=True \
+  -e DELEGATED_SCOPES=api \
+  -e DEVOPSTOOL=True \
+  -e EMAILTOOL=True \
+  -e FLOWSTOOL=True \
+  -e HRTOOL=True \
+  -e IMPORT_SETSTOOL=True \
+  -e INCIDENTSTOOL=True \
+  -e KNOWLEDGE_MANAGEMENTTOOL=True \
+  -e METRICBASETOOL=True \
+  -e MISCTOOL=True \
+  -e OPENAPI_CLIENT_ID=your_openapi_client_id_here \
+  -e OPENAPI_CLIENT_SECRET=your_openapi_client_secret_here \
+  -e OPENAPI_PASSWORD=your_openapi_password_here \
+  -e OPENAPI_USERNAME=your_openapi_username_here \
+  -e PLUGINSTOOL=True \
+  -e PPMTOOL=True \
+  -e PRODUCT_INVENTORYTOOL=True \
+  -e SERVICENOW_CLIENT_SECRET=your_servicenow_client_secret_here \
+  -e SERVICENOW_INSTANCE=https://instance.example.invalid \
+  -e SERVICENOW_PASSWORD=your_servicenow_password_here \
+  -e SERVICENOW_TLS_PROFILE=system \
+  -e SERVICE_QUALIFICATIONTOOL=True \
+  -e SOURCE_CONTROLTOOL=True \
+  -e TABLE_APITOOL=True \
+  -e TESTINGTOOL=True \
+  -e UPDATE_SETSTOOL=True \
+  registry.example.invalid/servicenow-api@sha256:<digest> servicenow-mcp
 ```
 
----
+For containerized network HTTP, supply an authenticated TLS ingress (or
+direct server TLS), exact `MCP_ALLOWED_HOSTS`, and an exact trusted-proxy
+CIDR policy through the operator-owned deployment profile. The generator
+does not emit an unauthenticated non-loopback listener.
+
+_Auto-generated from the code-read env surface (`MCP_TOOL_MODE` + package vars) — do not edit._
+<!-- MCP-CONFIG-EXAMPLES:END -->
+
+<!-- BEGIN GENERATED: additional-deployment-options -->
+### Additional Deployment Options
+
+`servicenow-api` can run as a local stdio process or container, or behind a remote
+network boundary. The
+[Deployment guide](https://knuckles-team.github.io/servicenow-api/deployment/) carries
+the detailed transport contract.
+
+- **Local container** — launch a reviewed immutable image as a least-privilege
+  stdio child with no listener or published port.
+- **Remote URL** — connect through an operator-supplied authenticated HTTPS
+  ingress. Keep its URL, outbound identity references, trust profile, and exact
+  `MCP_ALLOWED_HOSTS` in `AgentConfig`.
+<!-- END GENERATED: additional-deployment-options -->
 
 ## Agent
 
@@ -218,7 +501,7 @@ To start the interactive command-line agent:
 export SERVICENOW_INSTANCE="your_value"
 export SERVICENOW_USERNAME="your_value"
 export SERVICENOW_CLIENT_ID="your_value"
-export SERVICENOW_SSL_VERIFY="your_value"
+export SERVICENOW_TLS_PROFILE=system
 export DEBUG="your_value"
 export PYTHONUNBUFFERED="your_value"
 export SERVICENOW_PASSWORD="your_value"
@@ -236,7 +519,7 @@ version: '3.8'
 
 services:
   servicenow-api-mcp:
-    image: knucklessg1/servicenow-api:latest
+    image: example/servicenow-api@sha256:<digest>
     container_name: servicenow-api-mcp
     hostname: servicenow-api-mcp
     restart: always
@@ -262,7 +545,7 @@ services:
         max-file: "3"
 
   servicenow-api-agent:
-    image: knucklessg1/servicenow-api:latest
+    image: example/servicenow-api@sha256:<digest>
     container_name: servicenow-api-agent
     hostname: servicenow-api-agent
     restart: always
@@ -296,7 +579,7 @@ services:
 
 ```
 
-Detailed graph node architecture explanations, custom skill configurations, and agentic trace guides are available in [docs/agent.md](docs/agent.md).
+Detailed graph node architecture explanations, custom skill configurations, and agentic trace guides are available in [docs/deployment.md](docs/deployment.md).
 
 ---
 
@@ -318,17 +601,185 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 
 ---
 
+## Environment Variables
+
+<!-- ENV-VARS-TABLE:START -->
+
+#### Package environment variables
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `HOST` | `0.0.0.0` |  |
+| `PORT` | `8000` |  |
+| `TRANSPORT` | `stdio` | options: stdio, streamable-http, sse |
+| `ENABLE_OTEL` | `True` |  |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:8080/api/public/otel` |  |
+| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` | secret-injected |  |
+| `OTEL_EXPORTER_OTLP_SECRET_KEY` | secret-injected |  |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` |  |
+| `EUNOMIA_TYPE` | `none` | options: none, embedded, remote |
+| `EUNOMIA_POLICY_FILE` | `mcp_policies.json` |  |
+| `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
+| `SERVICENOW_INSTANCE` | `https://instance.example.invalid` |  |
+| `SERVICENOW_USERNAME` | — |  |
+| `SERVICENOW_CLIENT_ID` | — |  |
+| `SERVICENOW_TLS_PROFILE` | `system` | Named outbound TLS policy from AgentConfig. Use a reference for runtime-only trust material; peer and hostname verification remain mandatory. |
+| `SERVICENOW_TLS_PROFILE_REF` | — |  |
+| `DEBUG` | `False` |  |
+| `PYTHONUNBUFFERED` | `1` |  |
+| `SERVICENOW_PASSWORD` | secret-injected |  |
+| `SERVICENOW_CLIENT_SECRET` | secret-injected |  |
+| `AUDIENCE` | — | downstream token audience (defaults to the ServiceNow instance) |
+| `DELEGATED_SCOPES` | `api` | scopes requested during token exchange |
+| `OPENAPI_USERNAME` | `your_openapi_username_here` |  |
+| `OPENAPI_PASSWORD` | secret-injected |  |
+| `OPENAPI_CLIENT_ID` | `your_openapi_client_id_here` |  |
+| `OPENAPI_CLIENT_SECRET` | secret-injected |  |
+| `MISCTOOL` | `True` |  |
+| `FLOWSTOOL` | `True` |  |
+| `APPLICATIONTOOL` | `True` |  |
+| `CMDBTOOL` | `True` |  |
+| `CICDTOOL` | `True` |  |
+| `PLUGINSTOOL` | `True` |  |
+| `SOURCE_CONTROLTOOL` | `True` |  |
+| `TESTINGTOOL` | `True` |  |
+| `UPDATE_SETSTOOL` | `True` |  |
+| `BATCHTOOL` | `True` |  |
+| `CHANGE_MANAGEMENTTOOL` | `True` |  |
+| `CILIFECYCLETOOL` | `True` |  |
+| `DEVOPSTOOL` | `True` |  |
+| `IMPORT_SETSTOOL` | `True` |  |
+| `INCIDENTSTOOL` | `True` |  |
+| `KNOWLEDGE_MANAGEMENTTOOL` | `True` |  |
+| `TABLE_APITOOL` | `True` |  |
+| `AUTHTOOL` | `True` |  |
+| `CUSTOM_APITOOL` | `True` |  |
+| `EMAILTOOL` | `True` |  |
+| `DATA_CLASSIFICATIONTOOL` | `True` |  |
+| `ATTACHMENTTOOL` | `True` |  |
+| `AGGREGATETOOL` | `True` |  |
+| `ACTIVITY_SUBSCRIPTIONSTOOL` | `True` |  |
+| `ACCOUNTTOOL` | `True` |  |
+| `HRTOOL` | `True` |  |
+| `METRICBASETOOL` | `True` |  |
+| `SERVICE_QUALIFICATIONTOOL` | `True` |  |
+| `PPMTOOL` | `True` |  |
+| `PRODUCT_INVENTORYTOOL` | `True` |  |
+
+#### Inherited agent-utilities variables (apply to every connector)
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `MCP_TOOL_MODE` | `intent` | Tool surface: `intent` \| `condensed` \| `verbose` \| `both` |
+| `MCP_ENABLED_TOOLS` | — | Comma-separated tool allow-list |
+| `MCP_DISABLED_TOOLS` | — | Comma-separated tool deny-list |
+| `MCP_ENABLED_TAGS` | — | Comma-separated tag allow-list |
+| `MCP_DISABLED_TAGS` | — | Comma-separated tag deny-list |
+| `MCP_CLIENT_AUTH` | — | Outbound MCP child auth: `oidc-client-credentials` \| `basic` \| `none` |
+| `OIDC_CLIENT_ID` | — | OIDC client id (service-account auth) |
+| `OIDC_CLIENT_SECRET_REF` | `secret://identity/oidc-client-secret` | Runtime secret reference for the OIDC service account |
+| `MCP_BASIC_AUTH_USERNAME` | — | HTTP Basic username (`MCP_CLIENT_AUTH=basic`) |
+| `MCP_BASIC_AUTH_PASSWORD_REF` | `secret://identity/mcp-basic-password` | Runtime secret reference for HTTP Basic auth (`MCP_CLIENT_AUTH=basic`) |
+| `MCP_URL` | `http://localhost:8000/mcp` | URL of the MCP server the agent connects to |
+| `PROVIDER` | `openai` | LLM provider for the agent |
+| `MODEL_ID` | `gpt-4o` | Model id for the agent |
+| `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
+
+_56 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+<!-- ENV-VARS-TABLE:END -->
+
+
+Every variable the server reads. See [`.env.example`](.env.example) for a copy-paste
+starting point.
+
+### Connection & Credentials
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SERVICENOW_INSTANCE` | ServiceNow instance base URL | — |
+| `SERVICENOW_USERNAME` | Account username (basic auth) | — |
+| `SERVICENOW_PASSWORD` | Account password (basic auth) | — |
+| `SERVICENOW_CLIENT_ID` | OAuth client id | — |
+| `SERVICENOW_CLIENT_SECRET` | OAuth client secret | — |
+| `SERVICENOW_TLS_PROFILE` | Named outbound TLS policy from AgentConfig | `system` |
+| `DEBUG` | Verbose logging | `False` |
+| `PYTHONUNBUFFERED` | Unbuffered stdout (recommended in containers) | `1` |
+
+### MCP server / transport
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TRANSPORT` | `stdio`, `streamable-http`, or `sse` | `stdio` |
+| `HOST` | Bind host (HTTP transports) | `0.0.0.0` |
+| `PORT` | Bind port (HTTP transports) | `8000` |
+| `MCP_TOOL_MODE` | Tool surface: `condensed`, `verbose`, or `both` | `condensed` |
+| `MCP_ENABLED_TOOLS` / `MCP_DISABLED_TOOLS` | Comma-separated tool allow/deny list | — |
+| `MCP_ENABLED_TAGS` / `MCP_DISABLED_TAGS` | Comma-separated tag allow/deny list | — |
+
+### Telemetry & governance
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ENABLE_OTEL` | Enable OpenTelemetry export | `True` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint | — |
+| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` / `OTEL_EXPORTER_OTLP_SECRET_KEY` | OTLP auth keys | — |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP protocol (e.g. `http/protobuf`) | — |
+| `EUNOMIA_TYPE` | Authorization mode: `none`, `embedded`, `remote` | `none` |
+| `EUNOMIA_POLICY_FILE` | Embedded policy file | `mcp_policies.json` |
+| `EUNOMIA_REMOTE_URL` | Remote Eunomia server URL | — |
+
+### Tool toggles
+Each action-routed tool can be disabled individually via its toggle env var (set to `false`).
+The full list is in the [Available MCP Tools](#available-mcp-tools) table above
+(e.g. `INCIDENTSTOOL`, `CHANGE_MANAGEMENTTOOL`, `TABLE_APITOOL`, `CMDBTOOL`).
+
+---
+
 ## Installation
 
-Install the Python package locally:
+Pick the extra that matches what you want to run:
+
+| Extra | Installs | Use when |
+|-------|----------|----------|
+| `servicenow-api[mcp]` | Connector-focused MCP server (`agent-utilities[mcp]` — FastMCP/FastAPI + `epistemic-graph[full]`) | You only run the **MCP server** (smallest install / image) |
+| `servicenow-api[agent]` | Agent runtime (`agent-utilities[agent-runtime,logfire]` — model orchestration + `epistemic-graph[full]`) | You run the **integrated agent** |
+| `servicenow-api[all]` | Everything (`mcp` + `agent` + `logfire`) | Development / both surfaces |
 
 ```bash
-# Using uv (highly recommended)
-uv pip install servicenow-api[all]
+# Connector-focused MCP server (includes the shared graph engine)
+uv pip install "servicenow-api[mcp]"
 
-# Using standard pip
-python -m pip install servicenow-api[all]
+# Agent runtime (adds model orchestration to the shared graph engine)
+uv pip install "servicenow-api[agent]"
+
+# Everything (development)
+uv pip install "servicenow-api[all]"      # or: python -m pip install "servicenow-api[all]"
 ```
+
+### Container images (`:mcp` vs `:agent`)
+
+One multi-stage `docker/Dockerfile` builds two right-sized images, selected by `--target`:
+
+| Image tag | Build target | Contents | Entrypoint |
+|-----------|--------------|----------|------------|
+| `example/servicenow-api:mcp` | `--target mcp` | `servicenow-api[mcp]` — **connector-focused**, includes `epistemic-graph[full]`; no model-orchestration stack | `servicenow-mcp` |
+| `example/servicenow-api@sha256:<digest>` | `--target agent` (default) | `servicenow-api[agent]` — **agent runtime**, model orchestration + `epistemic-graph[full]` | `servicenow-agent` |
+
+```bash
+docker build --target mcp   -t example/servicenow-api:mcp    docker/   # connector-focused MCP server
+docker build --target agent -t example/servicenow-api:agent-local docker/   # agent runtime
+```
+
+`docker/mcp.compose.yml` runs the connector-focused `:mcp` server; `docker/agent.compose.yml` runs the
+agent (`immutable agent digest`) with a co-located `:mcp` sidecar.
+
+### Knowledge-graph database (`epistemic-graph`)
+
+Both `[mcp]` and `[agent]` carry the **epistemic-graph** engine through the required
+Agent Utilities core dependency (`epistemic-graph[full]`). The `[mcp]` extra keeps
+the server connector-focused; `[agent]` additionally enables model orchestration. Local
+deployments can use the bundled engine. For production or shared state, run
+**epistemic-graph as a dedicated database service** and configure the runtime to use it.
+Deployment recipes (single-node + Raft HA), connection configuration, and architecture
+diagrams are documented in the
+[epistemic-graph deployment guide](https://knuckles-team.github.io/epistemic-graph/deployment/).
 
 ---
 
@@ -350,10 +801,10 @@ the recommended reference for installation, deployment, and day-to-day operation
 
 ## Repository Owners
 
-<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=Knucklessg1&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
+<img width="100%" height="180em" src="https://github-readme-stats.vercel.app/api?username=example&show_icons=true&hide_border=true&&count_private=true&include_all_commits=true" />
 
-![GitHub followers](https://img.shields.io/github/followers/Knucklessg1)
-![GitHub User's stars](https://img.shields.io/github/stars/Knucklessg1)
+![GitHub followers](https://img.shields.io/github/followers/example)
+![GitHub User's stars](https://img.shields.io/github/stars/example)
 
 ---
 
@@ -364,3 +815,42 @@ Contributions are welcome! Please ensure code quality by executing local checks 
 - Lint code using `ruff check .`
 - Validate type-safety with `mypy .`
 - Execute test suites using `pytest`
+
+
+<!-- BEGIN agent-utilities-deployment (generated; do not edit between markers) -->
+
+## Deploy with `agent-utilities-deployment`
+
+Provision this package with the consolidated **`agent-utilities-deployment`**
+workflow. It selects an installed-package, editable-source, or immutable-container
+path; records only runtime secret and TLS-profile references in `AgentConfig`; and
+runs doctor, registration, policy, observability, and rollback gates. Ask your agent
+to **"deploy `servicenow-api` with agent-utilities-deployment"**.
+
+| Install mode | Command |
+|------|---------|
+| Installed package | `uv tool install "servicenow-api[mcp]"`, then run `servicenow-mcp` |
+| Editable source | `uv pip install -e ".[agent]"`, then run `servicenow-mcp` |
+| Immutable container | deploy `registry.example.invalid/servicenow-api@sha256:<digest>` through the operator-selected orchestrator |
+
+The repository embeds no deployment profile, credential value, certificate path, or
+environment-specific endpoint. Supply those at runtime through `AgentConfig` and the
+configured secret provider.
+
+<!-- END agent-utilities-deployment -->
+
+<!-- GOVERNED-CAPABILITY:START -->
+## Governed capability contract
+
+This package ships a compact canonical skill surface with specialist procedures
+kept as referenced workflows. The current MCP tools, skill metadata,
+`connector_manifest.yml`, ontology, mappings, shapes, fixtures, migrations,
+tool-schema fingerprints, and certification metadata form one versioned
+capability contract. Validate them together; do not rely on stale tool names or
+historical per-task skill wrappers.
+
+Runtime endpoints, credentials, certificate trust, tenant identity, retention,
+and observability policy are deployment inputs and are never packaged values.
+See [Configuration, trust, and privacy](docs/configuration.md) before enabling a
+network transport, connector ingestion, GraphOS delegation, or trace export.
+<!-- GOVERNED-CAPABILITY:END -->

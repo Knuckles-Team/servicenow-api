@@ -35,7 +35,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -397,8 +397,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident",
                 params=incident.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -411,7 +409,7 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_incident(self, **kwargs) -> Response:
@@ -435,8 +433,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident/{incident.incident_id}",
                 params=incident.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -449,7 +445,7 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_incident(self, **kwargs) -> Response:
@@ -474,8 +470,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident",
                 headers=self.headers,
                 json=incident.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -488,5 +482,5 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise

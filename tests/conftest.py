@@ -33,8 +33,7 @@ class MockResponse(requests.Response):
 class MockSession:
     def __init__(self, *args, **kwargs):
         self.headers = {}
-        self.verify = True
-        self.proxies = None
+        self.proxies = {}
 
     def get(self, url, params=None, **kwargs):
         url_parsed = urlparse(url)

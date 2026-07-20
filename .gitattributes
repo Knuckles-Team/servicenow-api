@@ -194,3 +194,7 @@ Procfile          text
 
 # Ignore files (like .npmignore or .gitignore)
 *.*ignore         text
+
+# Concept governance (CONCEPT:OS-5.42)
+docs/concept_reservations.yaml  merge=union
+docs/concepts.md                merge=union

@@ -39,7 +39,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -389,21 +389,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/app_repo/install",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def app_repo_publish(self, **kwargs) -> Response:
@@ -432,21 +428,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/app_repo/publish",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def app_repo_rollback(self, **kwargs) -> Response:
@@ -473,21 +465,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/app_repo/rollback",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def activate_plugin(self, **kwargs) -> Response:
@@ -509,21 +497,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/plugin/{cicd.plugin_id}/activate",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def rollback_plugin(self, **kwargs) -> Response:
@@ -545,21 +529,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/plugin/{cicd.plugin_id}/rollback",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def import_repository(self, **kwargs) -> Response:
@@ -591,21 +571,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/sc/import",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_create(self, **kwargs) -> Response:
@@ -636,21 +612,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/update_set/create",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_retrieve(self, **kwargs) -> Response:
@@ -681,21 +653,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/update_set/retrieve",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_preview(self, **kwargs) -> Response:
@@ -717,21 +685,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/update_set/preview/{cicd.remote_update_set_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_commit(self, **kwargs) -> Response:
@@ -756,21 +720,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/update_set/commit/{cicd.remote_update_set_id}",
                 json=cicd.data,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_commit_multiple(self, **kwargs) -> Response:
@@ -796,21 +756,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 params=cicd.api_parameters,
                 json=cicd.data,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_set_back_out(self, **kwargs) -> Response:
@@ -835,21 +791,17 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/update_set/back_out",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_devops_code_schema(self, **kwargs) -> Response:
@@ -866,13 +818,11 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/code/schema",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_devops_onboarding_status(self, **kwargs) -> Response:
@@ -889,8 +839,6 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/onboarding/status",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -900,7 +848,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 ),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_devops_change_control(self, **kwargs) -> Response:
@@ -928,8 +876,6 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/orchestration/changeControl",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -939,7 +885,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 ),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_devops_change_info(self, **kwargs) -> Response:
@@ -966,13 +912,11 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/orchestration/changeInfo",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_devops_orchestration_schema(self, **kwargs) -> Response:
@@ -993,13 +937,11 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/orchestration/schema",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_devops_step_mapping(self, **kwargs) -> Response:
@@ -1035,13 +977,11 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/orchestration/stepMapping",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_devops_plan_schema(self, **kwargs) -> Response:
@@ -1058,13 +998,11 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 url=f"{self.url}/api/sn_devops/devops/plan/schema",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json())
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def register_devops_artifact(self, **kwargs) -> Response:
@@ -1087,11 +1025,9 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 params=params,
                 headers=self.headers,
                 json=req.model_dump(exclude_none=True),
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result", {}))
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise

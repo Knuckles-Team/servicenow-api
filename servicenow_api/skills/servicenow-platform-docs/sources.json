@@ -1,0 +1,62 @@
+[
+  {
+    "url": "https://www.servicenow.com/docs/bundle/zurich-build-workflows/page/administer/flow-designer/concept/flow-designer.html",
+    "fetched_note": "Fetched 2026-07-01 via WebFetch; landing page returned mostly navigation, content corroborated by architecture-overview page and web search summaries.",
+    "area": "flow-designer"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/bundle/zurich-build-workflows/page/administer/flow-designer/concept/flow-designer-arch-overview.html",
+    "fetched_note": "Fetched 2026-07-01 via WebFetch; primary source for flows/subflows/actions/triggers/flow-logic/decision-tables/data-pills/spokes vocabulary.",
+    "area": "flow-designer"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/r/zurich/build-workflows/workflow-studio/workflow-studio.html",
+    "fetched_note": "Referenced 2026-07-01 (Zurich Workflow Studio doc) for Workflow Studio hub framing.",
+    "area": "flow-designer"
+  },
+  {
+    "url": "https://www.servicenow.com/products/platform-flow-designer.html",
+    "fetched_note": "Product page referenced 2026-07-01 for no-code positioning.",
+    "area": "flow-designer"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/bundle/zurich-application-development/page/build/app-engine-studio/concept/aes-overview.html",
+    "fetched_note": "Fetched 2026-07-01 via WebFetch; primary source for AES vs Application Studio, build steps, AEMC, roles, templates.",
+    "area": "app-engine-studio"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/bundle/vancouver-application-development/page/build/app-engine-studio/concept/aes-app-creation.html",
+    "fetched_note": "Referenced 2026-07-01 (Vancouver bundle) for app-creation flow.",
+    "area": "app-engine-studio"
+  },
+  {
+    "url": "https://www.servicenow.com/products/app-engine-studio.html",
+    "fetched_note": "Product page referenced 2026-07-01 for citizen-developer / low-code positioning.",
+    "area": "app-engine-studio"
+  },
+  {
+    "url": "https://www.servicenow.com/products/integrated-risk-management.html",
+    "fetched_note": "Product page referenced 2026-07-01 for IRM/GRC module list and positioning.",
+    "area": "irm-grc"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/r/governance-risk-compliance/grc-risk-management-workspace/using-metrics-in-irm.html",
+    "fetched_note": "Referenced 2026-07-01 for IRM metrics/workspace concepts.",
+    "area": "irm-grc"
+  },
+  {
+    "url": "https://www.servicenow.com/community/grc-articles/grc-integrated-risk-management-knowledge-amp-troubleshooting/ta-p/3133662",
+    "fetched_note": "Community knowledge article referenced 2026-07-01 for IRM app breakdown and risk lifecycle.",
+    "area": "irm-grc"
+  },
+  {
+    "url": "https://www.servicenow.com/products/security-operations.html",
+    "fetched_note": "Product page referenced 2026-07-01 for SecOps SOAR positioning and app list.",
+    "area": "secops"
+  },
+  {
+    "url": "https://www.servicenow.com/docs/bundle/xanadu-security-management/page/product/security-operations/concept/understanding-secops.html",
+    "fetched_note": "Referenced 2026-07-01 (Xanadu bundle) for the two-category framing (exposures vs enterprise security cases) and SIR/VR/Threat Intelligence; captured via web search summary (direct fetch of newer bundle 404'd).",
+    "area": "secops"
+  }
+]

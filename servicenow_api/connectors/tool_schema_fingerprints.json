@@ -1,0 +1,9 @@
+{
+  "algorithm": "agent-utilities:mcp-tool-schema-compat:v1",
+  "connector": "servicenow-api",
+  "schema_version": "1",
+  "tools": {
+    "servicenow_incidents": "7842a48ec7ce91284a36b04dc8312156ac5bcf955d1326972bdc60ee88ceb806",
+    "servicenow_knowledge_management": "fb9a09fbd50366f0bcd3c72a02e7983ea1697cec295db28ac0b0fa7c43483f2c"
+  }
+}

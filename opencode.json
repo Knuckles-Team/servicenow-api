@@ -1,18 +1,3 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "lmstudio": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "LM Studio (local)",
-      "options": {
-        "baseURL": "http://vllm.arpa/v1"
-      },
-      "models": {
-        "qwen/qwen3.5-9b": {
-          "name": "Qwen 3.5-9B"
-        }
-      }
-    }
-  },
-  "model": "lmstudio/qwen/qwen3.5-9b"
+  "$schema": "https://opencode.ai/config.json"
 }

@@ -3,6 +3,8 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp.action_dispatch import resolve_action
+from agent_utilities.mcp.concurrency import run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -32,26 +34,45 @@ def register_cmdb_tools(mcp: FastMCP):
         try:
             kwargs = json.loads(params_json)
         except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            [
+                "get_cmdb",
+                "delete_cmdb_relation",
+                "get_cmdb_instances",
+                "get_cmdb_instance",
+                "create_cmdb_instance",
+                "update_cmdb_instance",
+                "patch_cmdb_instance",
+                "create_cmdb_relation",
+                "ingest_cmdb_data",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_cmdb":
-            return client.get_cmdb(**kwargs)
+            return await run_blocking(client.get_cmdb, **kwargs)
         if action == "delete_cmdb_relation":
-            return client.delete_cmdb_relation(**kwargs)
+            return await run_blocking(client.delete_cmdb_relation, **kwargs)
         if action == "get_cmdb_instances":
-            return client.get_cmdb_instances(**kwargs)
+            return await run_blocking(client.get_cmdb_instances, **kwargs)
         if action == "get_cmdb_instance":
-            return client.get_cmdb_instance(**kwargs)
+            return await run_blocking(client.get_cmdb_instance, **kwargs)
         if action == "create_cmdb_instance":
-            return client.create_cmdb_instance(**kwargs)
+            return await run_blocking(client.create_cmdb_instance, **kwargs)
         if action == "update_cmdb_instance":
-            return client.update_cmdb_instance(**kwargs)
+            return await run_blocking(client.update_cmdb_instance, **kwargs)
         if action == "patch_cmdb_instance":
-            return client.patch_cmdb_instance(**kwargs)
+            return await run_blocking(client.patch_cmdb_instance, **kwargs)
         if action == "create_cmdb_relation":
-            return client.create_cmdb_relation(**kwargs)
+            return await run_blocking(client.create_cmdb_relation, **kwargs)
         if action == "ingest_cmdb_data":
-            return client.ingest_cmdb_data(**kwargs)
+            return await run_blocking(client.ingest_cmdb_data, **kwargs)
         raise ValueError(f"Unknown action: {action}")

@@ -1,4 +1,15 @@
 .bumpversion.cfg
+# Security boundary: never send VCS metadata or local credentials to the build daemon.
+.git
+.env
+.env.*
+.venv
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
 .pre-commit-config.yaml
 pytest.ini
 ./tests/
