@@ -134,15 +134,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-<<<<<<< HEAD
 **/agent_data/chats/
-=======
 
 # Graph Database
 knowledge_graph.db*
 .repo_graph/
 .ladybug/
->>>>>>> 4f87888 (chore: manual fixes)
 # Model-generated transient scripts at root level
 /test_*.py
 /fix_*.py
