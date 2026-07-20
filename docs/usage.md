@@ -34,10 +34,9 @@ inputs with Pydantic models and returns a structured `Response`.
 from servicenow_api import Api
 
 api = Api(
-    url="https://your-instance.service-now.com",
-    username="admin",
-    password="your_password",
-    verify=True,
+    url="https://instance.example.invalid",
+    username="service_account",
+    password="runtime_secret_reference",
 )
 
 # Reads

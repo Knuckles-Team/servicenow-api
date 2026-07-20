@@ -36,7 +36,7 @@ def mock_session():
 
 def test_all_api_methods_brute_force(mock_session):
     """
-    CONCEPT:ECO-4.0: Tool Interface & MCP Factory
+    CONCEPT:AU-ECO.messaging.native-backend-abstraction: Tool Interface & MCP Factory
     """
     client = Api(url="http://test.com", username="user", password="pass")
 

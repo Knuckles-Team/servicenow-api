@@ -49,16 +49,16 @@ uv run servicenow-mcp
 
 ## Prebuilt Docker image
 
-A multi-stage, slim image is published on every release (entrypoint `servicenow-mcp`):
+A multi-stage runtime image is published on every release (entrypoint `servicenow-mcp`):
 
 ```bash
-docker pull knucklessg1/servicenow-api:latest
+docker pull example/servicenow-api@sha256:<digest>
 
 docker run --rm -i \
   -e SERVICENOW_INSTANCE=https://your-instance.service-now.com \
   -e SERVICENOW_USERNAME=admin \
   -e SERVICENOW_PASSWORD=your_password \
-  knucklessg1/servicenow-api:latest        # stdio transport (default)
+  example/servicenow-api@sha256:<digest>        # stdio transport (default)
 ```
 
 For an HTTP server with a published port and the agent server, see

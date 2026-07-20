@@ -4,29 +4,48 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "1.33.0"
+version = "2.0.1"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.11, <3.15"
-dependencies = [ "agent-utilities>=0.45.0",]
+dependencies = [ "agent-utilities>=1.27.1,<2.0.0",]
 [[project.authors]]
-name = "Audel Rouhi"
-email = "knucklessg1@gmail.com"
+name = "Project Maintainers"
+email = "maintainers@users.noreply.github.com"
 
 [project.license]
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-utilities[mcp]>=0.45.0",]
-agent = [ "agent-utilities[agent,logfire]>=0.45.0",]
-all = [ "agent-utilities[mcp,agent,logfire]>=0.45.0",]
+mcp = [ "agent-utilities[mcp]>=1.27.1,<2.0.0",]
+agent = [ "agent-utilities[agent-runtime,logfire]>=1.27.1,<2.0.0",]
+all = [ "agent-utilities[mcp,agent-runtime,logfire]>=1.27.1,<2.0.0",]
 test = [
     "pytest-xdist>=3.6.0", "pytest", "pytest-asyncio", "pytest-cov",]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
 servicenow-agent = "servicenow_api.agent_server:agent_server"
+
+[project.entry-points."agent_utilities.skill_providers"]
+servicenow-api = "servicenow_api.skills"
+
+[project.entry-points."agent_utilities.prompt_providers"]
+servicenow-api = "servicenow_api.prompts"
+
+# CONCEPT:AU-KG.ingest.mcp-tool-connector — register servicenow-api as a source
+# connector so source_sync can mirror ITSM records into the KG (presets in
+# servicenow_api/connectors/mcp_source_presets.json; native typed-node ingestion
+# in servicenow_api.kg_ingest).
+[project.entry-points."agent_utilities.source_connector_providers"]
+servicenow-api = "servicenow_api.connectors"
+
+# CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
+# agent-utilities hub (incidents, changes, CMDB items). Resolved via
+# iter_provider_dirs like the skill/prompt providers.
+[project.entry-points."agent_utilities.ontology_providers"]
+servicenow-api = "servicenow_api.ontology"
 
 [tool.setuptools]
 include-package-data = true
@@ -46,7 +65,7 @@ dev = [
 ]
 
 [tool.setuptools.package-data]
-servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**",]
+servicenow_api = [ "mcp_config.json", "agent_data/**", "skills/**", "prompts/**", "ontology/**", "connectors/**",]
 
 [tool.ruff.lint]
 select = [ "E", "F", "I", "UP", "B",]

@@ -3,6 +3,8 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp.action_dispatch import resolve_action
+from agent_utilities.mcp.concurrency import run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -32,14 +34,23 @@ def register_attachment_tools(mcp: FastMCP):
         try:
             kwargs = json.loads(params_json)
         except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            ["get_attachment", "upload_attachment", "delete_attachment"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "get_attachment":
-            return client.get_attachment(**kwargs)
+            return await run_blocking(client.get_attachment, **kwargs)
         if action == "upload_attachment":
-            return client.upload_attachment(**kwargs)
+            return await run_blocking(client.upload_attachment, **kwargs)
         if action == "delete_attachment":
-            return client.delete_attachment(**kwargs)
+            return await run_blocking(client.delete_attachment, **kwargs)
         raise ValueError(f"Unknown action: {action}")

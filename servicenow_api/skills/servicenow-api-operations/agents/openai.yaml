@@ -1,0 +1,4 @@
+interface:
+  display_name: "Servicenow API Operations"
+  short_description: "Help with Servicenow API Operations tasks"
+  default_prompt: "Use $servicenow-api-operations to complete a governed provider workflow."

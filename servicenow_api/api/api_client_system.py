@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-import requests
 from agent_utilities.base_utilities import get_logger
 from agent_utilities.core.exceptions import (
     MissingParameterError,
@@ -43,7 +42,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -378,7 +377,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
         }
         encoded_data_str = urlencode(refresh_data)
         try:
-            response = requests.post(
+            response = self._session.post(
                 url=self.auth_url,
                 data=encoded_data_str,
                 headers=self.auth_headers,
@@ -389,11 +388,11 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             self.token = json_response["access_token"]
             parsed_data = Authentication.model_validate(json_response)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(f"Invalid response data: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during token refresh: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_table_record(self, **kwargs) -> Response:
@@ -417,8 +416,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             response = self._session.delete(
                 url=f"{self.url}/now/table/{table_model.table}/{table_model.table_record_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -431,7 +428,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_table(self, **kwargs) -> Response:
@@ -479,8 +476,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/table/{table_model.table}",
                 params=table_model.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -493,7 +488,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_table_record(self, **kwargs) -> Response:
@@ -517,8 +512,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/now/table/{table_model.table}/{table_model.table_record_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -531,7 +524,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def patch_table_record(self, **kwargs) -> Response:
@@ -563,8 +556,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/table/{table_model.table}/{table_model.table_record_sys_id}",
                 json=table_model.data,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -577,7 +568,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_table_record(self, **kwargs) -> Response:
@@ -609,8 +600,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/table/{table_model.table}/{table_model.table_record_sys_id}",
                 json=table_model.data,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -623,7 +612,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def add_table_record(self, **kwargs) -> Response:
@@ -649,8 +638,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/table/{table_model.table}",
                 json=table_model.data,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -663,7 +650,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def send_email(self, **kwargs) -> Response:
@@ -673,16 +660,14 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/email",
                 headers=self.headers,
                 json=email.model_dump(exclude_none=True),
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_stats(self, **kwargs) -> Response:
@@ -700,16 +685,14 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 url=f"{self.url}/now/stats/{agg.table_name}",
                 headers=self.headers,
                 params=params,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def api_request(
@@ -728,8 +711,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 headers=self.headers,
                 data=data,
                 json=json,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             parsed_data = (
@@ -742,12 +723,12 @@ class ServiceNowApiSystem(ServiceNowApiBase):
         except ValidationError as e:
             raise ParameterError(f"Invalid parameters: {e.errors()}") from e
         except Exception as e:
-            print(f"Request Error: {str(e)}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_flow_metadata(self, flow_sys_id: str) -> dict[str, Any]:
         """Fetch rich metadata for any flow/subflow."""
-        logger.debug(f"Fetching metadata for flow {flow_sys_id}")
+        logger.debug("Fetching flow metadata")
         try:
             resp = self.get_table(
                 table="sys_hub_flow",
@@ -758,13 +739,14 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
             if not resp.response.ok:
                 logger.error(
-                    f"Failed fetching metadata for flow {flow_sys_id}: {resp.response.status_code} - {resp.response.text}"
+                    "Flow metadata request failed: status_code=%s",
+                    resp.response.status_code,
                 )
                 return {}
 
             results = resp.response.json().get("result", [])
             if not results:
-                logger.warning(f"No metadata found for flow {flow_sys_id}")
+                logger.warning("No flow metadata was found")
                 return {}
 
             flow = results[0] if isinstance(results, list) else results
@@ -788,7 +770,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 "created_on": flow.get("sys_created_on"),
             }
         except Exception as e:
-            logger.error(f"Error fetching metadata for flow {flow_sys_id}: {e}")
+            logger.error("Operation failed: error_type=%s", type(e).__name__)
             return {}
 
     def workflow_to_mermaid(
@@ -820,7 +802,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
         if not destination_file and output_dir is None:
             ws = _api_client.get_agent_workspace()
             output_dir = str(ws / "servicenow_flow_reports")
-            logger.info(f"Using default output directory: {output_dir}")
+            logger.info("Using configured output directory")
 
         logger.info(
             f"workflow_to_mermaid called with flow_identifiers: {flow_identifiers}"
@@ -875,7 +857,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                     )
             else:
                 for ident in flow_identifiers:
-                    logger.debug(f"Looking up sys_id for flow identifier: {ident}")
+                    logger.debug("Looking up configured flow identifier")
                     resp = self.get_table(
                         table="sys_hub_flow",
                         sysparm_query=f"name={ident}^ORsys_id={ident}",
@@ -918,14 +900,13 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                                     "created_on": raw.get("sys_created_on"),
                                 }
                             else:
-                                logger.warning(
-                                    f"Result for {ident} had no sys_id: {results}"
-                                )
+                                logger.warning("Flow lookup result had no identifier")
                         else:
-                            logger.warning(f"No results found for {ident}")
+                            logger.warning("Flow lookup returned no results")
                     else:
                         logger.error(
-                            f"Failed finding sys_id for {ident}: {resp.response.status_code} - {resp.response.text}"
+                            "Flow identifier lookup failed: status_code=%s",
+                            resp.response.status_code,
                         )
 
             if not root_sys_ids:
@@ -948,7 +929,7 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             if segment_by_root:
                 logger.info(f"Segmenting report by root ({len(root_sys_ids)} roots)")
                 for rid in root_sys_ids:
-                    logger.debug(f"Extracting subgraph for root: {rid}")
+                    logger.debug("Extracting configured root subgraph")
                     sub_graph = _api_client.get_reachable_subgraph(graph, rid)
                     if sub_graph.nodes:
                         comp_mermaid = _api_client.graph_to_mermaid_multi(
@@ -992,8 +973,9 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(markdown_content)
 
-                logger.info(f"Saved report to: {file_path}")
-                summary = f"✅ Report saved to: {file_path} ({len(all_metadata)} flows documented)"
+                logger.info("ServiceNow flow report saved")
+                file_path = filename
+                summary = f"✅ Report saved ({len(all_metadata)} flows documented)"
             else:
                 summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"
 
@@ -1005,12 +987,12 @@ class ServiceNowApiSystem(ServiceNowApiBase):
             )
         except Exception as e:
             logger.error(
-                f"An error occurred during workflow_to_mermaid processing: {e}",
-                exc_info=True,
+                "Workflow rendering failed: error_type=%s",
+                type(e).__name__,
             )
             return FlowReportResult(
-                markdown_content=f"An error occurred generating the report: {e}",
+                markdown_content=f"An error occurred generating the report: {type(e).__name__}",
                 file_path=None,
-                summary=f"Failed with error: {e}",
+                summary=f"Failed with error: {type(e).__name__}",
                 root_flow_sys_ids=[],
             )

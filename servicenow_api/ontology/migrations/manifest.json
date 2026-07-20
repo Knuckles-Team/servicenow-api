@@ -1,0 +1,6 @@
+{
+  "connector": "servicenow-api",
+  "current_ontology_source": "servicenow",
+  "migrations": [],
+  "schema_version": "1"
+}

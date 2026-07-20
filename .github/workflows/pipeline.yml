@@ -5,14 +5,21 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 jobs:
   publish-pypi:
-    uses: Knuckles-Team/pipelines/.github/workflows/python_pipeline.yml@main
+    uses: Knuckles-Team/pipelines/.github/workflows/python_pipeline.yml@dc60f5ca0cfd00bf2e66f912a33d6d0f8ee62874 # v2.0.1
+    permissions:
+      contents: write
     secrets:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
   publish-docker:
     needs: publish-pypi
-    uses: Knuckles-Team/pipelines/.github/workflows/container_pipeline.yml@main
+    uses: Knuckles-Team/pipelines/.github/workflows/container_pipeline.yml@dc60f5ca0cfd00bf2e66f912a33d6d0f8ee62874 # v2.0.1
+    permissions:
+      contents: read
     secrets:
       DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

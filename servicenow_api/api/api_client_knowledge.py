@@ -36,7 +36,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -393,8 +393,6 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
                 url=f"{self.url}/sn_km_api/knowledge/articles",
                 params=knowledge_base.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -407,7 +405,7 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_knowledge_article(self, **kwargs) -> Response:
@@ -456,8 +454,6 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
                 url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}",
                 params=knowledge_base.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -470,7 +466,7 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_knowledge_article_attachment(self, **kwargs) -> Response:
@@ -498,8 +494,6 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_km_api/knowledge/articles/{knowledge_base.article_sys_id}/attachments/{knowledge_base.attachment_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -512,7 +506,7 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_featured_knowledge_article(self, **kwargs) -> Response:
@@ -544,8 +538,6 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
                 url=f"{self.url}/sn_km_api/knowledge/articles/featured",
                 params=knowledge_base.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -558,7 +550,7 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_most_viewed_knowledge_articles(self, **kwargs) -> Response:
@@ -590,8 +582,6 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
                 url=f"{self.url}/sn_km_api/knowledge/articles/most_viewed",
                 params=knowledge_base.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -604,5 +594,5 @@ class ServiceNowApiKnowledge(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise

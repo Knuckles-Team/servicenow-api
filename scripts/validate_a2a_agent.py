@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import asyncio
 import json
+import os
 import time
 import uuid
 
@@ -11,17 +12,21 @@ __version__ = "0.1.0"
 print("Starting A2A Agent Validation and waiting for server initialization...")
 time.sleep(30)
 
-A2A_URL = "http://localhost:9004/a2a/"
+A2A_URL = os.environ.get("A2A_URL", "http://127.0.0.1:9016/a2a/")
 
 
 async def main():
-    print(f"Validating A2A Agent at {A2A_URL}...")
+    print("Validating the configured A2A agent...")
 
-    questions = ["Can you get me the incident: INC0010004?"]
+    questions = [
+        os.environ.get(
+            "A2A_VALIDATION_QUERY", "Describe your available capabilities."
+        )
+    ]
 
     async with httpx.AsyncClient(timeout=10000.0) as client:
         for q in questions:
-            print(f"\n\n\nUser: {q}")
+            print("\nSubmitting the configured validation query.")
             print("--- Sending Request ---")
 
             payload = {
@@ -40,7 +45,7 @@ async def main():
 
             try:
                 url = A2A_URL
-                print(f"Trying POST {url} with JSON-RPC (message/send)...")
+                print("Trying the configured endpoint with JSON-RPC (message/send)...")
                 resp = await client.post(
                     url, json=payload, headers={"Content-Type": "application/json"}
                 )
@@ -49,13 +54,11 @@ async def main():
                 if resp.status_code == 200:
                     try:
                         data = resp.json()
-                        print(f"Response (JSON):\n{json.dumps(data, indent=2)}")
+                        print("JSON response received.")
 
                         if "result" in data and "id" in data["result"]:
                             task_id = data["result"]["id"]
-                            print(
-                                f"\nTask Submitted with ID: {task_id}. Polling for result..."
-                            )
+                            print("\nTask submitted; polling for result...")
 
                             while True:
                                 await asyncio.sleep(2)
@@ -99,44 +102,38 @@ async def main():
                                                         )
                                                         for part in last_msg["parts"]:
                                                             if "text" in part:
-                                                                print(part["text"])
+                                                                print("Agent response content omitted.")
                                                             elif "content" in part:
-                                                                print(part["content"])
+                                                                print("Agent response content omitted.")
                                                     elif last_msg:
-                                                        print(
-                                                            f"Final Message (No parts): {last_msg}"
-                                                        )
+                                                        print("Final response received without structured parts.")
                                                     else:
                                                         print(
                                                             "\n--- No Agent Response Found in History ---"
                                                         )
 
-                                            print(
-                                                f"Full Result Debug:\n{json.dumps(poll_data, indent=2)}"
-                                            )
+                                            print("Validation result received; body omitted.")
                                             break
                                     else:
                                         print("Starting polling error key check...")
                                         if "error" in poll_data:
-                                            print(
-                                                f"Polling Error: {poll_data['error']}"
-                                            )
+                                            print(f"Polling JSON-RPC error code: {poll_data['error'].get('code', 'unknown')}")
                                         break
                                 else:
                                     print(f"Polling Failed: {poll_resp.status_code}")
-                                    print(f"Polling Error Details: {poll_resp.text}")
+                                    print(f"Polling failed with HTTP {poll_resp.status_code}.")
                                     break
 
                         if "error" in data:
-                            print(f"JSON-RPC Error: {data['error']}")
+                            print(f"JSON-RPC error code: {data['error'].get('code', 'unknown')}")
                     except json.JSONDecodeError:
-                        print(f"Response (Text):\n{resp.text}")
+                        print(f"Response body omitted (HTTP {resp.status_code}).")
                 else:
                     print(f"Error: {resp.status_code}")
-                    print(resp.text)
+                    print(f"Response body omitted (HTTP {resp.status_code}).")
 
             except httpx.RequestError as e:
-                print(f"Connection failed to {url}: {e}")
+                print(f"Operation failed: {type(e).__name__}")
 
 
 if __name__ == "__main__":

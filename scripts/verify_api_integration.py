@@ -218,7 +218,7 @@ def main():
             sys.exit(0)
 
     # --- Default Mode (Workspace-wide Scan) ---
-    agents_dir = "/home/apps/workspace/agent-packages/agents"
+    agents_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     agent_dirs = [
         d for d in glob.glob(os.path.join(agents_dir, "*")) if os.path.isdir(d)
     ]
@@ -243,7 +243,7 @@ def main():
             if res:
                 results.append(res)
         except Exception as e:
-            print(f"Error parsing {agent_dir}: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
 
     # Print a beautiful report
     print("# API to MCP Integration Parity Report")

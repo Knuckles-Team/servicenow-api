@@ -8,14 +8,20 @@ from datetime import datetime
 from typing import Any
 
 from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.workspace import get_agent_workspace  # noqa: F401
-from agent_utilities.decorators import require_auth  # noqa: F401
+from agent_utilities.core.decorators import require_auth  # noqa: F401
 
 from servicenow_api.servicenow_models import (
     FlowGraph,
 )
 
 logger = get_logger(__name__)
+
+
+def get_agent_workspace():
+    """Resolve the active workspace lazily to avoid config import cycles."""
+    from agent_utilities.core.workspace import get_agent_workspace as resolve_workspace
+
+    return resolve_workspace()
 
 
 def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
@@ -29,7 +35,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 

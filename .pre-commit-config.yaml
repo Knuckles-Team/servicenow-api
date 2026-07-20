@@ -8,7 +8,7 @@ ci:
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v6.0.0
+  rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
   hooks:
   - id: check-added-large-files
     args: ["--maxkb=2000"]
@@ -25,25 +25,25 @@ repos:
   - id: end-of-file-fixer
   - id: no-commit-to-branch
 - repo: https://github.com/psf/black
-  rev: 26.3.1
+  rev: c6755bb741b6481d6b3d3bb563c83fa060db96c9 # 26.3.1
   hooks:
   - id: black
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.12
+  rev: 6fec9b7edb08fd9989088709d864a7826dc74e80 # v0.15.12
   hooks:
   - id: ruff
     exclude: tests
     types_or: [python, pyi, jupyter]
     args: ["--fix", "--ignore=E402"]
 - repo: https://github.com/jendrikseipp/vulture
-  rev: v2.16
+  rev: b0f67ba0044693aa9ec0d38fe460590facc98004 # v2.16
   hooks:
   - id: vulture
     pass_filenames: false
     args: [".", "vulture_whitelist.py", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist,servicenow_models.py']     # or 100 if you want very high confidence only
     require_serial: true
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.4.2
+  rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a # v2.4.2
   hooks:
   - id: codespell
     args:
@@ -53,26 +53,32 @@ repos:
     - ".codespellignore"
     exclude: 'servicenow_api/skills/.*-docs/'
 - repo: https://github.com/PyCQA/bandit
-  rev: 1.9.4
+  rev: 92ae8b82fb422a639f0ed8d99e96cea769594e08 # 1.9.4
   hooks:
   - id: bandit
     args: ["--skip", "B101,B404,B603"]
     exclude: ^(tests/|test/|scripts/|script/|__tests__/)
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.9.1
+  rev: d31b7eae1767c43460afb3ba130e0a6602933abe # 1.9.1
   hooks:
   - id: nbqa-ruff
 - repo: local
   hooks:
+  - id: okf-no-legacy-concepts
+    name: OKF-CIS — no legacy CONCEPT ids
+    entry: bash -c 'repo=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)"); root=${AGENT_UTILITIES_ROOT:-"$(dirname "$repo")/agent-utilities"}; python3 "$root/scripts/check_no_legacy_markers.py" . "$@"' --
+    language: system
+    pass_filenames: false
+    always_run: true
   - id: check-mermaid
     name: Check Mermaid syntax
-    entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/mermaid_linter.py
+    entry: bash -c 'repo=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)"); root=${AGENT_UTILITIES_ROOT:-"$(dirname "$repo")/agent-utilities"}; python3 "$root/scripts/mermaid_linter.py" "$@"' --
     language: system
     files: \.md$
     pass_filenames: true
   - id: check-stubs
     name: Check for Active Stubs and TODOs
-    entry: python3 /home/apps/workspace/agent-packages/agent-utilities/scripts/check_stubs.py
+    entry: bash -c 'repo=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)"); root=${AGENT_UTILITIES_ROOT:-"$(dirname "$repo")/agent-utilities"}; python3 "$root/scripts/check_stubs.py" "$@"' --
     language: system
     types: [python]
   - id: mermaid-validate
@@ -96,6 +102,33 @@ repos:
     language: system
     pass_filenames: false
     always_run: true
+  - id: mcp-readme-table
+    name: sync MCP tools table in README
+    entry: |-
+      bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.readme_tools; else python -m agent_utilities.mcp.readme_tools; fi'
+    language: system
+    files: ^(README\.md|.*/mcp_server\.py|.*/mcp/.*\.py)$
+    pass_filenames: false
+  - id: readme-env-vars
+    name: sync env-vars table in README
+    entry: |-
+      bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.readme_env_vars; else python -m agent_utilities.mcp.readme_env_vars; fi'
+    language: system
+    files: ^(README\.md|\.env\.example)$
+    pass_filenames: false
+  - id: readme-mcp-examples
+    name: sync mcp_config examples in README + env blocks
+    entry: |-
+      bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.readme_mcp_examples; else python -m agent_utilities.mcp.readme_mcp_examples; fi'
+    language: system
+    files: ^(README\.md|\.env\.example|mcp_config.*\.json|.*/mcp_config.*\.json|.*/mcp_server\.py)$
+    pass_filenames: false
+  - id: env-var-drift
+    name: check env-var/config drift
+    entry: bash -c 'if [ -f uv.lock ]; then uv run python -m agent_utilities.mcp.check_env_var_drift --check; else python -m agent_utilities.mcp.check_env_var_drift --check; fi'
+    language: system
+    pass_filenames: false
+    files: ^(README\.md|\.env\.example|mcp_config.*\.json|.*/mcp_config.*\.json|docker/.*compose.*\.ya?ml|.*/auth\.py|.*/mcp_server\.py)$
   - id: check-bumpversion
     name: validate bumpversion config
     entry: |-
@@ -104,7 +137,7 @@ repos:
     pass_filenames: false
     always_run: true
 - repo: https://github.com/AleksaC/hadolint-py
-  rev: v2.14.0
+  rev: 458cb25edf664682e3e856a53a2f9af33e068297 # v2.14.0
   hooks:
   - id: hadolint
     args:
@@ -114,7 +147,7 @@ repos:
     - --ignore=DL4006
     - --ignore=SC2102
 - repo: https://github.com/IamTheFij/docker-pre-commit
-  rev: v3.0.1
+  rev: f626253b23de45412865c07fd076ff95d4cd77a7 # v3.0.1
   hooks:
   - id: docker-compose-check
 

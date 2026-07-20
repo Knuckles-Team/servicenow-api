@@ -3,6 +3,8 @@
 Auto-generated from mcp_server.py during ecosystem standardization.
 """
 
+from agent_utilities.mcp.action_dispatch import resolve_action
+from agent_utilities.mcp.concurrency import run_blocking
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
 from pydantic import Field
@@ -32,12 +34,23 @@ def register_source_control_tools(mcp: FastMCP):
         try:
             kwargs = json.loads(params_json)
         except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+        resolved = resolve_action(
+            action,
+            ["apply_remote_source_control_changes", "import_repository"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
         if action == "apply_remote_source_control_changes":
-            return client.apply_remote_source_control_changes(**kwargs)
+            return await run_blocking(
+                client.apply_remote_source_control_changes, **kwargs
+            )
         if action == "import_repository":
-            return client.import_repository(**kwargs)
+            return await run_blocking(client.import_repository, **kwargs)
         raise ValueError(f"Unknown action: {action}")
