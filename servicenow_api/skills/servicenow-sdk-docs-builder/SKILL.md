@@ -1,5 +1,6 @@
 ---
 name: servicenow-sdk-docs-builder
+skill_type: skill
 description: Automation skill to generate or update the `servicenow-sdk` documentation skill by fetching and processing the ServiceNow SDK and Examples repositories. It combines READMEs, extracts code samples, and creates a self-contained, portable documentation skill.
 license: MIT
 tags: [servicenow, sdk, documentation, builder, automation, documentation-generation]

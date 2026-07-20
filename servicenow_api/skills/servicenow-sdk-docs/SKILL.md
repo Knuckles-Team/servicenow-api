@@ -1,5 +1,6 @@
 ---
 name: servicenow-sdk-docs
+skill_type: skill
 description: A comprehensive, self-contained collection of ServiceNow SDK (Fluent API) examples and core documentation. Use this when the agent needs to reference how to use the ServiceNow SDK for various components like Tables, REST APIs, UI Actions, Script Includes, etc. All source code is bundled within the skill for portability.
 license: MIT
 tags: [servicenow, sdk, fluent-api, examples, typescript, reference, self-contained]
