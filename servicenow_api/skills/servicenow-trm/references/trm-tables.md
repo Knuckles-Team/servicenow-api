@@ -66,4 +66,4 @@
 ## Aggregate roll-ups (servicenow_aggregate `get_stats`)
 - Count by lifecycle stage: `groupby` = the lifecycle field (e.g. `life_cycle_stage`).
 - Count by owner group: `groupby` = `managed_by_group`.
-- `get_stats` maps `groupby`→`sysparm_group_by`, `stats:true`→`sysparm_count=true`.
+- `get_stats` maps `groupby`→`sysparm_group_by`, `stats:"true"`→`sysparm_count=true` (accepts a JSON bool or string; either normalizes correctly).

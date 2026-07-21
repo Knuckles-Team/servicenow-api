@@ -1437,10 +1437,13 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 headers=self.headers,
             )
             response.raise_for_status()
-            json_response = response.json()
-            result_data = json_response.get("result", json_response)
-            parsed_data = ChangeRequest.model_validate(result_data)
-            return Response(response=response, result=parsed_data)
+
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                parsed_data = ChangeRequest.model_validate(result_data)
+                return Response(response=response, result=parsed_data)
+            return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
             print(
                 f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
@@ -1478,10 +1481,13 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 headers=self.headers,
             )
             response.raise_for_status()
-            json_response = response.json()
-            result_data = json_response.get("result", json_response)
-            parsed_data = Task.model_validate(result_data)
-            return Response(response=response, result=parsed_data)
+
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                parsed_data = Task.model_validate(result_data)
+                return Response(response=response, result=parsed_data)
+            return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
             print(
                 f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
@@ -1519,10 +1525,13 @@ class ServiceNowApiChange(ServiceNowApiBase):
                 headers=self.headers,
             )
             response.raise_for_status()
-            json_response = response.json()
-            result_data = json_response.get("result", json_response)
-            parsed_data = ChangeRequest.model_validate(result_data)
-            return Response(response=response, result=parsed_data)
+
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                parsed_data = ChangeRequest.model_validate(result_data)
+                return Response(response=response, result=parsed_data)
+            return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
             print(
                 f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr

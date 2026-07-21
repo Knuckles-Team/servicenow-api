@@ -815,7 +815,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
 
             params = {"resource": req.resource}
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/code/schema",
+                url=f"{self.url}/sn_devops/devops/code/schema",
                 params=params,
                 headers=self.headers,
             )
@@ -836,7 +836,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
 
             params = {"id": id_}
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/onboarding/status",
+                url=f"{self.url}/sn_devops/devops/onboarding/status",
                 params=params,
                 headers=self.headers,
             )
@@ -873,7 +873,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 params["orchestrationTaskURL"] = kwargs.get("orchestrationTaskURL")
 
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/orchestration/changeControl",
+                url=f"{self.url}/sn_devops/devops/orchestration/changeControl",
                 params=params,
                 headers=self.headers,
             )
@@ -909,7 +909,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 params["branchName"] = kwargs.get("branchName")
 
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/orchestration/changeInfo",
+                url=f"{self.url}/sn_devops/devops/orchestration/changeInfo",
                 params=params,
                 headers=self.headers,
             )
@@ -934,7 +934,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
 
             params = {"resource": resource}
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/orchestration/schema",
+                url=f"{self.url}/sn_devops/devops/orchestration/schema",
                 params=params,
                 headers=self.headers,
             )
@@ -974,7 +974,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                     params[k] = kwargs[k]
 
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/orchestration/stepMapping",
+                url=f"{self.url}/sn_devops/devops/orchestration/stepMapping",
                 params=params,
                 headers=self.headers,
             )
@@ -995,7 +995,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
 
             params = {"resource": resource}
             response = self._session.get(
-                url=f"{self.url}/api/sn_devops/devops/plan/schema",
+                url=f"{self.url}/sn_devops/devops/plan/schema",
                 params=params,
                 headers=self.headers,
             )
@@ -1021,7 +1021,7 @@ class ServiceNowApiDevops(ServiceNowApiBase):
                 params["toolId"] = req.toolId
 
             response = self._session.post(
-                url=f"{self.url}/api/sn_devops/devops/artifact/registration",
+                url=f"{self.url}/sn_devops/devops/artifact/registration",
                 params=params,
                 headers=self.headers,
                 json=req.model_dump(exclude_none=True),

@@ -702,15 +702,17 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "sysIds": req.sysIds,
             }
             response = self._session.delete(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                url=f"{self.url}/now/cilifecyclemgmt/actions",
                 params=params,
                 headers=self.headers,
             )
             response.raise_for_status()
-            return Response(
-                response=response,
-                result=CILifecycleResult.model_validate(response.json()),
-            )
+            if response.content:
+                return Response(
+                    response=response,
+                    result=CILifecycleResult.model_validate(response.json()),
+                )
+            return Response(response=response, result={"status": "deleted"})
         except Exception as e:
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
@@ -725,14 +727,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.delete(
-                url=f"{self.url}/api/now/cilifecyclemgmt/operators/{req_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/operators/{req_id}",
                 headers=self.headers,
             )
             response.raise_for_status()
-            return Response(
-                response=response,
-                result=CILifecycleResult.model_validate(response.json()),
-            )
+            if response.content:
+                return Response(
+                    response=response,
+                    result=CILifecycleResult.model_validate(response.json()),
+                )
+            return Response(response=response, result={"status": "deleted"})
         except Exception as e:
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
@@ -747,7 +751,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/actions/{sys_id}",
                 headers=self.headers,
             )
             response.raise_for_status()
@@ -771,7 +775,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
 
             params = {"actionName": actionName, "otherActionName": otherActionName}
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/compatActions",
+                url=f"{self.url}/now/cilifecyclemgmt/compatActions",
                 params=params,
                 headers=self.headers,
             )
@@ -797,7 +801,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
 
             params = {"actionName": actionName, "requestorId": requestorId}
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}/expired",
+                url=f"{self.url}/now/cilifecyclemgmt/leases/{sys_id}/expired",
                 params=params,
                 headers=self.headers,
             )
@@ -827,7 +831,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "opsLabel": opsLabel,
             }
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedAction",
+                url=f"{self.url}/now/cilifecyclemgmt/notAllowedAction",
                 params=params,
                 headers=self.headers,
             )
@@ -857,7 +861,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "transitionOpsLabel": transitionOpsLabel,
             }
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedOpsTransition",
+                url=f"{self.url}/now/cilifecyclemgmt/notAllowedOpsTransition",
                 params=params,
                 headers=self.headers,
             )
@@ -880,7 +884,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/requestors/{req_id}/valid",
+                url=f"{self.url}/now/cilifecyclemgmt/requestors/{req_id}/valid",
                 headers=self.headers,
             )
             response.raise_for_status()
@@ -902,7 +906,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/statuses/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/statuses/{sys_id}",
                 headers=self.headers,
             )
             response.raise_for_status()
@@ -935,7 +939,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "requestorId": req.requestorId,
             }
             response = self._session.patch(
-                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/leases/{sys_id}",
                 params=params,
                 headers=self.headers,
             )
@@ -968,7 +972,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 params["oldActionNames"] = req.oldActionNames
 
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                url=f"{self.url}/now/cilifecyclemgmt/actions",
                 params=params,
                 headers=self.headers,
             )
@@ -987,7 +991,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
         """
         try:
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/operators",
+                url=f"{self.url}/now/cilifecyclemgmt/operators",
                 headers=self.headers,
             )
             response.raise_for_status()
@@ -1017,7 +1021,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 params["oldOpsLabels"] = req.oldOpsLabels
 
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/statuses",
+                url=f"{self.url}/now/cilifecyclemgmt/statuses",
                 params=params,
                 headers=self.headers,
             )
