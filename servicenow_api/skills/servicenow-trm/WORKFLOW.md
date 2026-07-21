@@ -67,7 +67,7 @@ Portfolio inventory (active records, newest first, few fields) via `get_table`:
 Lifecycle roll-up (count per stage) via `servicenow_aggregate` `get_stats` — swap
 `groupby` to the real lifecycle-stage field you found during discovery:
 ```json
-{"table_name":"cmdb_software_product_model","query":"","groupby":"life_cycle_stage","stats":true}
+{"table_name":"cmdb_software_product_model","query":"","groupby":"life_cycle_stage","stats":"true"}
 ```
 Record deep-dive by sys_id (raw + display values) via `get_table_record`:
 ```json

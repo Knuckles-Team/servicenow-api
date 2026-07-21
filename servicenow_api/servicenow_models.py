@@ -1983,6 +1983,266 @@ class Incident(BaseModel):
     )
 
 
+class ProblemModel(BaseModel):
+    """
+    Pydantic model representing a Problem (Problem Management).
+
+    Mirrors ``IncidentModel`` — the ``problem`` table follows the same Table-API
+    shape as ``incident`` (both extend the base ``task`` table).
+
+    Attributes:
+    - problem_id (Union[int, str]): Identifier for the problem.
+    - data (Dict): Dictionary containing additional data.
+    """
+
+    model_config = ConfigDict(validate_assignment=True)
+    problem_id: int | str = None
+    name_value_pairs: str | None = None
+    sysparm_display_value: str | bool | None = None
+    sysparm_exclude_reference_link: bool | None = None
+    sysparm_fields: str | None = None
+    sysparm_limit: str | int | None = None
+    sysparm_no_count: bool | None = None
+    sysparm_offset: str | int | None = None
+    sysparm_query: str | None = None
+    sysparm_query_category: str | None = None
+    sysparm_query_no_domain: bool | None = None
+    sysparm_suppress_pagination_header: bool | None = None
+    sysparm_view: str | None = None
+    api_parameters: dict | None = Field(description="API Parameters", default=None)
+    data: dict | None = Field(
+        default=None, description="Table dictionary value to insert"
+    )
+
+    @field_validator("problem_id")
+    @classmethod
+    def validate_string_parameters(cls, v):
+        """
+        Validate specific string parameters to ensure they are valid strings.
+
+        Args:
+        - v: The value of the parameter.
+
+        Returns:
+        - str: The validated parameter value.
+
+        Raises:
+        - ValueError: If the parameter is not a valid string.
+        """
+        if v is not None and not isinstance(v, str):
+            raise ValueError("Invalid optional params")
+        return v
+
+    @field_validator(
+        "sysparm_display_value",
+        "sysparm_no_count",
+        "sysparm_query_no_domain",
+        "sysparm_suppress_pagination_header",
+    )
+    @classmethod
+    def convert_to_lowercase(cls, value):
+        """
+        Convert specified parameters to lowercase.
+
+        Args:
+        - value: The value of the parameter.
+
+        Returns:
+        - str: The value converted to lowercase.
+        """
+        if value is None:
+            return None
+        return str(value).lower()
+
+    @field_validator("sysparm_view")
+    @classmethod
+    def validate_sysparm_view(cls, v):
+        """
+        Validate the 'sysparm_view' parameter to ensure it is a valid view.
+
+        Args:
+        - v: The value of 'sysparm_view'.
+
+        Returns:
+        - str: The validated 'sysparm_view'.
+
+        Raises:
+        - ParameterError: If 'sysparm_view' is not a valid view.
+        """
+        if v not in ["desktop", "mobile", "both", None]:
+            raise ParameterError
+        return v
+
+    @field_validator("sysparm_display_value")
+    @classmethod
+    def validate_sysparm_display_value(cls, v):
+        """
+        Validate the 'sysparm_display_value' parameter to ensure it is a valid display value.
+
+        Args:
+        - v: The value of 'sysparm_display_value'.
+
+        Returns:
+        - str: The validated 'sysparm_display_value'.
+
+        Raises:
+        - ParameterError: If 'sysparm_display_value' is not a valid display value.
+        """
+        if v not in [True, False, "all", "true", "false", None]:
+            raise ParameterError
+        return v
+
+    def model_post_init(self, _context):
+        """
+        Build the API parameters
+        """
+        self.api_parameters = {}
+        if self.name_value_pairs:
+            self.api_parameters["name_value_pairs"] = self.name_value_pairs
+        if self.sysparm_display_value:
+            self.api_parameters["sysparm_display_value"] = self.sysparm_display_value
+        if self.sysparm_exclude_reference_link:
+            self.api_parameters["sysparm_exclude_reference_link"] = (
+                self.sysparm_exclude_reference_link
+            )
+        if self.sysparm_fields:
+            self.api_parameters["sysparm_fields"] = self.sysparm_fields
+        if self.sysparm_query:
+            self.api_parameters["sysparm_query"] = self.sysparm_query
+        if self.sysparm_query_category:
+            self.api_parameters["sysparm_query_category"] = self.sysparm_query_category
+        if self.sysparm_query_no_domain:
+            self.api_parameters["sysparm_query_no_domain"] = (
+                self.sysparm_query_no_domain
+            )
+        if self.sysparm_suppress_pagination_header:
+            self.api_parameters["sysparm_suppress_pagination_header"] = (
+                self.sysparm_suppress_pagination_header
+            )
+        if self.sysparm_limit:
+            self.api_parameters["sysparm_limit"] = self.sysparm_limit
+        if self.sysparm_no_count:
+            self.api_parameters["sysparm_no_count"] = self.sysparm_no_count
+        if self.sysparm_offset:
+            self.api_parameters["sysparm_offset"] = self.sysparm_offset
+
+
+class Problem(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    base_type: str = Field(default="Problem")
+    __hash__ = object.__hash__
+    sys_id: str | None = Field(
+        default=None, description="Unique identifier of the problem record"
+    )
+    number: str | None = Field(
+        default=None, description="Problem number (e.g., PRB0012345)"
+    )
+    state: ReferenceField | str | None = Field(
+        default=None,
+        description="State of the problem (e.g., {value: '1', display_value: 'New'})",
+    )
+    priority: ReferenceField | str | None = Field(
+        default=None,
+        description="Priority level (e.g., {value: '3', display_value: 'Moderate'})",
+    )
+    short_description: str | None = Field(
+        default=None, description="Brief description of the problem"
+    )
+    description: str | None = Field(
+        default=None, description="Detailed description of the problem"
+    )
+    impact: ReferenceField | str | None = Field(
+        default=None,
+        description="Impact level (e.g., {value: '2', display_value: 'Medium'})",
+    )
+    urgency: ReferenceField | str | None = Field(
+        default=None,
+        description="Urgency level (e.g., {value: '2', display_value: 'Medium'})",
+    )
+    category: str | None = Field(
+        default=None, description="Category of the problem (e.g., Hardware, Software)"
+    )
+    subcategory: str | None = Field(
+        default=None, description="Subcategory of the problem"
+    )
+    assigned_to: ReferenceField | str | None = Field(
+        default=None, description="Reference to the assigned user (sys_user)"
+    )
+    assignment_group: ReferenceField | str | None = Field(
+        default=None, description="Reference to the assignment group (sys_user_group)"
+    )
+    opened_at: str | None = Field(
+        default=None, description="Timestamp when the problem was opened"
+    )
+    opened_by: ReferenceField | str | None = Field(
+        default=None,
+        description="Reference to the user who opened the problem (sys_user)",
+    )
+    closed_at: str | None = Field(
+        default=None, description="Timestamp when the problem was closed"
+    )
+    close_notes: str | None = Field(
+        default=None, description="Notes provided upon problem closure"
+    )
+    known_error: bool | None = Field(
+        default=None, description="Whether the problem is a known error"
+    )
+    workaround: str | None = Field(
+        default=None, description="Documented workaround for the problem"
+    )
+    fix_notes: str | None = Field(
+        default=None, description="Notes on how the problem was fixed"
+    )
+    cause_notes: str | None = Field(
+        default=None, description="Root-cause analysis notes"
+    )
+    sys_created_on: str | None = Field(
+        default=None, description="Timestamp when the record was created"
+    )
+    sys_updated_on: str | None = Field(
+        default=None, description="Timestamp when the record was last updated"
+    )
+    sys_updated_by: str | None = Field(
+        default=None, description="User who last updated the record"
+    )
+    sys_created_by: str | None = Field(
+        default=None, description="User who created the record"
+    )
+    company: ReferenceField | str | None = Field(
+        default=None, description="Reference to the associated company (core_company)"
+    )
+    location: ReferenceField | str | None = Field(
+        default=None, description="Reference to the location (cmn_location)"
+    )
+    cmdb_ci: ReferenceField | str | None = Field(
+        default=None,
+        description="Reference to the related configuration item (cmdb_ci)",
+    )
+    related_incidents: str | None = Field(
+        default=None, description="Comma-separated related incident sys_ids"
+    )
+    comments: str | None = Field(
+        default=None, description="Additional comments added to the problem"
+    )
+    work_notes: str | None = Field(
+        default=None, description="Work notes added to the problem"
+    )
+    active: bool | None = Field(
+        default=None, description="Whether the problem is active"
+    )
+    sys_domain: ReferenceField | str | None = Field(
+        default=None,
+        description="Reference to the domain for domain separation (sys_domain)",
+    )
+    sys_mod_count: int | None = Field(
+        default=None, description="Number of times the record was modified"
+    )
+    custom_fields: dict[str, Any] | None = Field(
+        default_factory=dict,
+        description="Dictionary for custom fields (e.g., u_custom_field)",
+    )
+
+
 class ConfigurationItem(BaseModel):
     model_config = ConfigDict(extra="allow")
     base_type: str = Field(default="ConfigurationItem")
@@ -2715,6 +2975,11 @@ class AttachmentModel(BaseModel):
     encryption_context: str | None = Field(
         default=None, description="Encryption context."
     )
+    data: str | None = Field(
+        default=None,
+        description="Base64-encoded file content, for uploading without a server-local "
+        "file_path (e.g. from a JSON MCP tool call). Ignored if file_path is provided.",
+    )
 
 
 class AggregateModel(BaseModel):
@@ -2722,10 +2987,19 @@ class AggregateModel(BaseModel):
     table_name: str = Field(description="Table name to aggregate on.")
     query: str | None = Field(default=None, description="Encoded query string.")
     groupby: str | None = Field(default=None, description="Field to group by.")
-    stats: str | None = Field(
-        default=None, description="Statistics function (e.g., COUNT, MIN, MAX)."
+    stats: bool | str | None = Field(
+        default=None,
+        description="Statistics function (e.g., COUNT, MIN, MAX), or true/false to toggle sysparm_count.",
     )
     fields: str | None = Field(default=None, description="Fields to include.")
+
+    @field_validator("stats")
+    @classmethod
+    def normalize_stats(cls, v):
+        """Coerce a boolean ``stats`` flag to the lowercase string ServiceNow expects."""
+        if isinstance(v, bool):
+            return str(v).lower()
+        return v
 
 
 class ActivitySubscriptionModel(BaseModel):
@@ -3117,3 +3391,231 @@ class FlowReportResult(BaseModel):
     file_path: str | None = None
     summary: str
     root_flow_sys_ids: list[str]
+
+
+# --- ServiceNow SDK CLI (now-sdk) models --------------------------------------------
+#
+# Input models for servicenow_api.sdk_client.ServiceNowSdkClient, one per now-sdk
+# subcommand (init/auth/build/deploy(install)/transform/dependencies). These wrap a
+# local CLI, not the REST API, so field names mirror the CLI's own `--help` flags
+# (captured from @servicenow/sdk 4.9.0) rather than a ServiceNow table schema.
+
+
+class SdkCommandModel(BaseModel):
+    """Fields common to every now-sdk subcommand wrapper."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+    working_dir: str | None = Field(
+        default=None,
+        description="Directory to run now-sdk in (defaults to SDK_WORKDIR / "
+        "~/servicenow-sdk-workspace, auto-created).",
+    )
+    debug: bool | None = Field(
+        default=None, description="Print now-sdk debug output (-d/--debug)."
+    )
+
+
+class SdkInitModel(SdkCommandModel):
+    """`now-sdk init` (alias `create`) — scaffold/convert a scoped app project."""
+
+    from_source: str | None = Field(
+        default=None,
+        alias="from",
+        description="SYS_ID of a legacy app on the instance, or a file path to a "
+        "directory containing one, to convert into a Fluent app.",
+    )
+    app_name: str | None = Field(
+        default=None, alias="appName", description="Name of the ServiceNow App project."
+    )
+    package_name: str | None = Field(
+        default=None,
+        alias="packageName",
+        description="Package name for the project (must follow npm naming conventions).",
+    )
+    scope_name: str | None = Field(
+        default=None,
+        alias="scopeName",
+        description="Scope name (vendor-prefixed, max 18 chars).",
+    )
+    auth: str | None = Field(
+        default=None,
+        description="Credential alias to use for authentication with the instance.",
+    )
+    template: str | None = Field(
+        default=None,
+        description="Project template: base, javascript.aiux, javascript.basic, "
+        "javascript.react, typescript.basic, typescript.react, typescript.vue.",
+    )
+
+
+class SdkAuthModel(SdkCommandModel):
+    """`now-sdk auth` — add/use/delete/list stored instance credentials.
+
+    A provided ``password`` is piped to the CLI over stdin (``--password-stdin``)
+    and is never placed in argv, logs, or the returned command echo.
+    """
+
+    add: str | None = Field(
+        default=None, description="Instance name or url to store credentials for."
+    )
+    auth_type: str | None = Field(
+        default=None, alias="type", description="Credential type: basic or oauth."
+    )
+    alias: str | None = Field(
+        default=None, description="Alias to use for the new credential."
+    )
+    username: str | None = Field(
+        default=None, description="Username for non-interactive basic auth."
+    )
+    password: str | None = Field(
+        default=None,
+        description="Password for non-interactive basic auth — sent via stdin only.",
+    )
+    delete: str | None = Field(
+        default=None, description="Alias of a stored credential to delete."
+    )
+    use: str | None = Field(
+        default=None, description="Alias of a stored credential to set as default."
+    )
+    list_credentials: bool | None = Field(
+        default=None, alias="list", description="List all saved credentials."
+    )
+
+
+class SdkBuildModel(SdkCommandModel):
+    """`now-sdk build` — compile Fluent sources into an installable package."""
+
+    source: str | None = Field(
+        default=None,
+        description="Path containing package.json (positional; defaults to working_dir).",
+    )
+    frozen_keys: bool | None = Field(
+        default=None,
+        alias="frozenKeys",
+        description="Validate that Keys/SysIds are up to date for CI build.",
+    )
+    error_on_conflict: bool | None = Field(
+        default=None,
+        alias="errorOnConflict",
+        description="Treat sys_id conflicts between Fluent and XML as errors.",
+    )
+    skip_clean: bool | None = Field(
+        default=None,
+        alias="skipClean",
+        description="Skip cleaning build output directories before building.",
+    )
+    legacy_choices: bool | None = Field(
+        default=None,
+        alias="legacyChoices",
+        description="Generate choice-set XML in the legacy (v3) format instead of v4.",
+    )
+
+
+class SdkInstallModel(SdkCommandModel):
+    """`now-sdk install` (alias `deploy`) — install/update the app on an instance."""
+
+    source: str | None = Field(
+        default=None, description="Path containing package.json."
+    )
+    auth: str | None = Field(
+        default=None,
+        description="Credential alias to use for authentication with the instance.",
+    )
+    reinstall: bool | None = Field(
+        default=None,
+        description="Uninstall and reinstall so instance metadata matches the "
+        "local package exactly (destructive to instance-only metadata).",
+    )
+    open_browser: bool | None = Field(
+        default=None,
+        alias="open-browser",
+        description="Open the sys_app page in a browser on successful install.",
+    )
+    info: bool | None = Field(
+        default=None,
+        description="Get information from the instance for the most recent install.",
+    )
+    demo_data: bool | None = Field(
+        default=None, alias="demoData", description="Install demo data (default true)."
+    )
+    skip_flow_activation: bool | None = Field(
+        default=None,
+        alias="skip-flow-activation",
+        description="Skip activating (publishing) flows after install.",
+    )
+
+
+class SdkTransformModel(SdkCommandModel):
+    """`now-sdk transform` — download/convert XML records into Fluent source."""
+
+    table: str | None = Field(
+        default=None,
+        description="Comma-separated table names to transform by table hierarchy.",
+    )
+    force: bool | None = Field(
+        default=None,
+        description="Allow transforming descendant tables without their parent hierarchy.",
+    )
+    from_path: str | None = Field(
+        default=None,
+        alias="from",
+        description="Path to local XML file(s)/directory to transform.",
+    )
+    directory: str | None = Field(
+        default=None, description="Path containing package.json."
+    )
+    auth: str | None = Field(
+        default=None,
+        description="Credential alias to use for authentication with the instance.",
+    )
+    format_source: bool | None = Field(
+        default=None,
+        alias="format",
+        description="Auto-format new/updated source after transforming (default true).",
+    )
+
+
+class SdkDependenciesModel(SdkCommandModel):
+    """`now-sdk dependencies` — download configured dependencies + type defs."""
+
+    sys_ids: list[str] | None = Field(
+        default=None, description="System IDs to add when using add."
+    )
+    directory: str | None = Field(
+        default=None, description="Path containing package.json."
+    )
+    auth: str | None = Field(
+        default=None,
+        description="Credential alias to use for authentication with the instance.",
+    )
+    type_defs_only: bool | None = Field(
+        default=None,
+        alias="type-defs-only",
+        description="Download only script type definitions (glide.*.d.ts).",
+    )
+    fluent_only: bool | None = Field(
+        default=None,
+        alias="fluent-only",
+        description="Download only fluent types from now.config.json dependencies.",
+    )
+    add: str | None = Field(
+        default=None,
+        description="Table name of a new dependency item to add (e.g. actions).",
+    )
+    scope: str | None = Field(
+        default=None, description="Scope for dependencies (required when using add)."
+    )
+
+
+class SdkCommandResult(BaseModel):
+    """Result of running one now-sdk CLI subcommand."""
+
+    model_config = ConfigDict(extra="allow")
+    command: list[str] = Field(
+        description="The now-sdk argv that was run (credentials are never included)."
+    )
+    exit_code: int = Field(description="Process exit code (0 = success).")
+    stdout: str = Field(default="", description="Captured stdout.")
+    stderr: str = Field(default="", description="Captured stderr.")
+    working_dir: str = Field(description="Directory now-sdk was run in.")
+    success: bool = Field(description="Whether exit_code == 0.")

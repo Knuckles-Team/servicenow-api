@@ -368,7 +368,17 @@ class ServiceNowApiSystem(ServiceNowApiBase):
         Refresh the authentication token
         :return:
         Response with new refreshed token.
+
+        :raises MissingParameterError: If the client was authenticated without OAuth
+            client credentials (e.g. basic auth or a bearer token), so there is no
+            client_id/client_secret to refresh with.
         """
+        if self.auth_data is None:
+            raise MissingParameterError(
+                "refresh_auth_token requires OAuth client credentials "
+                "(SERVICENOW_CLIENT_ID/SERVICENOW_CLIENT_SECRET) — not available "
+                "when authenticated via basic auth or a bearer token."
+            )
         refresh_data = {
             "grant_type": "refresh_token",
             "client_id": self.auth_data["client_id"],
@@ -418,10 +428,13 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                 headers=self.headers,
             )
             response.raise_for_status()
-            json_response = response.json()
-            result_data = json_response.get("result", json_response)
-            parsed_data = Table.model_validate(result_data)
-            return Response(response=response, result=parsed_data)
+
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                parsed_data = Table.model_validate(result_data)
+                return Response(response=response, result=parsed_data)
+            return Response(response=response, result={"status": "deleted"})
         except ValidationError as ve:
             print(
                 f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
