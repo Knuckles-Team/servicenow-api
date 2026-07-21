@@ -108,8 +108,8 @@ connect to ServiceNow:
 
 | Var | Default | Meaning |
 |---|---|---|
-| `SERVICENOW_INSTANCE` | `https://dev350360.service-now.com` | ServiceNow instance URL |
-| `SERVICENOW_USERNAME` | `admin` | User id (basic auth) |
+| `SERVICENOW_INSTANCE` | _(unset)_ | ServiceNow instance URL (alias `SERVICENOW_URL`) |
+| `SERVICENOW_USERNAME` | _(unset)_ | User id (basic auth) |
 | `SERVICENOW_PASSWORD` | _(unset)_ | Password (basic auth) |
 | `SERVICENOW_CLIENT_ID` | _(unset)_ | OAuth client id (optional) |
 | `SERVICENOW_CLIENT_SECRET` | _(unset)_ | OAuth client secret (optional) |
@@ -164,6 +164,26 @@ cp .env.example .env          # then edit SERVICENOW_* values
 docker compose -f docker/mcp.compose.yml up -d
 docker compose -f docker/mcp.compose.yml logs -f
 ```
+
+## ServiceNow SDK CLI (`now-sdk`)
+
+Both the `mcp` and `agent` image targets also ship the official ServiceNow SDK CLI —
+Node.js LTS plus a global `@servicenow/sdk` install, built in its own discarded
+`builder-node` stage (see [`docker/Dockerfile`](https://github.com/Knuckles-Team/servicenow-api/blob/main/docker/Dockerfile))
+so no separate Node install is required to author, build, and deploy a Studio scoped
+app. It is reachable two ways:
+
+- **Inside the container** — `now-sdk --version`, `now-sdk init`, `now-sdk build`, etc.
+  are on `PATH` next to the Python console scripts:
+  ```bash
+  docker run --rm --entrypoint now-sdk example/servicenow-api:local --version
+  ```
+- **Through MCP tools** — the `servicenow_sdk` tool family (`servicenow_api/sdk_client.py`)
+  wraps the same CLI as `init` / `auth` / `build` / `deploy` / `transform` /
+  `dependencies` actions, so an operator can scaffold → build → deploy a scoped app
+  entirely through MCP without a shell into the container. See
+  [`servicenow_api/mcp_server.py`](https://github.com/Knuckles-Team/servicenow-api/blob/main/servicenow_api/mcp_server.py)
+  (`register_sdk_tools`) and the `SDK_WORKDIR` / `SDKTOOL` env vars.
 
 ## A2A agent server
 
