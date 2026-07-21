@@ -74,4 +74,3 @@
     rdfs:comment """A ServiceNow knowledge-base article (kb_knowledge table),
     ingested as a :Document carrying its text and source_uri. Referenced via the
     ``subtype`` property on the ingested :Document node.""" .
-

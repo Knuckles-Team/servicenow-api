@@ -53,7 +53,6 @@ async def main():
 
     except Exception as e:
         print(f"Operation failed: {type(e).__name__}")
-        import traceback
 
         print("Detailed traceback suppressed by privacy policy")
 

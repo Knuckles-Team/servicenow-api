@@ -9,7 +9,6 @@ import sys
 import tomllib
 from pathlib import Path
 
-
 MAX_FILES = 16
 MAX_SOURCE_BYTES = 1024 * 1024
 
@@ -69,7 +68,11 @@ def main() -> int:
             for mutation in _mutations(payload):
                 try:
                     _exercise(suffix, mutation)
-                except (UnicodeDecodeError, json.JSONDecodeError, tomllib.TOMLDecodeError):
+                except (
+                    UnicodeDecodeError,
+                    json.JSONDecodeError,
+                    tomllib.TOMLDecodeError,
+                ):
                     pass
                 except Exception:
                     crashes += 1
