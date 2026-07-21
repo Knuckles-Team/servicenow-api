@@ -22,7 +22,7 @@ mcp = [ "agent-utilities[mcp]>=1.27.1,<2.0.0",]
 agent = [ "agent-utilities[agent-runtime,logfire]>=1.27.1,<2.0.0",]
 all = [ "agent-utilities[mcp,agent-runtime,logfire]>=1.27.1,<2.0.0",]
 test = [
-    "pytest-xdist>=3.6.0", "pytest", "pytest-asyncio", "pytest-cov",]
+    "pytest-xdist>=3.8.0", "pytest>=9.1.1", "pytest-asyncio>=1.4.0", "pytest-cov>=7.1.0",]
 
 [project.scripts]
 servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
