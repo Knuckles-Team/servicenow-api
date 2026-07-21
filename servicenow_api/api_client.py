@@ -358,6 +358,7 @@ from servicenow_api.api.api_client_devops import ServiceNowApiDevops
 from servicenow_api.api.api_client_incident import ServiceNowApiIncident
 from servicenow_api.api.api_client_knowledge import ServiceNowApiKnowledge
 from servicenow_api.api.api_client_other import ServiceNowApiOther
+from servicenow_api.api.api_client_problem import ServiceNowApiProblem
 from servicenow_api.api.api_client_system import ServiceNowApiSystem
 
 
@@ -369,5 +370,6 @@ class Api(
     ServiceNowApiIncident,
     ServiceNowApiKnowledge,
     ServiceNowApiOther,
+    ServiceNowApiProblem,
 ):
     pass
