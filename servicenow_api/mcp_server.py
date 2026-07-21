@@ -36,6 +36,7 @@ from agent_utilities.mcp.verbose_tools import register_tool_surface
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
+from servicenow_api.sdk_client import get_sdk_client
 
 __version__ = "2.0.1"
 logger = get_logger(name="ServicenowMCP")
@@ -69,6 +70,10 @@ def register_misc_tools(mcp: FastMCP):
         if ctx:
             await ctx.info("Ingesting ServiceNow incidents into the knowledge graph...")
 
+        from agent_utilities.knowledge_graph.memory.native_ingest import (
+            NativeIngestError,
+        )
+
         from servicenow_api.kg_ingest import ingest_incidents
 
         try:
@@ -81,7 +86,10 @@ def register_misc_tools(mcp: FastMCP):
         data = getattr(resp, "result", resp)
         records = data if isinstance(data, list) else [data]
         records = [r for r in records if r is not None]
-        result = ingest_incidents(records)
+        try:
+            result = ingest_incidents(records)
+        except NativeIngestError:
+            return {"listed": len(records), "ingested": None}
         return {"listed": len(records), "ingested": result}
 
 
@@ -846,7 +854,7 @@ def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(tags={"incidents"})
     async def servicenow_incidents(
         action: str = Field(
-            description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident'"
+            description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident', 'update_incident', 'delete_incident'"
         ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
@@ -870,7 +878,13 @@ def register_incidents_tools(mcp: FastMCP):
 
         resolved = resolve_action(
             action,
-            ["get_incidents", "create_incident", "get_incident"],
+            [
+                "get_incidents",
+                "create_incident",
+                "get_incident",
+                "update_incident",
+                "delete_incident",
+            ],
             service="servicenow-api",
         )
         if isinstance(resolved, dict):
@@ -883,6 +897,64 @@ def register_incidents_tools(mcp: FastMCP):
             return await run_blocking(client.create_incident, **kwargs)
         if action == "get_incident":
             return await run_blocking(client.get_incident, **kwargs)
+        if action == "update_incident":
+            return await run_blocking(client.update_incident, **kwargs)
+        if action == "delete_incident":
+            return await run_blocking(client.delete_incident, **kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+
+def register_problem_tools(mcp: FastMCP):
+    @mcp.tool(tags={"problem"})
+    async def servicenow_problem(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_problems', 'get_problem', 'create_problem', 'update_problem', 'delete_problem'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow problem management operations."""
+        if ctx:
+            await ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception:
+            return {"error": "Operation failed"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_problems",
+                "get_problem",
+                "create_problem",
+                "update_problem",
+                "delete_problem",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
+        if action == "get_problems":
+            return await run_blocking(client.get_problems, **kwargs)
+        if action == "get_problem":
+            return await run_blocking(client.get_problem, **kwargs)
+        if action == "create_problem":
+            return await run_blocking(client.create_problem, **kwargs)
+        if action == "update_problem":
+            return await run_blocking(client.update_problem, **kwargs)
+        if action == "delete_problem":
+            return await run_blocking(client.delete_problem, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1506,6 +1578,67 @@ def register_product_inventory_tools(mcp: FastMCP):
             return await run_blocking(client.get_product_inventory, **kwargs)
         if action == "delete_product_inventory":
             return await run_blocking(client.delete_product_inventory, **kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+
+def register_sdk_tools(mcp: FastMCP):
+    @mcp.tool(tags={"sdk"})
+    async def servicenow_sdk(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'init', 'auth', 'build', 'deploy', 'transform', 'dependencies'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_sdk_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Scaffold, build, and deploy a ServiceNow Studio scoped app via the now-sdk CLI.
+
+        Wraps the official ServiceNow SDK (`now-sdk` / `@servicenow/sdk`) as MCP
+        actions: 'init' scaffolds a Fluent project (or converts a legacy app),
+        'auth' stores/selects/lists instance credentials (a password is sent over
+        stdin only, never in an argument), 'build' compiles sources into an
+        installable package, 'deploy' installs/updates the app on an instance
+        (now-sdk install), 'transform' converts instance/local XML into Fluent
+        source, and 'dependencies' downloads configured deps + type definitions.
+        Every action accepts a 'working_dir' param (defaults to SDK_WORKDIR) and
+        returns the captured now-sdk command/stdout/stderr/exit_code/success.
+        """
+        if ctx:
+            await ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception:
+            return {"error": "Operation failed"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["init", "auth", "build", "deploy", "transform", "dependencies"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
+        if action == "init":
+            return await run_blocking(client.init, **kwargs)
+        if action == "auth":
+            return await run_blocking(client.auth, **kwargs)
+        if action == "build":
+            return await run_blocking(client.build, **kwargs)
+        if action == "deploy":
+            return await run_blocking(client.deploy, **kwargs)
+        if action == "transform":
+            return await run_blocking(client.transform, **kwargs)
+        if action == "dependencies":
+            return await run_blocking(client.dependencies, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 

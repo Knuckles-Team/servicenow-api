@@ -141,6 +141,29 @@ async def test_all_tools_loop(mock_client):
 
 
 @pytest.mark.asyncio
+async def test_ingest_incidents_degrades_gracefully_when_no_engine(mock_client):
+    """servicenow_ingest_incidents must return {"ingested": None} (per its own
+    docstring) rather than hard-fail when no KG engine is reachable."""
+    from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+    from fastmcp import FastMCP
+
+    from servicenow_api.mcp_server import register_misc_tools
+
+    mcp = FastMCP(name="test")
+    register_misc_tools(mcp)
+    (tool,) = await mcp._list_tools()
+
+    with patch(
+        "servicenow_api.kg_ingest.ingest_incidents",
+        side_effect=NativeIngestError("no engine reachable"),
+    ):
+        result = await tool.fn(params_json="{}", client=mock_client, ctx=None)
+
+    assert result["ingested"] is None
+    assert result["listed"] == 1
+
+
+@pytest.mark.asyncio
 async def test_prompts():
     """
     Call every prompt helper defined on the FastMCP instance.
