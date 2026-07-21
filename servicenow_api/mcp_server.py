@@ -23,18 +23,20 @@ from threading import local
 from typing import Any
 
 import httpx
-from agent_utilities.core.config import setting
-from agent_utilities.mcp_utilities import (
-    config,
+from agent_utilities.core.config import load_config, setting
+from agent_utilities.mcp.action_dispatch import resolve_action
+from agent_utilities.mcp.concurrency import run_blocking
+from agent_utilities.mcp.server_factory import (
     create_mcp_server,
-    load_config,
-    register_tool_surface,
-    resolve_action,
-    run_blocking,
 )
+from agent_utilities.mcp.server_factory import (
+    mcp_auth_config as config,
+)
+from agent_utilities.mcp.verbose_tools import register_tool_surface
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
+from servicenow_api.sdk_client import get_sdk_client
 
 __version__ = "2.0.1"
 logger = get_logger(name="ServicenowMCP")
@@ -43,7 +45,6 @@ DEFAULT_SERVICENOW_USERNAME = setting("SERVICENOW_USERNAME", None)
 DEFAULT_SERVICENOW_PASSWORD = setting("SERVICENOW_PASSWORD", None)
 DEFAULT_SERVICENOW_CLIENT_ID = setting("SERVICENOW_CLIENT_ID", None)
 DEFAULT_SERVICENOW_CLIENT_SECRET = setting("SERVICENOW_CLIENT_SECRET", None)
-DEFAULT_SERVICENOW_SSL_VERIFY = setting("SERVICENOW_SSL_VERIFY", True)
 
 
 def register_misc_tools(mcp: FastMCP):
@@ -69,19 +70,26 @@ def register_misc_tools(mcp: FastMCP):
         if ctx:
             await ctx.info("Ingesting ServiceNow incidents into the knowledge graph...")
 
+        from agent_utilities.knowledge_graph.memory.native_ingest import (
+            NativeIngestError,
+        )
+
         from servicenow_api.kg_ingest import ingest_incidents
 
         try:
             kwargs = json.loads(params_json) if params_json else {}
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
         resp = await run_blocking(client.get_incidents, **kwargs)
         data = getattr(resp, "result", resp)
         records = data if isinstance(data, list) else [data]
         records = [r for r in records if r is not None]
-        result = ingest_incidents(records)
+        try:
+            result = ingest_incidents(records)
+        except NativeIngestError:
+            return {"listed": len(records), "ingested": None}
         return {"listed": len(records), "ingested": result}
 
 
@@ -106,8 +114,8 @@ def register_flows_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -150,8 +158,8 @@ def register_application_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -186,8 +194,8 @@ def register_cmdb_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -252,8 +260,8 @@ def register_cicd_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -327,8 +335,8 @@ def register_plugins_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -367,8 +375,8 @@ def register_source_control_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -411,8 +419,8 @@ def register_testing_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -447,8 +455,8 @@ def register_update_sets_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -504,8 +512,8 @@ def register_batch_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -540,8 +548,8 @@ def register_change_management_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -670,8 +678,8 @@ def register_cilifecycle_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -756,8 +764,8 @@ def register_devops_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -819,8 +827,8 @@ def register_import_sets_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -846,7 +854,7 @@ def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(tags={"incidents"})
     async def servicenow_incidents(
         action: str = Field(
-            description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident'"
+            description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident', 'update_incident', 'delete_incident'"
         ),
         params_json: str = Field(
             default="{}", description="JSON string of parameters to pass to the action."
@@ -863,14 +871,20 @@ def register_incidents_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
         resolved = resolve_action(
             action,
-            ["get_incidents", "create_incident", "get_incident"],
+            [
+                "get_incidents",
+                "create_incident",
+                "get_incident",
+                "update_incident",
+                "delete_incident",
+            ],
             service="servicenow-api",
         )
         if isinstance(resolved, dict):
@@ -883,6 +897,64 @@ def register_incidents_tools(mcp: FastMCP):
             return await run_blocking(client.create_incident, **kwargs)
         if action == "get_incident":
             return await run_blocking(client.get_incident, **kwargs)
+        if action == "update_incident":
+            return await run_blocking(client.update_incident, **kwargs)
+        if action == "delete_incident":
+            return await run_blocking(client.delete_incident, **kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+
+def register_problem_tools(mcp: FastMCP):
+    @mcp.tool(tags={"problem"})
+    async def servicenow_problem(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'get_problems', 'get_problem', 'create_problem', 'update_problem', 'delete_problem'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Manage servicenow problem management operations."""
+        if ctx:
+            await ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception:
+            return {"error": "Operation failed"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            [
+                "get_problems",
+                "get_problem",
+                "create_problem",
+                "update_problem",
+                "delete_problem",
+            ],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
+        if action == "get_problems":
+            return await run_blocking(client.get_problems, **kwargs)
+        if action == "get_problem":
+            return await run_blocking(client.get_problem, **kwargs)
+        if action == "create_problem":
+            return await run_blocking(client.create_problem, **kwargs)
+        if action == "update_problem":
+            return await run_blocking(client.update_problem, **kwargs)
+        if action == "delete_problem":
+            return await run_blocking(client.delete_problem, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -907,8 +979,8 @@ def register_knowledge_management_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -963,8 +1035,8 @@ def register_table_api_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1020,8 +1092,8 @@ def register_auth_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1058,8 +1130,8 @@ def register_custom_api_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1094,8 +1166,8 @@ def register_email_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1130,8 +1202,8 @@ def register_data_classification_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1168,8 +1240,8 @@ def register_aggregate_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1204,8 +1276,8 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1242,8 +1314,8 @@ def register_account_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1278,8 +1350,8 @@ def register_hr_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1314,8 +1386,8 @@ def register_metricbase_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1352,8 +1424,8 @@ def register_attachment_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1396,8 +1468,8 @@ def register_service_qualification_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1446,8 +1518,8 @@ def register_ppm_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1488,8 +1560,8 @@ def register_product_inventory_tools(mcp: FastMCP):
 
         try:
             kwargs = json.loads(params_json)
-        except Exception as e:
-            return {"error": f"Invalid params_json: {e}"}
+        except Exception:
+            return {"error": "Operation failed"}
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
@@ -1506,6 +1578,67 @@ def register_product_inventory_tools(mcp: FastMCP):
             return await run_blocking(client.get_product_inventory, **kwargs)
         if action == "delete_product_inventory":
             return await run_blocking(client.delete_product_inventory, **kwargs)
+        raise ValueError(f"Unknown action: {action}")
+
+
+def register_sdk_tools(mcp: FastMCP):
+    @mcp.tool(tags={"sdk"})
+    async def servicenow_sdk(
+        action: str = Field(
+            description="Action to perform. Must be one of: 'init', 'auth', 'build', 'deploy', 'transform', 'dependencies'"
+        ),
+        params_json: str = Field(
+            default="{}", description="JSON string of parameters to pass to the action."
+        ),
+        client=Depends(get_sdk_client),
+        ctx: Context | None = Field(
+            default=None, description="MCP context for progress reporting"
+        ),
+    ) -> dict:
+        """Scaffold, build, and deploy a ServiceNow Studio scoped app via the now-sdk CLI.
+
+        Wraps the official ServiceNow SDK (`now-sdk` / `@servicenow/sdk`) as MCP
+        actions: 'init' scaffolds a Fluent project (or converts a legacy app),
+        'auth' stores/selects/lists instance credentials (a password is sent over
+        stdin only, never in an argument), 'build' compiles sources into an
+        installable package, 'deploy' installs/updates the app on an instance
+        (now-sdk install), 'transform' converts instance/local XML into Fluent
+        source, and 'dependencies' downloads configured deps + type definitions.
+        Every action accepts a 'working_dir' param (defaults to SDK_WORKDIR) and
+        returns the captured now-sdk command/stdout/stderr/exit_code/success.
+        """
+        if ctx:
+            await ctx.info("Executing tool...")
+        import json
+
+        try:
+            kwargs = json.loads(params_json)
+        except Exception:
+            return {"error": "Operation failed"}
+
+        kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        resolved = resolve_action(
+            action,
+            ["init", "auth", "build", "deploy", "transform", "dependencies"],
+            service="servicenow-api",
+        )
+        if isinstance(resolved, dict):
+            return resolved
+        action = resolved
+
+        if action == "init":
+            return await run_blocking(client.init, **kwargs)
+        if action == "auth":
+            return await run_blocking(client.auth, **kwargs)
+        if action == "build":
+            return await run_blocking(client.build, **kwargs)
+        if action == "deploy":
+            return await run_blocking(client.deploy, **kwargs)
+        if action == "transform":
+            return await run_blocking(client.transform, **kwargs)
+        if action == "dependencies":
+            return await run_blocking(client.dependencies, **kwargs)
         raise ValueError(f"Unknown action: {action}")
 
 
@@ -1597,7 +1730,9 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
                 api = get_client()
                 base_url = args.openapi_base_url or api.url
                 async with httpx.AsyncClient(
-                    base_url=base_url, headers=api.headers, verify=api.verify
+                    base_url=base_url,
+                    headers=api.headers,
+                    **api.tls_profile.httpx_kwargs(),
                 ) as client:
                     openapi_mcp = FastMCP.from_openapi(
                         openapi_spec=spec, client=client, name="OpenAPI Tools"
@@ -1617,8 +1752,8 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
             for resource in imported_resources:
                 mcp.add_resource(resource)
         except Exception as exc:
-            print(f"OpenAPI import failed: {exc}", file=sys.stderr)
-            logger.error("OpenAPI import failed", extra={"error": str(exc)})
+            print(f"Operation failed: {type(exc).__name__}", file=sys.stderr)
+            logger.error("OpenAPI import failed", extra={"error": "Operation failed"})
             sys.exit(1)
     registered_tags = register_tool_surface(
         mcp,

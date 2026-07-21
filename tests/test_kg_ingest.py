@@ -9,6 +9,9 @@ CONCEPT:AU-KG.ingest.enterprise-source-extractor.
 
 from __future__ import annotations
 
+import pytest
+from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+
 from servicenow_api.kg_ingest import (
     ingest_attachment,
     ingest_changes,
@@ -22,6 +25,7 @@ from servicenow_api.kg_ingest import (
 class _FakeTxn:
     def __init__(self):
         self.nodes = {}
+        self.edges = []
         self.committed = False
 
     def begin(self, graph=None):
@@ -31,23 +35,17 @@ class _FakeTxn:
     def add_node(self, txn, node_id, props):
         self.nodes[node_id] = props
 
+    def add_edge(self, txn, source, target, props):
+        self.edges.append((source, target, props))
+
     def commit(self, txn):
         self.committed = True
         return True
 
 
-class _FakeEdges:
-    def __init__(self):
-        self.edges = []
-
-    def add(self, src, dst, props):
-        self.edges.append((src, dst, props))
-
-
 class _FakeClient:
     def __init__(self):
         self.txn = _FakeTxn()
-        self.edges = _FakeEdges()
 
 
 class _Stored:
@@ -68,10 +66,10 @@ def test_ingest_entities_writes_nodes_and_edges():
     c = _FakeClient()
     res = ingest_entities(
         [
-            {"id": "a", "type": "Incident", "number": "INC1"},
-            {"id": "b", "type": "ConfigurationItem"},
+            {"id": "a", "node_type": "Incident", "number": "INC1"},
+            {"id": "b", "node_type": "ConfigurationItem"},
         ],
-        [{"source": "a", "target": "b", "type": "affects"}],
+        [{"source": "a", "target": "b", "relationship": "affects"}],
         client=c,
         graph="__commons__",
     )
@@ -81,7 +79,7 @@ def test_ingest_entities_writes_nodes_and_edges():
     # provenance is stamped
     assert c.txn.nodes["a"]["source"] == "servicenow-api"
     assert c.txn.nodes["a"]["domain"] == "servicenow"
-    assert c.edges.edges == [("a", "b", {"type": "affects"})]
+    assert c.txn.edges == [("a", "b", {"relationship": "affects"})]
 
 
 def test_ingest_incidents_maps_incident_ci_and_person():
@@ -103,26 +101,26 @@ def test_ingest_incidents_maps_incident_ci_and_person():
     )
     assert res == {"nodes": 3, "edges": 2}
     inc = c.txn.nodes["servicenow:incident:s1"]
-    assert inc["type"] == "Incident"
+    assert inc["node_type"] == "Incident"
     assert inc["number"] == "INC0010001"
     assert inc["shortDescription"] == "DB down"
     # ReferenceField unwrapped to its display value
     assert inc["state"] == "In Progress"
     assert inc["priority"] == "1 - Critical"
     assert inc["externalToolId"] == "s1"
-    assert c.txn.nodes["servicenow:ci:ci9"]["type"] == "ConfigurationItem"
-    assert c.txn.nodes["servicenow:person:u7"]["type"] == "Person"
+    assert c.txn.nodes["servicenow:ci:ci9"]["node_type"] == "ConfigurationItem"
+    assert c.txn.nodes["servicenow:person:u7"]["node_type"] == "Person"
     assert c.txn.nodes["servicenow:person:u7"]["name"] == "Ada Lovelace"
     assert (
         "servicenow:incident:s1",
         "servicenow:ci:ci9",
-        {"type": "affects"},
-    ) in c.edges.edges
+        {"relationship": "affects"},
+    ) in c.txn.edges
     assert (
         "servicenow:incident:s1",
         "servicenow:person:u7",
-        {"type": "assignedTo"},
-    ) in c.edges.edges
+        {"relationship": "assignedTo"},
+    ) in c.txn.edges
 
 
 def test_ingest_changes_maps_change():
@@ -143,11 +141,11 @@ def test_ingest_changes_maps_change():
     )
     assert res == {"nodes": 2, "edges": 1}
     chg = c.txn.nodes["servicenow:change:c1"]
-    assert chg["type"] == "Change"
+    assert chg["node_type"] == "Change"
     assert chg["number"] == "CHG0005000"
     assert chg["risk"] == "Moderate"
-    assert c.edges.edges == [
-        ("servicenow:change:c1", "servicenow:ci:ci9", {"type": "affects"})
+    assert c.txn.edges == [
+        ("servicenow:change:c1", "servicenow:ci:ci9", {"relationship": "affects"})
     ]
 
 
@@ -167,7 +165,7 @@ def test_ingest_cmdb_maps_configuration_items():
     )
     assert res == {"nodes": 1, "edges": 0}
     ci = c.txn.nodes["servicenow:ci:ci9"]
-    assert ci["type"] == "ConfigurationItem"
+    assert ci["node_type"] == "ConfigurationItem"
     assert ci["name"] == "prod-db-01"
     assert ci["sys_class_name"] == "cmdb_ci_db_mysql_instance"
     assert ci["externalToolId"] == "ci9"
@@ -190,7 +188,7 @@ def test_ingest_kb_articles_maps_documents():
     )
     assert res == {"nodes": 1, "edges": 0}
     doc = c.txn.nodes["servicenow:kb:kb1"]
-    assert doc["type"] == "Document"
+    assert doc["node_type"] == "Document"
     assert doc["subtype"] == "KnowledgeArticle"
     assert doc["text"] == "Step 1: ..."
     assert doc["source_uri"] == "https://sn/kb1"
@@ -215,14 +213,25 @@ def test_ingest_attachment_stores_blob():
     assert kwargs["extra"]["incident_id"] == "servicenow:incident:s1"
 
 
-def test_ingest_noops_without_engine():
-    # No injected client + no reachable engine -> clean no-op.
-    assert ingest_incidents([{"sys_id": "s1"}]) is None
-    assert ingest_kb_articles([{"sys_id": "kb1", "content": "x"}]) is None
+def test_ingest_attachment_rejects_empty_bytes():
+    with pytest.raises(NativeIngestError, match="non-empty bytes"):
+        ingest_attachment(b"", "empty", media_store=_FakeMediaStore())
 
 
-def test_ingest_empty_is_noop():
-    assert ingest_entities([], client=_FakeClient()) is None
-    assert ingest_incidents([], client=_FakeClient()) is None
-    assert ingest_cmdb([], client=_FakeClient()) is None
-    assert ingest_attachment(b"", "x", media_store=_FakeMediaStore()) is None
+def test_ingest_attachment_propagates_store_failure():
+    class _FailingStore:
+        def store_media(self, *_args, **_kwargs):
+            raise RuntimeError("unavailable")
+
+    with pytest.raises(NativeIngestError, match="transaction failed"):
+        ingest_attachment(b"data", "evidence", media_store=_FailingStore())
+
+
+def test_retired_structural_alias_is_rejected():
+    with pytest.raises(NativeIngestError, match="canonical node_type"):
+        ingest_entities([{"id": "a", "type": "Incident"}], client=_FakeClient())
+
+
+def test_empty_native_ingest_is_rejected():
+    with pytest.raises(NativeIngestError, match="at least one entity"):
+        ingest_entities([], client=_FakeClient())

@@ -9,18 +9,18 @@ description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.11, <3.15"
-dependencies = [ "agent-utilities>=1.0.0",]
+dependencies = [ "agent-utilities>=1.27.1,<2.0.0",]
 [[project.authors]]
-name = "Audel Rouhi"
-email = "knucklessg1@gmail.com"
+name = "Project Maintainers"
+email = "maintainers@users.noreply.github.com"
 
 [project.license]
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-utilities[mcp]>=1.0.0",]
-agent = [ "agent-utilities[agent,logfire]>=1.0.0",]
-all = [ "agent-utilities[mcp,agent,logfire]>=1.0.0",]
+mcp = [ "agent-utilities[mcp]>=1.27.1,<2.0.0",]
+agent = [ "agent-utilities[agent-runtime,logfire]>=1.27.1,<2.0.0",]
+all = [ "agent-utilities[mcp,agent-runtime,logfire]>=1.27.1,<2.0.0",]
 test = [
     "pytest-xdist>=3.6.0", "pytest", "pytest-asyncio", "pytest-cov",]
 

@@ -3,7 +3,9 @@
 import base64
 import gzip
 import json
+import os
 import sys
+import tempfile
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
@@ -55,7 +57,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -394,8 +396,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/cmdb/app_service/{application.application_id}/getContent",
                 params=application.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -408,7 +408,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def batch_request(self, **kwargs) -> Response:
@@ -429,22 +429,20 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.post(
-                url=f"{self.url}/api/now/v1/batch",
+                url=f"{self.url}/now/v1/batch",
                 headers=self.headers,
                 json=batch.model_dump(exclude_none=True),
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             return Response(
                 response=response, result=BatchResponse.model_validate(json_response)
             )
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def batch_install_result(self, **kwargs) -> Response:
@@ -466,8 +464,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/app/batch/results/{cicd.result_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -480,7 +476,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def instance_scan_progress(self, **kwargs) -> Response:
@@ -502,8 +498,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/instance_scan/result/{cicd.progress_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -516,7 +510,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def progress(self, **kwargs) -> Response:
@@ -538,8 +532,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/progress/{cicd.progress_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -552,7 +544,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def batch_install(self, **kwargs) -> Response:
@@ -579,9 +571,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/app/batch/install",
                 headers=self.headers,
-                verify=self.verify,
                 json=cicd.data,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -594,7 +584,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def batch_rollback(self, **kwargs) -> Response:
@@ -616,8 +606,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/sn_cicd/app/batch/rollback/{cicd.rollback_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -630,7 +618,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def full_scan(self) -> Response:
@@ -644,19 +632,17 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/full_scan",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CICD.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(f"Invalid response data: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def point_scan(self, **kwargs) -> Response:
@@ -681,8 +667,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/instance_scan/point_scan",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -695,7 +679,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def combo_suite_scan(self, **kwargs) -> Response:
@@ -717,8 +701,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.post(
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/combo/{cicd.combo_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -731,7 +713,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def suite_scan(self, **kwargs) -> Response:
@@ -759,8 +741,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/instance_scan/suite_scan/{cicd.suite_sys_id}/{cicd.scan_type}",
                 headers=self.headers,
                 json=cicd.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -773,7 +753,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def apply_remote_source_control_changes(self, **kwargs) -> Response:
@@ -803,8 +783,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/sc/apply_changes",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -817,7 +795,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def run_test_suite(self, **kwargs) -> Response:
@@ -851,8 +829,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/sn_cicd/testsuite/run",
                 params=cicd.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -865,7 +841,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_import_set(self, **kwargs) -> Response:
@@ -889,8 +865,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/now/import/{import_set.table}/{import_set.import_set_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -903,7 +877,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def insert_import_set(self, **kwargs) -> Response:
@@ -929,8 +903,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/now/import/{import_set.table}",
                 headers=self.headers,
                 json=import_set.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -943,7 +915,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def insert_multiple_import_sets(self, **kwargs) -> Response:
@@ -969,8 +941,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/now/import/{import_set.table}/insertMultiple",
                 headers=self.headers,
                 json=import_set.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -983,7 +953,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_data_classification(self, **kwargs) -> Response:
@@ -996,16 +966,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=url,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_attachment(self, **kwargs) -> Response:
@@ -1017,55 +985,84 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/now/attachment/{att.sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
                 response=response,
                 result=Attachment.model_validate(response.json().get("result")),
             )
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def upload_attachment(self, file_path: str, **kwargs) -> Response:
+    def upload_attachment(self, file_path: str | None = None, **kwargs) -> Response:
+        """
+        Upload a file as an attachment on a table record.
+
+        Accepts either a server-local ``file_path`` (back-compat) or inline
+        base64-encoded ``data`` (via ``AttachmentModel``) — the latter is written to
+        a temp file server-side for the upload and cleaned up afterward, so JSON-only
+        MCP tool callers can upload without a filesystem path.
+
+        :param file_path: Path to a file on disk to upload. Mutually exclusive with
+            ``data``; takes precedence if both are given.
+        :type file_path: str or None
+
+        :raises MissingParameterError: If table_name, table_sys_id, or file_name is
+            missing, or if neither file_path nor data is provided.
+        """
         try:
             att = AttachmentModel(**kwargs)
             if not att.table_name or not att.table_sys_id or not att.file_name:
                 raise MissingParameterError
+            if not file_path and not att.data:
+                raise MissingParameterError("file_path or data is required")
 
-            with open(file_path, "rb") as f:
-                headers = self.headers.copy()
-                headers.pop("Content-Type", None)
+            headers = self.headers.copy()
+            headers.pop("Content-Type", None)
 
-                params = {
-                    "table_name": att.table_name,
-                    "table_sys_id": att.table_sys_id,
-                    "file_name": att.file_name,
-                }
+            params = {
+                "table_name": att.table_name,
+                "table_sys_id": att.table_sys_id,
+                "file_name": att.file_name,
+            }
 
-                response = self._session.post(
-                    url=f"{self.url}/now/attachment/file",
-                    headers=headers,
-                    params=params,
-                    data=f,
-                    verify=self.verify,
-                    proxies=self.proxies,
-                )
+            tmp_path = None
+            try:
+                upload_path = file_path
+                if not upload_path:
+                    decoded = base64.b64decode(att.data)
+                    with tempfile.NamedTemporaryFile(
+                        prefix="servicenow-attachment-", delete=False
+                    ) as tmp_f:
+                        tmp_f.write(decoded)
+                        tmp_path = tmp_f.name
+                    upload_path = tmp_path
+
+                with open(upload_path, "rb") as f:
+                    response = self._session.post(
+                        url=f"{self.url}/now/attachment/file",
+                        headers=headers,
+                        params=params,
+                        data=f,
+                    )
+            finally:
+                if tmp_path:
+                    os.remove(tmp_path)
+
             response.raise_for_status()
             return Response(
                 response=response,
                 result=Attachment.model_validate(response.json().get("result")),
             )
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_attachment(self, **kwargs) -> Response:
@@ -1077,16 +1074,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.delete(
                 url=f"{self.url}/now/attachment/{att.sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result={"status": "deleted"})
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_activity_subscriptions(self, **kwargs) -> Response:
@@ -1096,16 +1091,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/now/ui/activity_subscription",
                 headers=self.headers,
                 params=sub.api_parameters,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_account(self, **kwargs) -> Response:
@@ -1117,16 +1110,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=url,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_hr_profile(self, **kwargs) -> Response:
@@ -1139,16 +1130,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
             response = self._session.get(
                 url=url,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def metricbase_insert(self, **kwargs) -> Response:
@@ -1158,16 +1147,14 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=f"{self.url}/now/metricbase/insert",
                 headers=self.headers,
                 json=mb.model_dump(exclude_none=True),
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_service_qualification(self, **kwargs) -> Response:
@@ -1179,11 +1166,9 @@ class ServiceNowApiOther(ServiceNowApiBase):
             payload = req.model_dump(exclude_none=True, by_alias=True)
 
             response = self._session.post(
-                url=f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification",
+                url=f"{self.url}/sn_ord_qual_mgmt/qualification/checkServiceQualification",
                 headers=self.headers,
                 json=payload,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
 
@@ -1191,11 +1176,11 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 response=response,
                 result=CheckServiceQualificationRequest.model_validate(response.json()),
             )
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_service_qualification(self, **kwargs) -> Response:
@@ -1206,10 +1191,10 @@ class ServiceNowApiOther(ServiceNowApiBase):
             sys_id = kwargs.get("id") or kwargs.get("sys_id")
 
             if sys_id:
-                url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/{sys_id}"
+                url = f"{self.url}/sn_ord_qual_mgmt/qualification/checkServiceQualification/{sys_id}"
                 params: dict[str, Any] = {}
             else:
-                url = f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification"
+                url = f"{self.url}/sn_ord_qual_mgmt/qualification/checkServiceQualification"
                 params = {
                     k: v
                     for k, v in kwargs.items()
@@ -1227,8 +1212,6 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 url=url,
                 headers=self.headers,
                 params=params,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
 
@@ -1242,11 +1225,11 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 result = CheckServiceQualificationRequest.model_validate(data)
 
             return Response(response=response, result=result)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def process_service_qualification_result(self, **kwargs) -> Response:
@@ -1273,22 +1256,20 @@ class ServiceNowApiOther(ServiceNowApiBase):
             }
 
             response = self._session.post(
-                url=f"{self.url}/api/sn_ord_qual_mgmt/qualification/checkServiceQualification/processResult",
+                url=f"{self.url}/sn_ord_qual_mgmt/qualification/checkServiceQualification/processResult",
                 headers=self.headers,
                 json=payload,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
                 response=response,
                 result=CheckServiceQualificationRequest.model_validate(response.json()),
             )
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def insert_cost_plans(self, plans: list[dict[str, Any]], **kwargs) -> Response:
@@ -1300,19 +1281,17 @@ class ServiceNowApiOther(ServiceNowApiBase):
             payload = [p.model_dump() for p in valid_plans]
 
             response = self._session.post(
-                url=f"{self.url}/api/now/ppm/insert_cost_plans",
+                url=f"{self.url}/now/ppm/insert_cost_plans",
                 headers=self.headers,
                 json=payload,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def insert_project_tasks(self, **kwargs) -> Response:
@@ -1323,19 +1302,17 @@ class ServiceNowApiOther(ServiceNowApiBase):
             project = ProjectTask(**kwargs)
 
             response = self._session.post(
-                url=f"{self.url}/api/now/ppm/insert_project_tasks",
+                url=f"{self.url}/now/ppm/insert_project_tasks",
                 headers=self.headers,
                 json=project.model_dump(exclude_none=True),
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result=response.json().get("result"))
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_product_inventory(self, **kwargs) -> Response:
@@ -1351,11 +1328,9 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 params["place"] = str({"id": qp.place_id}).replace("'", '"')
 
             response = self._session.get(
-                url=f"{self.url}/api/sn_prd_invt/product",
+                url=f"{self.url}/sn_prd_invt/product",
                 headers=self.headers,
                 params=params,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
 
@@ -1366,11 +1341,11 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 result = ProductInventory.model_validate(data)
 
             return Response(response=response, result=result)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_product_inventory(self, **kwargs) -> Response:
@@ -1383,13 +1358,11 @@ class ServiceNowApiOther(ServiceNowApiBase):
                 raise MissingParameterError("product inventory id is required")
 
             response = self._session.delete(
-                url=f"{self.url}/api/sn_prd_invt/order/product/{sys_id}",
+                url=f"{self.url}/sn_prd_invt/order/product/{sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(response=response, result={"status": "deleted"})
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise

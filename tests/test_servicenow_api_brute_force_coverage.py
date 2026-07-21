@@ -103,9 +103,10 @@ def test_servicenow_api_brute_force(mock_session):
 def test_mcp_server_coverage(mock_session):
     import inspect
     from typing import Any
-    from unittest.mock import patch, MagicMock
-    from servicenow_api.mcp_server import get_mcp_instance
+    from unittest.mock import MagicMock, patch
+
     from servicenow_api.auth import get_client
+    from servicenow_api.mcp_server import get_mcp_instance
 
     mcp = None
     tool_objs = []

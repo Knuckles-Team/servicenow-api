@@ -266,11 +266,9 @@ def test_api_client_exhaustive_methods(mock_session):
     token_client = Api(url="http://test.com", token="mock_token")
     assert token_client.token == "mock_token"
 
-    # Verify verify=False __init__ to cover urllib3 warning disablement
-    verify_client = Api(
-        url="http://test.com", username="user", password="pass", verify=False
-    )
-    assert verify_client.verify is False
+    # Every client resolves a mandatory-verification TLS profile.
+    secured_client = Api(url="http://test.com", username="user", password="pass")
+    assert secured_client.tls_profile.verify_enabled is True
 
     class MockResponse(requests.Response):
         def __init__(self, json_data, status_code=200):
@@ -283,7 +281,7 @@ def test_api_client_exhaustive_methods(mock_session):
             return self.json_data
 
     # Verify OAuth __init__ to cover oauth path
-    with patch("requests.post") as mock_oauth_post:
+    with patch.object(mock_session, "post") as mock_oauth_post:
         mock_oauth_res = MockResponse({"access_token": "mock_oauth_token"}, 200)
         mock_oauth_post.return_value = mock_oauth_res
 

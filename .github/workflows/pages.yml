@@ -9,6 +9,13 @@ on:
       - 'mkdocs.yml'
       - 'README.md'
 
+permissions:
+  contents: read
+
 jobs:
   publish-pages:
-    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@main
+    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@dc60f5ca0cfd00bf2e66f912a33d6d0f8ee62874 # v2.0.1
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

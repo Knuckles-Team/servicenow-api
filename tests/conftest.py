@@ -1,10 +1,11 @@
+import json
 import os
+import re
+from unittest.mock import patch
+from urllib.parse import urlparse
+
 import pytest
 from dotenv import load_dotenv
-from unittest.mock import patch
-import json
-import re
-from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -33,8 +34,7 @@ class MockResponse(requests.Response):
 class MockSession:
     def __init__(self, *args, **kwargs):
         self.headers = {}
-        self.verify = True
-        self.proxies = None
+        self.proxies = {}
 
     def get(self, url, params=None, **kwargs):
         url_parsed = urlparse(url)
@@ -65,6 +65,21 @@ class MockSession:
                 200,
             )
 
+        if "problem" in path:
+            sysparm_query = (params or {}).get("sysparm_query", "")
+            match = re.search(r"sys_id=([^&]+)", sysparm_query)
+            sys_id = match.group(1) if match else "prb_123"
+            record = {
+                "sys_id": sys_id,
+                "short_description": "Mocked Problem",
+                "description": "Mocked",
+            }
+            # .../table/problem -> list (get_problems); .../table/problem/<id> -> single
+            # record (get_problem), matching the real Table API response shape.
+            if path.rstrip("/").endswith("/problem"):
+                return MockResponse({"result": [record]}, 200)
+            return MockResponse({"result": record}, 200)
+
         return MockResponse({"result": []}, 200)
 
     def post(self, url, data=None, json=None, **kwargs):
@@ -86,9 +101,42 @@ class MockSession:
                 201,
             )
 
+        if "problem" in path:
+            payload = json or {}
+            short_desc = payload.get("short_description", "Mocked Short Description")
+            desc = payload.get("description", "Mocked Description")
+            return MockResponse(
+                {
+                    "result": {
+                        "sys_id": "mock_problem_sys_id_123",
+                        "short_description": short_desc,
+                        "description": desc,
+                    }
+                },
+                201,
+            )
+
         return MockResponse({"result": {}}, 200)
 
     def put(self, url, data=None, json=None, **kwargs):
+        return MockResponse({"result": {}}, 200)
+
+    def patch(self, url, data=None, json=None, **kwargs):
+        url_parsed = urlparse(url)
+        path = url_parsed.path
+
+        if "problem" in path or "incident" in path:
+            payload = json or {}
+            return MockResponse(
+                {
+                    "result": {
+                        "sys_id": path.rstrip("/").rsplit("/", 1)[-1],
+                        **payload,
+                    }
+                },
+                200,
+            )
+
         return MockResponse({"result": {}}, 200)
 
     def delete(self, url, **kwargs):

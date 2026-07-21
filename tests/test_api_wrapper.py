@@ -32,7 +32,7 @@ def test_servicenow_api():
     """
     servicenow_url = "http://servicenow.com/api/"
     token = os.environ.get("token", default="NA")
-    client = servicenow_api.Api(url=servicenow_url, token=token, verify=False)
+    client = servicenow_api.Api(url=servicenow_url, token=token)
     table = client.get_table(table="users")
     assert isinstance(table.result, list)
 

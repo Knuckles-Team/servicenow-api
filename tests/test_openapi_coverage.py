@@ -94,7 +94,7 @@ def test_openapi_successful_import(mock_openapi_spec):
     mock_client = MagicMock()
     mock_client.url = "https://mock.service-now.com"
     mock_client.headers = {}
-    mock_client.verify = True
+    mock_client.tls_profile.httpx_kwargs.return_value = {}
 
     with patch(
         "servicenow_api.mcp_server.create_mcp_server",

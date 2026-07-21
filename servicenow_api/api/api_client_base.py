@@ -11,13 +11,16 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
-import urllib3
 from agent_utilities.base_utilities import get_logger
 from agent_utilities.core.exceptions import (
     AuthError,
     MissingParameterError,
     ParameterError,
     UnauthorizedError,
+)
+from agent_utilities.core.transport_security import (
+    ResolvedTLSProfile,
+    resolve_configured_tls_profile,
 )
 
 from servicenow_api.servicenow_models import (
@@ -38,7 +41,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -365,13 +368,14 @@ class ServiceNowApiBase:
         client_secret: str | None = None,
         token: str | None = None,
         grant_type: str | None = "password",
-        proxies: dict | None = None,
-        verify: bool | None = True,
+        tls_profile: ResolvedTLSProfile | None = None,
     ):
         if url is None:
             raise MissingParameterError
 
         self._session = requests.Session()
+        self.tls_profile = tls_profile or resolve_configured_tls_profile("servicenow")
+        self.tls_profile.configure_requests_session(self._session)
         self.base_url = url
         self.auth_url = f"{self.base_url}/oauth_token.do"
         self.url = ""
@@ -380,12 +384,6 @@ class ServiceNowApiBase:
         self.auth_data = None
         self.encoded_auth_data = None
         self.token = None
-        self.verify = verify
-        self.proxies = proxies
-
-        if self.verify is False:
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
         if token:
             self.token = token
             self.headers = {
@@ -404,7 +402,7 @@ class ServiceNowApiBase:
             encoded_data_str = urlencode(self.auth_data)
             response = None
             try:
-                response = requests.post(
+                response = self._session.post(
                     url=self.auth_url,
                     data=encoded_data_str,
                     headers=self.auth_headers,
@@ -414,7 +412,7 @@ class ServiceNowApiBase:
                 self.token = response["access_token"]
             except Exception as e:
                 print(
-                    f"Error Authenticating with OAuth: \n\n{e}\n\nResponse: {response}",
+                    f"Error Authenticating with OAuth: \n\n{type(e).__name__}\n\nResponse: {response}",
                     file=sys.stderr,
                 )
                 raise e
@@ -437,8 +435,6 @@ class ServiceNowApiBase:
         response = self._session.get(
             url=f"{self.url}/subscribers",
             headers=self.headers,
-            verify=self.verify,
-            proxies=self.proxies,
         )
 
         if response.status_code == 403:
