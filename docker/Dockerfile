@@ -13,6 +13,13 @@
 #                              full epistemic-graph base runtime). It omits the optional
 #                              provider agent/frontends. Push as the :mcp / :mcp-<version> tag.
 #
+# Both images also ship the ServiceNow SDK CLI (`now-sdk`, the `@servicenow/sdk` npm
+# package on a minimal Node.js LTS layer) so an operator can scaffold/build/deploy a
+# Studio scoped app from the container via the `servicenow_sdk` MCP tools
+# (servicenow_api/sdk_client.py) with no separate Node install. It is built in its own
+# discarded builder stage (builder-node) and only its /usr/local output is copied into
+# the runtime images, so the Rust/npm build tooling itself never ships.
+#
 #   docker build --target agent -t servicenow-api:local .
 #   docker build --target mcp   -t servicenow-api:mcp    .
 FROM python:3.11-slim@sha256:e031123e3d85762b141ad1cbc56452ba69c6e722ebf2f042cc0dc86c47c0d8b3 AS builder-base
@@ -34,6 +41,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM builder-base AS builder-agent
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --break-system-packages servicenow-api[agent]==2.0.1
+
+# ServiceNow SDK CLI (now-sdk) — a minimal, self-contained Node.js LTS layer holding
+# only the global @servicenow/sdk install. Copied whole (COPY --from below) into both
+# runtime images so `now-sdk` is on PATH next to the Python console scripts.
+FROM node:22-slim@sha256:6c74791e557ce11fc957704f6d4fe134a7bc8d6f5ca4403205b2966bd488f6b3 AS builder-node
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g @servicenow/sdk@4.9.0 \
+    && npm cache clean --force \
+    && rm -rf /usr/local/lib/node_modules/npm/docs /usr/local/lib/node_modules/npm/man
 
 FROM python:3.11-slim@sha256:e031123e3d85762b141ad1cbc56452ba69c6e722ebf2f042cc0dc86c47c0d8b3 AS runtime-base
 ARG HOST=127.0.0.1
@@ -63,10 +81,12 @@ ENV HOME=/tmp \
 FROM runtime-base AS mcp
 USER 10001:10001
 COPY --from=builder-mcp /usr/local /usr/local
+COPY --from=builder-node /usr/local /usr/local
 CMD ["servicenow-mcp"]
 
 # Full image (DEFAULT target): agent runtime; can also run the mcp server.
 FROM runtime-base AS agent
 USER 10001:10001
 COPY --from=builder-agent /usr/local /usr/local
+COPY --from=builder-node /usr/local /usr/local
 CMD ["servicenow-agent"]
