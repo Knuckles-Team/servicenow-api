@@ -30,6 +30,7 @@ logger = logging.getLogger("servicenow_api.kg")
 _SOURCE = "servicenow-api"
 _DOMAIN = "servicenow"
 
+
 def ingest_entities(
     entities: list[dict[str, Any]],
     relationships: list[dict[str, Any]] | None = None,
@@ -41,7 +42,12 @@ def ingest_entities(
 ) -> dict[str, int]:
     """Write canonical typed nodes and relationships in one native transaction."""
     return _native_ingest_entities(
-        entities, relationships, source=source, domain=domain, client=client, graph=graph
+        entities,
+        relationships,
+        source=source,
+        domain=domain,
+        client=client,
+        graph=graph,
     )
 
 
@@ -110,7 +116,11 @@ def _link_ci(
         }
     )
     relationships.append(
-        {"source": source_id, "target": f"servicenow:ci:{ci_id}", "relationship": "affects"}
+        {
+            "source": source_id,
+            "target": f"servicenow:ci:{ci_id}",
+            "relationship": "affects",
+        }
     )
 
 

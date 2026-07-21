@@ -19,9 +19,7 @@ async def main():
     print("Validating the configured A2A agent...")
 
     questions = [
-        os.environ.get(
-            "A2A_VALIDATION_QUERY", "Describe your available capabilities."
-        )
+        os.environ.get("A2A_VALIDATION_QUERY", "Describe your available capabilities.")
     ]
 
     async with httpx.AsyncClient(timeout=10000.0) as client:
@@ -102,30 +100,44 @@ async def main():
                                                         )
                                                         for part in last_msg["parts"]:
                                                             if "text" in part:
-                                                                print("Agent response content omitted.")
+                                                                print(
+                                                                    "Agent response content omitted."
+                                                                )
                                                             elif "content" in part:
-                                                                print("Agent response content omitted.")
+                                                                print(
+                                                                    "Agent response content omitted."
+                                                                )
                                                     elif last_msg:
-                                                        print("Final response received without structured parts.")
+                                                        print(
+                                                            "Final response received without structured parts."
+                                                        )
                                                     else:
                                                         print(
                                                             "\n--- No Agent Response Found in History ---"
                                                         )
 
-                                            print("Validation result received; body omitted.")
+                                            print(
+                                                "Validation result received; body omitted."
+                                            )
                                             break
                                     else:
                                         print("Starting polling error key check...")
                                         if "error" in poll_data:
-                                            print(f"Polling JSON-RPC error code: {poll_data['error'].get('code', 'unknown')}")
+                                            print(
+                                                f"Polling JSON-RPC error code: {poll_data['error'].get('code', 'unknown')}"
+                                            )
                                         break
                                 else:
                                     print(f"Polling Failed: {poll_resp.status_code}")
-                                    print(f"Polling failed with HTTP {poll_resp.status_code}.")
+                                    print(
+                                        f"Polling failed with HTTP {poll_resp.status_code}."
+                                    )
                                     break
 
                         if "error" in data:
-                            print(f"JSON-RPC error code: {data['error'].get('code', 'unknown')}")
+                            print(
+                                f"JSON-RPC error code: {data['error'].get('code', 'unknown')}"
+                            )
                     except json.JSONDecodeError:
                         print(f"Response body omitted (HTTP {resp.status_code}).")
                 else:

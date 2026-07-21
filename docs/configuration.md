@@ -72,4 +72,3 @@ references only.
 5. Confirm traces arrive under the expected opaque tenant/run identifiers and
    contain no captured content.
 6. Record only sanitized pass/fail evidence and version identifiers.
-
