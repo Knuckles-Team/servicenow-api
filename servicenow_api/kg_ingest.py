@@ -1,26 +1,12 @@
-"""Native epistemic-graph ingestion for ServiceNow records (typed graph nodes).
+"""Native epistemic-graph ingestion for ServiceNow records and attachments.
 
-CONCEPT:AU-KG.ingest.enterprise-source-extractor. This is the ServiceNow twin of the
-fleet's native ingestion seam: the connector natively pushes its ITSM data into the ONE
-epistemic-graph knowledge graph, in every modality that applies (the "maximum ingestion"
-bar):
+Incidents, changes, CMDB items, knowledge documents, and attachment blobs share the
+authoritative native graph and media-store boundary.
 
-* **typed nodes** — incidents/changes/CMDB items → OWL ``:Incident`` / ``:Change`` /
-  ``:ConfigurationItem`` (+ ``:Person``) nodes with ``:affects`` / ``:assignedTo`` links
-  (``ingest_incidents`` / ``ingest_changes`` / ``ingest_cmdb``)
-* **documents** — knowledge-base articles → ``:Document`` nodes carrying the article
-  text + ``source_uri`` (``ingest_kb_articles``); hub-side enrichment chunks/embeds them
-* **blobs** — raw ticket attachments → ``:Blob`` + ``:MediaAsset`` via the ``MediaStore``
-  (``ingest_attachment``)
-
-The write path is the shared, one-and-only ``agent_utilities`` native-ingest primitive
-(``ingest_entities`` / ``ingest_documents`` / ``media_store``) when it is importable; when
-it is not yet present in the installed ``agent_utilities`` we fall back to a self-contained
-copy of the same lightweight-engine-client txn dance. Either way everything is
-dependency-/engine-guarded: with no KG stack or no reachable engine every entry point
-**no-ops** (returns ``None``), so the connector runs with zero KG infrastructure. Node ids
-follow ``servicenow:<class>:<sys_id>`` and each ``type`` matches a class the package's
-``ontology`` (``servicenow.ttl``) federates.
+All writes use the required ``agent_utilities.knowledge_graph.memory.native_ingest``
+primitive. Nodes use canonical ``node_type`` and edges use canonical ``relationship``;
+nodes and edges commit in one native transaction. Missing engine dependencies, rejected
+records, conflicts, and transaction failures propagate as ``NativeIngestError``.
 """
 
 from __future__ import annotations
@@ -28,183 +14,60 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+from agent_utilities.knowledge_graph.memory.native_ingest import (
+    ingest_documents as _native_ingest_documents,
+)
+from agent_utilities.knowledge_graph.memory.native_ingest import (
+    ingest_entities as _native_ingest_entities,
+)
+from agent_utilities.knowledge_graph.memory.native_ingest import (
+    media_store as _native_media_store,
+)
+
 logger = logging.getLogger("servicenow_api.kg")
 
 _SOURCE = "servicenow-api"
 _DOMAIN = "servicenow"
-_DEFAULT_GRAPH = "__commons__"
-
-# --- Prefer the shared native-ingest primitive; fall back to a local copy. ----------
-try:  # pragma: no cover - import wiring
-    from agent_utilities.knowledge_graph.memory.native_ingest import (
-        ingest_documents as _shared_documents,
-    )
-    from agent_utilities.knowledge_graph.memory.native_ingest import (
-        ingest_entities as _shared_entities,
-    )
-    from agent_utilities.knowledge_graph.memory.native_ingest import (
-        media_store as _shared_media_store,
-    )
-except Exception as _e:  # noqa: BLE001 — shared primitive not yet in installed agent_utilities
-    logger.debug("shared native_ingest unavailable (%s); using local fallback", _e)
-    _shared_documents = None
-    _shared_entities = None
-    _shared_media_store = None
-
-
-# --- Local fallback (mirrors agent_utilities.knowledge_graph.memory.native_ingest) ---
-
-
-def _local_client() -> tuple[Any | None, str]:
-    """Return ``(engine_client, graph_name)`` or ``(None, "")`` when unavailable."""
-    try:
-        from agent_utilities.knowledge_graph.core.graph_compute import (
-            GraphComputeEngine,
-        )
-    except Exception as e:  # noqa: BLE001 — KG stack absent
-        logger.debug("KG ingest unavailable (import): %s", e)
-        return None, ""
-    try:
-        engine = GraphComputeEngine()
-        client = getattr(engine, "_client", None)
-        if client is None:
-            return None, ""
-        return client, (getattr(engine, "graph_name", None) or _DEFAULT_GRAPH)
-    except Exception as e:  # noqa: BLE001 — engine unreachable
-        logger.debug("KG ingest: engine unreachable: %s", e)
-        return None, ""
-
-
-def _local_write_nodes(
-    client: Any,
-    graph: str,
-    nodes: list[dict[str, Any]],
-    relationships: list[dict[str, Any]] | None,
-) -> dict[str, int] | None:
-    """Stamp provenance, MERGE the nodes in one txn, then add the edges."""
-    nodes = [n for n in nodes if n.get("id")]
-    if not nodes:
-        return None
-    try:
-        txn = client.txn.begin(graph=graph)
-        for node in nodes:
-            props = {k: v for k, v in node.items() if k != "id" and v is not None}
-            props.setdefault("source", _SOURCE)
-            props.setdefault("domain", _DOMAIN)
-            client.txn.add_node(txn, node["id"], props)
-        committed = client.txn.commit(txn)
-    except Exception as e:  # noqa: BLE001 — engine/txn failure is non-fatal
-        logger.warning("KG ingest: txn failed: %s", e)
-        return None
-    if not committed:
-        logger.warning("KG ingest: txn not committed (conflict)")
-        return None
-
-    edges = 0
-    for rel in relationships or []:
-        try:
-            client.edges.add(
-                rel["source"], rel["target"], {"type": rel.get("type", "RELATED")}
-            )
-            edges += 1
-        except Exception as e:  # noqa: BLE001 — pure edge link, best-effort
-            logger.debug("KG ingest: edge skipped: %s", e)
-
-    logger.info("KG ingest: wrote %d nodes, %d edges", len(nodes), edges)
-    return {"nodes": len(nodes), "edges": edges}
 
 
 def ingest_entities(
     entities: list[dict[str, Any]],
     relationships: list[dict[str, Any]] | None = None,
     *,
+    source: str = _SOURCE,
+    domain: str = _DOMAIN,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
-    """Write typed OWL nodes (+ edges) into the engine.
-
-    Delegates to the shared ``agent_utilities`` primitive when available (carrying the
-    ServiceNow ``source``/``domain`` provenance), otherwise uses the local txn fallback.
-    ``client``/``graph`` may be injected (tests); returns ``{"nodes":n, "edges":m}`` or
-    ``None`` (no engine / empty / failure; never raises).
-    """
-    entities = [e for e in (entities or []) if e.get("id")]
-    if not entities:
-        return None
-    if _shared_entities is not None:
-        return _shared_entities(
-            entities,
-            relationships,
-            source=_SOURCE,
-            domain=_DOMAIN,
-            client=client,
-            graph=graph,
-        )
-    if client is None:
-        client, graph = _local_client()
-    if client is None:
-        return None
-    return _local_write_nodes(client, graph or _DEFAULT_GRAPH, entities, relationships)
+) -> dict[str, int]:
+    """Write canonical typed nodes and relationships in one native transaction."""
+    return _native_ingest_entities(
+        entities,
+        relationships,
+        source=source,
+        domain=domain,
+        client=client,
+        graph=graph,
+    )
 
 
 def ingest_documents(
     documents: list[dict[str, Any]],
     *,
+    source: str = _SOURCE,
+    domain: str = _DOMAIN,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
-    """Write text records as ``:Document`` nodes (semantic-search fodder).
-
-    Each doc: ``{"id":..., "text":..., "title"?:..., "source_uri"?:..., ...props}``.
-    Delegates to the shared primitive when available, otherwise the local fallback.
-    """
-    if not documents:
-        return None
-    if _shared_documents is not None:
-        return _shared_documents(
-            documents, source=_SOURCE, domain=_DOMAIN, client=client, graph=graph
-        )
-    import time
-
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    nodes: list[dict[str, Any]] = []
-    for doc in documents:
-        did = doc.get("id")
-        text = doc.get("text") or doc.get("content")
-        if not did or not text:
-            continue
-        node = {k: v for k, v in doc.items() if k not in ("content",) and v is not None}
-        node["id"] = did
-        node["type"] = "Document"
-        node["text"] = text
-        node.setdefault("created_at", now)
-        nodes.append(node)
-    if not nodes:
-        return None
-    if client is None:
-        client, graph = _local_client()
-    if client is None:
-        return None
-    return _local_write_nodes(client, graph or _DEFAULT_GRAPH, nodes, None)
+) -> dict[str, int]:
+    """Write text records as canonical Document nodes."""
+    return _native_ingest_documents(
+        documents, source=source, domain=domain, client=client, graph=graph
+    )
 
 
-def _media_store() -> Any | None:
-    """Return a ``MediaStore`` over a live engine (for raw-blob ingestion), or ``None``."""
-    if _shared_media_store is not None:
-        return _shared_media_store()
-    client, _ = _local_client()
-    if client is None:
-        return None
-    try:
-        from agent_utilities.knowledge_graph.core.graph_compute import (
-            GraphComputeEngine,
-        )
-        from agent_utilities.knowledge_graph.memory.media_store import MediaStore
-
-        return MediaStore(GraphComputeEngine())
-    except Exception as e:  # noqa: BLE001
-        logger.debug("KG ingest: media_store unavailable: %s", e)
-        return None
+def _media_store() -> Any:
+    """Return the authoritative native media store."""
+    return _native_media_store()
 
 
 # --- ServiceNow field helpers -------------------------------------------------------
@@ -247,13 +110,17 @@ def _link_ci(
     entities.append(
         {
             "id": f"servicenow:ci:{ci_id}",
-            "type": "ConfigurationItem",
+            "node_type": "ConfigurationItem",
             "shortDescription": _disp(rec.get("cmdb_ci")),
             "externalToolId": str(ci_id),
         }
     )
     relationships.append(
-        {"source": source_id, "target": f"servicenow:ci:{ci_id}", "type": "affects"}
+        {
+            "source": source_id,
+            "target": f"servicenow:ci:{ci_id}",
+            "relationship": "affects",
+        }
     )
 
 
@@ -270,7 +137,7 @@ def _link_assignee(
     entities.append(
         {
             "id": f"servicenow:person:{who_id}",
-            "type": "Person",
+            "node_type": "Person",
             "name": _disp(rec.get("assigned_to")),
             "externalToolId": str(who_id),
         }
@@ -279,7 +146,7 @@ def _link_assignee(
         {
             "source": source_id,
             "target": f"servicenow:person:{who_id}",
-            "type": "assignedTo",
+            "relationship": "assignedTo",
         }
     )
 
@@ -292,7 +159,7 @@ def ingest_incidents(
     *,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
+) -> dict[str, int]:
     """Map ServiceNow incident records → ``:Incident`` (+ CI/Person) nodes and ingest."""
     entities: list[dict[str, Any]] = []
     relationships: list[dict[str, Any]] = []
@@ -305,7 +172,7 @@ def ingest_incidents(
         entities.append(
             {
                 "id": node_id,
-                "type": "Incident",
+                "node_type": "Incident",
                 "number": _disp(rec.get("number")),
                 "shortDescription": _disp(rec.get("short_description")),
                 "state": _disp(rec.get("state")),
@@ -328,7 +195,7 @@ def ingest_changes(
     *,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
+) -> dict[str, int]:
     """Map ServiceNow change_request records → ``:Change`` (+ CI/Person) nodes and ingest."""
     entities: list[dict[str, Any]] = []
     relationships: list[dict[str, Any]] = []
@@ -341,7 +208,7 @@ def ingest_changes(
         entities.append(
             {
                 "id": node_id,
-                "type": "Change",
+                "node_type": "Change",
                 "number": _disp(rec.get("number")),
                 "shortDescription": _disp(rec.get("short_description")),
                 "state": _disp(rec.get("state")),
@@ -364,7 +231,7 @@ def ingest_cmdb(
     *,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
+) -> dict[str, int]:
     """Map ServiceNow cmdb_ci records → ``:ConfigurationItem`` nodes and ingest."""
     entities: list[dict[str, Any]] = []
     for raw in records or []:
@@ -375,7 +242,7 @@ def ingest_cmdb(
         entities.append(
             {
                 "id": f"servicenow:ci:{sid}",
-                "type": "ConfigurationItem",
+                "node_type": "ConfigurationItem",
                 "name": _disp(rec.get("name")),
                 "shortDescription": _disp(rec.get("short_description")),
                 "sys_class_name": _disp(rec.get("sys_class_name")),
@@ -392,7 +259,7 @@ def ingest_kb_articles(
     *,
     client: Any | None = None,
     graph: str | None = None,
-) -> dict[str, int] | None:
+) -> dict[str, int]:
     """Map ServiceNow knowledge-base articles → ``:Document`` nodes (text + source_uri)."""
     docs: list[dict[str, Any]] = []
     for raw in records or []:
@@ -430,18 +297,15 @@ def ingest_attachment(
     incident_id: str | None = None,
     source_uri: str | None = None,
     media_store: Any | None = None,
-) -> dict[str, Any] | None:
+) -> dict[str, Any]:
     """Store a ticket attachment's raw bytes as a blob + ``:MediaAsset`` in the KG.
 
-    Returns ``{asset_id, digest, size_bytes}`` on success, or ``None`` when there is no
-    engine, no data, or the store failed (never raises). ``media_store`` may be injected
-    (tests); otherwise one is built on demand.
+    Returns ``{asset_id, digest, size_bytes}``. Invalid bytes or a storage failure raises
+    :class:`NativeIngestError`; ``media_store`` may be injected in tests.
     """
     if not data:
-        return None
+        raise NativeIngestError("native media ingest requires non-empty bytes")
     store = media_store if media_store is not None else _media_store()
-    if store is None:
-        return None
 
     extra: dict[str, Any] = {}
     if incident_id:
@@ -458,11 +322,10 @@ def ingest_attachment(
             name=name,
             extra=extra,
         )
-    except Exception as e:  # noqa: BLE001 — engine/store failure is non-fatal
-        logger.warning("KG ingest: store_media failed: %s", e)
-        return None
+    except Exception as exc:  # noqa: BLE001 - preserve retryable cause privately
+        raise NativeIngestError("native media ingest transaction failed") from exc
     if stored is None:
-        return None
+        raise NativeIngestError("native media ingest was not committed")
 
     logger.info(
         "KG ingest: stored attachment %s (%d bytes) as asset %s",

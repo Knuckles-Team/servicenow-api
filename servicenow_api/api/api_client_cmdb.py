@@ -41,7 +41,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -379,21 +379,17 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/cmdb/meta/{cmdb.cmdb_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = CMDB.model_validate(result_data)
             return Response(response=response, result=parsed_data)
-        except ValidationError as ve:
-            print(
-                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
-            )
+        except ValidationError:
+            print("Invalid parameters or response data", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_cmdb_relation(self, **kwargs) -> Response:
@@ -420,8 +416,6 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             response = self._session.delete(
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}/relation/{cmdb.rel_sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
 
@@ -430,11 +424,11 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result_data = json_response.get("result", json_response)
                 return Response(response=response, result=result_data)
             return Response(response=response, result={"status": "deleted"})
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_cmdb_instances(self, **kwargs) -> Response:
@@ -462,18 +456,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}",
                 params=cmdb.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_cmdb_instance(self, **kwargs) -> Response:
@@ -496,18 +488,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             response = self._session.get(
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_cmdb_instance(self, **kwargs) -> Response:
@@ -537,18 +527,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}",
                 headers=self.headers,
                 json=cmdb.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def update_cmdb_instance(self, **kwargs) -> Response:
@@ -576,18 +564,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
                 headers=self.headers,
                 json=cmdb.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def patch_cmdb_instance(self, **kwargs) -> Response:
@@ -615,18 +601,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}",
                 headers=self.headers,
                 json=cmdb.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_cmdb_relation(self, **kwargs) -> Response:
@@ -656,18 +640,16 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/instance/{cmdb.className}/{cmdb.sys_id}/relation",
                 headers=self.headers,
                 json=cmdb.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def ingest_cmdb_data(self, **kwargs) -> Response:
@@ -691,8 +673,6 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 url=f"{self.url}/now/cmdb/ingest/{ingest.data_source_sys_id}",
                 headers=self.headers,
                 json=ingest.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             if response.status_code not in [201, 202]:
                 response.raise_for_status()
@@ -700,11 +680,11 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             return Response(response=response, result=result_data)
-        except ValidationError as ve:
-            print(f"Invalid parameters: {ve.errors()}", file=sys.stderr)
+        except ValidationError:
+            print("Invalid parameters", file=sys.stderr)
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def delete_ci_lifecycle_action(self, **kwargs) -> Response:
@@ -722,19 +702,19 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "sysIds": req.sysIds,
             }
             response = self._session.delete(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                url=f"{self.url}/now/cilifecyclemgmt/actions",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
-            return Response(
-                response=response,
-                result=CILifecycleResult.model_validate(response.json()),
-            )
+            if response.content:
+                return Response(
+                    response=response,
+                    result=CILifecycleResult.model_validate(response.json()),
+                )
+            return Response(response=response, result={"status": "deleted"})
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def unregister_ci_lifecycle_operator(self, **kwargs) -> Response:
@@ -747,18 +727,18 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.delete(
-                url=f"{self.url}/api/now/cilifecyclemgmt/operators/{req_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/operators/{req_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
-            return Response(
-                response=response,
-                result=CILifecycleResult.model_validate(response.json()),
-            )
+            if response.content:
+                return Response(
+                    response=response,
+                    result=CILifecycleResult.model_validate(response.json()),
+                )
+            return Response(response=response, result={"status": "deleted"})
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_ci_lifecycle_active_actions(self, **kwargs) -> Response:
@@ -771,10 +751,8 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/actions/{sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -782,7 +760,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_ci_lifecycle_compat_actions(self, **kwargs) -> Response:
@@ -797,11 +775,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
 
             params = {"actionName": actionName, "otherActionName": otherActionName}
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/compatActions",
+                url=f"{self.url}/now/cilifecyclemgmt/compatActions",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -809,7 +785,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_ci_lifecycle_lease_expired(self, **kwargs) -> Response:
@@ -825,11 +801,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
 
             params = {"actionName": actionName, "requestorId": requestorId}
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}/expired",
+                url=f"{self.url}/now/cilifecyclemgmt/leases/{sys_id}/expired",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -837,7 +811,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_ci_lifecycle_not_allowed_action(self, **kwargs) -> Response:
@@ -857,11 +831,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "opsLabel": opsLabel,
             }
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedAction",
+                url=f"{self.url}/now/cilifecyclemgmt/notAllowedAction",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -869,7 +841,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_ci_lifecycle_not_allowed_ops_transition(self, **kwargs) -> Response:
@@ -889,11 +861,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "transitionOpsLabel": transitionOpsLabel,
             }
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/notAllowedOpsTransition",
+                url=f"{self.url}/now/cilifecyclemgmt/notAllowedOpsTransition",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -901,7 +871,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def check_ci_lifecycle_requestor_valid(self, **kwargs) -> Response:
@@ -914,10 +884,8 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/requestors/{req_id}/valid",
+                url=f"{self.url}/now/cilifecyclemgmt/requestors/{req_id}/valid",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -925,7 +893,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_ci_lifecycle_status(self, **kwargs) -> Response:
@@ -938,10 +906,8 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 raise MissingParameterError
 
             response = self._session.get(
-                url=f"{self.url}/api/now/cilifecyclemgmt/statuses/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/statuses/{sys_id}",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -949,7 +915,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def extend_ci_lifecycle_lease(self, **kwargs) -> Response:
@@ -973,11 +939,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 "requestorId": req.requestorId,
             }
             response = self._session.patch(
-                url=f"{self.url}/api/now/cilifecyclemgmt/leases/{sys_id}",
+                url=f"{self.url}/now/cilifecyclemgmt/leases/{sys_id}",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -985,7 +949,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def add_ci_lifecycle_action(self, **kwargs) -> Response:
@@ -1008,11 +972,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 params["oldActionNames"] = req.oldActionNames
 
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/actions",
+                url=f"{self.url}/now/cilifecyclemgmt/actions",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -1020,7 +982,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def register_ci_lifecycle_operator(self, **kwargs) -> Response:
@@ -1029,10 +991,8 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
         """
         try:
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/operators",
+                url=f"{self.url}/now/cilifecyclemgmt/operators",
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -1040,7 +1000,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def set_ci_lifecycle_status(self, **kwargs) -> Response:
@@ -1061,11 +1021,9 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 params["oldOpsLabels"] = req.oldOpsLabels
 
             response = self._session.post(
-                url=f"{self.url}/api/now/cilifecyclemgmt/statuses",
+                url=f"{self.url}/now/cilifecyclemgmt/statuses",
                 params=params,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             return Response(
@@ -1073,7 +1031,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                 result=CILifecycleResult.model_validate(response.json()),
             )
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def collect_graph_for_roots(
@@ -1095,7 +1053,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             flow_sys_id: str, prefix: str = "", depth: int = 0, is_root: bool = False
         ) -> str | None:
             if depth > max_depth:
-                logger.warning(f"Max depth {max_depth} reached at flow {flow_sys_id}")
+                logger.warning("Maximum flow traversal depth reached")
                 return None
             if flow_sys_id in visited:
                 logger.debug(
@@ -1111,7 +1069,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
                     all_metadata[flow_sys_id] = meta
 
             if not meta:
-                logger.warning(f"Could not retrieve metadata for flow {flow_sys_id}")
+                logger.warning("Could not retrieve flow metadata")
                 return None
 
             flow_name = meta.get("name", "Unnamed")

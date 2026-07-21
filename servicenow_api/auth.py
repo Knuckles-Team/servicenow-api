@@ -15,6 +15,10 @@ from threading import local
 from agent_utilities.base_utilities import get_logger
 from agent_utilities.core.config import setting
 from agent_utilities.core.exceptions import AuthError, UnauthorizedError
+from agent_utilities.core.transport_security import (
+    ResolvedTLSProfile,
+    resolve_configured_tls_profile,
+)
 
 local = local()
 from servicenow_api.api_client import Api
@@ -27,7 +31,7 @@ def get_client(
     password=None,
     client_id=None,
     client_secret=None,
-    verify: bool | None = None,
+    tls_profile: ResolvedTLSProfile | None = None,
 ) -> Api:
     """Single entry point for ServiceNow clients.
 
@@ -51,7 +55,11 @@ def get_client(
         if client_secret is not None
         else setting("SERVICENOW_CLIENT_SECRET")
     )
-    verify = verify if verify is not None else setting("SERVICENOW_SSL_VERIFY", True)
+    profile = tls_profile or resolve_configured_tls_profile(
+        "servicenow",
+        profile_name=setting("SERVICENOW_TLS_PROFILE", "") or None,
+        profile_ref=setting("SERVICENOW_TLS_PROFILE_REF", "") or None,
+    )
 
     instance = setting("SERVICENOW_URL") or setting("SERVICENOW_INSTANCE")
     if not instance:
@@ -63,19 +71,12 @@ def get_client(
             delegated_token = get_delegated_token(
                 audience=setting("AUDIENCE", instance),
                 scopes=setting("DELEGATED_SCOPES", "api"),
-                verify=verify,
             )
-            identity = get_user_identity()
-            logger.info(
-                "Using OIDC delegated token for ServiceNow API",
-                extra={
-                    "user_email": identity.get("email"),
-                    "instance": instance,
-                },
-            )
-            return Api(url=instance, token=delegated_token, verify=verify)
-        except Exception as e:
-            logger.error("OIDC delegation failed", extra={"error": str(e)})
+            get_user_identity()
+            logger.info("Using OIDC delegated token for ServiceNow API")
+            return Api(url=instance, token=delegated_token, tls_profile=profile)
+        except Exception:
+            logger.error("OIDC delegation failed", extra={"error": "Operation failed"})
             raise
 
     # --- Path 2: Basic Auth (username/password + optional OAuth client) ---
@@ -88,10 +89,10 @@ def get_client(
                 password=password,
                 client_id=client_id,
                 client_secret=client_secret,
-                verify=verify,
+                tls_profile=profile,
             )
     except (AuthError, UnauthorizedError) as e:
-        logger.error(f"ServiceNow authentication failed: {e}")
+        logger.error("Operation failed: error_type=%s", type(e).__name__)
         raise RuntimeError(
             "AUTHENTICATION ERROR: The ServiceNow credentials provided are not valid for the account used. "
             "Please check your SERVICENOW_USERNAME and SERVICENOW_PASSWORD environment variables, "

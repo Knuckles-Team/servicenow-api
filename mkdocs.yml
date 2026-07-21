@@ -88,6 +88,7 @@ nav:
   - Home: index.md
   - Overview: overview.md
   - Installation: installation.md
+  - Configuration, trust, and privacy: configuration.md
   - Deployment: deployment.md
   - Usage (API / CLI / MCP): usage.md
   - Concepts: concepts.md

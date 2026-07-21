@@ -35,7 +35,7 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         parsed = json.loads(decompressed)
         return parsed if isinstance(parsed, list) else [parsed]
     except Exception as e:
-        logger.error(f"Failed to decode values: {e}")
+        logger.error("Failed to decode values: error_type=%s", type(e).__name__)
         return []
 
 
@@ -397,8 +397,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident",
                 params=incident.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -411,7 +409,7 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def get_incident(self, **kwargs) -> Response:
@@ -435,8 +433,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident/{incident.incident_id}",
                 params=incident.api_parameters,
                 headers=self.headers,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -449,7 +445,7 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
     def create_incident(self, **kwargs) -> Response:
@@ -474,8 +470,6 @@ class ServiceNowApiIncident(ServiceNowApiBase):
                 url=f"{self.url}/now/table/incident",
                 headers=self.headers,
                 json=incident.data,
-                verify=self.verify,
-                proxies=self.proxies,
             )
             response.raise_for_status()
             json_response = response.json()
@@ -488,5 +482,79 @@ class ServiceNowApiIncident(ServiceNowApiBase):
             )
             raise
         except Exception as e:
-            print(f"Error during API call: {e}", file=sys.stderr)
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
+            raise
+
+    def update_incident(self, **kwargs) -> Response:
+        """
+        Update an existing incident record.
+
+        :param incident_id: The sys_id of the incident record to update.
+        :type incident_id: str
+        :param data: Dictionary of field values to update.
+        :type data: dict
+
+        :return: Response containing parsed Pydantic model with information about the updated incident record.
+        :rtype: Response
+
+        :raises MissingParameterError: If incident_id or data is not provided.
+        :raises ParameterError: If validation of parameters fails.
+        """
+        try:
+            incident = IncidentModel(**kwargs)
+            if incident.incident_id is None or incident.data is None:
+                raise MissingParameterError
+            response = self._session.patch(
+                url=f"{self.url}/now/table/incident/{incident.incident_id}",
+                headers=self.headers,
+                json=incident.data,
+            )
+            response.raise_for_status()
+            json_response = response.json()
+            result_data = json_response.get("result", json_response)
+            parsed_data = Incident.model_validate(result_data)
+            return Response(response=response, result=parsed_data)
+        except ValidationError as ve:
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
+            raise
+        except Exception as e:
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
+            raise
+
+    def delete_incident(self, **kwargs) -> Response:
+        """
+        Delete an incident record.
+
+        :param incident_id: The sys_id of the incident record to delete.
+        :type incident_id: str
+
+        :return: Response containing information about the deletion.
+        :rtype: Response
+
+        :raises MissingParameterError: If incident_id is not provided.
+        """
+        try:
+            incident = IncidentModel(**kwargs)
+            if incident.incident_id is None:
+                raise MissingParameterError
+            response = self._session.delete(
+                url=f"{self.url}/now/table/incident/{incident.incident_id}",
+                headers=self.headers,
+            )
+            response.raise_for_status()
+
+            if response.content:
+                json_response = response.json()
+                result_data = json_response.get("result", json_response)
+                return Response(response=response, result=result_data)
+            return Response(response=response, result={"status": "deleted"})
+        except ValidationError as ve:
+            print(
+                f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr
+            )
+            raise
+        except Exception as e:
+            print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise

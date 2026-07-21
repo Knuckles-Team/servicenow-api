@@ -38,18 +38,17 @@ def test_auth_oidc_delegation_success():
                     return_value={"email": "test@example.com"},
                 ):
                     with patch("servicenow_api.auth.Api") as mock_api_cls:
-                        client = get_client(verify=True)
+                        client = get_client()
                         assert client is not None
                         mock_get_token.assert_called_with(
                             audience="https://dev12345.service-now.com",
                             scopes="api",
-                            verify=True,
                         )
                         assert mock_api_cls.called
                         _, kwargs = mock_api_cls.call_args
                         assert kwargs["url"] == "https://dev12345.service-now.com"
                         assert kwargs["token"] == "mock-oidc-token"
-                        assert kwargs["verify"] is True
+                        assert kwargs["tls_profile"].verify_enabled is True
 
 
 def test_auth_oidc_delegation_failure():
