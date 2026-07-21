@@ -72,11 +72,10 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 
 <!-- MCP-TOOLS-TABLE:START -->
 
-#### Condensed action-routed tools (default — `MCP_TOOL_MODE=condensed`)
+#### Condensed action-routed tools (`MCP_TOOL_MODE=condensed`)
 
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
-| `ingest_incidents_to_kg` | `MISCTOOL` | Manage ingest incidents to kg operations. |
 | `servicenow_account` | `ACCOUNTTOOL` | Manage servicenow account operations. |
 | `servicenow_activity_subscriptions` | `ACTIVITY_SUBSCRIPTIONSTOOL` | Manage servicenow activity subscriptions operations. |
 | `servicenow_aggregate` | `AGGREGATETOOL` | Manage servicenow aggregate operations. |
@@ -96,11 +95,14 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_hr` | `HRTOOL` | Manage servicenow hr operations. |
 | `servicenow_import_sets` | `IMPORT_SETSTOOL` | Manage servicenow import sets operations. |
 | `servicenow_incidents` | `INCIDENTSTOOL` | Manage servicenow incidents operations. |
+| `servicenow_ingest_incidents` | `MISCTOOL` | Natively ingest ServiceNow incidents into epistemic-graph as typed :Incident nodes. |
 | `servicenow_knowledge_management` | `KNOWLEDGE_MANAGEMENTTOOL` | Manage servicenow knowledge management operations. |
 | `servicenow_metricbase` | `METRICBASETOOL` | Manage servicenow metricbase operations. |
 | `servicenow_plugins` | `PLUGINSTOOL` | Manage servicenow plugins operations. |
 | `servicenow_ppm` | `PPMTOOL` | Manage servicenow ppm operations. |
+| `servicenow_problem` | `PROBLEMTOOL` | Manage servicenow problem management operations. |
 | `servicenow_product_inventory` | `PRODUCT_INVENTORYTOOL` | Manage servicenow product inventory operations. |
+| `servicenow_sdk` | `SDKTOOL` | Scaffold, build, and deploy a ServiceNow Studio scoped app via the now-sdk CLI. |
 | `servicenow_service_qualification` | `SERVICE_QUALIFICATIONTOOL` | Manage servicenow service qualification operations. |
 | `servicenow_source_control` | `SOURCE_CONTROLTOOL` | Manage servicenow source control operations. |
 | `servicenow_table_api` | `TABLE_APITOOL` | Manage servicenow table api operations. |
@@ -110,7 +112,7 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 #### Verbose 1:1 API-mapped tools (`MCP_TOOL_MODE=verbose` or `both`)
 
 <details>
-<summary>119 per-operation tools — one per public API method (click to expand)</summary>
+<summary>126 per-operation tools — one per public API method (click to expand)</summary>
 
 | MCP Tool | Toggle Env Var | Description |
 |----------|----------------|-------------|
@@ -145,12 +147,15 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_create_cmdb_instance` | `CMDBTOOL` | Creates a single configuration item (CI). |
 | `servicenow_create_cmdb_relation` | `CMDBTOOL` | Adds an inbound and/or outbound relation to the specified CI. |
 | `servicenow_create_incident` | `INCIDENTTOOL` | Create a new incident record. |
+| `servicenow_create_problem` | `PROBLEMTOOL` | Create a new problem record. |
 | `servicenow_delete_attachment` | `OTHERTOOL` | Invoke the delete_attachment operation. |
 | `servicenow_delete_change_request` | `CHANGETOOL` | Delete a change request. |
 | `servicenow_delete_change_request_conflict_scan` | `CHANGETOOL` | Delete conflict scan information associated with a change request. |
 | `servicenow_delete_change_request_task` | `CHANGETOOL` | Delete a task associated with a change request. |
 | `servicenow_delete_ci_lifecycle_action` | `CMDBTOOL` | Removes a configuration item (CI) action for a list of CIs. |
 | `servicenow_delete_cmdb_relation` | `CMDBTOOL` | Deletes the relation for the specified configuration item (CI). |
+| `servicenow_delete_incident` | `INCIDENTTOOL` | Delete an incident record. |
+| `servicenow_delete_problem` | `PROBLEMTOOL` | Delete a problem record. |
 | `servicenow_delete_product_inventory` | `OTHERTOOL` | Deletes a specified product inventory record. |
 | `servicenow_delete_table_record` | `SYSTEMTOOL` | Delete a record from the specified table. |
 | `servicenow_extend_ci_lifecycle_lease` | `CMDBTOOL` | Extends the specified CI action's lease expiration time. |
@@ -189,6 +194,8 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_get_knowledge_article_attachment` | `KNOWLEDGETOOL` | Get Knowledge Base article attachment. |
 | `servicenow_get_knowledge_articles` | `KNOWLEDGETOOL` | Get all Knowledge Base articles. |
 | `servicenow_get_most_viewed_knowledge_articles` | `KNOWLEDGETOOL` | Get most viewed Knowledge Base articles. |
+| `servicenow_get_problem` | `PROBLEMTOOL` | Retrieve details of a specific problem record. |
+| `servicenow_get_problems` | `PROBLEMTOOL` | Retrieve details of problem records. |
 | `servicenow_get_product_inventory` | `OTHERTOOL` | Retrieves a list of all product inventories. |
 | `servicenow_get_service_qualification` | `OTHERTOOL` | Retrieves a technical qualification request by ID or list all. |
 | `servicenow_get_standard_change_request_model` | `CHANGETOOL` | Retrieve details of a standard change request model. |
@@ -224,6 +231,8 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_update_change_request_first_available` | `CHANGETOOL` | Update the schedule of a change request to the first available slot. |
 | `servicenow_update_change_request_task` | `CHANGETOOL` | Update details of a task associated with a change request. |
 | `servicenow_update_cmdb_instance` | `CMDBTOOL` | Updates the specified CI record (PUT). |
+| `servicenow_update_incident` | `INCIDENTTOOL` | Update an existing incident record. |
+| `servicenow_update_problem` | `PROBLEMTOOL` | Update an existing problem record. |
 | `servicenow_update_set_back_out` | `DEVOPSTOOL` | Backs out an installation operation that was performed on an update set with a given sys_id. |
 | `servicenow_update_set_commit` | `DEVOPSTOOL` | Commits an update set with a given sys_id. |
 | `servicenow_update_set_commit_multiple` | `DEVOPSTOOL` | Commits multiple update sets in a single request according to the order that they're provided. |
@@ -231,12 +240,12 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_update_set_preview` | `DEVOPSTOOL` | Previews an update set to check for any conflicts and retrieve progress information about the update set operation. |
 | `servicenow_update_set_retrieve` | `DEVOPSTOOL` | Retrieves an update set with a given sys_id and allows you to remove the existing retrieved update set from the instance. |
 | `servicenow_update_table_record` | `SYSTEMTOOL` | Fully update a record in the specified table. |
-| `servicenow_upload_attachment` | `OTHERTOOL` | Invoke the upload_attachment operation. |
+| `servicenow_upload_attachment` | `OTHERTOOL` | Upload a file as an attachment on a table record. |
 | `servicenow_workflow_to_mermaid` | `SYSTEMTOOL` | Generates a Mermaid diagram representing the relationships between ServiceNow flows and subflows. |
 
 </details>
 
-_30 action-routed tool(s) (default) · 119 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (`condensed` default · `verbose` 1:1 · `both`). Auto-generated — do not edit._
+_32 action-routed tool(s) · 126 verbose 1:1 tool(s). Each is enabled unless its `<DOMAIN>TOOL` toggle is set false; `MCP_TOOL_MODE` selects the surface (**`intent` default** — the six verb-tools, granular set loaded on demand · `condensed` action-routed · `verbose` 1:1 · `both`). Auto-generated — do not edit._
 <!-- MCP-TOOLS-TABLE:END -->
 
 Detailed tool schemas, parameter shapes, and validation constraints are preserved in [docs/usage.md](docs/usage.md).
@@ -314,7 +323,10 @@ When query strings or parameters are supplied, an LLM-free **Knowledge Graph res
         "OPENAPI_USERNAME": "your_openapi_username_here",
         "PLUGINSTOOL": "True",
         "PPMTOOL": "True",
+        "PROBLEMTOOL": "True",
         "PRODUCT_INVENTORYTOOL": "True",
+        "SDKTOOL": "True",
+        "SDK_WORKDIR": "/data/servicenow-sdk-workspace",
         "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
         "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
@@ -384,7 +396,10 @@ own runtime secret boundary.
         "OPENAPI_USERNAME": "your_openapi_username_here",
         "PLUGINSTOOL": "True",
         "PPMTOOL": "True",
+        "PROBLEMTOOL": "True",
         "PRODUCT_INVENTORYTOOL": "True",
+        "SDKTOOL": "True",
+        "SDK_WORKDIR": "/data/servicenow-sdk-workspace",
         "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
         "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
@@ -453,7 +468,10 @@ docker run -i --rm \
   -e OPENAPI_USERNAME=your_openapi_username_here \
   -e PLUGINSTOOL=True \
   -e PPMTOOL=True \
+  -e PROBLEMTOOL=True \
   -e PRODUCT_INVENTORYTOOL=True \
+  -e SDKTOOL=True \
+  -e SDK_WORKDIR=/data/servicenow-sdk-workspace \
   -e SERVICENOW_CLIENT_SECRET=your_servicenow_client_secret_here \
   -e SERVICENOW_INSTANCE=https://instance.example.invalid \
   -e SERVICENOW_PASSWORD=your_servicenow_password_here \
@@ -614,13 +632,14 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `TRANSPORT` | `stdio` | options: stdio, streamable-http, sse |
 | `ENABLE_OTEL` | `True` |  |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:8080/api/public/otel` |  |
-| `OTEL_EXPORTER_OTLP_PUBLIC_KEY` | secret-injected |  |
-| `OTEL_EXPORTER_OTLP_SECRET_KEY` | secret-injected |  |
+| `OTEL_EXPORTER_OTLP_PUBLIC_KEY_REF` | `pk-...` | Reference form only — runtime-only trust material, resolved via AgentConfig. |
+| `OTEL_EXPORTER_OTLP_SECRET_KEY_REF` | `sk-...` |  |
 | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` |  |
 | `EUNOMIA_TYPE` | `none` | options: none, embedded, remote |
 | `EUNOMIA_POLICY_FILE` | `mcp_policies.json` |  |
 | `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
 | `SERVICENOW_INSTANCE` | `https://instance.example.invalid` |  |
+| `SERVICENOW_URL` | — | alias for SERVICENOW_INSTANCE (checked first if both are set) |
 | `SERVICENOW_USERNAME` | — |  |
 | `SERVICENOW_CLIENT_ID` | — |  |
 | `SERVICENOW_TLS_PROFILE` | `system` | Named outbound TLS policy from AgentConfig. Use a reference for runtime-only trust material; peer and hostname verification remain mandatory. |
@@ -635,6 +654,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `OPENAPI_PASSWORD` | secret-injected |  |
 | `OPENAPI_CLIENT_ID` | `your_openapi_client_id_here` |  |
 | `OPENAPI_CLIENT_SECRET` | secret-injected |  |
+| `SDK_WORKDIR` | `/data/servicenow-sdk-workspace` | Working directory for now-sdk init/build/deploy/etc. Defaults to ~/servicenow-sdk-workspace (auto-created) when unset. |
 | `MISCTOOL` | `True` |  |
 | `FLOWSTOOL` | `True` |  |
 | `APPLICATIONTOOL` | `True` |  |
@@ -650,6 +670,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `DEVOPSTOOL` | `True` |  |
 | `IMPORT_SETSTOOL` | `True` |  |
 | `INCIDENTSTOOL` | `True` |  |
+| `PROBLEMTOOL` | `True` |  |
 | `KNOWLEDGE_MANAGEMENTTOOL` | `True` |  |
 | `TABLE_APITOOL` | `True` |  |
 | `AUTHTOOL` | `True` |  |
@@ -665,6 +686,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `SERVICE_QUALIFICATIONTOOL` | `True` |  |
 | `PPMTOOL` | `True` |  |
 | `PRODUCT_INVENTORYTOOL` | `True` |  |
+| `SDKTOOL` | `True` |  |
 
 #### Inherited agent-utilities variables (apply to every connector)
 
@@ -685,7 +707,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `MODEL_ID` | `gpt-4o` | Model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_56 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+_60 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 
