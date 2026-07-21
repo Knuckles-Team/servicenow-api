@@ -48,29 +48,29 @@ This repository contains sample code illustrating the [ServiceNow SDK](https://d
 <!-- SAMPLES_BEGIN -->
 | Sample Name                                                   | API & Contribution             |
 | ------------------------------------------------------------- | ------------------------------ |
-| [ACL](acl-sample/README.md)                                   | ACL example                    |
-| [Application Menu](applicationmenu-sample/README.md)          | Application Menu example       |
-| [Business Rule](businessrule-sample/README.md)                | Business Rule example          |
-| [Client Script](clientscript-sample/README.md)                | Client Script example          |
-| [Dependencies](dependencies-sample/README.md)                 | Use table dependencies example |
-| [Hello World](hello-world-sample/README.md)                   | Basic sample application       |
-| [List](list-sample/README.md)                                 | List example                   |
-| [Scripted Rest API](restapi-sample/README.md)                 | RestApi simple example         |
-| [Cross-Scope Module](sys_module-sample/README.md)             | How to call module cross-scope |
-| [Record](record-sample/README.md)                             | Record example                 |
-| [Tables](table-sample/README.md)                              | Tables API sample              |
-| [Automated Test Framework](test-atf-sample/README.md)         | ATF test sample                |
-| [React UI Page Typescript](react-ui-page-ts-sample/README.md) | React Typescript sample        |
-| [Service Portal](service-portal-sample/README.md)             | Service Portal sample          |
-| [UI Action](uiaction-sample/README.md)                        | UiAction sample                |
-| [Script Action](scriptaction-sample/README.md)                | ScriptAction sample            |
-| [Script Include](script-include-sample/README.md)             | ScriptInclude sample           |
-| [UI Page](uipage-sample/README.md)                            | UiPage sample                  |
-| [Service Catalog](service-catalog-sample/README.md)           | Service Catalog sample         |
-| [Flow](flow-sample/README.md)                                 | Flow sample                    |
-| [SolidJS UI Page](solidjs-ui-page-sample/README.md)           | SolidJS UI Page sample         |
-| [Svelte UI Page](svelte-ui-page-sample/README.md)             | Svelte UI Page sample          |
-| [Vue UI Page](vue-ui-page-sample/README.md)                   | Vue UI Page sample             |
+| [ACL](assets/samples/acl-sample/)                                   | ACL example                    |
+| [Application Menu](assets/samples/applicationmenu-sample/)          | Application Menu example       |
+| [Business Rule](assets/samples/businessrule-sample/)                | Business Rule example          |
+| [Client Script](assets/samples/clientscript-sample/)                | Client Script example          |
+| [Dependencies](assets/samples/dependencies-sample/)                 | Use table dependencies example |
+| [Hello World](assets/samples/hello-world-sample/)                   | Basic sample application       |
+| [List](assets/samples/list-sample/)                                 | List example                   |
+| [Scripted Rest API](assets/samples/restapi-sample/)                 | RestApi simple example         |
+| [Cross-Scope Module](assets/samples/sys_module-sample/)             | How to call module cross-scope |
+| [Record](assets/samples/record-sample/)                             | Record example                 |
+| [Tables](assets/samples/table-sample/)                              | Tables API sample              |
+| [Automated Test Framework](assets/samples/test-atf-sample/)         | ATF test sample                |
+| [React UI Page Typescript](assets/samples/react-ui-page-ts-sample/) | React Typescript sample        |
+| [Service Portal](assets/samples/service-portal-sample/)             | Service Portal sample          |
+| [UI Action](assets/samples/uiaction-sample/)                        | UiAction sample                |
+| [Script Action](assets/samples/scriptaction-sample/)                | ScriptAction sample            |
+| [Script Include](assets/samples/script-include-sample/)             | ScriptInclude sample           |
+| [UI Page](assets/samples/uipage-sample/)                            | UiPage sample                  |
+| [Service Catalog](assets/samples/service-catalog-sample/)           | Service Catalog sample         |
+| [Flow](assets/samples/flow-sample/)                                 | Flow sample                    |
+| [SolidJS UI Page](assets/samples/solidjs-ui-page-sample/)           | SolidJS UI Page sample         |
+| [Svelte UI Page](assets/samples/svelte-ui-page-sample/)             | Svelte UI Page sample          |
+| [Vue UI Page](assets/samples/vue-ui-page-sample/)                   | Vue UI Page sample             |
 <!-- SAMPLES_END -->
 
 ## SDK Example Index
