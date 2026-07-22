@@ -36,12 +36,12 @@ RUN apt-get update \
 # Slim MCP-only dependency closure.
 FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --break-system-packages servicenow-api[mcp]==2.0.1
+    uv pip install --system --break-system-packages servicenow-api[mcp]==2.0.2
 
 # Full agent runtime dependency closure.
 FROM builder-base AS builder-agent
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --break-system-packages servicenow-api[agent]==2.0.1
+    uv pip install --system --break-system-packages servicenow-api[agent]==2.0.2
 
 # ServiceNow SDK CLI (now-sdk) — a minimal, self-contained Node.js LTS layer holding
 # only the global @servicenow/sdk install. Copied whole (COPY --from below) into both
