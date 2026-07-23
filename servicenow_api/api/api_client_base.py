@@ -12,12 +12,7 @@ from urllib.parse import urlencode
 
 import requests
 from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.exceptions import (
-    AuthError,
-    MissingParameterError,
-    ParameterError,
-    UnauthorizedError,
-)
+from agent_utilities.core.exceptions import MissingParameterError
 from agent_utilities.core.transport_security import (
     ResolvedTLSProfile,
     resolve_configured_tls_profile,
@@ -432,14 +427,16 @@ class ServiceNowApiBase:
 
         self.url = f"{self.base_url}/api"
 
-        response = self._session.get(
-            url=f"{self.url}/subscribers",
-            headers=self.headers,
-        )
-
-        if response.status_code == 403:
-            raise UnauthorizedError
-        elif response.status_code == 401:
-            raise AuthError
-        elif response.status_code == 404:
-            raise ParameterError
+        # NOTE: no eager connectivity probe here. This used to issue a GET
+        # `{url}/api/subscribers` at construction time to fail fast on bad
+        # auth/URL — but a client is built per-call via `Depends(get_client)`
+        # (see auth.py's `get_client`), so any exception raised here (bad
+        # creds, DNS/egress failure, a slow/hibernating instance) was caught
+        # by FastMCP's dependency resolver and surfaced only as the generic
+        # `RuntimeError: Failed to resolve dependency 'client' for <tool>`,
+        # discarding the real cause. Each tool method already issues its own
+        # request and calls `response.raise_for_status()`
+        # (`requests.HTTPError`) per-call, so removing this probe just means
+        # the actual transport/auth failure is what the caller sees, instead
+        # of a generic dependency-resolution error. Same fix already applied
+        # in archivebox-api's `BaseApiClient.__init__`.
