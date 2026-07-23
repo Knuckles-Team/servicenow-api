@@ -29,6 +29,11 @@ def mock_session():
         mock_get.return_value = sub_resp
         session.get.return_value = sub_resp
 
+        # The client issues OAuth/refresh POSTs via `self._session.post` (not the
+        # module-level `requests.post`) so its TLS profile applies consistently —
+        # mock the session's own post, matching `session.get` above.
+        session.post.return_value = auth_resp
+
         yield session
 
 

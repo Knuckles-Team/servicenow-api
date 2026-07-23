@@ -518,12 +518,6 @@ def test_api_client_exhaustive_methods(mock_session):
 
 def test_change_management_pagination(mock_session):
     # Mock first page link header with next page, second page without
-    r0 = MagicMock(spec=requests.Response)
-    r0.status_code = 200
-    r0.ok = True
-    r0.headers = {}
-    r0.json.return_value = {"result": []}
-
     r1 = MagicMock(spec=requests.Response)
     r1.status_code = 200
     r1.ok = True
@@ -547,7 +541,7 @@ def test_change_management_pagination(mock_session):
     r3.headers = {}
     r3.json.return_value = {"result": []}
 
-    mock_session.get.side_effect = [r0, r1, r2, r3]
+    mock_session.get.side_effect = [r1, r2, r3]
 
     client = Api(url="http://test.com", username="user", password="pass")
 
