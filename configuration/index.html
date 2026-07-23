@@ -10,11 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://knuckles-team.github.io/servicenow-api/concepts/">
+        <link rel="canonical" href="https://knuckles-team.github.io/servicenow-api/configuration/">
       
       
-        <link rel="prev" href="../usage/">
+        <link rel="prev" href="../installation/">
       
+      
+        <link rel="next" href="../deployment/">
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>Concepts - servicenow-api</title>
+        <title>Configuration, trust, and privacy - servicenow-api</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#concept-registry-servicenow-api" class="md-skip">
+        <a href="#configuration-trust-and-privacy" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Concepts
+              Configuration, trust, and privacy
             
           </span>
         </div>
@@ -289,9 +291,11 @@
   
   
   
+    
   
-    <li class="md-tabs__item">
-      <a href="../configuration/" class="md-tabs__link">
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
         
   
   
@@ -346,11 +350,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../concepts/" class="md-tabs__link">
         
   
   
@@ -499,10 +501,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration, trust, and privacy
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -518,6 +547,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#capability-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-values-and-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime values and secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tls-trust" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TLS trust
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-and-data-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Privacy and data governance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -580,37 +684,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Concepts
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../concepts/" class="md-nav__link">
         
   
   
@@ -626,59 +703,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#project-specific-concepts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Project-Specific Concepts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cross-project-references-from-agent-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cross-Project References (from agent-utilities)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#synergy-with-agent-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Synergy with agent-utilities
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -710,10 +734,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#project-specific-concepts" class="md-nav__link">
+  <a href="#capability-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Project-Specific Concepts
+        Capability configuration
       
     </span>
   </a>
@@ -721,10 +745,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cross-project-references-from-agent-utilities" class="md-nav__link">
+  <a href="#runtime-values-and-secrets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cross-Project References (from agent-utilities)
+        Runtime values and secrets
       
     </span>
   </a>
@@ -732,10 +756,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#synergy-with-agent-utilities" class="md-nav__link">
+  <a href="#tls-trust" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Synergy with agent-utilities
+        TLS trust
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#privacy-and-data-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Privacy and data governance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment verification
       
     </span>
   </a>
@@ -762,224 +808,70 @@
   
 
 
-<h1 id="concept-registry-servicenow-api">Concept Registry — servicenow-api<a class="headerlink" href="#concept-registry-servicenow-api" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p><strong>Prefix</strong>: <code>CONCEPT:SNOW-*</code>
-<strong>Version</strong>: 1.19.0
-<strong>Bridge</strong>: <a href="https://github.com/Knuckles-Team/agent-utilities/blob/main/docs/concepts.md"><code>CONCEPT:AU-ECO.messaging.native-backend-abstraction</code></a> (Unified Toolkit Ingestion)</p>
-</blockquote>
-<hr />
-<h2 id="project-specific-concepts">Project-Specific Concepts<a class="headerlink" href="#project-specific-concepts" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Concept ID</th>
-<th>Name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow</code></td>
-<td>Account Operations</td>
-<td>MCP tool domain <code>account</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-2</code></td>
-<td>Activity Subscriptions Operations</td>
-<td>MCP tool domain <code>activity_subscriptions</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-3</code></td>
-<td>Aggregate Operations</td>
-<td>MCP tool domain <code>aggregate</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-4</code></td>
-<td>Application Operations</td>
-<td>MCP tool domain <code>application</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-5</code></td>
-<td>Attachment Operations</td>
-<td>MCP tool domain <code>attachment</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-6</code></td>
-<td>Authentication &amp; Session Management</td>
-<td>MCP tool domain <code>auth</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-7</code></td>
-<td>Batch Operations</td>
-<td>MCP tool domain <code>batch</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-8</code></td>
-<td>Change Management Operations</td>
-<td>MCP tool domain <code>change_management</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-9</code></td>
-<td>Cicd Operations</td>
-<td>MCP tool domain <code>cicd</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-10</code></td>
-<td>Cilifecycle Operations</td>
-<td>MCP tool domain <code>cilifecycle</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-11</code></td>
-<td>Configuration Management DB</td>
-<td>MCP tool domain <code>cmdb</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-12</code></td>
-<td>Custom Api Operations</td>
-<td>MCP tool domain <code>custom_api</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-13</code></td>
-<td>Data Classification Operations</td>
-<td>MCP tool domain <code>data_classification</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-14</code></td>
-<td>Devops Operations</td>
-<td>MCP tool domain <code>devops</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-15</code></td>
-<td>Email Operations</td>
-<td>MCP tool domain <code>email</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-16</code></td>
-<td>Flows Operations</td>
-<td>MCP tool domain <code>flows</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-17</code></td>
-<td>Hr Operations</td>
-<td>MCP tool domain <code>hr</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-18</code></td>
-<td>Import Sets Operations</td>
-<td>MCP tool domain <code>import_sets</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-19</code></td>
-<td>Incident Management</td>
-<td>MCP tool domain <code>incidents</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-20</code></td>
-<td>Knowledge Management Operations</td>
-<td>MCP tool domain <code>knowledge_management</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-21</code></td>
-<td>Metricbase Operations</td>
-<td>MCP tool domain <code>metricbase</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-22</code></td>
-<td>Misc Operations</td>
-<td>MCP tool domain <code>misc</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-23</code></td>
-<td>Plugins Operations</td>
-<td>MCP tool domain <code>plugins</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-24</code></td>
-<td>Ppm Operations</td>
-<td>MCP tool domain <code>ppm</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-25</code></td>
-<td>Product Inventory Operations</td>
-<td>MCP tool domain <code>product_inventory</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-26</code></td>
-<td>Service Qualification Operations</td>
-<td>MCP tool domain <code>service_qualification</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-27</code></td>
-<td>Source Control Operations</td>
-<td>MCP tool domain <code>source_control</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-28</code></td>
-<td>Table Api Operations</td>
-<td>MCP tool domain <code>table_api</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-29</code></td>
-<td>Testing Operations</td>
-<td>MCP tool domain <code>testing</code> — Action-routed dynamic tool registration</td>
-</tr>
-<tr>
-<td><code>CONCEPT:SN-OS.governance.snow-30</code></td>
-<td>Update Sets Operations</td>
-<td>MCP tool domain <code>update_sets</code> — Action-routed dynamic tool registration</td>
-</tr>
-</tbody>
-</table>
-<h2 id="cross-project-references-from-agent-utilities">Cross-Project References (from agent-utilities)<a class="headerlink" href="#cross-project-references-from-agent-utilities" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Concept ID</th>
-<th>Name</th>
-<th>Origin</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>CONCEPT:AU-ECO.messaging.native-backend-abstraction</code></td>
-<td>Unified Toolkit Ingestion</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-ORCH.adapter.hot-cache-invalidation</code></td>
-<td>Confidence-Gated Router</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-OS.config.secrets-authentication</code></td>
-<td>Prompt Injection Defense</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-OS.state.cognitive-scheduler-preemption</code></td>
-<td>Cognitive Scheduler</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-OS.governance.reactive-multi-axis-budget</code></td>
-<td>Guardrail Engine</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-OS.governance.wasm-micro-agent-sandbox</code></td>
-<td>Audit Logging</td>
-<td>agent-utilities</td>
-</tr>
-<tr>
-<td><code>CONCEPT:AU-KG.query.object-graph-mapper</code></td>
-<td>Knowledge Graph Core</td>
-<td>agent-utilities</td>
-</tr>
-</tbody>
-</table>
-<h2 id="synergy-with-agent-utilities">Synergy with agent-utilities<a class="headerlink" href="#synergy-with-agent-utilities" title="Permanent link">&para;</a></h2>
-<p>This project integrates with <code>agent-utilities</code> via <code>CONCEPT:AU-ECO.messaging.native-backend-abstraction</code> (Unified Toolkit Ingestion). The <code>servicenow_api</code> MCP server registers its tools with the agent-utilities FastMCP middleware, enabling automatic discovery, telemetry, and Knowledge Graph ingestion of all SNOW-* concepts.</p>
+<h1 id="configuration-trust-and-privacy">Configuration, trust, and privacy<a class="headerlink" href="#configuration-trust-and-privacy" title="Permanent link">&para;</a></h1>
+<p>This page is the operator contract for <code>servicenow-api</code>. Package-specific endpoint,
+authentication, tool-toggle, and model settings remain documented in the
+repository README and the installed command's <code>--help</code> output. Runtime values
+must be injected by the launcher; they do not belong in source, packaged skill
+content, traces, or generated reports.</p>
+<h2 id="capability-configuration">Capability configuration<a class="headerlink" href="#capability-configuration" title="Permanent link">&para;</a></h2>
+<p>The current capability surface is defined by three versioned artifacts:</p>
+<ul>
+<li>the action-routed MCP tools described in the README and <code>docs/usage.md</code>;</li>
+<li>the compact canonical skill plus any specialist <code>WORKFLOW.md</code> procedures;</li>
+<li><code>connector_manifest.yml</code> and its ontology, mappings, shapes, fixtures,
+  migrations, tool-schema fingerprints, and certification metadata.</li>
+</ul>
+<p>Treat those artifacts as a unit during release and deployment. Do not enable a
+skill whose certification or tool-schema fingerprint does not match the
+installed package. Use the compact/intent-oriented tool surface for delegated
+agents; expose verbose per-operation tools only for compatibility or debugging.</p>
+<h2 id="runtime-values-and-secrets">Runtime values and secrets<a class="headerlink" href="#runtime-values-and-secrets" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Supply service endpoints, tenant identifiers, credentials, and model keys
+  through environment variables or a mounted secret provider.</li>
+<li>Use non-personal agent aliases and opaque tenant/correlation identifiers.</li>
+<li>Keep developer directories, workstation names, and deployment hostnames out
+  of checked-in configuration.</li>
+<li>Bind network transports to an explicitly chosen interface and require the
+  deployment's MCP authentication policy before accepting remote traffic.</li>
+<li>Enable optional agent, embedding, evolution, or observability features only
+  when their dependencies and backends are configured and healthy.</li>
+</ul>
+<p>The checked-in examples use <code>localhost</code> for loopback-only development and
+<code>example.invalid</code> for replaceable network endpoints. Neither value is a
+production default.</p>
+<h2 id="tls-trust">TLS trust<a class="headerlink" href="#tls-trust" title="Permanent link">&para;</a></h2>
+<p>Certificate verification is required. For a private certificate authority,
+mount a PEM bundle containing the required intermediate and root certificates,
+then configure the client environment with <code>SSL_CERT_FILE</code> and, for
+Requests-compatible clients, <code>REQUESTS_CA_BUNDLE</code>. When <code>uvx</code> must use the
+native platform trust store while resolving packages, set <code>UV_NATIVE_TLS=true</code>.</p>
+<p>Do not disable verification to work around an incomplete server chain. Keep CA
+bundle locations environment-configured and stable for the runtime; never embed
+a workstation path or certificate material in MCP configuration.</p>
+<h2 id="privacy-and-data-governance">Privacy and data governance<a class="headerlink" href="#privacy-and-data-governance" title="Permanent link">&para;</a></h2>
+<p>The default observability posture is metadata-only. Do not persist prompts,
+message bodies, tool inputs/results, document content, raw traces, credentials,
+local paths, hostnames, or personal identity unless an approved data contract
+explicitly requires it. Keep Langfuse or OTLP content capture disabled unless a
+reviewed retention and access policy authorizes it.</p>
+<p>When connector ingestion is enabled, each change must carry tenant, ACL,
+classification, retention, provenance, and checkpoint/delta metadata. Reject or
+quarantine records that cannot satisfy that contract; never silently widen a
+tenant scope. Logs and reports should contain counts, status, and opaque
+references only.</p>
+<h2 id="deployment-verification">Deployment verification<a class="headerlink" href="#deployment-verification" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Validate the capability bundle and skill metadata against the installed tool
+   schemas.</li>
+<li>Confirm required secrets are present without printing their values.</li>
+<li>Verify the complete TLS chain with certificate verification enabled.</li>
+<li>Exercise health/readiness and one least-privilege read operation.</li>
+<li>Confirm traces arrive under the expected opaque tenant/run identifiers and
+   contain no captured content.</li>
+<li>Record only sanitized pass/fail evidence and version identifiers.</li>
+</ol>
 
 
 
@@ -1017,7 +909,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../usage/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Usage (API / CLI / MCP)">
+          <a href="../installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1027,11 +919,27 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Usage (API / CLI / MCP)
+                Installation
               </div>
             </div>
           </a>
         
+        
+          
+          <a href="../deployment/" class="md-footer__link md-footer__link--next" aria-label="Next: Deployment">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Deployment
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
         
       </nav>
     
