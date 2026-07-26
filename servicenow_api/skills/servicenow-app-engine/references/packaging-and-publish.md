@@ -23,8 +23,11 @@ Preferred for versioned, code-first apps.
    ```
 4. **Roll back** a bad release (action `app_repo_rollback`):
    ```json
-   {"name":"x_acme_asset","version":"1.0.0"}
+   {"scope":"x_acme_asset","version":"1.0.0"}
    ```
+   `app_repo_rollback` requires `version` **and** one of `sys_id`/`scope` — `name` is not
+   a recognized key and is silently dropped, so a call built with `name` instead of
+   `scope`/`sys_id` always raises `MissingParameterError`.
 5. **Poll** any async job (action `progress`):
    ```json
    {"progress_id":"<returned_progress_sys_id>"}

@@ -377,7 +377,7 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
         try:
             cmdb = CMDBModel(**kwargs)
             response = self._session.get(
-                url=f"{self.url}/cmdb/meta/{cmdb.cmdb_id}",
+                url=f"{self.url}/now/cmdb/meta/{cmdb.cmdb_id}",
                 headers=self.headers,
             )
             response.raise_for_status()

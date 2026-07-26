@@ -987,7 +987,6 @@ class ServiceNowApiSystem(ServiceNowApiBase):
                     f.write(markdown_content)
 
                 logger.info("ServiceNow flow report saved")
-                file_path = filename
                 summary = f"✅ Report saved ({len(all_metadata)} flows documented)"
             else:
                 summary = f"✅ Markdown generated ({len(all_metadata)} flows) — copy the content below"

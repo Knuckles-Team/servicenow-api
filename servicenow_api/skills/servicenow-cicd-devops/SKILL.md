@@ -83,16 +83,25 @@ returns a `progress_id` / rollback link; feed it back to `progress`):
 ```json
 {"progress_id":"<progress_id_from_install>"}
 ```
-Create → preview → commit an update set (each step chains the returned sys_id):
+Create → retrieve on the target → preview → commit an update set (the id's key name
+changes at each hop — `update_set_create` returns a local sys_id, `update_set_retrieve`
+returns a *different* `remote_update_set_id` for the retrieved copy):
 ```json
-{"name":"promote-x_myco_app","description":"Release 1.4.0"}
+{"update_set_name":"promote-x_myco_app v1.4.0","scope":"x_myco_app","description":"Release 1.4.0"}
 ```
+(`update_set_create`, on the source instance) →
 ```json
-{"update_set_sys_id":"<sys_id_from_create>"}
+{"update_set_id":"<sys_id_from_create>","update_source_instance_id":"<source_instance_id>"}
 ```
+(`update_set_retrieve`, on the target instance) →
 ```json
-{"update_set_sys_id":"<sys_id_from_create>"}
+{"remote_update_set_id":"<remote_update_set_id_from_retrieve>"}
 ```
+(`update_set_preview` — always preview before commit) →
+```json
+{"remote_update_set_id":"<remote_update_set_id_from_retrieve>"}
+```
+(`update_set_commit`)
 Run an ATF suite by sys_id (`run_test_suite`):
 ```json
 {"test_suite_sys_id":"<suite_sys_id>","os_name":"linux","browser_name":"chrome"}
@@ -110,5 +119,9 @@ Run an ATF suite by sys_id (`run_test_suite`):
 - ATF suites require the Automated Test Framework to be enabled and a runner
   available on the instance; a missing runner leaves the run pending, not failed.
 - Verify exact key names in `references/actions-catalog.md` before a mutating call —
-  DevOps/update-set actions differ subtly (`sys_id` vs `update_set_sys_id` vs
-  `progress_id`).
+  update-set actions use `update_set_id`/`remote_update_set_id`/`progress_id`
+  depending on the step (there is no `update_set_sys_id` key), and every
+  `servicenow_devops` action uses **camelCase** keys (`toolId`, `orchestrationTaskName`,
+  …), not the snake_case keys the rest of this tool group uses — a wrong key name is
+  silently dropped rather than rejected, so the failure is a confusing
+  `MissingParameterError`, not a clear "unknown parameter".

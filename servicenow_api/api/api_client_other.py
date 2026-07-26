@@ -393,7 +393,7 @@ class ServiceNowApiOther(ServiceNowApiBase):
         try:
             application = ApplicationServiceModel(**kwargs)
             response = self._session.get(
-                url=f"{self.url}/cmdb/app_service/{application.application_id}/getContent",
+                url=f"{self.url}/now/cmdb/app_service/{application.application_id}/getContent",
                 params=application.api_parameters,
                 headers=self.headers,
             )
@@ -958,10 +958,11 @@ class ServiceNowApiOther(ServiceNowApiBase):
 
     def get_data_classification(self, **kwargs) -> Response:
         try:
-            dc = DataClassificationModel(**kwargs)
-            url = f"{self.url}/now/data_classification/classification"
-            if dc.sys_id:
-                url = f"{url}/{dc.sys_id}"
+            DataClassificationModel(**kwargs)
+            # The Data Classification scoped API has no `.../classification` or
+            # `.../classification/{sys_id}` resource — the read operation it exposes
+            # is the flat `getAllDataClasses` list (confirmed live against dev437308).
+            url = f"{self.url}/now/data_classification/getAllDataClasses"
 
             response = self._session.get(
                 url=url,
@@ -1087,8 +1088,16 @@ class ServiceNowApiOther(ServiceNowApiBase):
     def get_activity_subscriptions(self, **kwargs) -> Response:
         try:
             sub = ActivitySubscriptionModel(**kwargs)
+            # The scripted "ActivitySubscriptions" API (service_id=actsub) is rooted at
+            # /now/v1/actsub, not /now/ui/activity_subscription (confirmed live against
+            # dev437308's sys_ws_definition/sys_ws_operation registry). A subscriber
+            # sys_id resolves one subscriber's subscriptions; otherwise list subobjects.
+            if sub.sys_id:
+                url = f"{self.url}/now/v1/actsub/subscriptions/{sub.sys_id}"
+            else:
+                url = f"{self.url}/now/v1/actsub/subobjects"
             response = self._session.get(
-                url=f"{self.url}/now/ui/activity_subscription",
+                url=url,
                 headers=self.headers,
                 params=sub.api_parameters,
             )
@@ -1123,7 +1132,10 @@ class ServiceNowApiOther(ServiceNowApiBase):
     def get_hr_profile(self, **kwargs) -> Response:
         try:
             hr = HRProfileModel(**kwargs)
-            url = f"{self.url}/now/hr/profile"
+            # HR Service Delivery's REST API is scoped under sn_hr_core
+            # (service_id=hr_rest_api), not /now/hr — confirmed live against
+            # dev437308's sys_ws_definition/sys_ws_operation registry.
+            url = f"{self.url}/sn_hr_core/hr_rest_api/profile"
             if hr.sys_id:
                 url = f"{url}/{hr.sys_id}"
 

@@ -28,29 +28,39 @@ Asynchronous. Install/scan actions return a progress/tracker id; poll `progress`
 
 ## `servicenow_devops` — DevOps change & schema
 Read-oriented gating and metadata; `register_devops_artifact` is the mutating one.
+**Gotcha**: unlike every other tool on this page, these eight actions bypass
+`CICDModel` entirely and read **camelCase** keys straight off `kwargs` (they call
+`sn_devops/...` endpoints directly) — do not use the snake_case keys from the
+`servicenow_cicd`/`servicenow_update_sets` tables above/below.
 
 | Action | Purpose | Common params_json keys |
 |--------|---------|-------------------------|
-| `check_devops_change_control` | Check whether change control is required/enabled | `tool_id`, `pipeline`, `stage` |
-| `register_devops_artifact` | Register a build artifact/package | `tool_id`, `artifacts`, `pipeline_name`, `stage_name`, `branch_name` |
-| `check_devops_step_mapping` | Verify a pipeline step is mapped | `tool_id`, `pipeline`, `stage` |
-| `get_devops_change_info` | Retrieve change info for a change request | `change_request_sys_id` |
-| `get_devops_code_schema` | Fetch the code-change payload schema | (none) |
-| `get_devops_onboarding_status` | Onboarding status for a DevOps tool | `tool_id` |
-| `get_devops_orchestration_schema` | Orchestration task payload schema | (none) |
-| `get_devops_plan_schema` | Planning payload schema | (none) |
+| `check_devops_change_control` | Check whether change control is required/enabled | `toolId` (req), `toolType` (default `"jenkins"`), `orchestrationTaskName`, `orchestrationTaskURL`, `testConnection` |
+| `register_devops_artifact` | Register a build artifact/package | `artifacts` (req, list), `orchestrationToolId`, `toolId`, `branchName`, `pipelineName`, `projectName`, `stageName`, `taskExecutionNumber` |
+| `check_devops_step_mapping` | Verify a pipeline step is mapped | `toolId`, `orchestrationTaskName`, `orchestrationTaskURL` (all req), `toolType`, `branchName`, `isMultiBranch`, `parentStageName`, `parentStageURL`, `testConnection` |
+| `get_devops_change_info` | Retrieve change info for an orchestration pipeline execution | `toolId`, `buildNumber` (both req), `stageName`, `pipelineName`, `projectName`, `branchName` |
+| `get_devops_code_schema` | Fetch the code-change payload schema | `resource` (req) |
+| `get_devops_onboarding_status` | Onboarding status for a DevOps tool | `id` (req) |
+| `get_devops_orchestration_schema` | Orchestration task payload schema | `resource` (req) |
+| `get_devops_plan_schema` | Planning payload schema | `resource` (req) |
 
 ## `servicenow_update_sets` — configuration promotion
-Chain the returned sys_id through the lifecycle. Always preview before commit.
+Chain the returned sys_id through the lifecycle — note the id's key name changes at
+each hop (`update_set_id` → `remote_update_set_id`). Always preview before commit.
 
 | Action | Purpose | Common params_json keys |
 |--------|---------|-------------------------|
-| `update_set_create` | Create a local update set | `name`, `description`, `application` |
-| `update_set_retrieve` | Retrieve a remote update set onto this instance | `update_set_sys_id`, `instance_id` |
-| `update_set_preview` | Preview a retrieved update set (collisions) | `update_set_sys_id` |
-| `update_set_commit` | Commit a previewed update set | `update_set_sys_id` |
-| `update_set_commit_multiple` | Commit a batch/hierarchy of update sets | `update_set_sys_ids` |
-| `update_set_back_out` | Back out a committed update set | `update_set_sys_id` |
+| `update_set_create` | Create a local update set | `update_set_name` (req), one of `sys_id`/`scope` (req), `description` |
+| `update_set_retrieve` | Retrieve a remote update set onto this instance | `update_set_id` (req), `update_source_id`, `update_source_instance_id`, `auto_preview`, `cleanup_retrieved` |
+| `update_set_preview` | Preview a retrieved update set (collisions) | `remote_update_set_id` (req) |
+| `update_set_commit` | Commit a previewed update set | `remote_update_set_id` (req), `force_commit` |
+| `update_set_commit_multiple` | Commit a batch/hierarchy of update sets | `remote_update_set_ids` (req, list), `force_commit` |
+| `update_set_back_out` | Back out a committed update set | `update_set_id` (req), `rollback_installs` |
+
+There is no `update_set_sys_id`/`update_set_sys_ids`/`name`/`instance_id`/`application`
+key anywhere in `CICDModel` — passing those (instead of the keys above) is silently
+dropped (not rejected), so the call fails with a confusing `MissingParameterError`
+that gives no hint the key name was simply wrong.
 
 ## `servicenow_source_control` — repo integration
 | Action | Purpose | Common params_json keys |
