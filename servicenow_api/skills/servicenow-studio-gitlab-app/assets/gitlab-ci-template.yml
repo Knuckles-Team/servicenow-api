@@ -1,0 +1,64 @@
+# .gitlab-ci.yml template for a ServiceNow scoped app (now-sdk / Fluent project).
+#
+# Four stages: build -> deploy -> promote -> verify. Each job `needs:` the
+# previous stage's job, so a failure anywhere stops the chain rather than
+# racing ahead. See ../references/path-b-gitlab-ci.md for the required CI/CD
+# variables (SN_INSTANCE_URL, SN_USERNAME, SN_PASSWORD, SN_APP_SYS_ID,
+# SN_APP_SCOPE) and how to tell a runner-assignment gap apart from an
+# unreachable-instance gap when jobs stay pending.
+
+stages:
+  - build
+  - deploy
+  - promote
+  - verify
+
+variables:
+  NODE_IMAGE: "node:20"
+
+build:
+  stage: build
+  image: $NODE_IMAGE
+  script:
+    - npm install --no-save @servicenow/sdk
+    - npx now-sdk build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+deploy_to_instance:
+  stage: deploy
+  image: $NODE_IMAGE
+  needs:
+    - build
+  script:
+    - npm install --no-save @servicenow/sdk
+    - npx now-sdk install --instance-url "$SN_INSTANCE_URL" --username "$SN_USERNAME" --password "$SN_PASSWORD"
+
+publish_to_app_repo:
+  stage: promote
+  image: curlimages/curl:8.9.1
+  needs:
+    - deploy_to_instance
+  script:
+    - >
+      curl --fail --silent --show-error
+      --user "$SN_USERNAME:$SN_PASSWORD"
+      --header "Content-Type: application/json"
+      --data "{\"sys_id\":\"$SN_APP_SYS_ID\",\"version\":\"$CI_COMMIT_SHORT_SHA\",\"dev_notes\":\"CI pipeline $CI_PIPELINE_ID\"}"
+      "$SN_INSTANCE_URL/api/sn_cicd/app_repo/publish"
+
+verify_app_record:
+  stage: verify
+  image: curlimages/curl:8.9.1
+  needs:
+    - publish_to_app_repo
+  script:
+    - >
+      curl --fail --silent --show-error
+      --user "$SN_USERNAME:$SN_PASSWORD"
+      --get
+      --data-urlencode "sysparm_query=scope=$SN_APP_SCOPE"
+      --data-urlencode "sysparm_limit=1"
+      "$SN_INSTANCE_URL/api/now/table/sys_app"

@@ -1110,8 +1110,8 @@ class TableModel(BaseModel):
 class FieldValue(BaseModel):
     model_config = ConfigDict(extra="allow")
     __hash__ = object.__hash__
-    value: str | int = Field(default=None, description="The value of the field.")
-    display_value: str = Field(
+    value: str | int | None = Field(default=None, description="The value of the field.")
+    display_value: str | None = Field(
         default=None, description="The display value of the field."
     )
     display_value_internal: str | None = Field(
