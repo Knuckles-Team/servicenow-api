@@ -354,6 +354,12 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
 
 from servicenow_api.api.api_client_base import ServiceNowApiBase
 
+# Applied to get_incidents() when the caller does not supply sysparm_limit, so an
+# unconstrained query cannot return an unbounded (and unexpectedly large) response.
+# The cap is disclosed via Response.truncated/applied_limit/next_offset rather than
+# applied silently.
+DEFAULT_INCIDENT_LIMIT = 50
+
 
 class ServiceNowApiIncident(ServiceNowApiBase):
     def get_incidents(self, **kwargs) -> Response:
@@ -368,7 +374,8 @@ class ServiceNowApiIncident(ServiceNowApiBase):
         :type sysparm_exclude_reference_link: bool
         :param sysparm_fields: Comma-separated list of field names to include in the response.
         :type sysparm_fields: str
-        :param sysparm_limit: Maximum number of records to return.
+        :param sysparm_limit: Maximum number of records to return. Defaults to
+            ``DEFAULT_INCIDENT_LIMIT`` when omitted; see ``Response.truncated``.
         :type sysparm_limit: int
         :param sysparm_no_count: Do not include the total number of records in the response.
         :type sysparm_no_count: bool
@@ -385,24 +392,57 @@ class ServiceNowApiIncident(ServiceNowApiBase):
         :param sysparm_view: Display style ('desktop', 'mobile', or 'both').
         :type sysparm_view: str
 
-        :return: Response containing list of parsed Pydantic models with information about the retrieved records.
+        :return: Response containing list of parsed Pydantic models with information about the
+            retrieved records, plus ``truncated``/``applied_limit``/``next_offset`` metadata
+            disclosing whether a default cap was applied and how to page past it.
         :rtype: Response
 
         :raises MissingParameterError: If table is not provided.
-        :raises ParameterError: If input parameters are invalid.
+        :raises ParameterError: If input parameters are invalid or an unknown argument is passed.
         """
         try:
             incident = IncidentModel(**kwargs)
+            params = dict(incident.api_parameters)
+            limit_was_explicit = "sysparm_limit" in params
+            if not limit_was_explicit:
+                params["sysparm_limit"] = DEFAULT_INCIDENT_LIMIT
+            applied_limit = int(params["sysparm_limit"])
+
             response = self._session.get(
                 url=f"{self.url}/now/table/incident",
-                params=incident.api_parameters,
+                params=params,
                 headers=self.headers,
             )
             response.raise_for_status()
             json_response = response.json()
             result_data = json_response.get("result", json_response)
             parsed_data = [Incident.model_validate(item) for item in result_data]
-            return Response(response=response, result=parsed_data)
+
+            total_header = (getattr(response, "headers", None) or {}).get(
+                "X-Total-Count"
+            )
+            total_available = (
+                int(total_header)
+                if total_header is not None and str(total_header).isdigit()
+                else None
+            )
+            if total_available is not None:
+                truncated = total_available > len(parsed_data)
+            else:
+                truncated = not limit_was_explicit and len(parsed_data) >= applied_limit
+
+            next_offset = None
+            if truncated:
+                current_offset = int(params.get("sysparm_offset") or 0)
+                next_offset = current_offset + len(parsed_data)
+
+            return Response(
+                response=response,
+                result=parsed_data,
+                truncated=truncated,
+                applied_limit=applied_limit,
+                next_offset=next_offset,
+            )
         except ValidationError as ve:
             print(
                 f"Invalid parameters or response data: {ve.errors()}", file=sys.stderr

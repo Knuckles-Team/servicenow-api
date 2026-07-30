@@ -8,12 +8,52 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    ValidationError,
     field_validator,
     model_validator,
 )
 
 
-class ApplicationServiceModel(BaseModel):
+class ServiceNowQueryModel(BaseModel):
+    """Base for ServiceNow request/query-parameter models.
+
+    These models describe the arguments a caller may pass to an API method
+    (e.g. ``sysparm_limit``, ``sysparm_query``) and are distinct from the
+    response/record models further below, which intentionally use
+    ``extra="allow"`` to capture whatever fields ServiceNow itself returns.
+
+    Unknown keyword arguments are rejected instead of being silently dropped:
+    without this, a caller who guesses a plausible-but-wrong argument name
+    (e.g. ``limit`` instead of ``sysparm_limit``) gets no error at all -- the
+    typo is dropped and the call runs unconstrained. Rejecting it here turns
+    that into an actionable error naming the bad argument and the valid ones.
+    """
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+
+    def __init__(self, **data: Any) -> None:
+        try:
+            super().__init__(**data)
+        except ValidationError as exc:
+            unknown = sorted(
+                {
+                    str(err["loc"][0])
+                    for err in exc.errors()
+                    if err["type"] == "extra_forbidden" and err["loc"]
+                }
+            )
+            if not unknown:
+                raise
+            valid = sorted(
+                name for name in self.__class__.model_fields if name != "api_parameters"
+            )
+            raise ParameterError(
+                f"Unknown argument(s) {unknown} for {self.__class__.__name__}. "
+                f"Valid arguments: {valid}"
+            ) from exc
+
+
+class ApplicationServiceModel(ServiceNowQueryModel):
     """
     Pydantic model representing an application service.
 
@@ -27,7 +67,6 @@ class ApplicationServiceModel(BaseModel):
     - ValueError: If 'application_id' is provided and not a string.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     application_id: str | None = None
     mode: str | None = None
     api_parameters: dict | None = Field(description="API Parameters", default=None)
@@ -83,7 +122,7 @@ class ApplicationServiceModel(BaseModel):
             self.api_parameters["mode"] = self.mode
 
 
-class CMDBModel(BaseModel):
+class CMDBModel(ServiceNowQueryModel):
     """
     Pydantic model representing a Configuration Management Database (CMDB) entry.
 
@@ -97,7 +136,6 @@ class CMDBModel(BaseModel):
     - ValueError: If 'cmdb_id' is provided and not a string.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     cmdb_id: str | None = None
 
     @field_validator("cmdb_id")
@@ -120,7 +158,7 @@ class CMDBModel(BaseModel):
         return v
 
 
-class CMDBInstanceModel(BaseModel):
+class CMDBInstanceModel(ServiceNowQueryModel):
     """
     Pydantic model representing a CMDB Instance operation.
 
@@ -139,7 +177,6 @@ class CMDBInstanceModel(BaseModel):
     - data (Dict): Payload data.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     className: str | None = None
     sys_id: str | None = None
     rel_sys_id: str | None = None
@@ -194,7 +231,7 @@ class CMDBInstanceModel(BaseModel):
             self.data = None
 
 
-class CMDBIngestModel(BaseModel):
+class CMDBIngestModel(ServiceNowQueryModel):
     """
     Pydantic model representing a CMDB Data Ingestion operation.
 
@@ -204,7 +241,6 @@ class CMDBIngestModel(BaseModel):
     - data (Dict): Payload data.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     data_source_sys_id: str | None = None
     records: list[dict] | None = None
     data: dict | None = None
@@ -232,7 +268,7 @@ class CMDBIngestModel(BaseModel):
             self.data["records"] = self.records
 
 
-class CICDModel(BaseModel):
+class CICDModel(ServiceNowQueryModel):
     """
     Pydantic model representing a Continuous Integration/Continuous Deployment (CICD) entity.
 
@@ -286,7 +322,6 @@ class CICDModel(BaseModel):
     """
 
     sys_id: str | None = None
-    model_config = ConfigDict(validate_assignment=True)
     result_id: str | None = None
     progress_id: str | None = None
     rollback_id: str | None = None
@@ -517,7 +552,7 @@ class CICDModel(BaseModel):
             self.api_parameters["description"] = self.description
 
 
-class ChangeManagementModel(BaseModel):
+class ChangeManagementModel(ServiceNowQueryModel):
     """
     Pydantic model representing a Change Management entity.
 
@@ -544,7 +579,6 @@ class ChangeManagementModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     change_request_sys_id: str | None = None
     change_request_task_sys_id: str | None = None
     state: str | None = None
@@ -716,7 +750,7 @@ class ChangeManagementModel(BaseModel):
             self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
-class ImportSetModel(BaseModel):
+class ImportSetModel(ServiceNowQueryModel):
     """
     Pydantic model representing an Import Set.
 
@@ -726,7 +760,6 @@ class ImportSetModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     table: str | None = None
     import_set_sys_id: str | None = None
     data: dict | None = None
@@ -751,7 +784,7 @@ class ImportSetModel(BaseModel):
         return v
 
 
-class IncidentModel(BaseModel):
+class IncidentModel(ServiceNowQueryModel):
     """
     Pydantic model representing an Incident.
 
@@ -760,7 +793,6 @@ class IncidentModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     incident_id: int | str = None
     name_value_pairs: str | None = None
     sysparm_display_value: str | bool | None = None
@@ -892,7 +924,7 @@ class IncidentModel(BaseModel):
             self.api_parameters["sysparm_offset"] = self.sysparm_offset
 
 
-class KnowledgeManagementModel(BaseModel):
+class KnowledgeManagementModel(ServiceNowQueryModel):
     """
     Pydantic model representing Knowledge Management.
 
@@ -912,7 +944,6 @@ class KnowledgeManagementModel(BaseModel):
     The class includes field_validator functions for specific attribute validations.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     article_sys_id: str | None = None
     attachment_sys_id: str | None = None
     sysparm_fields: str | None = None
@@ -949,7 +980,7 @@ class KnowledgeManagementModel(BaseModel):
             self.api_parameters["sysparm_update_view"] = self.sysparm_update_view
 
 
-class TableModel(BaseModel):
+class TableModel(ServiceNowQueryModel):
     """
     Pydantic model representing a Table.
 
@@ -1983,7 +2014,7 @@ class Incident(BaseModel):
     )
 
 
-class ProblemModel(BaseModel):
+class ProblemModel(ServiceNowQueryModel):
     """
     Pydantic model representing a Problem (Problem Management).
 
@@ -1995,7 +2026,6 @@ class ProblemModel(BaseModel):
     - data (Dict): Dictionary containing additional data.
     """
 
-    model_config = ConfigDict(validate_assignment=True)
     problem_id: int | str = None
     name_value_pairs: str | None = None
     sysparm_display_value: str | bool | None = None
@@ -3364,6 +3394,19 @@ class Response(BaseModel, Generic[T]):
     )
     result: T | list[T] | None = Field(
         default=None, description="The Pydantic models converted from the response"
+    )
+    truncated: bool = Field(
+        default=False,
+        description="True if no explicit sysparm_limit was given and a default "
+        "cap was applied, so additional matching records may not be included.",
+    )
+    applied_limit: int | None = Field(
+        default=None,
+        description="The sysparm_limit actually used for this request (explicit or default).",
+    )
+    next_offset: int | None = Field(
+        default=None,
+        description="sysparm_offset to pass on the next call to continue paging, when truncated.",
     )
 
 

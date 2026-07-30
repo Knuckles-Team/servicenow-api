@@ -246,5 +246,68 @@ def test_delete_incident_handles_empty_204(mock_session):
     assert response.result == {"status": "deleted"}
 
 
+# --- Regression coverage: get_incidents silent-typo / unbounded-response defect -----
+# A caller that guesses a plausible-but-wrong argument (e.g. "limit" instead of
+# "sysparm_limit") used to have it silently dropped, returning every matching record
+# with no error and no indication anything was ignored. See CONCEPT/AGENTS.md notes on
+# ServiceNowQueryModel (servicenow_models.py) and DEFAULT_INCIDENT_LIMIT
+# (api_client_incident.py).
+
+
+def test_get_incidents_rejects_unknown_argument(mock_session):
+    from agent_utilities.core.exceptions import ParameterError
+
+    client = Api(url="http://test.com", username="user", password="pass")
+
+    with pytest.raises(ParameterError) as exc_info:
+        client.get_incidents(limit=3)
+
+    message = str(exc_info.value)
+    assert "limit" in message
+    assert "sysparm_limit" in message
+
+
+def test_get_incidents_applies_default_limit_and_discloses_truncation(mock_session):
+    from servicenow_api.api.api_client_incident import DEFAULT_INCIDENT_LIMIT
+
+    client = Api(url="http://test.com", username="user", password="pass")
+
+    resp = MagicMock(spec=requests.Response)
+    resp.status_code = 200
+    resp.headers = {}
+    resp.json.return_value = {
+        "result": [{"sys_id": f"inc{i}"} for i in range(DEFAULT_INCIDENT_LIMIT)]
+    }
+    mock_session.get.return_value = resp
+
+    response = client.get_incidents()
+
+    called_params = mock_session.get.call_args.kwargs["params"]
+    assert called_params["sysparm_limit"] == DEFAULT_INCIDENT_LIMIT
+    assert response.applied_limit == DEFAULT_INCIDENT_LIMIT
+    assert response.truncated is True
+    assert response.next_offset == DEFAULT_INCIDENT_LIMIT
+    assert len(response.result) == DEFAULT_INCIDENT_LIMIT
+
+
+def test_get_incidents_honors_explicit_sysparm_limit(mock_session):
+    client = Api(url="http://test.com", username="user", password="pass")
+
+    resp = MagicMock(spec=requests.Response)
+    resp.status_code = 200
+    resp.headers = {}
+    resp.json.return_value = {"result": [{"sys_id": "inc1"}]}
+    mock_session.get.return_value = resp
+
+    response = client.get_incidents(sysparm_limit=5)
+
+    called_params = mock_session.get.call_args.kwargs["params"]
+    assert called_params["sysparm_limit"] == 5
+    assert response.applied_limit == 5
+    # An explicit limit was honored and fewer records came back than the limit, so
+    # this call is not disclosed as truncated.
+    assert response.truncated is False
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

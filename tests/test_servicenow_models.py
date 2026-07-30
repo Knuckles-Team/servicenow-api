@@ -1701,6 +1701,64 @@ def test_servicenow_incident_with_bool_param():
     assert incident.sysparm_no_count == "false"
 
 
+# --- Regression coverage: unknown/misspelled arguments must raise, not be dropped ---
+# Root cause: IncidentModel (and sibling request/query models) previously had no
+# `extra=` config, so pydantic's default `extra="ignore"` silently dropped a typo'd
+# keyword argument (e.g. "limit" instead of "sysparm_limit") instead of raising. Fixed
+# via the shared `ServiceNowQueryModel` base (extra="forbid" + a clear error message).
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_incidentmodel_rejects_unknown_argument():
+    from agent_utilities.core.exceptions import ParameterError
+
+    with pytest.raises(ParameterError) as exc_info:
+        IncidentModel(limit=3)
+
+    message = str(exc_info.value)
+    assert "limit" in message
+    assert "sysparm_limit" in message
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_tablemodel_rejects_unknown_argument():
+    """TableModel had no model_config at all -- same silent-drop defect as
+    IncidentModel, confirming the fix's blast radius is not incident-specific."""
+    from agent_utilities.core.exceptions import ParameterError
+
+    with pytest.raises(ParameterError) as exc_info:
+        TableModel(table="incident", fields="number")
+
+    message = str(exc_info.value)
+    assert "fields" in message
+    assert "sysparm_fields" in message
+
+
+@pytest.mark.skipif(
+    sys.platform in ["darwin"] or skip,
+    reason=reason,
+)
+def test_incident_response_model_custom_fields_still_allowed():
+    """The response/record models (as opposed to the request models above)
+    intentionally keep extra="allow" so ServiceNow's dynamic fields still parse.
+    This must be unaffected by the ServiceNowQueryModel validation fix."""
+    from servicenow_api.servicenow_models import Incident
+
+    incident = Incident(
+        sys_id="inc123",
+        custom_fields={"u_custom_field": "value"},
+        u_some_unmodeled_field="still allowed",
+    )
+    assert incident.custom_fields == {"u_custom_field": "value"}
+    assert incident.model_extra.get("u_some_unmodeled_field") == "still allowed"
+
+
 if __name__ == "__main__":
     test_servicenow_article()
     test_servicenow_change()
