@@ -44,6 +44,7 @@
         "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
         "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
+        "SERVICENOW_USERNAME": "your_servicenow_username_here",
         "SERVICENOW_TLS_PROFILE": "system",
         "SERVICE_QUALIFICATIONTOOL": "True",
         "SOURCE_CONTROLTOOL": "True",
