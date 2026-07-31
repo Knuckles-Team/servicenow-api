@@ -2969,7 +2969,7 @@ class DevOpsArtifactRegistrationRequest(BaseModel):
 
 
 class EmailModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     to: str | list[str] | None = Field(
         default=None, description="Recipient email addresses."
     )
@@ -2980,7 +2980,7 @@ class EmailModel(BaseModel):
 
 
 class DataClassificationModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     table_name: str | None = Field(default=None, description="Table name.")
     column_name: str | None = Field(default=None, description="Column name.")
     classification: str | None = Field(
@@ -2992,7 +2992,7 @@ class DataClassificationModel(BaseModel):
 
 
 class AttachmentModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     table_name: str | None = Field(
         default=None, description="Table name associated with the attachment."
     )
@@ -3013,7 +3013,7 @@ class AttachmentModel(BaseModel):
 
 
 class AggregateModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     table_name: str = Field(description="Table name to aggregate on.")
     query: str | None = Field(default=None, description="Encoded query string.")
     groupby: str | None = Field(default=None, description="Field to group by.")
@@ -3033,7 +3033,7 @@ class AggregateModel(BaseModel):
 
 
 class ActivitySubscriptionModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     sys_id: str | None = Field(
         default=None, description="Activity Subscription Sys ID."
     )
@@ -3092,20 +3092,20 @@ class ActivitySubscriptionModel(BaseModel):
 
 
 class AccountModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     sys_id: str | None = Field(default=None, description="Account Sys ID.")
     name: str | None = Field(default=None, description="Account name.")
     number: str | None = Field(default=None, description="Account number.")
 
 
 class HRProfileModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     sys_id: str | None = Field(default=None, description="HR Profile Sys ID.")
     user: str | None = Field(default=None, description="User Sys ID.")
 
 
 class MetricBaseTimeSeriesModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
     table_name: str | None = Field(default=None, description="Table name.")
     sys_id: str | None = Field(default=None, description="Record Sys ID.")
     metric_name: str | None = Field(default=None, description="Metric name.")
@@ -3447,7 +3447,7 @@ class FlowReportResult(BaseModel):
 class SdkCommandModel(BaseModel):
     """Fields common to every now-sdk subcommand wrapper."""
 
-    model_config = ConfigDict(extra="allow", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
     working_dir: str | None = Field(
         default=None,
         description="Directory to run now-sdk in (defaults to SDK_WORKDIR / "

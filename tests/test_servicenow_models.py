@@ -1759,6 +1759,60 @@ def test_incident_response_model_custom_fields_still_allowed():
     assert incident.model_extra.get("u_some_unmodeled_field") == "still allowed"
 
 
+# --- D-01: 9 more request models had the same silent-unknown-kwarg-drop defect -----
+# (EmailModel, AttachmentModel, AggregateModel, DataClassificationModel, AccountModel,
+# HRProfileModel, MetricBaseTimeSeriesModel, ActivitySubscriptionModel, SdkCommandModel
+# and its 6 subclasses) -- all constructed directly from MCP tool kwargs, none of them
+# response/record models. Flipped extra="allow" -> extra="forbid" in place (they don't
+# inherit ServiceNowQueryModel, so the error is a plain pydantic ValidationError rather
+# than the wrapped ParameterError IncidentModel/TableModel get -- still names the bad
+# field, still refuses instead of silently dropping it).
+
+
+def test_emailmodel_rejects_unknown_argument():
+    from pydantic import ValidationError as PydanticValidationError
+
+    from servicenow_api.servicenow_models import EmailModel
+
+    with pytest.raises(PydanticValidationError) as exc_info:
+        EmailModel(subjet="typo'd field name")
+
+    assert "subjet" in str(exc_info.value)
+
+
+def test_aggregatemodel_rejects_unknown_argument():
+    from pydantic import ValidationError as PydanticValidationError
+
+    from servicenow_api.servicenow_models import AggregateModel
+
+    with pytest.raises(PydanticValidationError) as exc_info:
+        AggregateModel(table_name="incident", limit=5)
+
+    assert "limit" in str(exc_info.value)
+
+
+def test_metricbasetimeseriesmodel_rejects_unknown_argument():
+    from pydantic import ValidationError as PydanticValidationError
+
+    from servicenow_api.servicenow_models import MetricBaseTimeSeriesModel
+
+    with pytest.raises(PydanticValidationError) as exc_info:
+        MetricBaseTimeSeriesModel(table_name="cmdb_ci", vlaue=1.0)
+
+    assert "vlaue" in str(exc_info.value)
+
+
+def test_sdkcommandmodel_and_subclass_reject_unknown_argument():
+    from pydantic import ValidationError as PydanticValidationError
+
+    from servicenow_api.servicenow_models import SdkAuthModel, SdkCommandModel
+
+    with pytest.raises(PydanticValidationError):
+        SdkCommandModel(workin_dir="/tmp")  # noqa: S108 - test literal, not a real path use
+    with pytest.raises(PydanticValidationError):
+        SdkAuthModel(usrname="bob")
+
+
 if __name__ == "__main__":
     test_servicenow_article()
     test_servicenow_change()
