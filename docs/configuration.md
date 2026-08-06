@@ -72,3 +72,27 @@ references only.
 5. Confirm traces arrive under the expected opaque tenant/run identifiers and
    contain no captured content.
 6. Record only sanitized pass/fail evidence and version identifiers.
+
+## Staged ServiceNow validation campaign
+
+The signed provider/package identity is `servicenow-api`; the deployed MCP
+service identity is `servicenow-mcp`. Source-sync presets retain the signed
+provider identity, and `servicenow_api.connectors.resolve_mcp_server()` maps the
+deployed service identity to it at runtime. Unknown names fail closed.
+Run the offline contract first with `python -c "from servicenow_api.validation_campaign import build_campaign; print(build_campaign()['status'])"`.
+It neither loads credentials nor contacts ServiceNow.
+
+The campaign is ordered and fail-closed:
+
+1. Validate the signed provider bundle, tenant/ACL/provenance contract, every
+   packaged skill, and both condensed and verbose MCP catalogs.
+2. An operator verifies secret references (not values), TLS, MCP authentication,
+   and performs one bounded least-privilege read.
+3. Run bounded `source_sync` and repeat it to confirm the no-change path.
+4. Review `graph_writeback` only with `dry_run=true`.
+5. Any live mutation is a separately approved, reversible change; keep
+   `SERVICENOW_ENABLE_WRITE` unset until that approval.
+
+Materialization requires opaque `SERVICENOW_TENANT_REF` and
+`SERVICENOW_ACL_REF` runtime references. Missing or unresolved tenant/ACL data
+is a hard stop, never a fallback to a shared tenant.
