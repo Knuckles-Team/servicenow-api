@@ -1,7 +1,7 @@
 {
   "_comment": "Tier-1 mcp_tool source presets for servicenow-api (AU-KG.ingest.mcp-tool-connector). Syncs ServiceNow ITSM records into the KG via the servicenow-api MCP server. Contributed presets win over the central MCP_TOOL_PRESETS. Native typed-node ingestion lives in servicenow_api.kg_ingest (servicenow_ingest_incidents).",
   "servicenow-incidents": {
-    "server": "servicenow-api",
+    "server": "servicenow-mcp",
     "tool": "servicenow_incidents",
     "action": "get_incidents",
     "records_path": "result",
@@ -16,7 +16,7 @@
     "doc_type": "incident"
   },
   "servicenow-knowledge": {
-    "server": "servicenow-api",
+    "server": "servicenow-mcp",
     "tool": "servicenow_knowledge_management",
     "action": "get_knowledge_articles",
     "records_path": "result",

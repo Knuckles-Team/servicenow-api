@@ -1,15 +1,26 @@
 {
   "name": "servicenow-api-agent",
   "type": "agent",
-  "version": "0.1.0",
-  "description": "Agent package for servicenow-api",
-  "url": "https://github.com/user/servicenow-api/tree/main",
+  "version": "2.1.0",
+  "description": "Python ServiceNow API Wrapper",
+  "url": "https://github.com/Knuckles-Team/servicenow-api/tree/main",
   "license": "MIT",
   "capabilities": [
     {
       "id": "run_graph_flow",
       "name": "Graph Flow Execution",
       "description": "Execute a workflow through the agent's graph orchestration engine"
+    },
+    {
+      "id": "epistemic-answer",
+      "name": "Epistemic Answer",
+      "description": "Answers epistemic_status/why/what_changed queries over the shared knowledge graph: calibrated confidence, evidence/source citations, belief justification trees, bitemporal valid/tx history, and policy-redaction-aware provenance.",
+      "tags": [
+        "epistemic",
+        "provenance",
+        "confidence",
+        "kg"
+      ]
     }
   ],
   "tools": [

@@ -84,6 +84,12 @@ repos:
     language: system
     files: \.md$
     pass_filenames: true
+  - id: lane-guard
+    name: Lane guard — canonical checkout read-only + stray CARGO_TARGET_DIR (D-CP-3/D-CP-4 reach)
+    entry: bash -c 'repo=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)"); root=${AGENT_UTILITIES_ROOT:-"$(dirname "$repo")/agent-utilities"}; python3 "$root/scripts/check_lane_guard.py"'
+    language: system
+    pass_filenames: false
+    always_run: true
   - id: check-stubs
     name: Check for Active Stubs and TODOs
     entry: bash -c 'repo=$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)"); root=${AGENT_UTILITIES_ROOT:-"$(dirname "$repo")/agent-utilities"}; python3 "$root/scripts/check_stubs.py" "$@"' --
