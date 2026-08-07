@@ -3,7 +3,7 @@ connector: servicenow-api
 ontology_source: servicenow
 sync:
 - preset: servicenow-incidents
-  server: servicenow-api
+  server: servicenow-mcp
   tool: servicenow_incidents
   action: get_incidents
   records_path: result
@@ -14,7 +14,7 @@ sync:
   doc_type: incident
   tool_schema_sha256: 7842a48ec7ce91284a36b04dc8312156ac5bcf955d1326972bdc60ee88ceb806
 - preset: servicenow-knowledge
-  server: servicenow-api
+  server: servicenow-mcp
   tool: servicenow_knowledge_management
   action: get_knowledge_articles
   records_path: result

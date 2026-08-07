@@ -23,6 +23,11 @@ resources:
   id_prefix: person
   relations: []
 actions:
+- id: epistemic-answer
+  name: Epistemic Answer
+  description: 'Answers epistemic_status/why/what_changed queries over the shared knowledge graph: calibrated
+    confidence, evidence/source citations, belief justification trees, bitemporal valid/tx history, and
+    policy-redaction-aware provenance.'
 - id: run_graph_flow
   name: Graph Flow Execution
   description: Execute a workflow through the agent's graph orchestration engine
@@ -88,7 +93,7 @@ schema_mappings:
       state: xsd:string
 sync:
 - preset: servicenow-incidents
-  server: servicenow-api
+  server: servicenow-mcp
   tool: servicenow_incidents
   action: get_incidents
   records_path: result
@@ -100,7 +105,7 @@ sync:
   doc_type: incident
   tool_schema_sha256: 7842a48ec7ce91284a36b04dc8312156ac5bcf955d1326972bdc60ee88ceb806
   raw:
-    server: servicenow-api
+    server: servicenow-mcp
     tool: servicenow_incidents
     action: get_incidents
     records_path: result
@@ -114,7 +119,7 @@ sync:
     page_size_param: sysparm_limit
     doc_type: incident
 - preset: servicenow-knowledge
-  server: servicenow-api
+  server: servicenow-mcp
   tool: servicenow_knowledge_management
   action: get_knowledge_articles
   records_path: result
@@ -126,7 +131,7 @@ sync:
   doc_type: knowledge_article
   tool_schema_sha256: fb9a09fbd50366f0bcd3c72a02e7983ea1697cec295db28ac0b0fa7c43483f2c
   raw:
-    server: servicenow-api
+    server: servicenow-mcp
     tool: servicenow_knowledge_management
     action: get_knowledge_articles
     records_path: result
@@ -141,7 +146,7 @@ sync:
     doc_type: knowledge_article
 provenance:
   generated_by: scripts/generate_connector_manifests.py
-  generated_at: '2026-07-18T00:00:00Z'
+  generated_at: '2026-07-31T04:00:00Z'
   source_artifacts:
   - a2a.json
   - servicenow_api/connectors/mcp_source_presets.json
@@ -153,8 +158,8 @@ provenance:
     triple_count: 34
   signer: ontology-manifest-generator
   signature_algorithm: ed25519
-  signing_public_key: q0Cp7bmQMqJhbofGKKw8xXC6KbFzukBDDke0UYVi8y4
-  signature: yRAx_EvFviAc5CV9z3v6Xu-nQBIX99Vuuv3knJss5vgWDqgUKxDjJrklfwNzJdaeqXHbY7v61OAXazMYlnr5Dw
+  signing_public_key: QkigdPNpcUU7x7NcSkwCsUXIQpaFncMQbYSoiSgI2SY
+  signature: TSAkqUrRa5PFzvmfHPBB39DWSRVM-U2r-4LHR-ArY2R3qnydUlulmKf7MCIZQ324wwg7Cx6VYYY-NcP-MzXWCA
 policy:
   pii_fields: {}
   tenant_boundary: null
