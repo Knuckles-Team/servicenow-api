@@ -14,8 +14,8 @@ permissions:
 
 jobs:
   publish-pages:
-    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@dc60f5ca0cfd00bf2e66f912a33d6d0f8ee62874 # v2.0.1
+    uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@main
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
