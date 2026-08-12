@@ -1,3 +1,6 @@
+# Without this, `pre-commit install` wires ONLY the pre-commit hook, so `git push`
+# runs nothing and every hook staged pre-push is silently dead code.
+default_install_hook_types: [pre-commit, pre-push]
 default_language_version:
   python: python3
 # Phase 0 dev-velocity contract (graph-os-completion-program): a hook with no
