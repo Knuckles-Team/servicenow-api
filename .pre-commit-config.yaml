@@ -1,5 +1,8 @@
 default_language_version:
   python: python3
+# Phase 0 dev-velocity contract (graph-os-completion-program): a hook with no
+# explicit `stages:` below is commit-only, never both.
+default_stages: [pre-commit]
 exclude: 'dotnet|node_modules'
 ci:
   autofix_prs: true
