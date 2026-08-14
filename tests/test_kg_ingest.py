@@ -9,8 +9,14 @@ CONCEPT:AU-KG.ingest.enterprise-source-extractor.
 
 from __future__ import annotations
 
+from typing import Any
+
+import msgpack
 import pytest
 from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+from agent_utilities.security.brain_context import ActorContext, use_actor
+from agent_utilities.models.company_brain import ActorType
+from agent_utilities.knowledge_graph.core.session import GraphSession, use_session
 
 from servicenow_api.kg_ingest import (
     ingest_attachment,
@@ -22,30 +28,92 @@ from servicenow_api.kg_ingest import (
 )
 
 
-class _FakeTxn:
-    def __init__(self):
-        self.nodes = {}
-        self.edges = []
-        self.committed = False
+@pytest.fixture(autouse=True)
+def _governed_session():
+    actor = ActorContext(
+        actor_id="subject:opaque:synthetic",
+        actor_type=ActorType.AUTOMATED_SERVICE,
+        roles=(),
+        tenant_id="tenant:opaque:synthetic",
+        authenticated=True,
+    )
+    session = GraphSession(
+        actor=actor,
+        tenant=actor.tenant_id,
+        scopes=frozenset({"kg:write"}),
+        graph="graph:opaque:synthetic",
+        policy_version="policy:opaque:synthetic",
+        audience="epistemic-graph",
+    )
+    with use_actor(actor), use_session(session):
+        yield
 
-    def begin(self, graph=None):
-        self.graph = graph
-        return "txn-1"
 
-    def add_node(self, txn, node_id, props):
-        self.nodes[node_id] = props
+class _FakeNodes:
+    def __init__(self) -> None:
+        self.values: dict[str, dict[str, Any]] = {}
 
-    def add_edge(self, txn, source, target, props):
-        self.edges.append((source, target, props))
+    def properties(self, node_id: str) -> dict[str, Any] | None:
+        return self.values.get(node_id)
 
-    def commit(self, txn):
-        self.committed = True
-        return True
+    def list(self) -> list[tuple[str, dict[str, Any]]]:
+        return list(self.values.items())
+
+
+class _FakeChanges:
+    def __init__(self, nodes: _FakeNodes) -> None:
+        self.nodes = nodes
+        self.edges: list[tuple[str, str, dict[str, Any]]] = []
+        self.applied: list[dict[str, Any]] = []
+        self.records: dict[str, dict[str, Any]] = {}
+        self.versions: dict[str, dict[str, Any]] = {}
+
+    def get(self, envelope_id: str) -> dict[str, Any] | None:
+        return self.records.get(envelope_id)
+
+    def content_version(self, object_id: str) -> dict[str, Any] | None:
+        return self.versions.get(object_id)
+
+    def cursor(self, _source: str, _partition: str = "") -> None:
+        return None
+
+    def apply(self, envelope: dict[str, Any]) -> dict[str, Any]:
+        self.applied.append(envelope)
+        mutation = envelope["mutation"]
+        for operation in mutation["operations"]:
+            method = operation["method"]
+            params = method["params"]
+            properties = msgpack.unpackb(params["properties_msgpack"], raw=False)
+            if method["method"] == "AddNode":
+                self.nodes.values[params["node_id"]] = properties
+            elif method["method"] == "AddEdge":
+                self.edges.append(
+                    (params["source_id"], params["target_id"], properties)
+                )
+        version = envelope["content_version"]
+        self.versions[version["object_id"]] = version
+        self.records[envelope["envelope_id"]] = envelope
+        return {
+            "batch_id": mutation["batch_id"],
+            "replayed": False,
+            "projection_pending": False,
+        }
+
+
+class _FakeRdf:
+    def validate_shacl(self, _shapes: str, _data_graph: str) -> dict[str, Any]:
+        return {"conforms": True, "results": []}
 
 
 class _FakeClient:
-    def __init__(self):
-        self.txn = _FakeTxn()
+    def __init__(self) -> None:
+        self.nodes = _FakeNodes()
+        self.changes = _FakeChanges(self.nodes)
+        self.rdf = _FakeRdf()
+
+    @staticmethod
+    def supports(operation: str) -> bool:
+        return operation == "ApplyChangeEnvelope"
 
 
 class _Stored:
@@ -71,15 +139,14 @@ def test_ingest_entities_writes_nodes_and_edges():
         ],
         [{"source": "a", "target": "b", "relationship": "affects"}],
         client=c,
-        graph="__commons__",
     )
     assert res == {"nodes": 2, "edges": 1}
-    assert c.txn.committed is True
-    assert set(c.txn.nodes) == {"a", "b"}
+    assert len(c.changes.applied) == 1
+    assert set(c.nodes.values) == {"a", "b"}
     # provenance is stamped
-    assert c.txn.nodes["a"]["source"] == "servicenow-api"
-    assert c.txn.nodes["a"]["domain"] == "servicenow"
-    assert c.txn.edges == [("a", "b", {"relationship": "affects"})]
+    assert c.nodes.values["a"]["source"] == "servicenow-api"
+    assert c.nodes.values["a"]["domain"] == "servicenow"
+    assert c.changes.edges == [("a", "b", {"relationship": "affects"})]
 
 
 def test_ingest_incidents_maps_incident_ci_and_person():
@@ -97,10 +164,9 @@ def test_ingest_incidents_maps_incident_ci_and_person():
             }
         ],
         client=c,
-        graph="__commons__",
     )
     assert res == {"nodes": 3, "edges": 2}
-    inc = c.txn.nodes["servicenow:incident:s1"]
+    inc = c.nodes.values["servicenow:incident:s1"]
     assert inc["node_type"] == "Incident"
     assert inc["number"] == "INC0010001"
     assert inc["shortDescription"] == "DB down"
@@ -108,19 +174,19 @@ def test_ingest_incidents_maps_incident_ci_and_person():
     assert inc["state"] == "In Progress"
     assert inc["priority"] == "1 - Critical"
     assert inc["externalToolId"] == "s1"
-    assert c.txn.nodes["servicenow:ci:ci9"]["node_type"] == "ConfigurationItem"
-    assert c.txn.nodes["servicenow:person:u7"]["node_type"] == "Person"
-    assert c.txn.nodes["servicenow:person:u7"]["name"] == "Ada Lovelace"
+    assert c.nodes.values["servicenow:ci:ci9"]["node_type"] == "ConfigurationItem"
+    assert c.nodes.values["servicenow:person:u7"]["node_type"] == "Person"
+    assert c.nodes.values["servicenow:person:u7"]["name"] == "Ada Lovelace"
     assert (
         "servicenow:incident:s1",
         "servicenow:ci:ci9",
         {"relationship": "affects"},
-    ) in c.txn.edges
+    ) in c.changes.edges
     assert (
         "servicenow:incident:s1",
         "servicenow:person:u7",
         {"relationship": "assignedTo"},
-    ) in c.txn.edges
+    ) in c.changes.edges
 
 
 def test_ingest_changes_maps_change():
@@ -137,14 +203,13 @@ def test_ingest_changes_maps_change():
             }
         ],
         client=c,
-        graph="__commons__",
     )
     assert res == {"nodes": 2, "edges": 1}
-    chg = c.txn.nodes["servicenow:change:c1"]
+    chg = c.nodes.values["servicenow:change:c1"]
     assert chg["node_type"] == "Change"
     assert chg["number"] == "CHG0005000"
     assert chg["risk"] == "Moderate"
-    assert c.txn.edges == [
+    assert c.changes.edges == [
         ("servicenow:change:c1", "servicenow:ci:ci9", {"relationship": "affects"})
     ]
 
@@ -161,10 +226,9 @@ def test_ingest_cmdb_maps_configuration_items():
             }
         ],
         client=c,
-        graph="__commons__",
     )
     assert res == {"nodes": 1, "edges": 0}
-    ci = c.txn.nodes["servicenow:ci:ci9"]
+    ci = c.nodes.values["servicenow:ci:ci9"]
     assert ci["node_type"] == "ConfigurationItem"
     assert ci["name"] == "prod-db-01"
     assert ci["sys_class_name"] == "cmdb_ci_db_mysql_instance"
@@ -184,14 +248,14 @@ def test_ingest_kb_articles_maps_documents():
             }
         ],
         client=c,
-        graph="__commons__",
     )
     assert res == {"nodes": 1, "edges": 0}
-    doc = c.txn.nodes["servicenow:kb:kb1"]
+    doc = c.nodes.values["servicenow:kb:kb1"]
     assert doc["node_type"] == "Document"
     assert doc["subtype"] == "KnowledgeArticle"
     assert doc["text"] == "Step 1: ..."
-    assert doc["source_uri"] == "https://sn/kb1"
+    # native_ingest's governed PII scrubber redacts uri-shaped values.
+    assert doc["source_uri"] == "[REDACTED_LOCATION]"
     assert doc["title"] == "How to reset a password"
 
 
