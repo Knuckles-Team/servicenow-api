@@ -47,6 +47,9 @@ servicenow-api = "servicenow_api.connectors"
 [project.entry-points."agent_utilities.ontology_providers"]
 servicenow-api = "servicenow_api.ontology"
 
+[tool.uv.workspace]
+members = ["."]
+
 [tool.setuptools]
 include-package-data = true
 
