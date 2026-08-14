@@ -87,7 +87,9 @@ def build_campaign(root: Path | None = None) -> dict[str, Any]:
         for path in (root / "servicenow_api/skills").iterdir()
         if path.is_dir() and (path / "SKILL.md").is_file()
     )
-    violations = source_preset_contract(root) + governance_contract(root) + skill_contract(root)
+    violations = (
+        source_preset_contract(root) + governance_contract(root) + skill_contract(root)
+    )
     return {
         "status": "ready" if not violations else "blocked",
         "provider": CANONICAL_PROVIDER,
@@ -103,7 +105,10 @@ def build_campaign(root: Path | None = None) -> dict[str, Any]:
         ],
         "required_runtime_references": list(REQUIRED_RUNTIME_REFS),
         "skills": skills,
-        "catalogs": {"condensed": "MCP_TOOL_MODE=intent", "verbose": "MCP_TOOL_MODE=verbose"},
+        "catalogs": {
+            "condensed": "MCP_TOOL_MODE=intent",
+            "verbose": "MCP_TOOL_MODE=verbose",
+        },
     }
 
 

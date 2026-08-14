@@ -1808,7 +1808,9 @@ def test_sdkcommandmodel_and_subclass_reject_unknown_argument():
     from servicenow_api.servicenow_models import SdkAuthModel, SdkCommandModel
 
     with pytest.raises(PydanticValidationError):
-        SdkCommandModel(workin_dir="/tmp")  # noqa: S108 - test literal, not a real path use
+        SdkCommandModel(
+            workin_dir="/tmp"
+        )  # noqa: S108 - test literal, not a real path use
     with pytest.raises(PydanticValidationError):
         SdkAuthModel(usrname="bob")
 
