@@ -70,6 +70,13 @@ repos:
   - id: nbqa-ruff
 - repo: local
   hooks:
+  - id: dependency-readiness
+    name: Dependency readiness — every declared intra-fleet constraint is installable
+    entry: bash -c 'uv run --with repository-manager python -m repository_manager.dependency_readiness .'
+    language: system
+    pass_filenames: false
+    always_run: true
+    stages: [manual, pre-push]
   - id: check-ontology-integrity
     name: check connector ontology manifest integrity (C5/X6, fail-closed)
     entry: |-
