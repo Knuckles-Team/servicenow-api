@@ -618,6 +618,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#staged-servicenow-validation-campaign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Staged ServiceNow validation campaign
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -788,6 +799,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#staged-servicenow-validation-campaign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Staged ServiceNow validation campaign
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -872,6 +894,27 @@ references only.</p>
    contain no captured content.</li>
 <li>Record only sanitized pass/fail evidence and version identifiers.</li>
 </ol>
+<h2 id="staged-servicenow-validation-campaign">Staged ServiceNow validation campaign<a class="headerlink" href="#staged-servicenow-validation-campaign" title="Permanent link">&para;</a></h2>
+<p>The signed provider/package identity is <code>servicenow-api</code>; the deployed MCP
+service identity is <code>servicenow-mcp</code>. Source-sync presets retain the signed
+provider identity, and <code>servicenow_api.connectors.resolve_mcp_server()</code> maps the
+deployed service identity to it at runtime. Unknown names fail closed.
+Run the offline contract first with <code>python -c "from servicenow_api.validation_campaign import build_campaign; print(build_campaign()['status'])"</code>.
+It neither loads credentials nor contacts ServiceNow.</p>
+<p>The campaign is ordered and fail-closed:</p>
+<ol>
+<li>Validate the signed provider bundle, tenant/ACL/provenance contract, every
+   packaged skill, and both condensed and verbose MCP catalogs.</li>
+<li>An operator verifies secret references (not values), TLS, MCP authentication,
+   and performs one bounded least-privilege read.</li>
+<li>Run bounded <code>source_sync</code> and repeat it to confirm the no-change path.</li>
+<li>Review <code>graph_writeback</code> only with <code>dry_run=true</code>.</li>
+<li>Any live mutation is a separately approved, reversible change; keep
+   <code>SERVICENOW_ENABLE_WRITE</code> unset until that approval.</li>
+</ol>
+<p>Materialization requires opaque <code>SERVICENOW_TENANT_REF</code> and
+<code>SERVICENOW_ACL_REF</code> runtime references. Missing or unresolved tenant/ACL data
+is a hard stop, never a fallback to a shared tenant.</p>
 
 
 
