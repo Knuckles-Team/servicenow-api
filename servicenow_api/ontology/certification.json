@@ -1,8 +1,7 @@
 {
   "api_version": "graphos.io/v1",
   "artifacts": {
-    "a2a.json": "2328bc0a15fd287e45666cac918443273ab01db8d6cb584f9a86d0803fb1fd47",
-    "connector_manifest.yml": "40b88933f647d8b9c4d97a942cbdf5d7f319630888ede5cc1883b894cd0ef9d9",
+    "connector_manifest.yml": "c02a7528cf1fe6c87e356b176300f6a166adf08a85be4ba73a60f044529aa4b1",
     "servicenow_api/connectors/mcp_source_presets.json": "1274be59d829b4dc59254e587750748def233277b40bf4702498aac5fdebc6f3",
     "servicenow_api/connectors/tool_schema_fingerprints.json": "e6b1f2a3a9de7a78478057a52e88df8106ced4f2386f27af2c67230ad755e887",
     "servicenow_api/ontology/fixtures/records.json": "76cc96b7e09bba4c9cc72cc07acbab4b528a56874250a01a88dd6134cffce43a",
@@ -19,19 +18,19 @@
     "synthetic_fixture_contract": "passed"
   },
   "compatibility": {
-    "agent_utilities": ">=2.1.0,<3",
+    "agent_utilities": ">=2.4.0,<3",
     "bundle_schema": "2",
-    "epistemic_graph": ">=2.23.0,<3"
+    "epistemic_graph": ">=2.26.0,<3"
   },
   "connector": "servicenow-api",
   "kind": "ConnectorSourceAttestation",
   "live_certified": false,
   "mode": "offline-source",
   "schema_version": "2",
-  "signature": "jErLbOk3v73wXGEknyk35CsjQzHrtnsTkq_QMdJrS_3HcOCB7oB_kmWKk_4qGfMKtf-P0VRd-BeRWFYfXB31BA",
-  "signature_algorithm": "ed25519",
-  "signer": "ontology-manifest-generator",
-  "signing_public_key": "QkigdPNpcUU7x7NcSkwCsUXIQpaFncMQbYSoiSgI2SY",
+  "signature": null,
+  "signature_algorithm": "none",
+  "signer": "UNSIGNED-PREVIEW",
+  "signing_public_key": "",
   "status": "source-validated",
-  "validated_at": "2026-07-31T04:00:00Z"
+  "validated_at": "2026-08-21T04:30:39Z"
 }
