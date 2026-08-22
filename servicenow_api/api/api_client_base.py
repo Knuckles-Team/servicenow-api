@@ -385,6 +385,37 @@ class ServiceNowApiBase:
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
             }
+        elif client_id and client_secret and grant_type == "client_credentials":
+            # OAuth 2.0 client credentials grant: the client authenticates as
+            # itself, so no username/password is required. Useful for
+            # integration accounts backed by an OAuth application registration.
+            self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            self.auth_data = {
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret,
+            }
+            encoded_data_str = urlencode(self.auth_data)
+            response = None
+            try:
+                response = self._session.post(
+                    url=self.auth_url,
+                    data=encoded_data_str,
+                    headers=self.auth_headers,
+                    timeout=30,
+                )
+                response = response.json()
+                self.token = response["access_token"]
+            except Exception as e:
+                print(
+                    f"Error Authenticating with OAuth: \n\n{type(e).__name__}\n\nResponse: {response}",
+                    file=sys.stderr,
+                )
+                raise e
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            }
         elif username and password and client_id and client_secret:
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {
