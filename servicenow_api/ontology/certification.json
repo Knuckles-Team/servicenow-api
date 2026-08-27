@@ -1,7 +1,7 @@
 {
   "api_version": "graphos.io/v1",
   "artifacts": {
-    "connector_manifest.yml": "c02a7528cf1fe6c87e356b176300f6a166adf08a85be4ba73a60f044529aa4b1",
+    "connector_manifest.yml": "2a3134f48fcd22ef6ceb38458419fa9be7372725b7eaadd7c0399f446b1d9425",
     "servicenow_api/connectors/mcp_source_presets.json": "1274be59d829b4dc59254e587750748def233277b40bf4702498aac5fdebc6f3",
     "servicenow_api/connectors/tool_schema_fingerprints.json": "e6b1f2a3a9de7a78478057a52e88df8106ced4f2386f27af2c67230ad755e887",
     "servicenow_api/ontology/fixtures/records.json": "76cc96b7e09bba4c9cc72cc07acbab4b528a56874250a01a88dd6134cffce43a",
@@ -18,9 +18,9 @@
     "synthetic_fixture_contract": "passed"
   },
   "compatibility": {
-    "agent_utilities": ">=2.4.0,<3",
+    "agent_utilities": ">=2.5.0,<3",
     "bundle_schema": "2",
-    "epistemic_graph": ">=2.26.0,<3"
+    "epistemic_graph": ">=2.27.0,<3"
   },
   "connector": "servicenow-api",
   "kind": "ConnectorSourceAttestation",
@@ -32,5 +32,5 @@
   "signer": "UNSIGNED-PREVIEW",
   "signing_public_key": "",
   "status": "source-validated",
-  "validated_at": "2026-08-21T04:30:39Z"
+  "validated_at": "2026-08-26T13:42:55Z"
 }
