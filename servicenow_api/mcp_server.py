@@ -1460,6 +1460,44 @@ def register_prompts(mcp: FastMCP):
         return f"Query the ServiceNow table '{table}' with sysparm_query: '{sysparm_query}' and sysparm_fields: '{sysparm_fields}'. Use the get_table tool with appropriate parameters."
 
 
+def _validate_openapi_token_credential() -> None:
+    """Validate an incoming Bearer token is present for token-mode OpenAPI import."""
+    token = getattr(local, "user_token", None)
+    if not token:
+        raise ValueError(
+            "OpenAPI import requires --openapi-use-token and a valid Bearer token in the request"
+        )
+    print("Using incoming JWT for OpenAPI import", file=sys.stderr)
+
+
+def _validate_openapi_password_or_client_credential(args) -> None:
+    """Validate a username+password or client_id+client_secret pair resolves."""
+    username = args.openapi_username or setting("OPENAPI_USERNAME")
+    password = args.openapi_password or setting("OPENAPI_PASSWORD")
+    client_id = args.openapi_client_id or setting("OPENAPI_CLIENT_ID")
+    client_secret = args.openapi_client_secret or setting("OPENAPI_CLIENT_SECRET")
+    has_password_credential = bool(username and password)
+    has_client_credential = bool(client_id and client_secret)
+    if not has_password_credential and not has_client_credential:
+        raise ValueError(
+            "OpenAPI import requires either --openapi-use-token or (username+password) or (client_id+client_secret)"
+        )
+
+
+def _validate_openapi_credentials(args) -> None:
+    """Validate OpenAPI import auth is configured for ``args``; raises if not.
+
+    Mirrors the pre-refactor inline branching in ``_load_openapi_tools``
+    exactly: token mode requires an incoming Bearer token, otherwise either a
+    username+password or a client_id+client_secret pair must resolve (from
+    the CLI args or the matching env/setting fallback).
+    """
+    if args.openapi_use_token:
+        _validate_openapi_token_credential()
+        return
+    _validate_openapi_password_or_client_credential(args)
+
+
 def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     """Initialize and return the MCP instance, args, and middlewares."""
     load_config()
@@ -1478,31 +1516,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
                 spec = json.load(f)
 
             async def _load_openapi_tools():
-                token = None
-                username = None
-                password = None
-                client_id = None
-                client_secret = None
-                if args.openapi_use_token:
-                    token = getattr(local, "user_token", None)
-                    if not token:
-                        raise ValueError(
-                            "OpenAPI import requires --openapi-use-token and a valid Bearer token in the request"
-                        )
-                    print("Using incoming JWT for OpenAPI import", file=sys.stderr)
-                else:
-                    username = args.openapi_username or setting("OPENAPI_USERNAME")
-                    password = args.openapi_password or setting("OPENAPI_PASSWORD")
-                    client_id = args.openapi_client_id or setting("OPENAPI_CLIENT_ID")
-                    client_secret = args.openapi_client_secret or setting(
-                        "OPENAPI_CLIENT_SECRET"
-                    )
-                    if not (username and password) and (
-                        not (client_id and client_secret)
-                    ):
-                        raise ValueError(
-                            "OpenAPI import requires either --openapi-use-token or (username+password) or (client_id+client_secret)"
-                        )
+                _validate_openapi_credentials(args)
                 api = get_client()
                 base_url = args.openapi_base_url or api.url
                 async with httpx.AsyncClient(
