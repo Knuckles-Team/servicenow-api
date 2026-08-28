@@ -691,7 +691,18 @@ def test_init_and_main_coverage():
     assert "Api" in dir(servicenow_api)
 
     # 2. Test __main__.py module entrypoint via runpy
-    with patch("servicenow_api.agent_server.agent_server") as mock_as:
+    # runpy.run_module(..., run_name="__main__") re-executes the module's
+    # own argparse against the LIVE sys.argv, so any pytest flag (e.g.
+    # `-p no:randomly`) leaks in and is rejected by the module's CLI
+    # parser. Pin argv to a clean single-element list for the duration of
+    # the run so the module under test sees the same argv regardless of how
+    # pytest was invoked. (agent_server is also mocked out here so this is
+    # belt-and-suspenders, not load-bearing for THIS test, but keeps the
+    # runpy call site safe if that mock is ever loosened.)
+    with (
+        patch("servicenow_api.agent_server.agent_server") as mock_as,
+        patch("sys.argv", ["servicenow-api"]),
+    ):
         runpy.run_module("servicenow_api.__main__", run_name="__main__")
         assert mock_as.called
 
