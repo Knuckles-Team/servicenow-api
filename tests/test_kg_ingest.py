@@ -13,10 +13,47 @@ from typing import Any
 
 import msgpack
 import pytest
-from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
-from agent_utilities.security.brain_context import ActorContext, use_actor
-from agent_utilities.models.company_brain import ActorType
+
+# `agent_utilities.knowledge_graph.memory` unconditionally imports
+# `agent_utilities.numeric` at module-load time, which in turn requires the
+# compiled `epistemic_graph.numeric` kernel. agent-utilities moved that
+# kernel out of its base dependency set into the opt-in `graphos` extra
+# (GOC-73); this repo depends only on plain `agent-utilities`, which does
+# not pull it in. Left unguarded, importing it here raises a bare
+# ModuleNotFoundError/ImportError chain that pytest reports as a COLLECTION
+# ERROR — which (a) reads exactly like a regression in THIS repo and
+# (b) aborts collection of the entire `tests/` suite, not just this file
+# (`pytest tests/ -q` reports "0 tests collected, 1 error" for the whole
+# run, which is why lanes have been passing `--ignore=tests/test_kg_ingest.py`
+# and silently losing coverage on both sides of every before/after
+# comparison). This is an ENVIRONMENT/packaging gap, not application-code
+# breakage — install `agent-utilities[graphos]>=2.27.0` to exercise these
+# tests. See plans/complex/waves/wD4/WD4-FIX-01.md defect (d). Turn it into
+# a clean, LOUD, explained skip of just this file instead.
+pytest.importorskip(
+    "agent_utilities.knowledge_graph.memory.native_ingest",
+    # pytest 9.1 changed importorskip()'s default `exc_type` from
+    # ImportError to ModuleNotFoundError (see the versionchanged note in
+    # pytest.importorskip's own docstring). agent_utilities.numeric
+    # deliberately re-raises a plain ImportError (not ModuleNotFoundError)
+    # with an explanatory message, so the new default silently fails to
+    # catch it and the "skip" degrades right back into the collection
+    # error this guard exists to prevent. Pin exc_type explicitly so the
+    # guard keeps working regardless of installed pytest version.
+    exc_type=ImportError,
+    reason=(
+        "agent_utilities.numeric requires the compiled epistemic_graph.numeric "
+        "kernel, shipped only behind agent-utilities' opt-in `graphos` extra "
+        "(GOC-73); not installed by this repo's `agent-utilities` dependency "
+        "— install `agent-utilities[graphos]>=2.27.0` to run KG-ingestion "
+        "tests (WD4-FIX-01 defect (d))"
+    ),
+)
+
 from agent_utilities.knowledge_graph.core.session import GraphSession, use_session
+from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+from agent_utilities.models.company_brain import ActorType
+from agent_utilities.security.brain_context import ActorContext, use_actor
 
 from servicenow_api.kg_ingest import (
     ingest_attachment,
