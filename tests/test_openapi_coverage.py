@@ -110,6 +110,84 @@ def test_openapi_successful_import(mock_openapi_spec):
                     assert tools[0] == mock_tool
 
 
+def test_openapi_import_uses_dedicated_credentials(mock_openapi_spec):
+    """WD5-FIX-03 regression pin.
+
+    The OpenAPI-import httpx client must authenticate with its OWN resolved
+    ``--openapi-username``/``--openapi-password`` credentials, not the main
+    ``get_client()``'s ``SERVICENOW_*`` ones. Before the fix, the resolved
+    ``openapi_*`` credentials were validated for presence only and the
+    outbound client was built solely from ``get_client()``'s unrelated
+    ``SERVICENOW_*``-derived headers -- the token/username/password/
+    client_id/client_secret branch gated a ``ValueError`` and had zero effect
+    on the request. This test drives the real ``_load_openapi_tools()``
+    coroutine body (``asyncio.run`` is NOT mocked, unlike
+    ``test_openapi_successful_import`` above) and pins the Basic-auth header
+    actually sent.
+    """
+    mock_args = MagicMock()
+    mock_args.openapi_file = mock_openapi_spec
+    mock_args.openapi_use_token = False
+    mock_args.openapi_username = "openapi_user"
+    mock_args.openapi_password = "openapi_pass"
+    mock_args.openapi_client_id = None
+    mock_args.openapi_client_secret = None
+    mock_args.openapi_base_url = None
+    mock_args.transport = "stdio"
+
+    captured = {}
+
+    class _FakeAsyncClient:
+        def __init__(self, *args, **kwargs):
+            captured["base_url"] = kwargs.get("base_url")
+            captured["headers"] = kwargs.get("headers")
+
+        async def __aenter__(self):
+            return MagicMock()
+
+        async def __aexit__(self, *exc_info):
+            return False
+
+    mock_openapi_mcp = MagicMock()
+
+    async def _fake_get_tools():
+        return []
+
+    async def _fake_get_resources():
+        return []
+
+    mock_openapi_mcp.get_tools = _fake_get_tools
+    mock_openapi_mcp.get_resources = _fake_get_resources
+
+    with patch(
+        "servicenow_api.mcp_server.create_mcp_server",
+        return_value=(mock_args, MagicMock(), []),
+    ):
+        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+            with patch("servicenow_api.mcp_server.httpx.AsyncClient", _FakeAsyncClient):
+                with patch(
+                    "servicenow_api.mcp_server.FastMCP.from_openapi",
+                    return_value=mock_openapi_mcp,
+                ):
+                    with patch.dict(
+                        os.environ,
+                        {
+                            "SERVICENOW_INSTANCE": "https://main.service-now.com",
+                            "SERVICENOW_USERNAME": "main_user",
+                            "SERVICENOW_PASSWORD": "main_pass",
+                        },
+                        clear=True,
+                    ):
+                        get_mcp_instance()
+
+    import base64
+
+    openapi_auth = base64.b64encode(b"openapi_user:openapi_pass").decode()
+    main_auth = base64.b64encode(b"main_user:main_pass").decode()
+    assert captured["headers"]["Authorization"] == f"Basic {openapi_auth}"
+    assert captured["headers"]["Authorization"] != f"Basic {main_auth}"
+
+
 def test_mcp_server_run_stdio():
     mock_mcp = MagicMock()
     mock_args = MagicMock()

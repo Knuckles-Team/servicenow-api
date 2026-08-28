@@ -24,6 +24,7 @@ from typing import Any
 
 import httpx
 from agent_utilities.core.config import load_config, setting
+from agent_utilities.core.transport_security import resolve_configured_tls_profile
 from agent_utilities.mcp.action_dispatch import resolve_action
 from agent_utilities.mcp.concurrency import run_blocking
 from agent_utilities.mcp.server_factory import (
@@ -1460,18 +1461,21 @@ def register_prompts(mcp: FastMCP):
         return f"Query the ServiceNow table '{table}' with sysparm_query: '{sysparm_query}' and sysparm_fields: '{sysparm_fields}'. Use the get_table tool with appropriate parameters."
 
 
-def _validate_openapi_token_credential() -> None:
-    """Validate an incoming Bearer token is present for token-mode OpenAPI import."""
+def _resolve_openapi_token_credential() -> str:
+    """Resolve and return the incoming Bearer token for token-mode OpenAPI import."""
     token = getattr(local, "user_token", None)
     if not token:
         raise ValueError(
             "OpenAPI import requires --openapi-use-token and a valid Bearer token in the request"
         )
     print("Using incoming JWT for OpenAPI import", file=sys.stderr)
+    return token
 
 
-def _validate_openapi_password_or_client_credential(args) -> None:
-    """Validate a username+password or client_id+client_secret pair resolves."""
+def _resolve_openapi_password_or_client_credential(
+    args,
+) -> tuple[str | None, str | None, str | None, str | None]:
+    """Resolve and return a username+password or client_id+client_secret pair."""
     username = args.openapi_username or setting("OPENAPI_USERNAME")
     password = args.openapi_password or setting("OPENAPI_PASSWORD")
     client_id = args.openapi_client_id or setting("OPENAPI_CLIENT_ID")
@@ -1482,20 +1486,66 @@ def _validate_openapi_password_or_client_credential(args) -> None:
         raise ValueError(
             "OpenAPI import requires either --openapi-use-token or (username+password) or (client_id+client_secret)"
         )
+    return username, password, client_id, client_secret
 
 
-def _validate_openapi_credentials(args) -> None:
-    """Validate OpenAPI import auth is configured for ``args``; raises if not.
+def _resolve_openapi_credentials(
+    args,
+) -> tuple[str | None, str | None, str | None, str | None, str | None]:
+    """Resolve the OpenAPI import auth credentials for ``args``; raises if none configured.
 
-    Mirrors the pre-refactor inline branching in ``_load_openapi_tools``
-    exactly: token mode requires an incoming Bearer token, otherwise either a
+    Returns ``(token, username, password, client_id, client_secret)``. Token
+    mode requires an incoming Bearer token, otherwise either a
     username+password or a client_id+client_secret pair must resolve (from
     the CLI args or the matching env/setting fallback).
+
+    These are dedicated ``--openapi-*`` / ``OPENAPI_*`` credentials for the
+    OpenAPI-import client, independent of the main ServiceNow client's
+    ``SERVICENOW_*`` credentials used by ``get_client()``. WD5-FIX-03: before
+    this fix, this function only validated presence — the resolved values
+    were never threaded into the OpenAPI import's ``httpx.AsyncClient``,
+    which authenticated solely via ``get_client()``'s unrelated
+    ``SERVICENOW_*``-derived headers. Callers must now pass the returned
+    values into the ``Api``/``httpx.AsyncClient`` construction.
     """
     if args.openapi_use_token:
-        _validate_openapi_token_credential()
-        return
-    _validate_openapi_password_or_client_credential(args)
+        return _resolve_openapi_token_credential(), None, None, None, None
+    username, password, client_id, client_secret = (
+        _resolve_openapi_password_or_client_credential(args)
+    )
+    return None, username, password, client_id, client_secret
+
+
+def _build_openapi_client(args) -> Api:
+    """Build the OpenAPI-import ``Api`` client from its own resolved credentials.
+
+    WD5-FIX-03: previously the OpenAPI-import ``httpx.AsyncClient`` was built
+    from the unrelated ``get_client()`` (the main ``SERVICENOW_*``-credentialed
+    client), so the token/username/password/client_id/client_secret resolved
+    by ``_resolve_openapi_credentials`` had zero effect on the outbound
+    request. This builds a dedicated ``Api`` instance from those credentials
+    instead.
+    """
+    token, username, password, client_id, client_secret = _resolve_openapi_credentials(
+        args
+    )
+    instance = setting("SERVICENOW_URL") or setting("SERVICENOW_INSTANCE")
+    if not instance:
+        raise ValueError("SERVICENOW_INSTANCE not set")
+    tls_profile = resolve_configured_tls_profile(
+        "servicenow",
+        profile_name=setting("SERVICENOW_TLS_PROFILE", "") or None,
+        profile_ref=setting("SERVICENOW_TLS_PROFILE_REF", "") or None,
+    )
+    return Api(
+        url=instance,
+        token=token,
+        username=username,
+        password=password,
+        client_id=client_id,
+        client_secret=client_secret,
+        tls_profile=tls_profile,
+    )
 
 
 def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
@@ -1516,8 +1566,7 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
                 spec = json.load(f)
 
             async def _load_openapi_tools():
-                _validate_openapi_credentials(args)
-                api = get_client()
+                api = _build_openapi_client(args)
                 base_url = args.openapi_base_url or api.url
                 async with httpx.AsyncClient(
                     base_url=base_url,
