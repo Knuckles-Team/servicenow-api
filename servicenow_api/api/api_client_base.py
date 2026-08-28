@@ -40,63 +40,90 @@ def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
         return []
 
 
+def _collect_action_params(decoded: list[dict[str, Any]]) -> dict[str, Any]:
+    """Flatten decoded action-input rows into a single name->value map."""
+    params: dict[str, Any] = {}
+    for p in decoded:
+        name = p.get("name")
+        val = p.get("displayValue") or p.get("value")
+        if name and val:
+            params[name] = val
+    return params
+
+
+def _approval_action_details(params: dict[str, Any]) -> list[str]:
+    details = []
+    table = params.get("table_name") or params.get("table")
+    rules = params.get("approval_conditions")
+    if table:
+        details.append(f"Table: {table}")
+    if rules:
+        details.append(f"Rules: {rules}")
+    return details
+
+
+def _record_action_details(params: dict[str, Any]) -> list[str]:
+    """Shared by "create record" and "update record" actions."""
+    details = []
+    table = params.get("table_name") or params.get("ah_table") or params.get("table")
+    fields = params.get("values") or params.get("ah_fields")
+    if table:
+        details.append(f"Table: {table}")
+    if fields and isinstance(fields, str):
+        important = [f.split("=")[0] for f in fields.split("^") if "=" in f]
+        if important:
+            details.append(f"Fields: {', '.join(important[:5])}...")
+    return details
+
+
+def _lookup_action_details(params: dict[str, Any]) -> list[str]:
+    details = []
+    table = params.get("table")
+    conds = params.get("conditions")
+    if table:
+        details.append(f"Table: {table}")
+    if conds:
+        details.append(f"Cond: {conds}")
+    return details
+
+
+def _note_action_details(params: dict[str, Any]) -> list[str]:
+    """Shared by worknote and comment actions."""
+    note = (
+        params.get("ah_work_note")
+        or params.get("ah_comment")
+        or params.get("note")
+        or params.get("comment")
+    )
+    return [f"Note: {note}"] if note else []
+
+
+# Ordered like the original if/elif chain: the first keyword that appears in
+# the (lowercased) action type wins, matching the prior first-match semantics.
+_ACTION_DETAIL_EXTRACTORS: list[tuple[str, Any]] = [
+    ("approval", _approval_action_details),
+    ("create record", _record_action_details),
+    ("update record", _record_action_details),
+    ("look up record", _lookup_action_details),
+    ("worknote", _note_action_details),
+    ("comment", _note_action_details),
+]
+
+
 def extract_action_details(
     decoded: list[dict[str, Any]], action_type: str
 ) -> list[str]:
     """
     Extracts specific metadata from decoded action values based on the action type.
     """
-    details = []
-    params: dict[str, Any] = {}
-
-    for p in decoded:
-        name = p.get("name")
-
-        val = p.get("displayValue") or p.get("value")
-        if name and val:
-            params[name] = val
-
+    params = _collect_action_params(decoded)
     at_clean = (action_type or "").lower()
 
-    if "approval" in at_clean:
-        table = params.get("table_name") or params.get("table")
-        rules = params.get("approval_conditions")
-        if table:
-            details.append(f"Table: {table}")
-        if rules:
-            details.append(f"Rules: {rules}")
+    for keyword, extractor in _ACTION_DETAIL_EXTRACTORS:
+        if keyword in at_clean:
+            return extractor(params)
 
-    elif "create record" in at_clean or "update record" in at_clean:
-        table = (
-            params.get("table_name") or params.get("ah_table") or params.get("table")
-        )
-        fields = params.get("values") or params.get("ah_fields")
-        if table:
-            details.append(f"Table: {table}")
-        if fields and isinstance(fields, str):
-            important = [f.split("=")[0] for f in fields.split("^") if "=" in f]
-            if important:
-                details.append(f"Fields: {', '.join(important[:5])}...")
-
-    elif "look up record" in at_clean:
-        table = params.get("table")
-        conds = params.get("conditions")
-        if table:
-            details.append(f"Table: {table}")
-        if conds:
-            details.append(f"Cond: {conds}")
-
-    elif "worknote" in at_clean or "comment" in at_clean:
-        note = (
-            params.get("ah_work_note")
-            or params.get("ah_comment")
-            or params.get("note")
-            or params.get("comment")
-        )
-        if note:
-            details.append(f"Note: {note}")
-
-    return details
+    return []
 
 
 def find_subflow_sys_id(decoded: list[dict[str, Any]]) -> str | None:
@@ -146,31 +173,59 @@ def sanitize_mermaid_label(label: str) -> str:
     return f'"{sanitized}"'
 
 
+def _resolve_start_node(graph: FlowGraph, root_id: str) -> str | None:
+    """Find the graph's trigger node for `root_id`, trying both id shapes."""
+    node_ids = {node.id for node in graph.nodes}
+    start_node = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
+    if start_node in node_ids:
+        return start_node
+    start_node = f"trigger_{root_id[:8]}"
+    if start_node in node_ids:
+        return start_node
+    return None
+
+
+def _build_adjacency(
+    edges: list[Any], *, bidirectional: bool = False
+) -> defaultdict[str, list[str]]:
+    adj: defaultdict[str, list[str]] = defaultdict(list)
+    for edge in edges:
+        adj[edge.from_id].append(edge.to_id)
+        if bidirectional:
+            adj[edge.to_id].append(edge.from_id)
+    return adj
+
+
+def _walk_reachable(
+    adj: defaultdict[str, list[str]], start: str, visited: set[str]
+) -> set[str]:
+    """Iterative DFS from `start`, recording newly-visited ids into `visited`
+    (in place, so callers can track visitation across multiple starts) and
+    returning just the ids reached from this particular start."""
+    reached: set[str] = set()
+    stack = [start]
+    while stack:
+        curr = stack.pop()
+        if curr not in reached:
+            reached.add(curr)
+            visited.add(curr)
+            for neighbor in adj[curr]:
+                if neighbor not in reached:
+                    stack.append(neighbor)
+    return reached
+
+
 def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
     """
     Extracts a subgraph containing only the nodes and edges reachable from the given root_id.
     """
+    start_node = _resolve_start_node(graph, root_id)
+    if start_node is None:
+        return FlowGraph(nodes=[], edges=[], summary="Root not found")
 
-    start_node = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
-    if not any(node.id == start_node for node in graph.nodes):
-        start_node = f"trigger_{root_id[:8]}"
-        if not any(node.id == start_node for node in graph.nodes):
-            return FlowGraph(nodes=[], edges=[], summary="Root not found")
-
-    adj: defaultdict[str, list[str]] = defaultdict(list)
-    for edge in graph.edges:
-        adj[edge.from_id].append(edge.to_id)
-
+    adj = _build_adjacency(graph.edges)
     node_by_id = {node.id: node for node in graph.nodes}
-    reachable_nodes: set[str] = set()
-    stack = [start_node]
-    while stack:
-        curr = stack.pop()
-        if curr not in reachable_nodes:
-            reachable_nodes.add(curr)
-            for neighbor in adj[curr]:
-                if neighbor not in reachable_nodes:
-                    stack.append(neighbor)
+    reachable_nodes = _walk_reachable(adj, start_node, set())
 
     sub_nodes = [node_by_id[nid] for nid in reachable_nodes]
     sub_edges = [
@@ -185,6 +240,17 @@ def get_reachable_subgraph(graph: FlowGraph, root_id: str) -> FlowGraph:
     )
 
 
+def _subgraph_for_ids(graph: FlowGraph, node_ids: set[str], summary: str) -> FlowGraph:
+    node_by_id = {node.id: node for node in graph.nodes}
+    sub_nodes = [node_by_id[nid] for nid in node_ids]
+    sub_edges = [
+        edge
+        for edge in graph.edges
+        if edge.from_id in node_ids and edge.to_id in node_ids
+    ]
+    return FlowGraph(nodes=sub_nodes, edges=sub_edges, summary=summary)
+
+
 def find_connected_components(graph: FlowGraph) -> list[FlowGraph]:
     """
     Splits a single large global FlowGraph into a list of smaller FlowGraphs,
@@ -193,102 +259,92 @@ def find_connected_components(graph: FlowGraph) -> list[FlowGraph]:
     if not graph.nodes:
         return []
 
-    adj: defaultdict[str, list[str]] = defaultdict(list)
-    for edge in graph.edges:
-        adj[edge.from_id].append(edge.to_id)
-        adj[edge.to_id].append(edge.from_id)
-
+    adj = _build_adjacency(graph.edges, bidirectional=True)
     all_node_ids = {node.id for node in graph.nodes}
-    node_by_id = {node.id: node for node in graph.nodes}
 
     visited: set[str] = set()
     components: list[FlowGraph] = []
-
     for start_node in all_node_ids:
-        if start_node not in visited:
-            component_nodes: set[str] = set()
-            stack = [start_node]
-            while stack:
-                curr = stack.pop()
-                if curr not in component_nodes:
-                    component_nodes.add(curr)
-                    visited.add(curr)
-                    for neighbor in adj[curr]:
-                        if neighbor not in component_nodes:
-                            stack.append(neighbor)
-
-            sub_nodes = [node_by_id[nid] for nid in component_nodes]
-            sub_edges = [
-                edge
-                for edge in graph.edges
-                if edge.from_id in component_nodes and edge.to_id in component_nodes
-            ]
-            components.append(
-                FlowGraph(
-                    nodes=sub_nodes,
-                    edges=sub_edges,
-                    summary=f"Component size: {len(sub_nodes)}",
-                )
+        if start_node in visited:
+            continue
+        component_nodes = _walk_reachable(adj, start_node, visited)
+        components.append(
+            _subgraph_for_ids(
+                graph, component_nodes, f"Component size: {len(component_nodes)}"
             )
+        )
 
     return components
+
+
+def _mermaid_node_shape(node: Any, label: str) -> str:
+    shape_map = {
+        "trigger": f"(({label}))",
+        "decision": f"{{{{{label}}}}}",
+        "loop": f"[/{label}/]",
+        "subflow_call": f"[[{label}]]",
+    }
+    return shape_map.get(node.type, f"[{label}]")
+
+
+def _mermaid_root_group_lines(
+    graph: FlowGraph, root_id: str, all_metadata: dict[str, dict[str, Any]]
+) -> list[str] | None:
+    """Lines for one root's subgraph block, or None if the root has no nodes."""
+    root_prefix = f"root_{root_id[:8]}_"
+    trigger_id = f"root_{root_id[:8]}_trigger_{root_id[:8]}"
+    root_nodes = [
+        node
+        for node in graph.nodes
+        if node.id.startswith(root_prefix) or node.id == trigger_id
+    ]
+    if not root_nodes:
+        return None
+
+    meta = all_metadata.get(root_id, {})
+    flow_name = meta.get("name", root_id)
+    lines = [f'    subgraph "{flow_name} ({root_id})"']
+    for node in root_nodes:
+        label = sanitize_mermaid_label(node.label)
+        lines.append(f"        {node.id}{_mermaid_node_shape(node, label)}")
+    lines.append("    end")
+    return lines
+
+
+def _mermaid_ungrouped_node_lines(graph: FlowGraph, root_sys_ids: list[str]) -> list[str]:
+    lines = []
+    for node in graph.nodes:
+        if any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
+            continue
+        label = sanitize_mermaid_label(node.label)
+        lines.append(f"    {node.id}{_mermaid_node_shape(node, label)}")
+    return lines
+
+
+def _mermaid_edge_lines(graph: FlowGraph) -> list[str]:
+    lines = []
+    for edge in graph.edges:
+        label = f" |{edge.label}|" if edge.label else ""
+        lines.append(f"    {edge.from_id} -->{label} {edge.to_id}")
+    return lines
 
 
 def graph_to_mermaid_multi(
     graph: FlowGraph,
     root_sys_ids: list[str],
-    all_metadata: dict[str, dict[str, Any]] = None,
+    all_metadata: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     lines = ["flowchart TD"]
 
     for root_id in root_sys_ids:
-        root_prefix = f"root_{root_id[:8]}_"
+        group_lines = _mermaid_root_group_lines(graph, root_id, all_metadata or {})
+        if group_lines:
+            lines.extend(group_lines)
 
-        has_nodes = any(
-            node.id.startswith(root_prefix)
-            or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
-            for node in graph.nodes
-        )
-        if not has_nodes:
-            continue
-
-        meta = (all_metadata or {}).get(root_id, {})
-        flow_name = meta.get("name", root_id)
-        lines.append(f'    subgraph "{flow_name} ({root_id})"')
-        for node in graph.nodes:
-            if (
-                node.id.startswith(root_prefix)
-                or node.id == f"root_{root_id[:8]}_trigger_{root_id[:8]}"
-            ):
-                label = sanitize_mermaid_label(node.label)
-                shape_map = {
-                    "trigger": f"(({label}))",
-                    "decision": f"{{{{{label}}}}}",
-                    "loop": f"[/{label}/]",
-                    "subflow_call": f"[[{label}]]",
-                }
-                shape = shape_map.get(node.type, f"[{label}]")
-                lines.append(f"        {node.id}{shape}")
-        lines.append("    end")
-
-    for node in graph.nodes:
-        if not any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
-            label = sanitize_mermaid_label(node.label)
-            shape_map = {
-                "trigger": f"(({label}))",
-                "decision": f"{{{{{label}}}}}",
-                "loop": f"[/{label}/]",
-                "subflow_call": f"[[{label}]]",
-            }
-            shape = shape_map.get(node.type, f"[{label}]")
-            lines.append(f"    {node.id}{shape}")
-
-    for edge in graph.edges:
-        label = f" |{edge.label}|" if edge.label else ""
-        lines.append(f"    {edge.from_id} -->{label} {edge.to_id}")
+    lines.extend(_mermaid_ungrouped_node_lines(graph, root_sys_ids))
+    lines.extend(_mermaid_edge_lines(graph))
 
     return "\n".join(lines)
-
 
 def build_polished_markdown(
     graph: FlowGraph,
@@ -353,6 +409,32 @@ Unified diagram showing {len(root_sys_ids)} root flows + all recursive subflows 
     return md
 
 
+def _exchange_oauth_token(
+    session: requests.Session,
+    auth_url: str,
+    auth_headers: dict[str, str],
+    auth_data: dict[str, Any],
+) -> str:
+    """POST the password-grant OAuth exchange and return the access token."""
+    encoded_data_str = urlencode(auth_data)
+    response = None
+    try:
+        response = session.post(
+            url=auth_url,
+            data=encoded_data_str,
+            headers=auth_headers,
+            timeout=30,
+        )
+        response = response.json()
+        return response["access_token"]
+    except Exception as e:
+        print(
+            f"Error Authenticating with OAuth: \n\n{type(e).__name__}\n\nResponse: {response}",
+            file=sys.stderr,
+        )
+        raise e
+
+
 class ServiceNowApiBase:
     def __init__(
         self,
@@ -394,23 +476,9 @@ class ServiceNowApiBase:
                 "username": username,
                 "password": password,
             }
-            encoded_data_str = urlencode(self.auth_data)
-            response = None
-            try:
-                response = self._session.post(
-                    url=self.auth_url,
-                    data=encoded_data_str,
-                    headers=self.auth_headers,
-                    timeout=30,
-                )
-                response = response.json()
-                self.token = response["access_token"]
-            except Exception as e:
-                print(
-                    f"Error Authenticating with OAuth: \n\n{type(e).__name__}\n\nResponse: {response}",
-                    file=sys.stderr,
-                )
-                raise e
+            self.token = _exchange_oauth_token(
+                self._session, self.auth_url, self.auth_headers, self.auth_data
+            )
             self.headers = {
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
