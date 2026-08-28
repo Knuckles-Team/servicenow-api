@@ -109,7 +109,7 @@ def register_flows_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow flows operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -134,7 +134,6 @@ def register_flows_tools(mcp: FastMCP):
             return await run_blocking(client.collect_graph_for_roots, **kwargs)
         if action == "get_flow_metadata":
             return await run_blocking(client.get_flow_metadata, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_application_tools(mcp: FastMCP):
@@ -170,7 +169,6 @@ def register_application_tools(mcp: FastMCP):
 
         if action == "get_application":
             return await run_blocking(client.get_application, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_cmdb_tools(mcp: FastMCP):
@@ -189,7 +187,7 @@ def register_cmdb_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow cmdb operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -217,26 +215,10 @@ def register_cmdb_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "get_cmdb":
-            return await run_blocking(client.get_cmdb, **kwargs)
-        if action == "delete_cmdb_relation":
-            return await run_blocking(client.delete_cmdb_relation, **kwargs)
-        if action == "get_cmdb_instances":
-            return await run_blocking(client.get_cmdb_instances, **kwargs)
-        if action == "get_cmdb_instance":
-            return await run_blocking(client.get_cmdb_instance, **kwargs)
-        if action == "create_cmdb_instance":
-            return await run_blocking(client.create_cmdb_instance, **kwargs)
-        if action == "update_cmdb_instance":
-            return await run_blocking(client.update_cmdb_instance, **kwargs)
-        if action == "patch_cmdb_instance":
-            return await run_blocking(client.patch_cmdb_instance, **kwargs)
-        if action == "create_cmdb_relation":
-            return await run_blocking(client.create_cmdb_relation, **kwargs)
-        if action == "ingest_cmdb_data":
-            return await run_blocking(client.ingest_cmdb_data, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_cicd_tools(mcp: FastMCP):
@@ -255,7 +237,7 @@ def register_cicd_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow cicd operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -286,32 +268,10 @@ def register_cicd_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "batch_install_result":
-            return await run_blocking(client.batch_install_result, **kwargs)
-        if action == "instance_scan_progress":
-            return await run_blocking(client.instance_scan_progress, **kwargs)
-        if action == "progress":
-            return await run_blocking(client.progress, **kwargs)
-        if action == "batch_install":
-            return await run_blocking(client.batch_install, **kwargs)
-        if action == "batch_rollback":
-            return await run_blocking(client.batch_rollback, **kwargs)
-        if action == "app_repo_install":
-            return await run_blocking(client.app_repo_install, **kwargs)
-        if action == "app_repo_publish":
-            return await run_blocking(client.app_repo_publish, **kwargs)
-        if action == "app_repo_rollback":
-            return await run_blocking(client.app_repo_rollback, **kwargs)
-        if action == "full_scan":
-            return await run_blocking(client.full_scan, **kwargs)
-        if action == "point_scan":
-            return await run_blocking(client.point_scan, **kwargs)
-        if action == "combo_suite_scan":
-            return await run_blocking(client.combo_suite_scan, **kwargs)
-        if action == "suite_scan":
-            return await run_blocking(client.suite_scan, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_plugins_tools(mcp: FastMCP):
@@ -330,7 +290,7 @@ def register_plugins_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow plugins operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -351,7 +311,6 @@ def register_plugins_tools(mcp: FastMCP):
             return await run_blocking(client.activate_plugin, **kwargs)
         if action == "rollback_plugin":
             return await run_blocking(client.rollback_plugin, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_source_control_tools(mcp: FastMCP):
@@ -370,7 +329,7 @@ def register_source_control_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow source control operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -395,7 +354,6 @@ def register_source_control_tools(mcp: FastMCP):
             )
         if action == "import_repository":
             return await run_blocking(client.import_repository, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_testing_tools(mcp: FastMCP):
@@ -431,7 +389,6 @@ def register_testing_tools(mcp: FastMCP):
 
         if action == "run_test_suite":
             return await run_blocking(client.run_test_suite, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_update_sets_tools(mcp: FastMCP):
@@ -450,7 +407,7 @@ def register_update_sets_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow update sets operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -475,20 +432,10 @@ def register_update_sets_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "update_set_create":
-            return await run_blocking(client.update_set_create, **kwargs)
-        if action == "update_set_retrieve":
-            return await run_blocking(client.update_set_retrieve, **kwargs)
-        if action == "update_set_preview":
-            return await run_blocking(client.update_set_preview, **kwargs)
-        if action == "update_set_commit":
-            return await run_blocking(client.update_set_commit, **kwargs)
-        if action == "update_set_commit_multiple":
-            return await run_blocking(client.update_set_commit_multiple, **kwargs)
-        if action == "update_set_back_out":
-            return await run_blocking(client.update_set_back_out, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_batch_tools(mcp: FastMCP):
@@ -524,7 +471,6 @@ def register_batch_tools(mcp: FastMCP):
 
         if action == "batch_request":
             return await run_blocking(client.batch_request, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_change_management_tools(mcp: FastMCP):
@@ -543,7 +489,7 @@ def register_change_management_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow change management operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -587,74 +533,10 @@ def register_change_management_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "get_change_requests":
-            return await run_blocking(client.get_change_requests, **kwargs)
-        if action == "get_change_request_nextstate":
-            return await run_blocking(client.get_change_request_nextstate, **kwargs)
-        if action == "get_change_request_schedule":
-            return await run_blocking(client.get_change_request_schedule, **kwargs)
-        if action == "get_change_request_tasks":
-            return await run_blocking(client.get_change_request_tasks, **kwargs)
-        if action == "get_change_request":
-            return await run_blocking(client.get_change_request, **kwargs)
-        if action == "get_change_request_ci":
-            return await run_blocking(client.get_change_request_ci, **kwargs)
-        if action == "get_change_request_conflict":
-            return await run_blocking(client.get_change_request_conflict, **kwargs)
-        if action == "get_standard_change_request_templates":
-            return await run_blocking(
-                client.get_standard_change_request_templates, **kwargs
-            )
-        if action == "get_change_request_models":
-            return await run_blocking(client.get_change_request_models, **kwargs)
-        if action == "get_standard_change_request_model":
-            return await run_blocking(
-                client.get_standard_change_request_model, **kwargs
-            )
-        if action == "get_standard_change_request_template":
-            return await run_blocking(
-                client.get_standard_change_request_template, **kwargs
-            )
-        if action == "get_change_request_worker":
-            return await run_blocking(client.get_change_request_worker, **kwargs)
-        if action == "create_change_request":
-            return await run_blocking(client.create_change_request, **kwargs)
-        if action == "create_change_request_task":
-            return await run_blocking(client.create_change_request_task, **kwargs)
-        if action == "create_change_request_ci_association":
-            return await run_blocking(
-                client.create_change_request_ci_association, **kwargs
-            )
-        if action == "calculate_standard_change_request_risk":
-            return await run_blocking(
-                client.calculate_standard_change_request_risk, **kwargs
-            )
-        if action == "check_change_request_conflict":
-            return await run_blocking(client.check_change_request_conflict, **kwargs)
-        if action == "refresh_change_request_impacted_services":
-            return await run_blocking(
-                client.refresh_change_request_impacted_services, **kwargs
-            )
-        if action == "approve_change_request":
-            return await run_blocking(client.approve_change_request, **kwargs)
-        if action == "update_change_request":
-            return await run_blocking(client.update_change_request, **kwargs)
-        if action == "update_change_request_first_available":
-            return await run_blocking(
-                client.update_change_request_first_available, **kwargs
-            )
-        if action == "update_change_request_task":
-            return await run_blocking(client.update_change_request_task, **kwargs)
-        if action == "delete_change_request":
-            return await run_blocking(client.delete_change_request, **kwargs)
-        if action == "delete_change_request_task":
-            return await run_blocking(client.delete_change_request_task, **kwargs)
-        if action == "delete_change_request_conflict_scan":
-            return await run_blocking(
-                client.delete_change_request_conflict_scan, **kwargs
-            )
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_cilifecycle_tools(mcp: FastMCP):
@@ -705,42 +587,10 @@ def register_cilifecycle_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "check_ci_lifecycle_compat_actions":
-            return await run_blocking(
-                client.check_ci_lifecycle_compat_actions, **kwargs
-            )
-        if action == "register_ci_lifecycle_operator":
-            return await run_blocking(client.register_ci_lifecycle_operator, **kwargs)
-        if action == "unregister_ci_lifecycle_operator":
-            return await run_blocking(client.unregister_ci_lifecycle_operator, **kwargs)
-        if action == "add_ci_lifecycle_action":
-            return await run_blocking(client.add_ci_lifecycle_action, **kwargs)
-        if action == "check_ci_lifecycle_lease_expired":
-            return await run_blocking(client.check_ci_lifecycle_lease_expired, **kwargs)
-        if action == "check_ci_lifecycle_not_allowed_action":
-            return await run_blocking(
-                client.check_ci_lifecycle_not_allowed_action, **kwargs
-            )
-        if action == "check_ci_lifecycle_not_allowed_ops_transition":
-            return await run_blocking(
-                client.check_ci_lifecycle_not_allowed_ops_transition, **kwargs
-            )
-        if action == "check_ci_lifecycle_requestor_valid":
-            return await run_blocking(
-                client.check_ci_lifecycle_requestor_valid, **kwargs
-            )
-        if action == "delete_ci_lifecycle_action":
-            return await run_blocking(client.delete_ci_lifecycle_action, **kwargs)
-        if action == "extend_ci_lifecycle_lease":
-            return await run_blocking(client.extend_ci_lifecycle_lease, **kwargs)
-        if action == "get_ci_lifecycle_active_actions":
-            return await run_blocking(client.get_ci_lifecycle_active_actions, **kwargs)
-        if action == "get_ci_lifecycle_status":
-            return await run_blocking(client.get_ci_lifecycle_status, **kwargs)
-        if action == "set_ci_lifecycle_status":
-            return await run_blocking(client.set_ci_lifecycle_status, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_devops_tools(mcp: FastMCP):
@@ -786,24 +636,10 @@ def register_devops_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "check_devops_change_control":
-            return await run_blocking(client.check_devops_change_control, **kwargs)
-        if action == "register_devops_artifact":
-            return await run_blocking(client.register_devops_artifact, **kwargs)
-        if action == "check_devops_step_mapping":
-            return await run_blocking(client.check_devops_step_mapping, **kwargs)
-        if action == "get_devops_change_info":
-            return await run_blocking(client.get_devops_change_info, **kwargs)
-        if action == "get_devops_code_schema":
-            return await run_blocking(client.get_devops_code_schema, **kwargs)
-        if action == "get_devops_onboarding_status":
-            return await run_blocking(client.get_devops_onboarding_status, **kwargs)
-        if action == "get_devops_orchestration_schema":
-            return await run_blocking(client.get_devops_orchestration_schema, **kwargs)
-        if action == "get_devops_plan_schema":
-            return await run_blocking(client.get_devops_plan_schema, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_import_sets_tools(mcp: FastMCP):
@@ -822,7 +658,7 @@ def register_import_sets_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow import sets operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -847,7 +683,6 @@ def register_import_sets_tools(mcp: FastMCP):
             return await run_blocking(client.insert_import_set, **kwargs)
         if action == "insert_multiple_import_sets":
             return await run_blocking(client.insert_multiple_import_sets, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_incidents_tools(mcp: FastMCP):
@@ -890,18 +725,10 @@ def register_incidents_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "get_incidents":
-            return await run_blocking(client.get_incidents, **kwargs)
-        if action == "create_incident":
-            return await run_blocking(client.create_incident, **kwargs)
-        if action == "get_incident":
-            return await run_blocking(client.get_incident, **kwargs)
-        if action == "update_incident":
-            return await run_blocking(client.update_incident, **kwargs)
-        if action == "delete_incident":
-            return await run_blocking(client.delete_incident, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_problem_tools(mcp: FastMCP):
@@ -944,18 +771,10 @@ def register_problem_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "get_problems":
-            return await run_blocking(client.get_problems, **kwargs)
-        if action == "get_problem":
-            return await run_blocking(client.get_problem, **kwargs)
-        if action == "create_problem":
-            return await run_blocking(client.create_problem, **kwargs)
-        if action == "update_problem":
-            return await run_blocking(client.update_problem, **kwargs)
-        if action == "delete_problem":
-            return await run_blocking(client.delete_problem, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_knowledge_management_tools(mcp: FastMCP):
@@ -974,7 +793,7 @@ def register_knowledge_management_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow knowledge management operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -998,20 +817,10 @@ def register_knowledge_management_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "get_knowledge_articles":
-            return await run_blocking(client.get_knowledge_articles, **kwargs)
-        if action == "get_knowledge_article":
-            return await run_blocking(client.get_knowledge_article, **kwargs)
-        if action == "get_knowledge_article_attachment":
-            return await run_blocking(client.get_knowledge_article_attachment, **kwargs)
-        if action == "get_featured_knowledge_article":
-            return await run_blocking(client.get_featured_knowledge_article, **kwargs)
-        if action == "get_most_viewed_knowledge_articles":
-            return await run_blocking(
-                client.get_most_viewed_knowledge_articles, **kwargs
-            )
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_table_api_tools(mcp: FastMCP):
@@ -1030,7 +839,7 @@ def register_table_api_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow table api operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1055,20 +864,10 @@ def register_table_api_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "delete_table_record":
-            return await run_blocking(client.delete_table_record, **kwargs)
-        if action == "get_table":
-            return await run_blocking(client.get_table, **kwargs)
-        if action == "get_table_record":
-            return await run_blocking(client.get_table_record, **kwargs)
-        if action == "patch_table_record":
-            return await run_blocking(client.patch_table_record, **kwargs)
-        if action == "update_table_record":
-            return await run_blocking(client.update_table_record, **kwargs)
-        if action == "add_table_record":
-            return await run_blocking(client.add_table_record, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_auth_tools(mcp: FastMCP):
@@ -1087,7 +886,7 @@ def register_auth_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow auth operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1106,7 +905,6 @@ def register_auth_tools(mcp: FastMCP):
 
         if action == "refresh_auth_token":
             return await run_blocking(client.refresh_auth_token, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_custom_api_tools(mcp: FastMCP):
@@ -1125,7 +923,7 @@ def register_custom_api_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow custom api operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1142,7 +940,6 @@ def register_custom_api_tools(mcp: FastMCP):
 
         if action == "api_request":
             return await run_blocking(client.api_request, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_email_tools(mcp: FastMCP):
@@ -1161,7 +958,7 @@ def register_email_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow email operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1178,7 +975,6 @@ def register_email_tools(mcp: FastMCP):
 
         if action == "send_email":
             return await run_blocking(client.send_email, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_data_classification_tools(mcp: FastMCP):
@@ -1197,7 +993,7 @@ def register_data_classification_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow data classification operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1216,7 +1012,6 @@ def register_data_classification_tools(mcp: FastMCP):
 
         if action == "get_data_classification":
             return await run_blocking(client.get_data_classification, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_aggregate_tools(mcp: FastMCP):
@@ -1235,7 +1030,7 @@ def register_aggregate_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow aggregate operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1252,7 +1047,6 @@ def register_aggregate_tools(mcp: FastMCP):
 
         if action == "get_stats":
             return await run_blocking(client.get_stats, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_activity_subscriptions_tools(mcp: FastMCP):
@@ -1271,7 +1065,7 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow activity subscriptions operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1290,7 +1084,6 @@ def register_activity_subscriptions_tools(mcp: FastMCP):
 
         if action == "get_activity_subscriptions":
             return await run_blocking(client.get_activity_subscriptions, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_account_tools(mcp: FastMCP):
@@ -1309,7 +1102,7 @@ def register_account_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow account operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1326,7 +1119,6 @@ def register_account_tools(mcp: FastMCP):
 
         if action == "get_account":
             return await run_blocking(client.get_account, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_hr_tools(mcp: FastMCP):
@@ -1345,7 +1137,7 @@ def register_hr_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow hr operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1362,7 +1154,6 @@ def register_hr_tools(mcp: FastMCP):
 
         if action == "get_hr_profile":
             return await run_blocking(client.get_hr_profile, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_metricbase_tools(mcp: FastMCP):
@@ -1381,7 +1172,7 @@ def register_metricbase_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow metricbase operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1400,7 +1191,6 @@ def register_metricbase_tools(mcp: FastMCP):
 
         if action == "metricbase_insert":
             return await run_blocking(client.metricbase_insert, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_attachment_tools(mcp: FastMCP):
@@ -1419,7 +1209,7 @@ def register_attachment_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow attachment operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1444,7 +1234,6 @@ def register_attachment_tools(mcp: FastMCP):
             return await run_blocking(client.upload_attachment, **kwargs)
         if action == "delete_attachment":
             return await run_blocking(client.delete_attachment, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_service_qualification_tools(mcp: FastMCP):
@@ -1463,7 +1252,7 @@ def register_service_qualification_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow service qualification operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1494,7 +1283,6 @@ def register_service_qualification_tools(mcp: FastMCP):
             return await run_blocking(
                 client.process_service_qualification_result, **kwargs
             )
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_ppm_tools(mcp: FastMCP):
@@ -1513,7 +1301,7 @@ def register_ppm_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow ppm operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1536,7 +1324,6 @@ def register_ppm_tools(mcp: FastMCP):
             return await run_blocking(client.insert_cost_plans, **kwargs)
         if action == "insert_project_tasks":
             return await run_blocking(client.insert_project_tasks, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_product_inventory_tools(mcp: FastMCP):
@@ -1555,7 +1342,7 @@ def register_product_inventory_tools(mcp: FastMCP):
     ) -> dict:
         """Manage servicenow product inventory operations."""
         if ctx:
-            ctx.info("Executing tool...")
+            await ctx.info("Executing tool...")
         import json
 
         try:
@@ -1578,7 +1365,6 @@ def register_product_inventory_tools(mcp: FastMCP):
             return await run_blocking(client.get_product_inventory, **kwargs)
         if action == "delete_product_inventory":
             return await run_blocking(client.delete_product_inventory, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
 
 
 def register_sdk_tools(mcp: FastMCP):
@@ -1626,20 +1412,10 @@ def register_sdk_tools(mcp: FastMCP):
         if isinstance(resolved, dict):
             return resolved
         action = resolved
-
-        if action == "init":
-            return await run_blocking(client.init, **kwargs)
-        if action == "auth":
-            return await run_blocking(client.auth, **kwargs)
-        if action == "build":
-            return await run_blocking(client.build, **kwargs)
-        if action == "deploy":
-            return await run_blocking(client.deploy, **kwargs)
-        if action == "transform":
-            return await run_blocking(client.transform, **kwargs)
-        if action == "dependencies":
-            return await run_blocking(client.dependencies, **kwargs)
-        raise ValueError(f"Unknown action: {action}")
+        handler = getattr(client, action, None)
+        if handler is None:
+            raise ValueError(f"Unknown action: {action}")
+        return await run_blocking(handler, **kwargs)
 
 
 def register_prompts(mcp: FastMCP):
