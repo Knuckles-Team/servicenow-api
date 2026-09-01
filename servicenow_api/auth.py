@@ -4,7 +4,11 @@ Authentication priority:
 1. **OIDC Delegation** — If ``ENABLE_DELEGATION`` is active, exchanges
    the IdP-issued user token for a downstream ServiceNow access token
    via RFC 8693 Token Exchange using the shared ``delegated_auth`` helper.
-2. **Basic Auth** — Falls back to ``SERVICENOW_USERNAME`` /
+2. **OAuth client credentials** — If ``SERVICENOW_GRANT_TYPE`` is
+   ``client_credentials`` and ``SERVICENOW_CLIENT_ID`` /
+   ``SERVICENOW_CLIENT_SECRET`` are set, authenticates as the OAuth
+   application itself (no username/password).
+3. **Basic Auth** — Falls back to ``SERVICENOW_USERNAME`` /
    ``SERVICENOW_PASSWORD`` with optional OAuth client credentials.
 
 See ``docs/guides/oauth_sso.md`` in agent-utilities for full details.
@@ -79,7 +83,22 @@ def get_client(
             logger.error("OIDC delegation failed", extra={"error": "Operation failed"})
             raise
 
-    # --- Path 2: Basic Auth (username/password + optional OAuth client) ---
+    # --- Path 2: OAuth 2.0 client credentials grant ---
+    # Set SERVICENOW_GRANT_TYPE=client_credentials to authenticate as an OAuth
+    # application (client_id/client_secret) with no username/password — e.g. an
+    # integration account backed by an OAuth application registration.
+    grant_type = setting("SERVICENOW_GRANT_TYPE", "password")
+    if grant_type == "client_credentials" and client_id and client_secret:
+        logger.info("Using OAuth client_credentials credentials for ServiceNow API")
+        return Api(
+            url=instance,
+            client_id=client_id,
+            client_secret=client_secret,
+            grant_type="client_credentials",
+            tls_profile=profile,
+        )
+
+    # --- Path 3: Basic Auth (username/password + optional OAuth client) ---
     try:
         if username or password:
             logger.info("Using username/password credentials for ServiceNow API")
@@ -100,5 +119,7 @@ def get_client(
         ) from e
 
     raise ValueError(
-        "No auth method: Provide token, enable delegation, or set SERVICENOW_USERNAME/PASSWORD"
+        "No auth method: Provide token, enable delegation, set "
+        "SERVICENOW_GRANT_TYPE=client_credentials with client_id/secret, or set "
+        "SERVICENOW_USERNAME/PASSWORD"
     )
