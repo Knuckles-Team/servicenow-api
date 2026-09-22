@@ -103,7 +103,7 @@ sync:
   updated_field: sys_updated_on
   pagination: offset
   doc_type: incident
-  tool_schema_sha256: 7842a48ec7ce91284a36b04dc8312156ac5bcf955d1326972bdc60ee88ceb806
+  tool_schema_sha256: 79371dfb94d00f52207d8d9cc97436bba7226a02ac8f9be1a0726ed70ad8750d
   raw:
     server: servicenow-mcp
     tool: servicenow_incidents
@@ -129,7 +129,7 @@ sync:
   updated_field: sys_updated_on
   pagination: offset
   doc_type: knowledge_article
-  tool_schema_sha256: fb9a09fbd50366f0bcd3c72a02e7983ea1697cec295db28ac0b0fa7c43483f2c
+  tool_schema_sha256: 0c491961eeee7b4dcedd643070fc1ede5d7ccc41ac4b7d866fe8ec1b5eb392ea
   raw:
     server: servicenow-mcp
     tool: servicenow_knowledge_management

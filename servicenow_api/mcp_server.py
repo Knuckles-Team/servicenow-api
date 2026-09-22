@@ -20,7 +20,7 @@ import json
 import logging
 import sys
 from threading import local
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 from agent_utilities.core.config import load_config, setting
@@ -689,7 +689,13 @@ def register_import_sets_tools(mcp: FastMCP):
 def register_incidents_tools(mcp: FastMCP):
     @mcp.tool(tags={"incidents"})
     async def servicenow_incidents(
-        action: str = Field(
+        action: Literal[
+            "create_incident",
+            "delete_incident",
+            "get_incident",
+            "get_incidents",
+            "update_incident",
+        ] = Field(
             description="Action to perform. Must be one of: 'get_incidents', 'create_incident', 'get_incident', 'update_incident', 'delete_incident'"
         ),
         params_json: str = Field(
@@ -781,7 +787,13 @@ def register_problem_tools(mcp: FastMCP):
 def register_knowledge_management_tools(mcp: FastMCP):
     @mcp.tool(tags={"knowledge_management"})
     async def servicenow_knowledge_management(
-        action: str = Field(
+        action: Literal[
+            "get_featured_knowledge_article",
+            "get_knowledge_article",
+            "get_knowledge_article_attachment",
+            "get_knowledge_articles",
+            "get_most_viewed_knowledge_articles",
+        ] = Field(
             description="Action to perform. Must be one of: 'get_knowledge_articles', 'get_knowledge_article', 'get_knowledge_article_attachment', 'get_featured_knowledge_article', 'get_most_viewed_knowledge_articles'"
         ),
         params_json: str = Field(
