@@ -687,7 +687,18 @@ def register_import_sets_tools(mcp: FastMCP):
 
 
 def register_incidents_tools(mcp: FastMCP):
-    @mcp.tool(tags={"incidents"})
+    @mcp.tool(
+        tags={"incidents"},
+        annotations={
+            "readOnlyHint": False,
+            "destructiveHint": True,
+            "idempotentHint": False,
+            "openWorldHint": True,
+        },
+        meta={
+            "eg.annotations": {"modalities_in": ["text"], "modalities_out": ["text"]}
+        },
+    )
     async def servicenow_incidents(
         action: Literal[
             "create_incident",
@@ -785,7 +796,18 @@ def register_problem_tools(mcp: FastMCP):
 
 
 def register_knowledge_management_tools(mcp: FastMCP):
-    @mcp.tool(tags={"knowledge_management"})
+    @mcp.tool(
+        tags={"knowledge_management"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "idempotentHint": True,
+            "openWorldHint": True,
+        },
+        meta={
+            "eg.annotations": {"modalities_in": ["text"], "modalities_out": ["text"]}
+        },
+    )
     async def servicenow_knowledge_management(
         action: Literal[
             "get_featured_knowledge_article",
