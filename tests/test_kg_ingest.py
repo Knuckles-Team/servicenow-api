@@ -152,6 +152,16 @@ class _FakeClient:
     def supports(operation: str) -> bool:
         return operation == "ApplyChangeEnvelope"
 
+    @staticmethod
+    def shacl_validate_committed(_data_graph: str) -> Any:
+        """EG's committed-GraphSchema SHACL authority (agent-utilities EH-385)."""
+        from epistemic_graph.generated.rdf_report import ShaclValidationReport
+
+        digest = "sha256:" + "0" * 64
+        return ShaclValidationReport(
+            conforms=True, results=[], composed_digest=digest, schema_digests=[digest]
+        )
+
 
 class _Stored:
     asset_id = "asset-1"
