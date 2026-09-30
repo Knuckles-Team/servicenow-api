@@ -311,7 +311,9 @@ def _mermaid_root_group_lines(
     return lines
 
 
-def _mermaid_ungrouped_node_lines(graph: FlowGraph, root_sys_ids: list[str]) -> list[str]:
+def _mermaid_ungrouped_node_lines(
+    graph: FlowGraph, root_sys_ids: list[str]
+) -> list[str]:
     lines = []
     for node in graph.nodes:
         if any(node.id.startswith(f"root_{rid[:8]}_") for rid in root_sys_ids):
@@ -345,6 +347,7 @@ def graph_to_mermaid_multi(
     lines.extend(_mermaid_edge_lines(graph))
 
     return "\n".join(lines)
+
 
 def build_polished_markdown(
     graph: FlowGraph,
