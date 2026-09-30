@@ -60,3 +60,37 @@ async def test_campaign_catalogs_register_condensed_and_verbose_surfaces(monkeyp
     assert "servicenow_get_incidents" not in intent_names
     assert "servicenow_get_incidents" in verbose_names
     assert "servicenow_incidents" not in verbose_names
+
+
+@pytest.mark.parametrize("server", ["servicenow-api", "servicenow-mcp"])
+def test_source_preset_contract_resolves_known_provider_aliases(tmp_path, server):
+    import json
+    from pathlib import Path
+
+    relative = Path("servicenow_api/connectors/mcp_source_presets.json")
+    source = Path(__file__).resolve().parents[1] / relative
+    presets = json.loads(source.read_text())
+    for preset in presets.values():
+        if isinstance(preset, dict):
+            preset["server"] = server
+    destination = tmp_path / relative
+    destination.parent.mkdir(parents=True)
+    destination.write_text(json.dumps(presets))
+    assert source_preset_contract(tmp_path) == []
+
+
+@pytest.mark.parametrize("server", ["servicenow-typo", "", None])
+def test_source_preset_contract_rejects_unknown_provider_aliases(tmp_path, server):
+    import json
+    from pathlib import Path
+
+    relative = Path("servicenow_api/connectors/mcp_source_presets.json")
+    source = Path(__file__).resolve().parents[1] / relative
+    presets = json.loads(source.read_text())
+    presets["servicenow-incidents"]["server"] = server
+    destination = tmp_path / relative
+    destination.parent.mkdir(parents=True)
+    destination.write_text(json.dumps(presets))
+    assert source_preset_contract(tmp_path) == [
+        "servicenow-incidents must resolve to servicenow-api"
+    ]

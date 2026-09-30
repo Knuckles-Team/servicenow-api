@@ -328,9 +328,11 @@ When query strings or parameters are supplied, an LLM-free **Knowledge Graph res
         "SDKTOOL": "True",
         "SDK_WORKDIR": "/data/servicenow-sdk-workspace",
         "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_GRANT_TYPE": "password",
         "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
         "SERVICENOW_TLS_PROFILE": "system",
+        "SERVICENOW_USERNAME": "your_servicenow_username_here",
         "SERVICE_QUALIFICATIONTOOL": "True",
         "SOURCE_CONTROLTOOL": "True",
         "TABLE_APITOOL": "True",
@@ -401,9 +403,11 @@ own runtime secret boundary.
         "SDKTOOL": "True",
         "SDK_WORKDIR": "/data/servicenow-sdk-workspace",
         "SERVICENOW_CLIENT_SECRET": "your_servicenow_client_secret_here",
+        "SERVICENOW_GRANT_TYPE": "password",
         "SERVICENOW_INSTANCE": "https://instance.example.invalid",
         "SERVICENOW_PASSWORD": "your_servicenow_password_here",
         "SERVICENOW_TLS_PROFILE": "system",
+        "SERVICENOW_USERNAME": "your_servicenow_username_here",
         "SERVICE_QUALIFICATIONTOOL": "True",
         "SOURCE_CONTROLTOOL": "True",
         "TABLE_APITOOL": "True",
@@ -473,9 +477,11 @@ docker run -i --rm \
   -e SDKTOOL=True \
   -e SDK_WORKDIR=/data/servicenow-sdk-workspace \
   -e SERVICENOW_CLIENT_SECRET=your_servicenow_client_secret_here \
+  -e SERVICENOW_GRANT_TYPE=password \
   -e SERVICENOW_INSTANCE=https://instance.example.invalid \
   -e SERVICENOW_PASSWORD=your_servicenow_password_here \
   -e SERVICENOW_TLS_PROFILE=system \
+  -e SERVICENOW_USERNAME=your_servicenow_username_here \
   -e SERVICE_QUALIFICATIONTOOL=True \
   -e SOURCE_CONTROLTOOL=True \
   -e TABLE_APITOOL=True \
@@ -640,7 +646,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `EUNOMIA_REMOTE_URL` | `http://eunomia-server:8000` |  |
 | `SERVICENOW_INSTANCE` | `https://instance.example.invalid` |  |
 | `SERVICENOW_URL` | — | alias for SERVICENOW_INSTANCE (checked first if both are set) |
-| `SERVICENOW_USERNAME` | — |  |
+| `SERVICENOW_USERNAME` | `your_servicenow_username_here` |  |
 | `SERVICENOW_CLIENT_ID` | — |  |
 | `SERVICENOW_GRANT_TYPE` | `password` | password (default) or client_credentials; client_credentials requires client id and secret. |
 | `SERVICENOW_TLS_PROFILE` | `system` | Named outbound TLS policy from AgentConfig. Use a reference for runtime-only trust material; peer and hostname verification remain mandatory. |
@@ -688,6 +694,8 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `PPMTOOL` | `True` |  |
 | `PRODUCT_INVENTORYTOOL` | `True` |  |
 | `SDKTOOL` | `True` |  |
+| `SERVICENOW_API_MCP_IMAGE` | — | Required by docker/mcp.compose.yml; set to the reviewed MCP image@sha256 digest. |
+| `SERVICENOW_API_AGENT_IMAGE` | — | Required by docker/agent.compose.yml; set to the reviewed agent image@sha256 digest. |
 
 #### Inherited agent-utilities variables (apply to every connector)
 
@@ -704,11 +712,11 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `MCP_BASIC_AUTH_USERNAME` | — | HTTP Basic username (`MCP_CLIENT_AUTH=basic`) |
 | `MCP_BASIC_AUTH_PASSWORD_REF` | `secret://identity/mcp-basic-password` | Runtime secret reference for HTTP Basic auth (`MCP_CLIENT_AUTH=basic`) |
 | `MCP_URL` | `http://localhost:8000/mcp` | URL of the MCP server the agent connects to |
-| `PROVIDER` | `openai` | LLM provider for the agent |
-| `MODEL_ID` | `gpt-4o` | Model id for the agent |
+| `PROVIDER` | — | Operator-configured LLM provider for the agent |
+| `MODEL_ID` | — | Operator-configured model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_61 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+_63 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 
