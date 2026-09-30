@@ -642,6 +642,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `SERVICENOW_URL` | — | alias for SERVICENOW_INSTANCE (checked first if both are set) |
 | `SERVICENOW_USERNAME` | — |  |
 | `SERVICENOW_CLIENT_ID` | — |  |
+| `SERVICENOW_GRANT_TYPE` | `password` | password (default) or client_credentials; client_credentials requires client id and secret. |
 | `SERVICENOW_TLS_PROFILE` | `system` | Named outbound TLS policy from AgentConfig. Use a reference for runtime-only trust material; peer and hostname verification remain mandatory. |
 | `SERVICENOW_TLS_PROFILE_REF` | — |  |
 | `DEBUG` | `False` |  |
@@ -707,7 +708,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `MODEL_ID` | `gpt-4o` | Model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_60 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+_61 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 
@@ -722,9 +723,25 @@ starting point.
 | `SERVICENOW_PASSWORD` | Account password (basic auth) | — |
 | `SERVICENOW_CLIENT_ID` | OAuth client id | — |
 | `SERVICENOW_CLIENT_SECRET` | OAuth client secret | — |
+| `SERVICENOW_GRANT_TYPE` | `password` or `client_credentials` | `password` |
 | `SERVICENOW_TLS_PROFILE` | Named outbound TLS policy from AgentConfig | `system` |
 | `DEBUG` | Verbose logging | `False` |
 | `PYTHONUNBUFFERED` | Unbuffered stdout (recommended in containers) | `1` |
+
+### OAuth client credentials
+
+Set `SERVICENOW_GRANT_TYPE=client_credentials` together with
+`SERVICENOW_CLIENT_ID` and `SERVICENOW_CLIENT_SECRET` to authenticate as the OAuth
+application without a username/password. Configure the application for this grant
+on the ServiceNow instance. Supply the secret through your runtime configuration;
+do not commit it to an environment file.
+
+OIDC delegation retains priority when enabled. Otherwise, explicitly selecting
+`client_credentials` requires both client fields and fails if either is missing;
+it does not fall back to an ambient username/password. Leaving the grant setting
+unset preserves the existing password-grant or Basic authentication behavior.
+Token exchange uses the configured TLS profile, a 30-second request timeout, and
+rejects redirects, non-success HTTP responses, and missing or invalid tokens.
 
 ### MCP server / transport
 | Variable | Description | Default |

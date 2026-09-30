@@ -467,6 +467,46 @@ class ServiceNowApiBase:
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
             }
+        elif grant_type == "client_credentials":
+            if not client_id or not client_secret:
+                raise ValueError(
+                    "OAuth client_credentials requires client_id and client_secret"
+                )
+            self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            self.auth_data = {
+                "grant_type": "client_credentials",
+                "client_id": client_id,
+                "client_secret": client_secret,
+            }
+            try:
+                response = self._session.post(
+                    url=self.auth_url,
+                    data=urlencode(self.auth_data),
+                    headers=self.auth_headers,
+                    timeout=30,
+                    allow_redirects=False,
+                )
+            except requests.RequestException as exc:
+                # Exception text can contain credentials echoed by a transport.
+                raise type(exc)("OAuth token request failed") from None
+            if not 200 <= response.status_code < 300:
+                raise requests.HTTPError(
+                    f"OAuth token request failed (HTTP {response.status_code})"
+                )
+            try:
+                payload = response.json()
+            except ValueError:
+                raise ValueError("OAuth token response is not valid JSON") from None
+            access_token = (
+                payload.get("access_token") if isinstance(payload, dict) else None
+            )
+            if not isinstance(access_token, str) or not access_token.strip():
+                raise ValueError("OAuth token response has no valid access_token")
+            self.token = access_token
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+            }
         elif username and password and client_id and client_secret:
             self.auth_headers = {"Content-Type": "application/x-www-form-urlencoded"}
             self.auth_data = {

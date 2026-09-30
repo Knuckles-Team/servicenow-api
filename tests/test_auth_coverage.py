@@ -85,6 +85,34 @@ def test_auth_basic_auth_success():
                 assert kwargs["url"] == "https://dev12345.service-now.com"
 
 
+def test_auth_client_credentials_success():
+    with patch.dict(
+        os.environ,
+        {
+            "SERVICENOW_INSTANCE": "https://dev12345.service-now.com",
+            "SERVICENOW_GRANT_TYPE": "client_credentials",
+        },
+    ):
+        with patch(
+            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
+            return_value=False,
+        ):
+            with patch("servicenow_api.auth.Api") as mock_api_cls:
+                client = get_client(
+                    client_id="my-client-id", client_secret="my-client-secret"
+                )
+                assert client is not None
+                assert mock_api_cls.called
+                _, kwargs = mock_api_cls.call_args
+                assert kwargs["client_id"] == "my-client-id"
+                assert kwargs["client_secret"] == "my-client-secret"
+                assert kwargs["grant_type"] == "client_credentials"
+                assert kwargs["url"] == "https://dev12345.service-now.com"
+                # client_credentials must not require or pass a user login
+                assert "username" not in kwargs or kwargs["username"] is None
+                assert "password" not in kwargs or kwargs["password"] is None
+
+
 def test_auth_basic_auth_failure_autherror():
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
