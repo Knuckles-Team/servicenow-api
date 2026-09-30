@@ -99,13 +99,13 @@ def test_auth_client_credentials_success():
         ):
             with patch("servicenow_api.auth.Api") as mock_api_cls:
                 client = get_client(
-                    client_id="my-client-id", client_secret="my-client-secret"
+                    client_id="my-client-id", client_secret="mock-client-secret"
                 )
                 assert client is not None
                 assert mock_api_cls.called
                 _, kwargs = mock_api_cls.call_args
                 assert kwargs["client_id"] == "my-client-id"
-                assert kwargs["client_secret"] == "my-client-secret"
+                assert kwargs["client_secret"] == "mock-client-secret"
                 assert kwargs["grant_type"] == "client_credentials"
                 assert kwargs["url"] == "https://dev12345.service-now.com"
                 # client_credentials must not require or pass a user login

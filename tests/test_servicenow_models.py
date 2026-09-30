@@ -1775,9 +1775,9 @@ def test_emailmodel_rejects_unknown_argument():
     from servicenow_api.servicenow_models import EmailModel
 
     with pytest.raises(PydanticValidationError) as exc_info:
-        EmailModel(subjet="typo'd field name")
+        EmailModel(unknown_subject="typo'd field name")
 
-    assert "subjet" in str(exc_info.value)
+    assert "unknown_subject" in str(exc_info.value)
 
 
 def test_aggregatemodel_rejects_unknown_argument():
@@ -1797,9 +1797,9 @@ def test_metricbasetimeseriesmodel_rejects_unknown_argument():
     from servicenow_api.servicenow_models import MetricBaseTimeSeriesModel
 
     with pytest.raises(PydanticValidationError) as exc_info:
-        MetricBaseTimeSeriesModel(table_name="cmdb_ci", vlaue=1.0)
+        MetricBaseTimeSeriesModel(table_name="cmdb_ci", unknown_value=1.0)
 
-    assert "vlaue" in str(exc_info.value)
+    assert "unknown_value" in str(exc_info.value)
 
 
 def test_sdkcommandmodel_and_subclass_reject_unknown_argument():

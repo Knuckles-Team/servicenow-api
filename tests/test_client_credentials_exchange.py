@@ -14,7 +14,7 @@ from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
 
 SECRET = "fake-secret+&=review"
-TOKEN = "fake-review-token"
+TOKEN = "mock-review-token"
 URL = "https://review.invalid"
 
 
@@ -128,8 +128,8 @@ def test_redirects_disabled(transport):
 
 def test_explicit_token_wins(transport):
     _, send = transport
-    api = client(token="explicit-fake-token")
-    assert api.headers["Authorization"] == "Bearer explicit-fake-token"
+    api = client(token="mock-explicit-token")
+    assert api.headers["Authorization"] == "Bearer mock-explicit-token"
     send.assert_not_called()
 
 
