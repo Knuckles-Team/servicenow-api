@@ -13,7 +13,11 @@ from typing import Any
 
 import yaml
 
-from servicenow_api.connectors import CANONICAL_PROVIDER, DEPLOYED_MCP_SERVICE
+from servicenow_api.connectors import (
+    CANONICAL_PROVIDER,
+    DEPLOYED_MCP_SERVICE,
+    resolve_mcp_server,
+)
 
 REQUIRED_GOVERNANCE = {
     "default_acl": "quarantine",
@@ -46,8 +50,10 @@ def source_preset_contract(root: Path | None = None) -> list[str]:
         if not isinstance(preset, dict):
             violations.append(f"missing preset: {name}")
             continue
-        if preset.get("server") != CANONICAL_PROVIDER:
-            violations.append(f"{name} must use {CANONICAL_PROVIDER}")
+        try:
+            resolve_mcp_server(preset.get("server"))
+        except ValueError:
+            violations.append(f"{name} must resolve to {CANONICAL_PROVIDER}")
         for field in ("tool", "action", "id_field", "updated_field", "records_path"):
             if not preset.get(field):
                 violations.append(f"{name} missing {field}")
