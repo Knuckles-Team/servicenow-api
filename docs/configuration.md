@@ -67,7 +67,7 @@ references only.
 1. Validate the capability bundle and skill metadata against the installed tool
    schemas.
 2. Confirm required secrets are present without printing their values.
-3. Verify the complete TLS chain with certificate verification enabled.
+3. Check the complete TLS chain with certificate verification enabled.
 4. Exercise health/readiness and one least-privilege read operation.
 5. Confirm traces arrive under the expected opaque tenant/run identifiers and
    contain no captured content.
@@ -86,7 +86,7 @@ The campaign is ordered and fail-closed:
 
 1. Validate the signed provider bundle, tenant/ACL/provenance contract, every
    packaged skill, and both condensed and verbose MCP catalogs.
-2. An operator verifies secret references (not values), TLS, MCP authentication,
+2. An operator checks secret references (not values), TLS, MCP authentication,
    and performs one bounded least-privilege read.
 3. Run bounded `source_sync` and repeat it to confirm the no-change path.
 4. Review `graph_writeback` only with `dry_run=true`.

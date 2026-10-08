@@ -16,7 +16,7 @@ tool surface over the ServiceNow REST API for the agent-utilities ecosystem.
 
 `servicenow-api` wraps the ServiceNow REST surface — Table API, Incident, Change
 Management, CMDB, DevOps, Knowledge, CI/CD, and more — with a typed Python client and
-exposes it three ways: as a Python API you import, as consolidated MCP tools an agent
+exposes it three ways: as a Python API the operator import, as consolidated MCP tools an agent
 calls, and as a Pydantic-AI A2A agent server. It provides:
 
 - **`Api`** — a session-based ServiceNow REST client validated by Pydantic models,
@@ -34,7 +34,7 @@ are absent.
 
 <div class="grid cards" markdown>
 
-- :material-rocket-launch: **[Installation](installation.md)** — pip, source, extras, and the prebuilt Docker image.
+- :material-rocket-start: **[Installation](installation.md)** — pip, source, extras, and the prebuilt Docker image.
 - :material-server-network: **[Deployment](deployment.md)** — run the MCP and agent servers, Docker Compose, Caddy + Technitium.
 - :material-console: **[Usage](usage.md)** — the MCP tools, the `Api` client, and the command line.
 - :material-sitemap: **[Architecture](overview.md)** — the standardized agent-package pattern and MCP configuration.
