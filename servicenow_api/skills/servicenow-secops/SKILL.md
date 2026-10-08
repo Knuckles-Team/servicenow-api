@@ -7,7 +7,7 @@ description: >-
   triage security incidents by priority, list vulnerable items by risk/state, or
   work threat-intel observables. SecOps areas expose only limited REST, so the
   reliable path is table-first via servicenow_table_api / servicenow_aggregate /
-  servicenow_custom_api against scoped sn_si_* (SIR), sn_vul_* (VR), and sn_ti_* (TI)
+  servicenow_custom_api against scoped sn_si_ (SIR), sn_vul_ (VR), and sn_ti_ (TI)
   tables that vary by instance and plugin version. Do NOT use for regular ITSM
   incidents (use servicenow-incident-management), generic table CRUD
   (servicenow-table-api), risk/GRC (servicenow-irm-grc), or CMDB CIs

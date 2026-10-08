@@ -13,7 +13,7 @@ description: >-
   drives a scoped-app pipeline. Do NOT use for the app's own metadata anatomy
   (use servicenow-app-engine), the now-sdk CLI lifecycle itself (use
   servicenow-sdk-lifecycle), Flow Designer authoring (use
-  servicenow-workflow-studio), the CI/CD & DevOps action catalog once a
+  servicenow-workflow-studio), the CI/CD and DevOps action catalog once a
   pipeline is already promoting (use servicenow-cicd-devops), or GitLab-side
   pipeline mechanics unrelated to ServiceNow (use gitlab-api's own
   `gitlab-pipelines` skill).

@@ -3,7 +3,7 @@ name: servicenow-cicd-devops
 skill_type: skill
 description: >-
   ServiceNow release-engineering surface — CI/CD app install/scan/rollback, DevOps
-  change-control & artifact registration, update-set create/preview/commit/back-out,
+  change-control and artifact registration, update-set create/preview/commit/back-out,
   source-control apply/import, plugin activate/rollback, and ATF test-suite runs via
   the servicenow-api MCP server. Use when the agent must deploy or roll back a scoped
   app, publish/install from an app repo, run a code/instance scan, move changes with
@@ -11,7 +11,7 @@ description: >-
   Automated Test Framework suite. This is where the dev-tooling skill
   servicenow-sdk-lifecycle defers for remote deploy/publish/test. Do NOT use for
   generic record CRUD (servicenow-table-api), data ingest/attachments/batch
-  (servicenow-import-attachment-batch), or flow rendering & email
+  (servicenow-import-attachment-batch), or flow rendering and email
   (servicenow-platform-utilities).
 license: MIT
 tags: [servicenow, cicd, devops, update-sets, atf, source-control, rest-api, mcp]

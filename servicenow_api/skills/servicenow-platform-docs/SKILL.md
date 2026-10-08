@@ -5,7 +5,7 @@ description: >-
   ServiceNow PRODUCT documentation (concepts, not code) for the Now Platform
   build/automation and security/risk suites the fleet unifies: Flow Designer /
   Workflow Studio (no-code automation), App Engine Studio / Application Studio
-  (low-code app building), Integrated Risk Management (IRM/GRC — risk, policy &
+  (low-code app building), Integrated Risk Management (IRM/GRC — risk, policy and
   compliance, audit, vendor/TPRM, privacy), and Security Operations (SecOps —
   Security Incident Response, Vulnerability Response, Threat Intelligence). Use
   when the agent needs to understand what these products are, their core
