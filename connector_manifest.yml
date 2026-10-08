@@ -28,9 +28,23 @@ actions:
   description: 'Answers epistemic_status/why/what_changed queries over the shared knowledge graph: calibrated
     confidence, evidence/source citations, belief justification trees, bitemporal valid/tx history, and
     policy-redaction-aware provenance.'
+  label: ''
+  parameters: []
+  target_resource: null
+  conflict_policy: null
+  requires_approval: true
+  approval_class: unclassified
+  effects: []
 - id: run_graph_flow
   name: Graph Flow Execution
   description: Execute a workflow through the agent's graph orchestration engine
+  label: ''
+  parameters: []
+  target_resource: null
+  conflict_policy: null
+  requires_approval: true
+  approval_class: unclassified
+  effects: []
 events:
 - name: servicenow-incidents.updated
   resource: incident
@@ -146,10 +160,11 @@ sync:
     doc_type: knowledge_article
 provenance:
   generated_by: scripts/generate_connector_manifests.py
-  generated_at: '2026-08-26T13:42:55Z'
+  generated_at: '2026-10-08T00:00:00Z'
   source_artifacts:
   - servicenow_api/connectors/mcp_source_presets.json
   - servicenow_api/connectors/tool_schema_fingerprints.json
+  - servicenow_api/ontology/access_contracts.ttl
   - servicenow_api/ontology/servicenow.ttl
   integrity:
     algorithm: urdna2015-sha256
@@ -159,7 +174,7 @@ provenance:
   signature_algorithm: none
   signing_public_key: ''
   signature: null
-  source_commit: 6049c55ee10cd8ab3f76bf73cad06709eca33ac3
+  source_commit: dc983b7f409cec60582f04c9aed51ddca6fee25d
 policy:
   pii_fields: {}
   tenant_boundary: null
