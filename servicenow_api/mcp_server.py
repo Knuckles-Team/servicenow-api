@@ -2,7 +2,6 @@ import warnings
 
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
-from fastmcp.server.transforms import Visibility
 from fastmcp.utilities.logging import get_logger
 from pydantic import Field
 
@@ -35,9 +34,7 @@ from agent_utilities.mcp.server_factory import (
     mcp_auth_config as config,
 )
 from agent_utilities.mcp.verbose_tools import (
-    gated_tool_names,
     register_tool_surface,
-    tool_mode,
 )
 
 from servicenow_api.api_client import Api
@@ -1606,10 +1603,6 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
         service="servicenow-api",
         tools_module=sys.modules[__name__],
     )
-    if tool_mode() == "verbose":
-        # Keep condensed dispatch functions registered for verbose aliases while
-        # hiding their duplicate action-routed surface from standalone clients.
-        mcp.add_transform(Visibility(False, names=gated_tool_names(mcp)))
     register_prompts(mcp)
     for tool in imported_tools:
         mcp.add_tool(tool)
