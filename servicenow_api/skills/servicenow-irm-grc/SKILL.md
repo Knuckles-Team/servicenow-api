@@ -3,14 +3,14 @@ name: servicenow-irm-grc
 skill_type: skill
 description: >-
   ServiceNow Integrated Risk Management / GRC — the ServiceNow equivalent of RSA
-  Archer (GRC) and OneTrust (privacy). Covers Risk Management, Policy & Compliance,
+  Archer (GRC) and OneTrust (privacy). Covers Risk Management, Policy and Compliance,
   Audit Management, Vendor / Third-Party Risk (TPRM), and Privacy Management. Use
   when the agent must list open risks, roll up compliance by control state, list
   open audit findings, work the vendor-risk assessment queue, or handle privacy
   data-subject / processing-activity records. IRM/GRC has no dedicated REST family,
   so it is driven table-first via servicenow_table_api / servicenow_aggregate /
-  servicenow_custom_api against scoped sn_risk_* / sn_compliance_* / sn_audit_* /
-  sn_vdr_* tables that vary by instance and plugin version. Do NOT use for generic
+  servicenow_custom_api against scoped sn_risk_ / sn_compliance_ / sn_audit_ /
+  sn_vdr_ tables that vary by instance and plugin version. Do NOT use for generic
   table CRUD (use servicenow-table-api), security incidents/vulnerabilities
   (servicenow-secops), or the technology portfolio (servicenow-trm); prefer those.
 license: MIT
