@@ -888,7 +888,7 @@ references only.</p>
 <li>Validate the capability bundle and skill metadata against the installed tool
    schemas.</li>
 <li>Confirm required secrets are present without printing their values.</li>
-<li>Verify the complete TLS chain with certificate verification enabled.</li>
+<li>Check the complete TLS chain with certificate verification enabled.</li>
 <li>Exercise health/readiness and one least-privilege read operation.</li>
 <li>Confirm traces arrive under the expected opaque tenant/run identifiers and
    contain no captured content.</li>
@@ -905,7 +905,7 @@ It neither loads credentials nor contacts ServiceNow.</p>
 <ol>
 <li>Validate the signed provider bundle, tenant/ACL/provenance contract, every
    packaged skill, and both condensed and verbose MCP catalogs.</li>
-<li>An operator verifies secret references (not values), TLS, MCP authentication,
+<li>An operator checks secret references (not values), TLS, MCP authentication,
    and performs one bounded least-privilege read.</li>
 <li>Run bounded <code>source_sync</code> and repeat it to confirm the no-change path.</li>
 <li>Review <code>graph_writeback</code> only with <code>dry_run=true</code>.</li>

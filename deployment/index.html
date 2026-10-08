@@ -1151,10 +1151,10 @@ by its own <code>*TOOL</code> toggle (for example <code>INCIDENTSTOOL</code>, <c
 <code>CHANGE_MANAGEMENTTOOL</code>), all defaulting to <code>True</code>. The full set, including telemetry
 (<code>ENABLE_OTEL</code>) and access-governance (<code>EUNOMIA_*</code>) variables, is documented in
 <a href="https://github.com/Knuckles-Team/servicenow-api/blob/main/.env.example"><code>.env.example</code></a>.
-Copy it to <code>.env</code> and populate only what you use.</p>
+Copy it to <code>.env</code> and populate only what the operator use.</p>
 <h2 id="backing-service-servicenow">Backing Service (ServiceNow)<a class="headerlink" href="#backing-service-servicenow" title="Permanent link">&para;</a></h2>
 <p>ServiceNow is a <strong>managed SaaS platform</strong> — there is no local backing system to
-provision. Point <code>SERVICENOW_INSTANCE</code> at your tenant (for example a personal
+provision. Point <code>SERVICENOW_INSTANCE</code> at the operator's tenant (for example a personal
 developer instance from the ServiceNow Developer Program) and supply credentials via
 the variables above. Because the backing system is hosted, only connection
 configuration is required; no <code>platform.md</code> recipe applies.</p>
@@ -1253,7 +1253,7 @@ runs the MCP server and the agent together:</p>
 <p>The agent reaches the MCP server by container name through <code>MCP_URL</code>; set <code>PROVIDER</code>
 and <code>MODEL_ID</code> to select the backing LLM.</p>
 <h2 id="behind-a-caddy-reverse-proxy">Behind a Caddy reverse proxy<a class="headerlink" href="#behind-a-caddy-reverse-proxy" title="Permanent link">&para;</a></h2>
-<p>Expose the HTTP server on a hostname with automatic TLS. Add to your <code>Caddyfile</code>:</p>
+<p>Expose the HTTP server on a hostname with automatic TLS. Add to the operator's <code>Caddyfile</code>:</p>
 <div class="language-caddy highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Internal (self-signed) — homelab .example.invalid zone</span>
 </span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>servicenow-api.example.invalid<span class="w"> </span><span class="p">{</span>
 </span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="k">tls</span><span class="w"> </span>internal
@@ -1283,7 +1283,7 @@ console (<code>http://technitium.example.invalid:5380</code>). The ecosystem
 <a href="https://knuckles-team.github.io/technitium-dns-mcp/"><code>technitium-dns-mcp</code></a> automates
 this as a tool.</p>
 <h2 id="register-with-an-mcp-client">Register with an MCP client<a class="headerlink" href="#register-with-an-mcp-client" title="Permanent link">&para;</a></h2>
-<p>Add to your client's <code>mcp_config.json</code>:</p>
+<p>Add to the operator's client's <code>mcp_config.json</code>:</p>
 <div class="language-json highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="p">{</span>
 </span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span><span class="nt">"mcpServers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="nt">"servicenow-api"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
