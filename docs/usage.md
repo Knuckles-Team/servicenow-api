@@ -1,7 +1,7 @@
 # Usage — API / CLI / MCP
 
 `servicenow-api` exposes the same capability three ways: as **MCP tools** an agent
-calls, as a **Python API** (`Api`) you import, and as a **command-line** server. The
+calls, as a **Python API** (`Api`) the operator import, and as a **command-line** server. The
 full ServiceNow domain coverage and concept registry are in [Overview](overview.md)
 and [Concepts](concepts.md).
 

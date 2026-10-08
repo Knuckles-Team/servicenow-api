@@ -87,3 +87,6 @@ override-dependencies = [
 
 [tool.uv.sources]
 agent-utilities = { path = ".uv-workspace-siblings/agent-utilities", editable = true }
+
+[tool.pipelines_hooks.ste]
+exempt = ["specs/*", "specs/**/*"]

@@ -101,7 +101,7 @@ async def my_tool(param: str) -> str:
 
 **Ask first:**
 - Major refactors of `mcp_server.py` or `agent_server.py`.
-- Deleting or renaming public tool functions.
+- Removing or renaming public tool functions.
 
 **Never do:**
 - Commit `.env` files or secrets.
@@ -131,7 +131,7 @@ stateDiagram-v2
 
 ## Testing with Timeout
 
-To run tests with a timeout to prevent hanging, use the `pytest-timeout` plugin. You can combine it with the `-k` flag to run specific tests:
+To run tests with a timeout to prevent hanging, use the `pytest-timeout` plugin. The operator can combine it with the `-k` flag to run specific tests:
 
 ```bash
 uv run pytest --timeout=60 -k "test_name_pattern"
@@ -178,27 +178,27 @@ and erodes a pristine codebase.
 `~/workspace/reports/` (command output); tests go in `tests/` (pytest).
 Before finishing a task, run `git status` and confirm no stray root files were added.
 
-## Working Discipline — think, simplify, stay surgical, verify
+## Working Discipline — think, simplify, stay surgical, check
 
 These four habits cut the most common LLM coding mistakes. For trivial tasks, use
 judgment; the bias here is correctness over speed.
 
-- **Think before coding.** State your assumptions explicitly. If a request has more than
+- **Think before coding.** State the operator's assumptions explicitly. If a request has more than
   one reasonable reading, surface the options instead of silently picking one. If a
   simpler approach exists, say so and push back when warranted. When something is
   genuinely unclear, stop and name what's confusing — ask, don't guess.
 - **Simplicity first.** Write the minimum code that solves the stated problem — no
   speculative features, no abstraction for single-use code, no configurability that
-  wasn't requested, no error handling for impossible states. If you wrote 200 lines and
-  it could be 50, rewrite it. (Name code from its purpose, never `wave0`/`phase2`/`v2`.)
+  wasn't requested, no error handling for impossible states. If the operator wrote 200 lines and
+  it can be 50, rewrite it. (Name code from its purpose, never `wave0`/`phase2`/`v2`.)
 - **Stay surgical.** Every changed line should trace directly to the task. Don't refactor,
-  reformat, or "improve" working code adjacent to your change; match the existing style
-  even where you'd do it differently. Remove only the imports/symbols your own change
-  orphaned; if you spot unrelated dead code, mention it rather than deleting it inline.
+  reformat, or "improve" working code adjacent to the operator's change; match the existing style
+  even where the operator'd do it differently. Remove only the imports/symbols the operator's own change
+  orphaned; if the operator spot unrelated dead code, mention it rather than removing it inline.
   *Exception — the Quality Bar below:* lint/format/type errors the pre-commit gate flags
-  get fixed regardless of who introduced them. In short: **surgical on behavior, clean on
+  get fixed in either case of who introduced them. In short: **surgical on behavior, clean on
   lint.**
-- **Verify against a goal.** Turn the task into a checkable outcome before you start:
+- **Check against a goal.** Turn the task into a checkable outcome before the operator start:
   "fix the bug" → "write a failing test that reproduces it, then make it pass"; "add
   validation" → "tests for the invalid inputs pass". For multi-step work, state the short
   plan and the check for each step, then loop until the checks pass.
@@ -213,8 +213,8 @@ pre-commit run --all-files
 ```
 
 Resolve **every** issue it reports — failures, lint errors, type errors, and
-warnings — **including problems that pre-date your change and were not caused by
-your edits**. The standing goal is a clean, working codebase with **no errors and
+warnings — **including problems that pre-date the operator's change and were not caused by
+the operator's edits**. The standing goal is a clean, working codebase with **no errors and
 no warnings**. Do not silence checks (`# noqa`, `# type: ignore`, `SKIP=`,
 `--no-verify`) to force green unless the exception is already documented in this
 file as a known, unavoidable limitation. Only commit once `pre-commit run
@@ -226,7 +226,7 @@ why rather than bypassing it.
 Multiple agents/sessions work the `agent-packages/*` repos concurrently. **Do not
 edit the canonical checkout** (`${WORKSPACE_ROOT}/agent-packages/<repo>`) — a
 background `repository-manager` sync can reset its working tree and discard
-uncommitted edits. Take your own git worktree on your own branch instead:
+uncommitted edits. Take the operator's own git worktree on the operator's own branch instead:
 
 ```bash
 # preferred — repository-manager MCP:
@@ -249,7 +249,7 @@ alone).
 2. **Commit** in the worktree.
 3. **Merge to main locally** — `rm_worktree merge <repo> <branch> --into main`
    (or `git merge --no-ff`). Push only when the user asks.
-4. **Clean up** — remove the worktree and delete the merged branch:
+4. **Clean up** — remove the worktree and remove the merged branch:
    `rm_worktree remove <repo> <branch> --delete-branch`; `rm_worktree prune` clears
    stale entries. (Raw-git: `git worktree remove <path> && git branch -d <branch>`.)
 
@@ -275,8 +275,8 @@ is what Dependabot flags. Rules:
 
 1. **Never hand-edit a version string.** Change the version ONLY via
    `bump-my-version bump {patch|minor|major}` (a.k.a. `bump2version`), which rewrites every file
-   registered in `.bumpversion.cfg` in one atomic, tagged commit. If you edited the version in
-   `pyproject.toml` by hand, you created drift — revert and use the bumper.
+   registered in `.bumpversion.cfg` in one atomic, tagged commit. If the operator edited the version in
+   `pyproject.toml` by hand, the operator created drift — revert and use the bumper.
 2. **Every version-bearing file must be registered in `.bumpversion.cfg`** — at minimum
    `pyproject.toml` AND `README.md`, plus `docker/Dockerfile` and any module `__version__`. Never
    add a file that embeds the version without a `[bumpversion:file:...]` entry for it.
@@ -289,7 +289,7 @@ is what Dependabot flags. Rules:
 
 ## Upstream currency edict — target the newest release; a pin is a hypothesis, not a fact (READ BEFORE capping, deferring, or opt-in-gating an upgrade)
 
-This governs how we treat **other people's** releases, deprecations, and version caps in
+This governs how this repository treat **other people's** releases, deprecations, and version caps in
 this repo (fleet-wide edict, propagated from `agent-utilities/AGENTS.md`).
 
 1. **Latest by default.** Target the newest upstream release -- including a pre-release
@@ -308,10 +308,10 @@ this repo (fleet-wide edict, propagated from `agent-utilities/AGENTS.md`).
    -- never an indefinite pin.
 4. **Deprecations are fixed on sight, in code AND in tests.** A `DeprecationWarning` from
    an upstream library is a defect to fix now, not noise to filter. **Never** silence one
-   with a warning filter, `# noqa`, or a pytest `filterwarnings` entry in order to go
+   with a warning filter, `# noqa`, or a pytest `filterwarnings` entry to go
    green.
 5. **Adopt upstream features rather than reimplementing them.** If upstream ships a
-   capability this repo hand-rolled, migrate to theirs and delete the local one.
+   capability this repo hand-rolled, migrate to theirs and remove the local one.
 6. **Nothing built on an upgrade ships opt-in.** A new capability an upgrade unlocks is
    default-on unless it genuinely costs compute, in which case it is policy-selected,
    never flag-gated. An opt-in extra or a dependency-conflict fork is an interim state

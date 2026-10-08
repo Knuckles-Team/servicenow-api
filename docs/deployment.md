@@ -121,12 +121,12 @@ by its own `*TOOL` toggle (for example `INCIDENTSTOOL`, `CMDBTOOL`,
 `CHANGE_MANAGEMENTTOOL`), all defaulting to `True`. The full set, including telemetry
 (`ENABLE_OTEL`) and access-governance (`EUNOMIA_*`) variables, is documented in
 [`.env.example`](https://github.com/Knuckles-Team/servicenow-api/blob/main/.env.example).
-Copy it to `.env` and populate only what you use.
+Copy it to `.env` and populate only what the operator use.
 
 ## Backing Service (ServiceNow)
 
 ServiceNow is a **managed SaaS platform** — there is no local backing system to
-provision. Point `SERVICENOW_INSTANCE` at your tenant (for example a personal
+provision. Point `SERVICENOW_INSTANCE` at the operator's tenant (for example a personal
 developer instance from the ServiceNow Developer Program) and supply credentials via
 the variables above. Because the backing system is hosted, only connection
 configuration is required; no `platform.md` recipe applies.
@@ -242,7 +242,7 @@ and `MODEL_ID` to select the backing LLM.
 
 ## Behind a Caddy reverse proxy
 
-Expose the HTTP server on a hostname with automatic TLS. Add to your `Caddyfile`:
+Expose the HTTP server on a hostname with automatic TLS. Add to the operator's `Caddyfile`:
 
 ```caddy
 # Internal (self-signed) — homelab .example.invalid zone
@@ -286,7 +286,7 @@ this as a tool.
 
 ## Register with an MCP client
 
-Add to your client's `mcp_config.json`:
+Add to the operator's client's `mcp_config.json`:
 
 ```json
 {
