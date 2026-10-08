@@ -1,0 +1,51 @@
+@prefix ac: <https://knuckles-team.github.io/agent-connector-sdk/access#> .
+@prefix sn: <http://knuckles.team/kg#> .
+
+# Access contracts (SDK-CONNECTOR-CONTROL-R021 / G24): how ConfigurationItem
+# and Incident are answered live through this connector's MCP tools, not a
+# copied snapshot. Kept in a dedicated file so the flat access-contract
+# parser (agent_connector_sdk.access_contract) never has to tokenize the
+# full OWL ontology in servicenow.ttl, which uses multi-line comment
+# literals outside the parser's supported subset.
+
+sn:cmdbAccess a ac:AccessContract ;
+    ac:classIri sn:ConfigurationItem ;
+    ac:sourceId "servicenow-api" ;
+    ac:entity "cmdb_ci" ;
+    ac:keyField "sys_id" ;
+    ac:accessKind "mcp_tool" ;
+    ac:operation "servicenow_cmdb" ;
+    ac:parameter "action", "params_json" ;
+    ac:pagination "offset" ;
+    ac:pushdown "filter", "limit" ;
+    ac:authRef "env://SERVICENOW_PASSWORD" ;
+    ac:rateLimitPerMinute 60 ;
+    ac:freshnessSeconds 300 ;
+    ac:costHint "medium" .
+
+sn:cmdbShortDescriptionBinding a ac:PropertyBinding ;
+    ac:contract sn:cmdbAccess ; ac:property sn:shortDescription ; ac:field "name" .
+
+sn:incidentAccess a ac:AccessContract ;
+    ac:classIri sn:Incident ;
+    ac:sourceId "servicenow-api" ;
+    ac:entity "incident" ;
+    ac:keyField "sys_id" ;
+    ac:accessKind "mcp_tool" ;
+    ac:operation "servicenow_incidents" ;
+    ac:parameter "action", "params_json" ;
+    ac:pagination "offset" ;
+    ac:pushdown "filter", "limit", "sort" ;
+    ac:authRef "env://SERVICENOW_PASSWORD" ;
+    ac:rateLimitPerMinute 60 ;
+    ac:freshnessSeconds 60 ;
+    ac:costHint "medium" .
+
+sn:incidentNumberBinding a ac:PropertyBinding ;
+    ac:contract sn:incidentAccess ; ac:property sn:number ; ac:field "number" .
+
+sn:incidentPriorityBinding a ac:PropertyBinding ;
+    ac:contract sn:incidentAccess ; ac:property sn:priority ; ac:field "priority" .
+
+sn:incidentStateBinding a ac:PropertyBinding ;
+    ac:contract sn:incidentAccess ; ac:property sn:state ; ac:field "state" .
