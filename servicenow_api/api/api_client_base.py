@@ -3,6 +3,7 @@
 import base64
 import gzip
 import json
+import logging
 import sys
 from base64 import b64encode
 from collections import defaultdict
@@ -11,18 +12,15 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.exceptions import MissingParameterError
-from agent_utilities.core.transport_security import (
-    ResolvedTLSProfile,
-    resolve_configured_tls_profile,
-)
+from agent_connector_sdk.exceptions import MissingParameterError
+from agent_connector_sdk.tls.profile import ResolvedTLSProfile
+from agent_connector_sdk.tls.resolve import resolve_tls_profile
 
 from servicenow_api.servicenow_models import (
     FlowGraph,
 )
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def decode_values(raw_values: str | None) -> list[dict[str, Any]]:
@@ -454,7 +452,7 @@ class ServiceNowApiBase:
             raise MissingParameterError
 
         self._session = requests.Session()
-        self.tls_profile = tls_profile or resolve_configured_tls_profile("servicenow")
+        self.tls_profile = tls_profile or resolve_tls_profile("servicenow")
         self.tls_profile.configure_requests_session(self._session)
         self.base_url = url
         self.auth_url = f"{self.base_url}/oauth_token.do"

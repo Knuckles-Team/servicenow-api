@@ -3,31 +3,65 @@
 Authentication priority:
 1. **OIDC Delegation** — If ``ENABLE_DELEGATION`` is active, exchanges
    the IdP-issued user token for a downstream ServiceNow access token
-   via RFC 8693 Token Exchange using the shared ``delegated_auth`` helper.
+   via RFC 8693 Token Exchange using ``agent_connector_sdk.auth.delegation``.
 2. **OAuth client credentials** — If ``SERVICENOW_GRANT_TYPE`` is
    ``client_credentials`` and ``SERVICENOW_CLIENT_ID`` /
    ``SERVICENOW_CLIENT_SECRET`` are set, authenticates as the OAuth
    application itself (no username/password).
 3. **Basic Auth** — Falls back to ``SERVICENOW_USERNAME`` /
    ``SERVICENOW_PASSWORD`` with optional OAuth client credentials.
-
-See ``docs/guides/oauth_sso.md`` in agent-utilities for full details.
 """
 
+import logging
 from threading import local
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.config import setting
-from agent_utilities.core.exceptions import AuthError, UnauthorizedError
-from agent_utilities.core.transport_security import (
-    ResolvedTLSProfile,
-    resolve_configured_tls_profile,
-)
+from agent_connector_sdk.config import setting
+from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
+from agent_connector_sdk.tls.profile import ResolvedTLSProfile
+from agent_connector_sdk.tls.resolve import resolve_tls_profile
 
 local = local()
 from servicenow_api.api_client import Api
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
+
+
+def _is_delegation_enabled() -> bool:
+    """Whether the OIDC delegation path should be attempted."""
+    from agent_connector_sdk.auth.delegation import DelegationSettings
+
+    return DelegationSettings.from_settings().enabled
+
+
+def _delegated_client(instance: str, profile: ResolvedTLSProfile) -> Api:
+    """Path 1: OIDC Delegation (RFC 8693 Token Exchange).
+
+    Reads delegation settings (``OIDC_TOKEN_URL``/``OIDC_CLIENT_ID``/
+    ``OIDC_CLIENT_SECRET_REF``/``AUDIENCE``/``DELEGATED_SCOPES``) from the
+    process settings via ``agent_connector_sdk.auth.delegation.DelegationSettings``.
+    """
+    import httpx
+    from agent_connector_sdk.auth.delegation import (
+        DelegationSettings,
+        current_user_token,
+        exchange_token,
+    )
+    from agent_connector_sdk.exceptions import LoginRequiredError
+
+    try:
+        settings = DelegationSettings.from_settings()
+        subject_token = current_user_token()
+        if not subject_token:
+            raise LoginRequiredError("no verified caller token to delegate")
+        with httpx.Client(timeout=30) as http_client:
+            access_token = exchange_token(
+                settings, subject_token=subject_token, http_client=http_client
+            )
+        logger.info("Using OIDC delegated token for ServiceNow API")
+        return Api(url=instance, token=access_token.value, tls_profile=profile)
+    except Exception as e:
+        logger.error("OIDC delegation failed", extra={"error": "Operation failed"})
+        raise RuntimeError(f"Token exchange failed: {type(e).__name__}") from e
 
 
 def get_client(
@@ -42,16 +76,10 @@ def get_client(
     Credentials resolve live through the shared config layer (the one XDG
     ``config.json`` / env), so they are read at call time rather than frozen at
     import. Auto-detects auth method:
-    1. OIDC Delegation → exchanges MCP token via shared helper
+    1. OIDC Delegation → exchanges MCP token via the SDK's delegation helper
     2. OAuth client credentials → application credentials
     3. Basic auth → username/password (config fallback)
     """
-    from agent_utilities.mcp.delegated_auth import (
-        get_delegated_token,
-        get_user_identity,
-        is_delegation_enabled,
-    )
-
     username = username if username is not None else setting("SERVICENOW_USERNAME")
     password = password if password is not None else setting("SERVICENOW_PASSWORD")
     client_id = client_id if client_id is not None else setting("SERVICENOW_CLIENT_ID")
@@ -60,7 +88,7 @@ def get_client(
         if client_secret is not None
         else setting("SERVICENOW_CLIENT_SECRET")
     )
-    profile = tls_profile or resolve_configured_tls_profile(
+    profile = tls_profile or resolve_tls_profile(
         "servicenow",
         profile_name=setting("SERVICENOW_TLS_PROFILE", "") or None,
         profile_ref=setting("SERVICENOW_TLS_PROFILE_REF", "") or None,
@@ -71,18 +99,8 @@ def get_client(
         raise RuntimeError("SERVICENOW_INSTANCE not set")
 
     # --- Path 1: OIDC Delegation (RFC 8693 Token Exchange) ---
-    if is_delegation_enabled():
-        try:
-            delegated_token = get_delegated_token(
-                audience=setting("AUDIENCE", instance),
-                scopes=setting("DELEGATED_SCOPES", "api"),
-            )
-            get_user_identity()
-            logger.info("Using OIDC delegated token for ServiceNow API")
-            return Api(url=instance, token=delegated_token, tls_profile=profile)
-        except Exception:
-            logger.error("OIDC delegation failed", extra={"error": "Operation failed"})
-            raise
+    if _is_delegation_enabled():
+        return _delegated_client(instance, profile)
 
     # --- Path 2: OAuth 2.0 client credentials grant ---
     # Set SERVICENOW_GRANT_TYPE=client_credentials to authenticate as an OAuth

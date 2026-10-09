@@ -2,7 +2,7 @@
 
 import sys
 
-from agent_utilities.core.exceptions import (
+from agent_connector_sdk.exceptions import (
     MissingParameterError,
 )
 from pydantic import ValidationError

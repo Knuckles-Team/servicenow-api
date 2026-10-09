@@ -152,19 +152,7 @@ async def test_ingest_incidents_degrades_gracefully_when_no_engine(mock_client):
     # import raises `ImportError` and the test reports a plain FAILED,
     # indistinguishable from an application-code regression. Skip it
     # LOUDLY with an explanation instead. See
-    # plans/complex/waves/wD4/WD4-FIX-01.md defect (d).
-    pytest.importorskip(
-        "agent_utilities.knowledge_graph.memory.native_ingest",
-        exc_type=ImportError,
-        reason=(
-            "agent_utilities.numeric requires the compiled epistemic_graph.numeric "
-            "kernel, shipped only behind agent-utilities' opt-in `graphos` extra "
-            "(GOC-73); not installed by this repo's `agent-utilities` "
-            "dependency — install `agent-utilities[graphos]>=2.27.0` to run "
-            "this test (WD4-FIX-01 defect (d))"
-        ),
-    )
-    from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
+    from agent_connector_sdk.ingest import IngestError
     from fastmcp import FastMCP
 
     from servicenow_api.mcp_server import register_misc_tools
@@ -175,7 +163,7 @@ async def test_ingest_incidents_degrades_gracefully_when_no_engine(mock_client):
 
     with patch(
         "servicenow_api.kg_ingest.ingest_incidents",
-        side_effect=NativeIngestError("no engine reachable"),
+        side_effect=IngestError("no engine reachable"),
     ):
         result = await tool.fn(params_json="{}", client=mock_client, ctx=None)
 
@@ -270,28 +258,11 @@ async def test_tool_mode_condensed_default(mock_client, monkeypatch):
     assert "servicenow_get_cmdb_instance" not in names  # verbose absent
 
 
-@pytest.mark.asyncio
-async def test_tool_mode_verbose(mock_client, monkeypatch):
-    """verbose mode: one 1:1 tool per Api domain method, condensed absent."""
-    monkeypatch.setenv("MCP_TOOL_MODE", "verbose")
-    with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
-        mcp, *_ = get_mcp_instance()
-        names = {t.name for t in await mcp.list_tools()}
-    assert "servicenow_cmdb" not in names
-    assert "servicenow_get_cmdb_instance" in names
-    # verbose tool names map 1:1 onto public Api methods
-    from servicenow_api.api_client import Api
-
-    method = "get_cmdb_instance"
-    assert callable(getattr(Api, method, None))
-    assert f"servicenow_{method}" in names
-
-
-@pytest.mark.asyncio
-async def test_tool_mode_both_is_union(mock_client, monkeypatch):
-    monkeypatch.setenv("MCP_TOOL_MODE", "both")
-    with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
-        mcp, *_ = get_mcp_instance()
-        names = {t.name for t in await mcp.list_tools()}
-    assert "servicenow_cmdb" in names  # condensed
-    assert "servicenow_get_cmdb_instance" in names  # verbose
+# REMOVED (SDK-CONNECTOR-CONTROL-R009/R020 migration): test_tool_mode_verbose and
+# test_tool_mode_both_is_union asserted MCP_TOOL_MODE="verbose"/"both" registered a
+# 1:1 tool per Api method alongside the condensed action tool.
+# agent_connector_sdk.mcp.tool_surface.register_tool_surface has no mode parameter
+# at all — it always registers only the condensed, GATED_TAG-tagged surface
+# (agent-utilities#54's one condensed intent contract) — so the verbose 1:1 surface
+# these tests checked for no longer exists to register. test_tool_mode_condensed_default
+# above still covers the (now only) condensed path.

@@ -3,6 +3,7 @@
 import base64
 import gzip
 import json
+import logging
 import os
 import sys
 import tempfile
@@ -10,8 +11,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.exceptions import (
+from agent_connector_sdk.exceptions import (
     MissingParameterError,
     ParameterError,
 )
@@ -43,7 +43,7 @@ from servicenow_api.servicenow_models import (
     ServiceQualificationItem,
 )
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def decode_values(raw_values: str | None) -> list[dict[str, Any]]:

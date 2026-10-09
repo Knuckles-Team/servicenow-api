@@ -3,18 +3,18 @@
 import base64
 import gzip
 import json
+import logging
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.decorators import require_auth  # noqa: F401
+from agent_connector_sdk.exceptions import require_auth  # noqa: F401
 
 from servicenow_api.servicenow_models import (
     FlowGraph,
 )
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_agent_workspace():

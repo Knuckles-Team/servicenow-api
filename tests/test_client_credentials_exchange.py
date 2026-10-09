@@ -164,8 +164,6 @@ def test_basic_unchanged(transport):
 
 @pytest.fixture
 def config(monkeypatch):
-    from agent_utilities.mcp import delegated_auth
-
     settings = {
         "SERVICENOW_INSTANCE": URL,
         "SERVICENOW_GRANT_TYPE": "client_credentials",
@@ -178,7 +176,7 @@ def config(monkeypatch):
         "servicenow_api.auth.setting",
         lambda key, default=None: settings.get(key, default),
     )
-    monkeypatch.setattr(delegated_auth, "is_delegation_enabled", lambda: False)
+    monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: False)
     return settings
 
 
@@ -199,27 +197,33 @@ def test_explicit_grant_missing_credentials_fails_closed(transport, config, miss
 
 
 def test_delegation_takes_precedence(transport, config, monkeypatch):
-    from agent_utilities.mcp import delegated_auth
+    from agent_connector_sdk.auth import delegation
+    from agent_connector_sdk.auth.tokens import AccessToken
 
-    monkeypatch.setattr(delegated_auth, "is_delegation_enabled", lambda: True)
+    monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: True)
+    monkeypatch.setattr(delegation, "current_user_token", lambda: "subject-token")
     monkeypatch.setattr(
-        delegated_auth, "get_delegated_token", lambda **kwargs: "fake-delegated"
+        delegation,
+        "exchange_token",
+        lambda *a, **kw: AccessToken(
+            value="fake-delegated", ttl_seconds=300, expires_at=0
+        ),
     )
-    monkeypatch.setattr(delegated_auth, "get_user_identity", lambda: {})
     api = get_client(tls_profile=MagicMock())
     assert api.headers["Authorization"] == "Bearer fake-delegated"
     transport[1].assert_not_called()
 
 
 def test_delegation_failure_does_not_fallback(transport, config, monkeypatch):
-    from agent_utilities.mcp import delegated_auth
+    from agent_connector_sdk.auth import delegation
 
-    monkeypatch.setattr(delegated_auth, "is_delegation_enabled", lambda: True)
+    monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: True)
+    monkeypatch.setattr(delegation, "current_user_token", lambda: "subject-token")
 
-    def failure(**kwargs):
+    def failure(*a, **kw):
         raise RuntimeError("fake delegation failure")
 
-    monkeypatch.setattr(delegated_auth, "get_delegated_token", failure)
+    monkeypatch.setattr(delegation, "exchange_token", failure)
     with pytest.raises(RuntimeError):
         get_client(tls_profile=MagicMock())
     transport[1].assert_not_called()

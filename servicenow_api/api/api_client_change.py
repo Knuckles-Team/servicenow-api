@@ -3,13 +3,13 @@
 import base64
 import gzip
 import json
+import logging
 import sys
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.exceptions import (
+from agent_connector_sdk.exceptions import (
     MissingParameterError,
 )
 from pydantic import ValidationError
@@ -22,7 +22,7 @@ from servicenow_api.servicenow_models import (
     Task,
 )
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def decode_values(raw_values: str | None) -> list[dict[str, Any]]:

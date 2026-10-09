@@ -19,14 +19,14 @@ the container image, and ``servicenow_api/mcp_server.py``'s ``register_sdk_tools
 for the MCP tool surface over this client.
 """
 
+import logging
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from agent_utilities.base_utilities import get_logger
-from agent_utilities.core.config import setting
-from agent_utilities.core.exceptions import MissingParameterError
+from agent_connector_sdk.config import setting
+from agent_connector_sdk.exceptions import MissingParameterError
 
 from servicenow_api.servicenow_models import (
     SdkAuthModel,
@@ -38,7 +38,7 @@ from servicenow_api.servicenow_models import (
     SdkTransformModel,
 )
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 #: Console command the `@servicenow/sdk` npm package installs (see docker/Dockerfile).
 SDK_BINARY = "now-sdk"

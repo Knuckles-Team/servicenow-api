@@ -1713,7 +1713,7 @@ def test_servicenow_incident_with_bool_param():
     reason=reason,
 )
 def test_incidentmodel_rejects_unknown_argument():
-    from agent_utilities.core.exceptions import ParameterError
+    from agent_connector_sdk.exceptions import ParameterError
 
     with pytest.raises(ParameterError) as exc_info:
         IncidentModel(limit=3)
@@ -1730,7 +1730,7 @@ def test_incidentmodel_rejects_unknown_argument():
 def test_tablemodel_rejects_unknown_argument():
     """TableModel had no model_config at all -- same silent-drop defect as
     IncidentModel, confirming the fix's blast radius is not incident-specific."""
-    from agent_utilities.core.exceptions import ParameterError
+    from agent_connector_sdk.exceptions import ParameterError
 
     with pytest.raises(ParameterError) as exc_info:
         TableModel(table="incident", fields="number")

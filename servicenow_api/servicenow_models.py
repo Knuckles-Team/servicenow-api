@@ -1,7 +1,7 @@
 from typing import Any, Generic, TypeVar
 
 import requests
-from agent_utilities.core.exceptions import (
+from agent_connector_sdk.exceptions import (
     ParameterError,
 )
 from pydantic import (

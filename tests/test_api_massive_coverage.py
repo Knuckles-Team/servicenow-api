@@ -256,7 +256,7 @@ def test_api_client_exhaustive_methods(mock_session):
     """
     CONCEPT:AU-ECO.messaging.native-backend-abstraction: Tool Interface & MCP Factory
     """
-    from agent_utilities.core.exceptions import MissingParameterError
+    from agent_connector_sdk.exceptions import MissingParameterError
 
     # Verify __init__ boundary exception
     with pytest.raises(MissingParameterError):

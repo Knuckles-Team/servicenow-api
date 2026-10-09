@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
-from agent_utilities.core.exceptions import AuthError, UnauthorizedError
+from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
 
 from servicenow_api.auth import get_client
 
@@ -22,28 +22,28 @@ def test_auth_no_method():
 
 
 def test_auth_oidc_delegation_success():
+    from agent_connector_sdk.auth.tokens import AccessToken
+
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=True,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=True):
             with patch(
-                "agent_utilities.mcp.delegated_auth.get_delegated_token",
-                return_value="mock-oidc-token",
-            ) as mock_get_token:
+                "agent_connector_sdk.auth.delegation.current_user_token",
+                return_value="subject-token",
+            ):
                 with patch(
-                    "agent_utilities.mcp.delegated_auth.get_user_identity",
-                    return_value={"email": "test@example.com"},
-                ):
+                    "agent_connector_sdk.auth.delegation.exchange_token",
+                    return_value=AccessToken(
+                        value="mock-oidc-token", ttl_seconds=300, expires_at=0
+                    ),
+                ) as mock_exchange:
                     with patch("servicenow_api.auth.Api") as mock_api_cls:
                         client = get_client()
                         assert client is not None
-                        mock_get_token.assert_called_with(
-                            audience="https://dev12345.service-now.com",
-                            scopes="api",
-                        )
+                        assert mock_exchange.called
+                        _, kwargs = mock_exchange.call_args
+                        assert kwargs["subject_token"] == "subject-token"
                         assert mock_api_cls.called
                         _, kwargs = mock_api_cls.call_args
                         assert kwargs["url"] == "https://dev12345.service-now.com"
@@ -55,26 +55,24 @@ def test_auth_oidc_delegation_failure():
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=True,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=True):
             with patch(
-                "agent_utilities.mcp.delegated_auth.get_delegated_token",
-                side_effect=Exception("Delegation server offline"),
+                "agent_connector_sdk.auth.delegation.current_user_token",
+                return_value="subject-token",
             ):
-                with pytest.raises(Exception, match="Delegation server offline"):
-                    get_client()
+                with patch(
+                    "agent_connector_sdk.auth.delegation.exchange_token",
+                    side_effect=Exception("Delegation server offline"),
+                ):
+                    with pytest.raises(RuntimeError, match="Token exchange failed"):
+                        get_client()
 
 
 def test_auth_basic_auth_success():
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=False):
             with patch("servicenow_api.auth.Api") as mock_api_cls:
                 client = get_client(username="admin", password="password123")
                 assert client is not None
@@ -93,10 +91,7 @@ def test_auth_client_credentials_success():
             "SERVICENOW_GRANT_TYPE": "client_credentials",
         },
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=False):
             with patch("servicenow_api.auth.Api") as mock_api_cls:
                 client = get_client(
                     client_id="my-client-id", client_secret="mock-client-secret"
@@ -117,10 +112,7 @@ def test_auth_basic_auth_failure_autherror():
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=False):
             with patch(
                 "servicenow_api.auth.Api",
                 side_effect=AuthError("Invalid username/password"),
@@ -133,10 +125,7 @@ def test_auth_basic_auth_failure_unauthorizederror():
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
-        with patch(
-            "agent_utilities.mcp.delegated_auth.is_delegation_enabled",
-            return_value=False,
-        ):
+        with patch("servicenow_api.auth._is_delegation_enabled", return_value=False):
             with patch(
                 "servicenow_api.auth.Api",
                 side_effect=UnauthorizedError("Blocked by OAuth policy"),
