@@ -1,73 +1,107 @@
 """Native epistemic-graph ingestion for ServiceNow records and attachments.
 
 Incidents, changes, CMDB items, knowledge documents, and attachment blobs share the
-authoritative native graph and media-store boundary.
+authoritative EG client and media boundary.
 
-All writes use the required ``agent_utilities.knowledge_graph.memory.native_ingest``
-primitive. Nodes use canonical ``node_type`` and edges use canonical ``relationship``;
-nodes and edges commit in one native transaction. Missing engine dependencies, rejected
-records, conflicts, and transaction failures propagate as ``NativeIngestError``.
+All writes go through the ``agent_connector_sdk.ingest`` knowledge-ingest facade (the
+generated EG client). Nodes use canonical ``node_type`` and edges use canonical
+``relationship``; nodes and edges commit in one submission. Missing engine
+dependencies, rejected records, and conflicts propagate as ``IngestError``.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import Any
 
-from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
-from agent_utilities.knowledge_graph.memory.native_ingest import (
-    ingest_documents as _native_ingest_documents,
-)
-from agent_utilities.knowledge_graph.memory.native_ingest import (
-    ingest_entities as _native_ingest_entities,
-)
-from agent_utilities.knowledge_graph.memory.native_ingest import (
-    media_store as _native_media_store,
+from agent_connector_sdk.ingest import (
+    ChangeSet,
+    Document,
+    Entity,
+    IngestBinding,
+    IngestError,
+    KnowledgeIngest,
+    MediaAsset,
+    Relationship,
+    current_ingest,
 )
 
 logger = logging.getLogger("servicenow_api.kg")
 
 _SOURCE = "servicenow-api"
 _DOMAIN = "servicenow"
+_BINDING = IngestBinding(connector="servicenow-api", stream=_DOMAIN)
 
 
-def ingest_entities(
+def _to_entity(record: dict[str, Any]) -> Entity:
+    return Entity(
+        id=record.get("id"),
+        node_type=record.get("node_type"),
+        properties={
+            k: v for k, v in record.items() if k not in ("id", "node_type")
+        },
+    )
+
+
+def _to_relationship(record: dict[str, Any]) -> Relationship:
+    props = {
+        k: v
+        for k, v in record.items()
+        if k not in ("source", "target", "relationship")
+    }
+    return Relationship(
+        source=record["source"],
+        target=record["target"],
+        relationship=record["relationship"],
+        properties=props or None,
+    )
+
+
+def _to_document(record: dict[str, Any]) -> Document:
+    return Document(
+        id=record.get("id"),
+        text=record.get("text", ""),
+        title=record.get("title"),
+        source_uri=record.get("source_uri"),
+        properties={
+            k: v
+            for k, v in record.items()
+            if k not in ("id", "text", "title", "source_uri")
+        },
+    )
+
+
+async def ingest_entities(
     entities: list[dict[str, Any]],
     relationships: list[dict[str, Any]] | None = None,
     *,
-    source: str = _SOURCE,
-    domain: str = _DOMAIN,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
-    """Write canonical typed nodes and relationships in one native transaction."""
-    return _native_ingest_entities(
-        entities,
-        relationships,
-        source=source,
-        domain=domain,
-        client=client,
-        graph=graph,
+    """Write canonical typed nodes and relationships in one submission."""
+    if not entities:
+        raise IngestError("ingest_entities needs at least one entity")
+    change_set = ChangeSet(
+        entities=tuple(_to_entity(e) for e in entities),
+        relationships=tuple(_to_relationship(r) for r in relationships or ()),
     )
+    service = ingest or current_ingest()
+    receipt = await service.submit(_BINDING, change_set)
+    return {"nodes": receipt.affected_count, "edges": receipt.relationship_count}
 
 
-def ingest_documents(
+async def ingest_documents(
     documents: list[dict[str, Any]],
     *,
-    source: str = _SOURCE,
-    domain: str = _DOMAIN,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
     """Write text records as canonical Document nodes."""
-    return _native_ingest_documents(
-        documents, source=source, domain=domain, client=client, graph=graph
-    )
-
-
-def _media_store() -> Any:
-    """Return the authoritative native media store."""
-    return _native_media_store()
+    if not documents:
+        raise IngestError("ingest_documents needs at least one document")
+    change_set = ChangeSet(documents=tuple(_to_document(d) for d in documents))
+    service = ingest or current_ingest()
+    receipt = await service.submit(_BINDING, change_set)
+    return {"nodes": receipt.affected_count, "edges": receipt.relationship_count}
 
 
 # --- ServiceNow field helpers -------------------------------------------------------
@@ -154,11 +188,10 @@ def _link_assignee(
 # --- Public record → typed-node mappers ---------------------------------------------
 
 
-def ingest_incidents(
+async def ingest_incidents(
     records: list[Any],
     *,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
     """Map ServiceNow incident records → ``:Incident`` (+ CI/Person) nodes and ingest."""
     entities: list[dict[str, Any]] = []
@@ -187,14 +220,13 @@ def ingest_incidents(
         )
         _link_ci(rec, node_id, entities, relationships)
         _link_assignee(rec, node_id, entities, relationships)
-    return ingest_entities(entities, relationships, client=client, graph=graph)
+    return await ingest_entities(entities, relationships, ingest=ingest)
 
 
-def ingest_changes(
+async def ingest_changes(
     records: list[Any],
     *,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
     """Map ServiceNow change_request records → ``:Change`` (+ CI/Person) nodes and ingest."""
     entities: list[dict[str, Any]] = []
@@ -223,14 +255,13 @@ def ingest_changes(
         )
         _link_ci(rec, node_id, entities, relationships)
         _link_assignee(rec, node_id, entities, relationships)
-    return ingest_entities(entities, relationships, client=client, graph=graph)
+    return await ingest_entities(entities, relationships, ingest=ingest)
 
 
-def ingest_cmdb(
+async def ingest_cmdb(
     records: list[Any],
     *,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
     """Map ServiceNow cmdb_ci records → ``:ConfigurationItem`` nodes and ingest."""
     entities: list[dict[str, Any]] = []
@@ -251,14 +282,13 @@ def ingest_cmdb(
                 "externalToolId": str(sid),
             }
         )
-    return ingest_entities(entities, None, client=client, graph=graph)
+    return await ingest_entities(entities, None, ingest=ingest)
 
 
-def ingest_kb_articles(
+async def ingest_kb_articles(
     records: list[Any],
     *,
-    client: Any | None = None,
-    graph: str | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, int]:
     """Map ServiceNow knowledge-base articles → ``:Document`` nodes (text + source_uri)."""
     docs: list[dict[str, Any]] = []
@@ -286,55 +316,51 @@ def ingest_kb_articles(
                 "externalToolId": str(aid),
             }
         )
-    return ingest_documents(docs, client=client, graph=graph)
+    return await ingest_documents(docs, ingest=ingest)
 
 
-def ingest_attachment(
+async def ingest_attachment(
     data: bytes,
     name: str,
     *,
     mime_type: str | None = None,
     incident_id: str | None = None,
     source_uri: str | None = None,
-    media_store: Any | None = None,
+    ingest: KnowledgeIngest | None = None,
 ) -> dict[str, Any]:
     """Store a ticket attachment's raw bytes as a blob + ``:MediaAsset`` in the KG.
 
-    Returns ``{asset_id, digest, size_bytes}``. Invalid bytes or a storage failure raises
-    :class:`NativeIngestError`; ``media_store`` may be injected in tests.
+    Returns ``{asset_id, size_bytes}``. Invalid bytes or a commit failure raises
+    :class:`IngestError`; ``ingest`` may be injected in tests with a fake transport.
     """
     if not data:
-        raise NativeIngestError("native media ingest requires non-empty bytes")
-    store = media_store if media_store is not None else _media_store()
+        raise IngestError("ingest requires non-empty bytes")
 
-    extra: dict[str, Any] = {}
+    properties: dict[str, Any] = {}
     if incident_id:
-        extra["incident_id"] = incident_id
+        properties["incident_id"] = incident_id
     if source_uri:
-        extra["source_url"] = source_uri
+        properties["source_url"] = source_uri
 
-    try:
-        stored = store.store_media(
-            data,
-            media_type="file",
-            mime_type=mime_type or "application/octet-stream",
-            source=_SOURCE,
-            name=name,
-            extra=extra,
-        )
-    except Exception as exc:  # noqa: BLE001 - preserve retryable cause privately
-        raise NativeIngestError("native media ingest transaction failed") from exc
-    if stored is None:
-        raise NativeIngestError("native media ingest was not committed")
+    asset_id = f"servicenow:attachment:{hashlib.sha256(data).hexdigest()}"
+    asset = MediaAsset(
+        data=data,
+        mime_type=mime_type or "application/octet-stream",
+        id=asset_id,
+        name=name,
+        properties=properties,
+    )
+    change_set = ChangeSet(media=(asset,))
+    service = ingest or current_ingest()
+    receipt = await service.submit(_BINDING, change_set)
 
     logger.info(
-        "KG ingest: stored attachment %s (%d bytes) as asset %s",
+        "KG ingest: stored attachment %s (%d bytes)",
         name,
         len(data),
-        getattr(stored, "asset_id", "?"),
     )
     return {
-        "asset_id": getattr(stored, "asset_id", None),
-        "digest": getattr(stored, "digest", None),
+        "asset_id": asset.id,
         "size_bytes": len(data),
+        "affected_count": receipt.affected_count,
     }

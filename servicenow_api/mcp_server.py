@@ -23,19 +23,22 @@ from threading import local
 from typing import Any
 
 import httpx
-from agent_utilities.core.config import load_config, setting
-from agent_utilities.core.transport_security import resolve_configured_tls_profile
-from agent_utilities.mcp.action_dispatch import resolve_action
-from agent_utilities.mcp.concurrency import run_blocking
-from agent_utilities.mcp.server_factory import (
+from agent_connector_sdk.config import load_config, setting
+from agent_connector_sdk.mcp.action_dispatch import resolve_action
+from agent_connector_sdk.mcp.concurrency import run_blocking
+from agent_connector_sdk.mcp.server import (
     create_mcp_server,
 )
-from agent_utilities.mcp.server_factory import (
-    mcp_auth_config as config,
-)
-from agent_utilities.mcp.verbose_tools import (
+from agent_connector_sdk.mcp.tool_surface import (
     register_tool_surface,
 )
+from agent_connector_sdk.tls.resolve import resolve_tls_profile
+
+
+def _delegation_enabled() -> bool:
+    from agent_connector_sdk.auth.delegation import DelegationSettings
+
+    return DelegationSettings.from_settings().enabled
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
@@ -73,9 +76,7 @@ def register_misc_tools(mcp: FastMCP):
         if ctx:
             await ctx.info("Ingesting ServiceNow incidents into the knowledge graph...")
 
-        from agent_utilities.knowledge_graph.memory.native_ingest import (
-            NativeIngestError,
-        )
+        from agent_connector_sdk.ingest import IngestError
 
         from servicenow_api.kg_ingest import ingest_incidents
 
@@ -90,8 +91,8 @@ def register_misc_tools(mcp: FastMCP):
         records = data if isinstance(data, list) else [data]
         records = [r for r in records if r is not None]
         try:
-            result = ingest_incidents(records)
-        except NativeIngestError:
+            result = await ingest_incidents(records)
+        except IngestError:
             return {"listed": len(records), "ingested": None}
         return {"listed": len(records), "ingested": result}
 
@@ -1534,7 +1535,7 @@ def _build_openapi_client(args) -> Api:
     instance = setting("SERVICENOW_URL") or setting("SERVICENOW_INSTANCE")
     if not instance:
         raise ValueError("SERVICENOW_INSTANCE not set")
-    tls_profile = resolve_configured_tls_profile(
+    tls_profile = resolve_tls_profile(
         "servicenow",
         profile_name=setting("SERVICENOW_TLS_PROFILE", "") or None,
         profile_ref=setting("SERVICENOW_TLS_PROFILE_REF", "") or None,
@@ -1560,8 +1561,8 @@ def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
     )
     imported_tools = []
     imported_resources = []
-    if args.openapi_file:
-        if config["enable_delegation"]:
+    if getattr(args, "openapi_file", None):
+        if _delegation_enabled():
             raise ValueError("OpenAPI import not supported with delegation enabled")
         try:
             with open(args.openapi_file) as f:
@@ -1619,10 +1620,10 @@ def mcp_server() -> None:
     print(f"  Transport: {args.transport.upper()}", file=sys.stderr)
     print(f"  Auth: {args.auth_type}", file=sys.stderr)
     print(
-        f"  Delegation: {('ON' if config['enable_delegation'] else 'OFF')}",
+        f"  Delegation: {('ON' if _delegation_enabled() else 'OFF')}",
         file=sys.stderr,
     )
-    print(f"  Eunomia: {args.eunomia_type}", file=sys.stderr)
+    print(f"  Eunomia: {getattr(args, 'eunomia_type', 'n/a')}", file=sys.stderr)
     print(f"  Imported OpenAPI Tools: {len(imported_tools)} total", file=sys.stderr)
     if args.transport == "stdio":
         mcp.run(transport="stdio")

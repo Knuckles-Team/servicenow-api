@@ -1,59 +1,21 @@
 """Native epistemic-graph typed-node ingestion — Wire-First coverage.
 
 Exercises the real ``ingest_incidents`` / ``ingest_changes`` / ``ingest_cmdb`` /
-``ingest_kb_articles`` / ``ingest_attachment`` seam with a fake engine client + a fake
-media store (no engine required), asserting the txn add_node/commit + edge calls and the
-ServiceNow record → :Incident / :Change / :ConfigurationItem / :Person / :Document mapping.
+``ingest_kb_articles`` / ``ingest_attachment`` seam with a fake transport one level
+below ``agent_connector_sdk.ingest.KnowledgeIngest`` (no engine required), so the
+SDK's own request-building/validation/privacy-guard contract runs unfaked,
+asserting the ServiceNow record →
+:Incident / :Change / :ConfigurationItem / :Person / :Document mapping.
 CONCEPT:AU-KG.ingest.enterprise-source-extractor.
 """
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from typing import Any
 
-import msgpack
 import pytest
-
-# `agent_utilities.knowledge_graph.memory` unconditionally imports
-# `agent_utilities.numeric` at module-load time, which in turn requires the
-# compiled `epistemic_graph.numeric` kernel. agent-utilities moved that
-# kernel out of its base dependency set into the opt-in `graphos` extra
-# (GOC-73); this repo depends only on plain `agent-utilities`, which does
-# not pull it in. Left unguarded, importing it here raises a bare
-# ModuleNotFoundError/ImportError chain that pytest reports as a COLLECTION
-# ERROR — which (a) reads exactly like a regression in THIS repo and
-# (b) aborts collection of the entire `tests/` suite, not just this file
-# (`pytest tests/ -q` reports "0 tests collected, 1 error" for the whole
-# run, which is why lanes have been passing `--ignore=tests/test_kg_ingest.py`
-# and silently losing coverage on both sides of every before/after
-# comparison). This is an ENVIRONMENT/packaging gap, not application-code
-# breakage — install `agent-utilities[graphos]>=2.27.0` to exercise these
-# tests. See plans/complex/waves/wD4/WD4-FIX-01.md defect (d). Turn it into
-# a clean, LOUD, explained skip of just this file instead.
-pytest.importorskip(
-    "agent_utilities.knowledge_graph.memory.native_ingest",
-    # pytest 9.1 changed importorskip()'s default `exc_type` from
-    # ImportError to ModuleNotFoundError (see the versionchanged note in
-    # pytest.importorskip's own docstring). agent_utilities.numeric
-    # deliberately re-raises a plain ImportError (not ModuleNotFoundError)
-    # with an explanatory message, so the new default silently fails to
-    # catch it and the "skip" degrades right back into the collection
-    # error this guard exists to prevent. Pin exc_type explicitly so the
-    # guard keeps working regardless of installed pytest version.
-    exc_type=ImportError,
-    reason=(
-        "agent_utilities.numeric requires the compiled epistemic_graph.numeric "
-        "kernel, shipped only behind agent-utilities' opt-in `graphos` extra "
-        "(GOC-73); not installed by this repo's `agent-utilities` dependency "
-        "— install `agent-utilities[graphos]>=2.27.0` to run KG-ingestion "
-        "tests (WD4-FIX-01 defect (d))"
-    ),
-)
-
-from agent_utilities.knowledge_graph.core.session import GraphSession, use_session
-from agent_utilities.knowledge_graph.memory.native_ingest import NativeIngestError
-from agent_utilities.security.actor_identity import ActorType
-from agent_utilities.security.brain_context import ActorContext, use_actor
+from agent_connector_sdk.ingest import IngestError, KnowledgeIngest
 
 from servicenow_api.kg_ingest import (
     ingest_attachment,
@@ -65,130 +27,75 @@ from servicenow_api.kg_ingest import (
 )
 
 
-@pytest.fixture(autouse=True)
-def _governed_session():
-    actor = ActorContext(
-        actor_id="subject:opaque:synthetic",
-        actor_type=ActorType.AUTOMATED_SERVICE,
-        roles=(),
-        tenant_id="tenant:opaque:synthetic",
-        authenticated=True,
-    )
-    session = GraphSession(
-        actor=actor,
-        tenant=actor.tenant_id,
-        scopes=frozenset({"kg:write"}),
-        graph="graph:opaque:synthetic",
-        policy_version="policy:opaque:synthetic",
-        audience="epistemic-graph",
-    )
-    with use_actor(actor), use_session(session):
-        yield
-
-
-class _FakeNodes:
+class _FakeTransport:
     def __init__(self) -> None:
-        self.values: dict[str, dict[str, Any]] = {}
+        self.requests: list[Any] = []
+        self.blobs: list[bytes] = []
 
-    def properties(self, node_id: str) -> dict[str, Any] | None:
-        return self.values.get(node_id)
+    async def source_status(self, connector: str, stream: str):
+        return SimpleNamespace(accepted_checkpoint=None)
 
-    def list(self) -> list[tuple[str, dict[str, Any]]]:
-        return list(self.values.items())
+    async def submit(self, request):
+        self.requests.append(request)
+        return SimpleNamespace(
+            affected_count=len(request.records),
+            relationship_count=len(request.relationships),
+        )
 
-
-class _FakeChanges:
-    def __init__(self, nodes: _FakeNodes) -> None:
-        self.nodes = nodes
-        self.edges: list[tuple[str, str, dict[str, Any]]] = []
-        self.applied: list[dict[str, Any]] = []
-        self.records: dict[str, dict[str, Any]] = {}
-        self.versions: dict[str, dict[str, Any]] = {}
-
-    def get(self, envelope_id: str) -> dict[str, Any] | None:
-        return self.records.get(envelope_id)
-
-    def content_version(self, object_id: str) -> dict[str, Any] | None:
-        return self.versions.get(object_id)
-
-    def cursor(self, _source: str, _partition: str = "") -> None:
-        return None
-
-    def apply(self, envelope: dict[str, Any]) -> dict[str, Any]:
-        self.applied.append(envelope)
-        mutation = envelope["mutation"]
-        for operation in mutation["operations"]:
-            method = operation["method"]
-            params = method["params"]
-            properties = msgpack.unpackb(params["properties_msgpack"], raw=False)
-            if method["method"] == "AddNode":
-                self.nodes.values[params["node_id"]] = properties
-            elif method["method"] == "AddEdge":
-                self.edges.append(
-                    (params["source_id"], params["target_id"], properties)
-                )
-        version = envelope["content_version"]
-        self.versions[version["object_id"]] = version
-        self.records[envelope["envelope_id"]] = envelope
-        return {
-            "batch_id": mutation["batch_id"],
-            "replayed": False,
-            "projection_pending": False,
-        }
+    async def store_blob(self, data: bytes) -> str:
+        self.blobs.append(data)
+        return "deadbeef"
 
 
-class _FakeRdf:
-    def validate_shacl(self, _shapes: str, _data_graph: str) -> dict[str, Any]:
-        return {"conforms": True, "results": []}
+class _FailingTransport(_FakeTransport):
+    async def store_blob(self, data: bytes) -> str:
+        raise RuntimeError("unavailable")
 
 
-class _FakeClient:
-    def __init__(self) -> None:
-        self.nodes = _FakeNodes()
-        self.changes = _FakeChanges(self.nodes)
-        self.rdf = _FakeRdf()
-
-    @staticmethod
-    def supports(operation: str) -> bool:
-        return operation == "ApplyChangeEnvelope"
+@pytest.fixture
+def ingest():
+    transport = _FakeTransport()
+    return KnowledgeIngest(transport, loop=None), transport
 
 
-class _Stored:
-    asset_id = "asset-1"
-    digest = "deadbeef"
+def _by_id(request):
+    return {record.record_id: record for record in request.records}
 
 
-class _FakeMediaStore:
-    def __init__(self):
-        self.calls = []
+def _edge_types(request):
+    return {
+        (
+            rel.source.record_id,
+            rel.target.record_id,
+            rel.relation_reference.rsplit("/relations/", 1)[-1],
+        )
+        for rel in request.relationships
+    }
 
-    def store_media(self, data, **kwargs):
-        self.calls.append((data, kwargs))
-        return _Stored()
+
+def _is_type(record, type_name: str) -> bool:
+    return record.mapping_reference.endswith(f"/{type_name}")
 
 
-def test_ingest_entities_writes_nodes_and_edges():
-    c = _FakeClient()
-    res = ingest_entities(
+async def test_ingest_entities_writes_nodes_and_edges(ingest):
+    service, transport = ingest
+    res = await ingest_entities(
         [
             {"id": "a", "node_type": "Incident", "number": "INC1"},
             {"id": "b", "node_type": "ConfigurationItem"},
         ],
         [{"source": "a", "target": "b", "relationship": "affects"}],
-        client=c,
+        ingest=service,
     )
     assert res == {"nodes": 2, "edges": 1}
-    assert len(c.changes.applied) == 1
-    assert set(c.nodes.values) == {"a", "b"}
-    # provenance is stamped
-    assert c.nodes.values["a"]["source"] == "servicenow-api"
-    assert c.nodes.values["a"]["domain"] == "servicenow"
-    assert c.changes.edges == [("a", "b", {"relationship": "affects"})]
+    request = transport.requests[0]
+    assert set(_by_id(request)) == {"a", "b"}
+    assert _edge_types(request) == {("a", "b", "affects")}
 
 
-def test_ingest_incidents_maps_incident_ci_and_person():
-    c = _FakeClient()
-    res = ingest_incidents(
+async def test_ingest_incidents_maps_incident_ci_and_person(ingest):
+    service, transport = ingest
+    res = await ingest_incidents(
         [
             {
                 "sys_id": "s1",
@@ -200,35 +107,30 @@ def test_ingest_incidents_maps_incident_ci_and_person():
                 "assigned_to": {"value": "u7", "display_value": "Ada Lovelace"},
             }
         ],
-        client=c,
+        ingest=service,
     )
     assert res == {"nodes": 3, "edges": 2}
-    inc = c.nodes.values["servicenow:incident:s1"]
-    assert inc["node_type"] == "Incident"
-    assert inc["number"] == "INC0010001"
-    assert inc["shortDescription"] == "DB down"
+    request = transport.requests[0]
+    by_id = _by_id(request)
+    inc = by_id["servicenow:incident:s1"]
+    assert _is_type(inc, "Incident")
+    assert inc.payload["number"] == "INC0010001"
+    assert inc.payload["shortDescription"] == "DB down"
     # ReferenceField unwrapped to its display value
-    assert inc["state"] == "In Progress"
-    assert inc["priority"] == "1 - Critical"
-    assert inc["externalToolId"] == "s1"
-    assert c.nodes.values["servicenow:ci:ci9"]["node_type"] == "ConfigurationItem"
-    assert c.nodes.values["servicenow:person:u7"]["node_type"] == "Person"
-    assert c.nodes.values["servicenow:person:u7"]["name"] == "Ada Lovelace"
-    assert (
-        "servicenow:incident:s1",
-        "servicenow:ci:ci9",
-        {"relationship": "affects"},
-    ) in c.changes.edges
-    assert (
-        "servicenow:incident:s1",
-        "servicenow:person:u7",
-        {"relationship": "assignedTo"},
-    ) in c.changes.edges
+    assert inc.payload["state"] == "In Progress"
+    assert inc.payload["priority"] == "1 - Critical"
+    assert inc.payload["externalToolId"] == "s1"
+    assert _is_type(by_id["servicenow:ci:ci9"], "ConfigurationItem")
+    assert _is_type(by_id["servicenow:person:u7"], "Person")
+    assert by_id["servicenow:person:u7"].payload["name"] == "Ada Lovelace"
+    edges = _edge_types(request)
+    assert ("servicenow:incident:s1", "servicenow:ci:ci9", "affects") in edges
+    assert ("servicenow:incident:s1", "servicenow:person:u7", "assignedTo") in edges
 
 
-def test_ingest_changes_maps_change():
-    c = _FakeClient()
-    res = ingest_changes(
+async def test_ingest_changes_maps_change(ingest):
+    service, transport = ingest
+    res = await ingest_changes(
         [
             {
                 "sys_id": "c1",
@@ -239,21 +141,22 @@ def test_ingest_changes_maps_change():
                 "cmdb_ci": {"value": "ci9", "display_value": "prod-db-01"},
             }
         ],
-        client=c,
+        ingest=service,
     )
     assert res == {"nodes": 2, "edges": 1}
-    chg = c.nodes.values["servicenow:change:c1"]
-    assert chg["node_type"] == "Change"
-    assert chg["number"] == "CHG0005000"
-    assert chg["risk"] == "Moderate"
-    assert c.changes.edges == [
-        ("servicenow:change:c1", "servicenow:ci:ci9", {"relationship": "affects"})
-    ]
+    request = transport.requests[0]
+    chg = _by_id(request)["servicenow:change:c1"]
+    assert _is_type(chg, "Change")
+    assert chg.payload["number"] == "CHG0005000"
+    assert chg.payload["risk"] == "Moderate"
+    assert _edge_types(request) == {
+        ("servicenow:change:c1", "servicenow:ci:ci9", "affects")
+    }
 
 
-def test_ingest_cmdb_maps_configuration_items():
-    c = _FakeClient()
-    res = ingest_cmdb(
+async def test_ingest_cmdb_maps_configuration_items(ingest):
+    service, transport = ingest
+    res = await ingest_cmdb(
         [
             {
                 "sys_id": "ci9",
@@ -262,19 +165,19 @@ def test_ingest_cmdb_maps_configuration_items():
                 "operational_status": "1",
             }
         ],
-        client=c,
+        ingest=service,
     )
     assert res == {"nodes": 1, "edges": 0}
-    ci = c.nodes.values["servicenow:ci:ci9"]
-    assert ci["node_type"] == "ConfigurationItem"
-    assert ci["name"] == "prod-db-01"
-    assert ci["sys_class_name"] == "cmdb_ci_db_mysql_instance"
-    assert ci["externalToolId"] == "ci9"
+    ci = _by_id(transport.requests[0])["servicenow:ci:ci9"]
+    assert _is_type(ci, "ConfigurationItem")
+    assert ci.payload["name"] == "prod-db-01"
+    assert ci.payload["sys_class_name"] == "cmdb_ci_db_mysql_instance"
+    assert ci.payload["externalToolId"] == "ci9"
 
 
-def test_ingest_kb_articles_maps_documents():
-    c = _FakeClient()
-    res = ingest_kb_articles(
+async def test_ingest_kb_articles_maps_documents(ingest):
+    service, transport = ingest
+    res = await ingest_kb_articles(
         [
             {
                 "sys_id": "kb1",
@@ -284,55 +187,56 @@ def test_ingest_kb_articles_maps_documents():
                 "link": "https://sn/kb1",
             }
         ],
-        client=c,
+        ingest=service,
     )
     assert res == {"nodes": 1, "edges": 0}
-    doc = c.nodes.values["servicenow:kb:kb1"]
-    assert doc["node_type"] == "Document"
-    assert doc["subtype"] == "KnowledgeArticle"
-    assert doc["text"] == "Step 1: ..."
-    # native_ingest's governed PII scrubber redacts uri-shaped values.
-    assert doc["source_uri"] == "[REDACTED_LOCATION]"
-    assert doc["title"] == "How to reset a password"
+    doc = _by_id(transport.requests[0])["servicenow:kb:kb1"]
+    assert _is_type(doc, "Document")
+    assert doc.payload["subtype"] == "KnowledgeArticle"
+    assert doc.payload["text"] == "Step 1: ..."
+    # the SDK's persistence privacy guard redacts uri-shaped values.
+    assert doc.payload["source_uri"] == "[REDACTED_LOCATION]"
+    assert doc.payload["title"] == "How to reset a password"
 
 
-def test_ingest_attachment_stores_blob():
-    store = _FakeMediaStore()
-    res = ingest_attachment(
+async def test_ingest_attachment_stores_blob(ingest):
+    service, transport = ingest
+    res = await ingest_attachment(
         b"file-bytes",
         "evidence.log",
         mime_type="text/plain",
         incident_id="servicenow:incident:s1",
-        media_store=store,
+        ingest=service,
     )
-    assert res == {"asset_id": "asset-1", "digest": "deadbeef", "size_bytes": 10}
-    assert len(store.calls) == 1
-    data, kwargs = store.calls[0]
-    assert data == b"file-bytes"
-    assert kwargs["source"] == "servicenow-api"
-    assert kwargs["name"] == "evidence.log"
-    assert kwargs["extra"]["incident_id"] == "servicenow:incident:s1"
+    assert res["size_bytes"] == 10
+    assert res["asset_id"].startswith("servicenow:attachment:")
+    assert transport.blobs == [b"file-bytes"]
+    request = transport.requests[0]
+    asset_record = _by_id(request)[res["asset_id"]]
+    assert asset_record.payload["mime_type"] == "text/plain"
+    assert asset_record.payload["name"] == "evidence.log"
+    assert asset_record.payload["incident_id"] == "servicenow:incident:s1"
 
 
-def test_ingest_attachment_rejects_empty_bytes():
-    with pytest.raises(NativeIngestError, match="non-empty bytes"):
-        ingest_attachment(b"", "empty", media_store=_FakeMediaStore())
+async def test_ingest_attachment_rejects_empty_bytes(ingest):
+    service, _ = ingest
+    with pytest.raises(IngestError, match="non-empty bytes"):
+        await ingest_attachment(b"", "empty", ingest=service)
 
 
-def test_ingest_attachment_propagates_store_failure():
-    class _FailingStore:
-        def store_media(self, *_args, **_kwargs):
-            raise RuntimeError("unavailable")
-
-    with pytest.raises(NativeIngestError, match="transaction failed"):
-        ingest_attachment(b"data", "evidence", media_store=_FailingStore())
+async def test_ingest_attachment_propagates_store_failure():
+    service = KnowledgeIngest(_FailingTransport(), loop=None)
+    with pytest.raises(IngestError):
+        await ingest_attachment(b"data", "evidence", ingest=service)
 
 
-def test_retired_structural_alias_is_rejected():
-    with pytest.raises(NativeIngestError, match="canonical node_type"):
-        ingest_entities([{"id": "a", "type": "Incident"}], client=_FakeClient())
+async def test_retired_structural_alias_is_rejected(ingest):
+    service, _ = ingest
+    with pytest.raises(IngestError, match="node_type"):
+        await ingest_entities([{"id": "a", "type": "Incident"}], ingest=service)
 
 
-def test_empty_native_ingest_is_rejected():
-    with pytest.raises(NativeIngestError, match="at least one entity"):
-        ingest_entities([], client=_FakeClient())
+async def test_empty_native_ingest_is_rejected(ingest):
+    service, _ = ingest
+    with pytest.raises(IngestError, match="at least one entity"):
+        await ingest_entities([], ingest=service)

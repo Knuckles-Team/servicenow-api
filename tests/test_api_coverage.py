@@ -208,7 +208,7 @@ def test_get_stats_accepts_bool_stats(mock_session):
 
 
 def test_refresh_auth_token_requires_oauth_credentials(mock_session):
-    from agent_utilities.core.exceptions import MissingParameterError
+    from agent_connector_sdk.exceptions import MissingParameterError
 
     client = Api(url="http://test.com", username="user", password="pass")
     assert client.auth_data is None
@@ -255,7 +255,7 @@ def test_delete_incident_handles_empty_204(mock_session):
 
 
 def test_get_incidents_rejects_unknown_argument(mock_session):
-    from agent_utilities.core.exceptions import ParameterError
+    from agent_connector_sdk.exceptions import ParameterError
 
     client = Api(url="http://test.com", username="user", password="pass")
 

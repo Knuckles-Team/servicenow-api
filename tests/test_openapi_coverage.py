@@ -36,7 +36,7 @@ def test_openapi_delegation_error(mock_openapi_spec):
         "servicenow_api.mcp_server.create_mcp_server",
         return_value=(mock_args, MagicMock(), []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": True}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=True):
             with pytest.raises(
                 ValueError, match="OpenAPI import not supported with delegation enabled"
             ):
@@ -53,7 +53,7 @@ def test_openapi_token_missing_error(mock_openapi_spec):
         "servicenow_api.mcp_server.create_mcp_server",
         return_value=(mock_args, MagicMock(), []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             with patch("servicenow_api.mcp_server.local", spec=[]):  # no user_token
                 with pytest.raises(SystemExit):
                     get_mcp_instance()
@@ -73,7 +73,7 @@ def test_openapi_credentials_missing_error(mock_openapi_spec):
         "servicenow_api.mcp_server.create_mcp_server",
         return_value=(mock_args, MagicMock(), []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             with patch.dict(os.environ, {}, clear=True):
                 with pytest.raises(SystemExit):
                     get_mcp_instance()
@@ -100,7 +100,7 @@ def test_openapi_successful_import(mock_openapi_spec):
         "servicenow_api.mcp_server.create_mcp_server",
         return_value=(mock_args, MagicMock(), []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             with patch(
                 "servicenow_api.mcp_server.get_client", return_value=mock_client
             ):
@@ -163,7 +163,7 @@ def test_openapi_import_uses_dedicated_credentials(mock_openapi_spec):
         "servicenow_api.mcp_server.create_mcp_server",
         return_value=(mock_args, MagicMock(), []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             with patch("servicenow_api.mcp_server.httpx.AsyncClient", _FakeAsyncClient):
                 with patch(
                     "servicenow_api.mcp_server.FastMCP.from_openapi",
@@ -199,7 +199,7 @@ def test_mcp_server_run_stdio():
         "servicenow_api.mcp_server.get_mcp_instance",
         return_value=(mock_mcp, mock_args, [], [], []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             mcp_server()
             mock_mcp.run.assert_called_once_with(transport="stdio")
 
@@ -217,7 +217,7 @@ def test_mcp_server_run_streamable_http():
         "servicenow_api.mcp_server.get_mcp_instance",
         return_value=(mock_mcp, mock_args, [], [], []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             mcp_server()
             mock_mcp.run.assert_called_once_with(
                 transport="streamable-http", host="127.0.0.1", port=8000
@@ -237,7 +237,7 @@ def test_mcp_server_run_sse():
         "servicenow_api.mcp_server.get_mcp_instance",
         return_value=(mock_mcp, mock_args, [], [], []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             mcp_server()
             mock_mcp.run.assert_called_once_with(
                 transport="sse", host="127.0.0.1", port=8000
@@ -255,6 +255,6 @@ def test_mcp_server_invalid_transport():
         "servicenow_api.mcp_server.get_mcp_instance",
         return_value=(mock_mcp, mock_args, [], [], []),
     ):
-        with patch("servicenow_api.mcp_server.config", {"enable_delegation": False}):
+        with patch("servicenow_api.mcp_server._delegation_enabled", return_value=False):
             with pytest.raises(SystemExit):
                 mcp_server()
