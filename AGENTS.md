@@ -316,3 +316,7 @@ this repo (fleet-wide edict, propagated from `agent-utilities/AGENTS.md`).
    default-on unless it genuinely costs compute, in which case it is policy-selected,
    never flag-gated. An opt-in extra or a dependency-conflict fork is an interim state
    that must carry a written plan to become the default, never a resting place.
+
+## Specs: extend first
+
+Find the spec row that owns the behavior before any code change. Search with `git grep -n "<term>" -- specs`. Cite the row ID in the commit `Spec:` trailer. Extend the owning spec before any new spec text. Add a child row, a new rollup, or a dated `plan.md` "Amendments" entry. Create a new spec only for a capability that no spec owns. Audits, reviews, and carry-overs land in the owning spec. They never get a spec directory. Reuse an existing function, module, or store before adding one. The rules are the ecosystem [spec standard](https://github.com/Knuckles-Team/pipelines/blob/main/reference/spec-standard.md).
