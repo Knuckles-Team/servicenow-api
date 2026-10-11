@@ -1,10 +1,10 @@
 # [ID] — Test specification
 
-Status: PROPOSED. Governing spec: [spec.md](spec.md).
+Governing spec: [spec.md](spec.md).
 
 | Test ID | Requirement | Level | Setup and input | Expected observation | Evidence |
 |---|---|---|---|---|---|
-| T-001 | FR-001 | Contract/integration | [Exact setup] | [Exact response/state/effect] | PENDING |
+| T-001 | FR-001 | Contract/integration | [Exact setup] | [Exact response/state/effect] |  |
 
 ## Negative and boundary cases
 
