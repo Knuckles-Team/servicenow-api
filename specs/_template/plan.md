@@ -1,6 +1,6 @@
 # [ID] — Design and implementation plan
 
-Status: PROPOSED. Governing spec: [spec.md](spec.md).
+Governing spec: [spec.md](spec.md).
 
 ## Existing system and reuse
 
@@ -25,11 +25,3 @@ Status: PROPOSED. Governing spec: [spec.md](spec.md).
 ## Risks, alternatives, and decisions
 
 [Record tradeoffs, accepted decision authority, and measurable operational risks.]
-
-## Amendments
-
-[Add one dated entry per changed decision or corrected statement: the date, the row IDs, the old statement, the new statement, and the evidence.]
-
-## Audit record
-
-[Add one dated entry per audit or review of this spec: the method and the result table. Findings land here as rows or amendments.]

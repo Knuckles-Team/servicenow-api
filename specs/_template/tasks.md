@@ -1,6 +1,6 @@
 # [ID] — Implementation tasks
 
-Status: PROPOSED. Governing spec: [spec.md](spec.md). Design: [plan.md](plan.md). Rows: [requirements.md](requirements.md).
+Governing spec: [spec.md](spec.md). Design: [plan.md](plan.md). Rows: [requirements.md](requirements.md).
 
 - [ ] Inventory existing component, owner, caller, data path, and reuse candidates.
 - [ ] Implement the smallest complete vertical slice and remove superseded paths.

@@ -1,6 +1,6 @@
 # [ID] — [Feature name]
 
-Status: PROPOSED. Owner: [repository name]. Cross-repo IDs: [IDs or none].
+Owner: [repository name]. Cross-repo IDs: [IDs or none].
 Public provenance: [GitHub issue, PR, or decision URL if available. Keep all required detail below].
 
 ## Purpose and user stories
@@ -24,7 +24,7 @@ Public provenance: [GitHub issue, PR, or decision URL if available. Keep all req
 
 | Requirement | Design section | Test ID | Evidence |
 |---|---|---|---|
-| FR-001 | [plan.md anchor] | T-001 | PENDING |
+| FR-001 | [plan.md anchor] | T-001 |  |
 
 ## Open questions
 
