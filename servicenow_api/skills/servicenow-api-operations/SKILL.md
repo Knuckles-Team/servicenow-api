@@ -2,12 +2,12 @@
 name: servicenow-api-operations
 skill_type: skill
 description: >-
-  Operate servicenow-api through its governed MCP and GraphOS capabilities, including servicenow app engine, servicenow change management, servicenow cicd devops, servicenow cmdb, servicenow hr ppm, servicenow import attachment batch, servicenow incident management, servicenow irm grc, and related workflows. Use when a request requires this provider's read, change, automation, ingestion, troubleshooting, or evidence workflows.
+  Operate servicenow-api through its governed MCP and Arbora capabilities, including servicenow app engine, servicenow change management, servicenow cicd devops, servicenow cmdb, servicenow hr ppm, servicenow import attachment batch, servicenow incident management, servicenow irm grc, and related workflows. Use when a request requires this provider's read, change, automation, ingestion, troubleshooting, or evidence workflows.
 ---
 
 # Servicenow Api Operations
 
-Use the provider's governed MCP tools through GraphOS delegation.
+Use the provider's governed MCP tools through Arbora delegation.
 
 ## Workflow
 

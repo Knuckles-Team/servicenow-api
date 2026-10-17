@@ -16,7 +16,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_connector_manifest_passes_release_admission() -> None:
-    """The provider's live manifest must pass GraphOS' fail-closed sync gate."""
+    """The provider's live manifest must pass Arbora' fail-closed sync gate."""
     connectors = REPOSITORY_ROOT / "servicenow_api" / "connectors"
     violations = validate_connector_package(
         load_manifest(REPOSITORY_ROOT / "connector_manifest.yml"),
