@@ -57,14 +57,14 @@ This server use dynamic Action-Routed tools to optimize token overhead and maxim
 
 ### Tool surface — `MCP_TOOL_MODE`
 
-Set `MCP_TOOL_MODE` (in the shared `~/.config/agent-utilities/config.json` or env) to choose the surface:
+Set `MCP_TOOL_MODE` (in the shared `~/.config/agent-connector-sdk/config.json` or env) to choose the surface:
 
 - `condensed` (default) — the action-routed tools below (`servicenow_<domain>(action, params_json)`).
 - `verbose` — one named, documented 1:1 tool per API method (`servicenow_get_cmdb_instance(...)`), tagged `verbose`.
 - `both` — register both sets.
 
 Filter the verbose set with `--tools tag:verbose` / `MCP_ENABLED_TAGS=verbose`. See the
-agent-utilities guide *MCP Tool Modes* for details.
+agent-connector-sdk guide *MCP Tool Modes* for details.
 
 ### Available MCP Tools
 
@@ -276,7 +276,7 @@ When query strings or parameters are provided, an LLM-free **Knowledge Graph res
 <!-- MCP-CONFIG-EXAMPLES:START -->
 
 > **Install the connector-focused `[mcp]` extra.** Examples use `servicenow-api[mcp]` to add
-> FastMCP / FastAPI through `agent-utilities[mcp]`; the required Agent Utilities core
+> FastMCP / FastAPI through `agent-connector-sdk[mcp]`; the required Agent Utilities core
 > still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
 > enables model orchestration.
 
@@ -609,7 +609,7 @@ Detailed graph node architecture explanations, custom skill configurations, and 
 
 ## Security & Governance
 
-Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/Knuckles-Team/agent-utilities) core, standard security parameters are fully supported:
+Built directly upon the enterprise-ready [`agent-connector-sdk`](https://github.com/Knuckles-Team/agent-connector-sdk) core, standard security parameters are fully supported:
 
 ### Access Control & Policy Enforcement
 - **Eunomia Policies:** Fine-grained, policy-driven tool authorization. Supports `none`, local `embedded` (`mcp_policies.json`), or centralized `remote` modes.
@@ -697,7 +697,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `SERVICENOW_API_MCP_IMAGE` | — | Required by docker/mcp.compose.yml; set to the reviewed MCP image@sha256 digest. |
 | `SERVICENOW_API_AGENT_IMAGE` | — | Required by docker/agent.compose.yml; set to the reviewed agent image@sha256 digest. |
 
-#### Inherited agent-utilities variables (apply to every connector)
+#### Inherited agent-connector-sdk variables (apply to every connector)
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -716,7 +716,7 @@ Built directly upon the enterprise-ready [`agent-utilities`](https://github.com/
 | `MODEL_ID` | — | Operator-configured model id for the agent |
 | `ENABLE_WEB_UI` | `True` | Serve the AG-UI web interface |
 
-_63 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-utilities set — do not edit._
+_63 package + 14 inherited variable(s). Auto-generated from `.env.example` + the shared agent-connector-sdk set — do not edit._
 <!-- ENV-VARS-TABLE:END -->
 
 
@@ -785,8 +785,8 @@ Pick the extra that matches what the operator want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `servicenow-api[mcp]` | Connector-focused MCP server (`agent-utilities[mcp]` — FastMCP/FastAPI + `epistemic-graph[full]`) | The operator only run the **MCP server** (smallest install / image) |
-| `servicenow-api[agent]` | Agent runtime (`agent-utilities[agent-runtime,logfire]` — model orchestration + `epistemic-graph[full]`) | The operator run the **integrated agent** |
+| `servicenow-api[mcp]` | Connector-focused MCP server (`agent-connector-sdk[mcp]` — FastMCP/FastAPI + `epistemic-graph[full]`) | The operator only run the **MCP server** (smallest install / image) |
+| `servicenow-api[agent]` | Agent runtime (`agent-connector-sdk[agent-runtime,logfire]` — model orchestration + `epistemic-graph[full]`) | The operator run the **integrated agent** |
 | `servicenow-api[all]` | Everything (`mcp` + `agent` + `logfire`) | Development / both surfaces |
 
 ```bash
@@ -864,15 +864,15 @@ Contributions are welcome! Please ensure code quality by running local checks be
 - Run test suites using `pytest`
 
 
-<!-- BEGIN agent-utilities-deployment (generated; do not edit between markers) -->
+<!-- BEGIN agent-connector-sdk-deployment (generated; do not edit between markers) -->
 
-## Deploy with `agent-utilities-deployment`
+## Deploy with `agent-connector-sdk-deployment`
 
-Provision this package with the consolidated **`agent-utilities-deployment`**
+Provision this package with the consolidated **`agent-connector-sdk-deployment`**
 workflow. It selects an installed-package, editable-source, or immutable-container
 path; records only runtime secret and TLS-profile references in `AgentConfig`; and
 runs doctor, registration, policy, observability, and rollback gates. Ask your agent
-to **"deploy `servicenow-api` with agent-utilities-deployment"**.
+to **"deploy `servicenow-api` with agent-connector-sdk-deployment"**.
 
 | Install mode | Command |
 |------|---------|
@@ -884,7 +884,7 @@ The repository embeds no deployment profile, credential value, certificate path,
 environment-specific endpoint. Supply those at runtime through `AgentConfig` and the
 configured secret provider.
 
-<!-- END agent-utilities-deployment -->
+<!-- END agent-connector-sdk-deployment -->
 
 <!-- GOVERNED-CAPABILITY:START -->
 ## Governed capability contract

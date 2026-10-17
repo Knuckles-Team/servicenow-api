@@ -4,7 +4,7 @@
   "schema_version": "1.0",
   "prompt_version": "0.1.0",
   "source": "servicenow-api",
-  "extends": "agent-utilities:base",
+  "extends": "agent-connector-sdk:base",
   "compose": "append",
   "description": "ServiceNow CMDB specialist: model, query, and relate configuration items and services over the servicenow-api MCP server.",
   "metadata": {

@@ -1,7 +1,7 @@
 # servicenow-api
 
 A Python **API + MCP Server + A2A Agent** for ServiceNow — a typed, deterministic
-tool surface over the ServiceNow REST API for the agent-utilities ecosystem.
+tool surface over the ServiceNow REST API for the Graph OS ecosystem.
 
 !!! info "Official documentation"
     This site is the canonical reference for `servicenow-api`, maintained alongside

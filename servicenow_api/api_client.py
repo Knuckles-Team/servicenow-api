@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_agent_workspace():
-    """Resolve the active workspace lazily to avoid config import cycles."""
-    from agent_utilities.core.workspace import get_agent_workspace as resolve_workspace
+    """Resolve the connector data directory (reports are written beneath it)."""
+    from agent_connector_sdk.paths import data_dir
 
-    return resolve_workspace()
+    return data_dir()
 
 
 def decode_values(raw_values: str | None) -> list[dict[str, Any]]:

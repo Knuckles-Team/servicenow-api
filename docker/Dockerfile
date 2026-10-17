@@ -1,28 +1,6 @@
-# syntax=docker/dockerfile:1
-# Two right-sized images from ONE Dockerfile, selected by build --target. Both are
-# slim multi-stage (build in a builder, ship only /usr/local — no dev-tools/source):
+# MCP-server image: installs servicenow-api[mcp] (agent-connector-sdk runtime) and runs the MCP server.
 #
-#   --target agent  (DEFAULT)  installs servicenow-api[agent] = the FULL runtime
-#                              (agent-utilities[agent-runtime]: pydantic-ai + skills;
-#                              the full epistemic-graph engine is a base dependency).
-#                              The provider's [agent] also includes [mcp], so this image
-#                              can run EITHER the agent OR the mcp server. Push as the
-#                              default tags: latest / main / <version>.
-#
-#   --target mcp               installs servicenow-api[mcp]   = MCP-server tooling ONLY
-#                              (agent-utilities[mcp]: FastMCP/FastAPI plus the mandatory
-#                              full epistemic-graph base runtime). It omits the optional
-#                              provider agent/frontends. Push as the :mcp / :mcp-<version> tag.
-#
-# Both images also ship the ServiceNow SDK CLI (`now-sdk`, the `@servicenow/sdk` npm
-# package on a minimal Node.js LTS layer) so an operator can scaffold/build/deploy a
-# Studio scoped app from the container via the `servicenow_sdk` MCP tools
-# (servicenow_api/sdk_client.py) with no separate Node install. It is built in its own
-# discarded builder stage (builder-node) and only its /usr/local output is copied into
-# the runtime images, so the Rust/npm build tooling itself never ships.
-#
-#   docker build --target agent -t servicenow-api:local .
-#   docker build --target mcp   -t servicenow-api:mcp    .
+#   docker build -t servicenow-api:local .
 FROM python:3.11-slim@sha256:e031123e3d85762b141ad1cbc56452ba69c6e722ebf2f042cc0dc86c47c0d8b3 AS builder-base
 COPY --from=ghcr.io/astral-sh/uv:0.11.7@sha256:240fb85ab0f263ef12f492d8476aa3a2e4e1e333f7d67fbdd923d00a506a516a /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 \
@@ -37,11 +15,6 @@ RUN apt-get update \
 FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --break-system-packages servicenow-api[mcp]==2.2.0
-
-# Full agent runtime dependency closure.
-FROM builder-base AS builder-agent
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --break-system-packages servicenow-api[agent]==2.2.0
 
 # ServiceNow SDK CLI (now-sdk) — a minimal, self-contained Node.js LTS layer holding
 # only the global @servicenow/sdk install. Copied whole (COPY --from below) into both
@@ -84,10 +57,3 @@ USER 10001:10001
 COPY --from=builder-mcp /usr/local /usr/local
 COPY --from=builder-node /usr/local /usr/local
 CMD ["servicenow-mcp"]
-
-# Full image (DEFAULT target): agent runtime; can also run the mcp server.
-FROM runtime-base AS agent
-USER 10001:10001
-COPY --from=builder-agent /usr/local /usr/local
-COPY --from=builder-node /usr/local /usr/local
-CMD ["servicenow-agent"]

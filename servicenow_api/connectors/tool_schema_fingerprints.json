@@ -1,5 +1,5 @@
 {
-  "algorithm": "agent-utilities:mcp-tool-schema-compat:v1",
+  "algorithm": "agent-connector-sdk:mcp-tool-schema-compat:v1",
   "connector": "servicenow-api",
   "schema_version": "1",
   "tools": {

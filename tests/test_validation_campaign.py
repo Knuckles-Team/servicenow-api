@@ -44,7 +44,7 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
 # MCP_TOOL_MODE="verbose" registered a 1:1 tool per Api method alongside the
 # intent-gated condensed tool. agent_connector_sdk.mcp.tool_surface.register_tool_surface
 # has no mode parameter — it always registers only the condensed, GATED_TAG-tagged
-# surface (agent-utilities#54's one condensed intent contract), so there is no
+# surface (agent-connector-sdk#54's one condensed intent contract), so there is no
 # verbose surface left to assert on.
 
 
