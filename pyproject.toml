@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "2.2.0"
+version = "2.3.0"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.12, <3.15"
-dependencies = [ "agent-connector-sdk>=0.2.0,<1.0.0", "requests>=2.34.2",]
+dependencies = [ "agent-connector-sdk[mcp]>=0.2.1,<1.0.0", "requests>=2.34.2",]
 [[project.authors]]
 name = "Project Maintainers"
 email = "maintainers@users.noreply.github.com"
@@ -18,8 +18,8 @@ email = "maintainers@users.noreply.github.com"
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-connector-sdk>=0.2.0,<1.0.0",]
-all = [ "agent-connector-sdk>=0.2.0,<1.0.0",]
+mcp = [ "agent-connector-sdk[mcp]>=0.2.1,<1.0.0",]
+all = [ "agent-connector-sdk[mcp]>=0.2.1,<1.0.0",]
 test = [
     "pytest-xdist>=3.8.0", "pytest>=9.1.1", "pytest-asyncio>=1.4.0", "pytest-cov>=7.1.0",]
 

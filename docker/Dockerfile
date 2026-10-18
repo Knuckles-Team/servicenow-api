@@ -14,7 +14,7 @@ RUN apt-get update \
 # Slim MCP-only dependency closure.
 FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --break-system-packages servicenow-api[mcp]==2.2.0
+    uv pip install --system --break-system-packages servicenow-api[mcp]==2.3.0
 
 # ServiceNow SDK CLI (now-sdk) — a minimal, self-contained Node.js LTS layer holding
 # only the global @servicenow/sdk install. Copied whole (COPY --from below) into both
