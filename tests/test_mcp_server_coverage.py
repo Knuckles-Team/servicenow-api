@@ -167,41 +167,52 @@ def test_mcp_server_entrypoint():
             mcp_server()
             mock_run.assert_called_with(transport="stdio")
 
-    # 2. sse
-    with patch("fastmcp.FastMCP.run") as mock_run:
-        with patch(
-            "sys.argv",
-            [
-                "mcp_server",
-                "--transport",
-                "sse",
-                "--host",
-                "localhost",
-                "--port",
-                "8000",
-            ],
-        ):
-            mcp_server()
-            mock_run.assert_called_with(transport="sse", host="localhost", port=8000)
+    # 2. network transports refuse to serve without client authentication
+    # (agent-connector-sdk served-security profile) ...
+    for transport in ("sse", "streamable-http"):
+        with patch("fastmcp.FastMCP.run") as mock_run:
+            with patch(
+                "sys.argv",
+                [
+                    "mcp_server",
+                    "--transport",
+                    transport,
+                    "--host",
+                    "localhost",
+                    "--port",
+                    "8000",
+                ],
+            ):
+                with pytest.raises(SystemExit):
+                    mcp_server()
+            mock_run.assert_not_called()
 
-    # 3. streamable-http
-    with patch("fastmcp.FastMCP.run") as mock_run:
-        with patch(
-            "sys.argv",
-            [
-                "mcp_server",
-                "--transport",
-                "streamable-http",
-                "--host",
-                "localhost",
-                "--port",
-                "8000",
-            ],
-        ):
-            mcp_server()
-            mock_run.assert_called_with(
-                transport="streamable-http", host="localhost", port=8000
-            )
+    # 3. ... and serve once a JWT verifier and audience are configured.
+    jwt_env = {
+        "FASTMCP_SERVER_AUTH_JWT_JWKS_URI": "https://issuer.example.test/jwks",
+        "FASTMCP_SERVER_AUTH_JWT_ISSUER": "https://issuer.example.test",
+        "FASTMCP_SERVER_AUTH_JWT_AUDIENCE": "servicenow-api",
+    }
+    for transport in ("sse", "streamable-http"):
+        with patch("fastmcp.FastMCP.run") as mock_run, patch.dict(os.environ, jwt_env):
+            with patch(
+                "sys.argv",
+                [
+                    "mcp_server",
+                    "--transport",
+                    transport,
+                    "--host",
+                    "localhost",
+                    "--port",
+                    "8000",
+                    "--auth-type",
+                    "jwt",
+                ],
+            ):
+                mcp_server()
+                mock_run.assert_called_with(
+                    transport=transport, host="localhost", port=8000
+                )
 
     # 4. invalid transport
     with patch("fastmcp.FastMCP.run") as mock_run:
