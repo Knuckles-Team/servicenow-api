@@ -24,6 +24,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 from agent_connector_sdk.config import setting
 from agent_connector_sdk.exceptions import MissingParameterError
@@ -126,8 +127,9 @@ class ServiceNowSdkClient:
     condensed-tool pattern, even though it drives a local CLI rather than REST.
     """
 
-    def init(self, **kwargs) -> SdkCommandResult:
+    def init(self, params: dict[str, Any] | None = None, **kwargs) -> SdkCommandResult:
         """Scaffold a new scoped app / Fluent project (``now-sdk init``, alias ``create``)."""
+        kwargs = {**(params or {}), **kwargs}
         model = SdkInitModel(**kwargs)
         args: list[str] = []
         if model.from_source:
@@ -146,12 +148,13 @@ class ServiceNowSdkClient:
             args.append("--debug")
         return _run("init", args, working_dir=model.working_dir)
 
-    def auth(self, **kwargs) -> SdkCommandResult:
+    def auth(self, params: dict[str, Any] | None = None, **kwargs) -> SdkCommandResult:
         """Configure instance authentication (``now-sdk auth``).
 
         A ``password`` is piped via stdin with ``--password-stdin`` and is never
         placed in argv or in the returned command echo.
         """
+        kwargs = {**(params or {}), **kwargs}
         model = SdkAuthModel(**kwargs)
         args: list[str] = []
         stdin_data = None
@@ -176,8 +179,9 @@ class ServiceNowSdkClient:
             args.append("--debug")
         return _run("auth", args, working_dir=model.working_dir, stdin_data=stdin_data)
 
-    def build(self, **kwargs) -> SdkCommandResult:
+    def build(self, params: dict[str, Any] | None = None, **kwargs) -> SdkCommandResult:
         """Compile Fluent sources into an installable package (``now-sdk build``)."""
+        kwargs = {**(params or {}), **kwargs}
         model = SdkBuildModel(**kwargs)
         args: list[str] = []
         if model.source:
@@ -194,8 +198,11 @@ class ServiceNowSdkClient:
             args.append("--debug")
         return _run("build", args, working_dir=model.working_dir)
 
-    def deploy(self, **kwargs) -> SdkCommandResult:
+    def deploy(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> SdkCommandResult:
         """Install/update the app on the target instance (``now-sdk install``, alias ``deploy``)."""
+        kwargs = {**(params or {}), **kwargs}
         model = SdkInstallModel(**kwargs)
         args: list[str] = []
         if model.source:
@@ -218,8 +225,11 @@ class ServiceNowSdkClient:
             args.append("--debug")
         return _run("install", args, working_dir=model.working_dir)
 
-    def transform(self, **kwargs) -> SdkCommandResult:
+    def transform(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> SdkCommandResult:
         """Download + convert XML records into Fluent source (``now-sdk transform``)."""
+        kwargs = {**(params or {}), **kwargs}
         model = SdkTransformModel(**kwargs)
         args: list[str] = []
         if model.table:
@@ -240,8 +250,11 @@ class ServiceNowSdkClient:
             args.append("--debug")
         return _run("transform", args, working_dir=model.working_dir)
 
-    def dependencies(self, **kwargs) -> SdkCommandResult:
+    def dependencies(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> SdkCommandResult:
         """Download configured dependencies + type defs (``now-sdk dependencies``)."""
+        kwargs = {**(params or {}), **kwargs}
         model = SdkDependenciesModel(**kwargs)
         args: list[str] = []
         if model.sys_ids:

@@ -7,7 +7,6 @@
         "servicenow-mcp"
       ],
       "env": {
-        "MCP_TOOL_MODE": "intent",
         "ACCOUNTTOOL": "True",
         "ACTIVITY_SUBSCRIPTIONSTOOL": "True",
         "AGGREGATETOOL": "True",
