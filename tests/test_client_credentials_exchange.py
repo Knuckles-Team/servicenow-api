@@ -205,7 +205,7 @@ def test_delegation_takes_precedence(transport, config, monkeypatch):
     monkeypatch.setattr(
         delegation,
         "exchange_token",
-        lambda *a, **kw: AccessToken(
+        lambda *a, **kw: AccessToken(  # noqa: V107
             value="fake-delegated", ttl_seconds=300, expires_at=0
         ),
     )
@@ -220,7 +220,7 @@ def test_delegation_failure_does_not_fallback(transport, config, monkeypatch):
     monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: True)
     monkeypatch.setattr(delegation, "current_user_token", lambda: "subject-token")
 
-    def failure(*a, **kw):
+    def failure(*a, **kw):  # noqa: V107
         raise RuntimeError("fake delegation failure")
 
     monkeypatch.setattr(delegation, "exchange_token", failure)

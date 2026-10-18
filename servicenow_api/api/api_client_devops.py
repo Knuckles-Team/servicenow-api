@@ -825,10 +825,13 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_devops_onboarding_status(self, **kwargs) -> Response:
+    def get_devops_onboarding_status(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Returns the current status of the specified onboarding event.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             id_ = kwargs.get("id")
             if not id_:
@@ -851,10 +854,13 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_devops_change_control(self, **kwargs) -> Response:
+    def check_devops_change_control(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Checks if the orchestration task is under change control.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             toolId = kwargs.get("toolId")
             orchestrationTaskName = kwargs.get("orchestrationTaskName")
@@ -888,10 +894,13 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_devops_change_info(self, **kwargs) -> Response:
+    def get_devops_change_info(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Retrieves change request details for a specified orchestration pipeline execution.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             toolId = kwargs.get("toolId")
             buildNumber = kwargs.get("buildNumber")
@@ -944,10 +953,13 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_devops_step_mapping(self, **kwargs) -> Response:
+    def check_devops_step_mapping(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Verifies that the information being passed is valid for the creation of an orchestration task.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             toolId = kwargs.get("toolId")
             orchestrationTaskName = kwargs.get("orchestrationTaskName")
@@ -984,10 +996,13 @@ class ServiceNowApiDevops(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_devops_plan_schema(self, **kwargs) -> Response:
+    def get_devops_plan_schema(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Returns the schema object for a specific plan.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             resource = kwargs.get("resource")
             if not resource:

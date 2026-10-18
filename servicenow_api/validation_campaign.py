@@ -54,7 +54,7 @@ def source_preset_contract(root: Path | None = None) -> list[str]:
             resolve_mcp_server(preset.get("server"))
         except ValueError:
             violations.append(f"{name} must resolve to {CANONICAL_PROVIDER}")
-        for field in ("tool", "action", "id_field", "updated_field", "records_path"):
+        for field in ("tool", "id_field", "updated_field", "records_path"):
             if not preset.get(field):
                 violations.append(f"{name} missing {field}")
     return violations

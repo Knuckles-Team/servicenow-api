@@ -20,7 +20,7 @@ class AwaitableMock:
 
 
 class MockContext:
-    def info(self, msg: str):
+    def info(self, msg: str):  # noqa: V107
         return AwaitableMock()
 
 
@@ -140,8 +140,6 @@ async def test_all_tools_loop(mock_client):
                     pass
 
 
-
-
 @pytest.mark.asyncio
 async def test_prompts():
     """
@@ -220,13 +218,13 @@ if __name__ == "__main__":
 
 @pytest.mark.asyncio
 async def test_tool_mode_condensed_default(mock_client, monkeypatch):
-    """Default mode = condensed: action-routed tools only, no verbose 1:1 tools."""
+    """The served surface is one typed tool per API operation; no action-routed tools."""
     monkeypatch.delenv("MCP_TOOL_MODE", raising=False)
     with patch("servicenow_api.mcp_server.get_client", return_value=mock_client):
         mcp, *_ = get_mcp_instance()
         names = {t.name for t in await mcp.list_tools()}
-    assert "servicenow_cmdb" in names  # condensed action tool
-    assert "servicenow_get_cmdb_instance" not in names  # verbose absent
+    assert "servicenow_cmdb" not in names  # action-routed tool is gone
+    assert "servicenow_get_cmdb_instance" in names  # one tool per operation
 
 
 # REMOVED (SDK-CONNECTOR-CONTROL-R009/R020 migration): test_tool_mode_verbose and

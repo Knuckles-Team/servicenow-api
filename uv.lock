@@ -11,7 +11,7 @@ overrides = [{ name = "fastmcp-slim", extras = ["client", "server"], specifier =
 
 [[package]]
 name = "agent-connector-sdk"
-version = "0.2.1"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -24,7 +24,7 @@ dependencies = [
     { name = "pyyaml" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/c0/f68a33b9344f5f7f2b9bb4a5baf281d6279f8189d04630d1544850d2a684/agent_connector_sdk-0.2.1-py3-none-any.whl", hash = "sha256:0bc8f997b05fbb4358c1e44cfd5d526c7715a8d4d0d14ba7624883c22d3a0719", size = 708662, upload-time = "2026-10-17T15:37:16.917Z" },
+    { url = "https://files.pythonhosted.org/packages/43/67/0bd17fcf77c53560aeda1a7801920e6783a8f2575080da72158e14833657/agent_connector_sdk-0.3.0-py3-none-any.whl", hash = "sha256:4bbbf66a04bff9b80dfa48d3cbb1c8697ebc78b562f1b8e3a859f9336943c18c", size = 714783, upload-time = "2026-10-18T05:05:24.058Z" },
 ]
 
 [package.optional-dependencies]
@@ -1526,7 +1526,7 @@ wheels = [
 
 [[package]]
 name = "servicenow-api"
-version = "2.3.1"
+version = "2.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "agent-connector-sdk", extra = ["mcp"] },
@@ -1554,9 +1554,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.2.1,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'all'", specifier = ">=0.2.1,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'mcp'", specifier = ">=0.2.1,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.3.0,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'all'", specifier = ">=0.3.0,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'mcp'", specifier = ">=0.3.0,<1.0.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.4.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },

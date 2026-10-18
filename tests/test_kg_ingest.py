@@ -32,7 +32,7 @@ class _FakeTransport:
         self.requests: list[Any] = []
         self.blobs: list[bytes] = []
 
-    async def source_status(self, connector: str, stream: str):
+    async def source_status(self, connector: str, stream: str):  # noqa: V107
         return SimpleNamespace(accepted_checkpoint=None)
 
     async def submit(self, request):

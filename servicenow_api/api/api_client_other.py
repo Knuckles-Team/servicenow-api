@@ -1195,10 +1195,13 @@ class ServiceNowApiOther(ServiceNowApiBase):
             print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_service_qualification(self, **kwargs) -> Response:
+    def get_service_qualification(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Retrieves a technical qualification request by ID or list all.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             sys_id = kwargs.get("id") or kwargs.get("sys_id")
 
@@ -1244,10 +1247,13 @@ class ServiceNowApiOther(ServiceNowApiBase):
             print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def process_service_qualification_result(self, **kwargs) -> Response:
+    def process_service_qualification_result(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Processes a technical service qualification result.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             items = kwargs.get("serviceQualificationItem")
             if not items:
@@ -1360,10 +1366,13 @@ class ServiceNowApiOther(ServiceNowApiBase):
             print(f"Operation failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def delete_product_inventory(self, **kwargs) -> Response:
+    def delete_product_inventory(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Deletes a specified product inventory record.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             sys_id = kwargs.get("id") or kwargs.get("sys_id")
             if not sys_id:

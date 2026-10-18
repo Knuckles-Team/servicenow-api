@@ -717,10 +717,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def unregister_ci_lifecycle_operator(self, **kwargs) -> Response:
+    def unregister_ci_lifecycle_operator(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Unregisters an operator for non-workflow users.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             req_id = kwargs.get("req_id")
             if not req_id:
@@ -741,10 +744,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_ci_lifecycle_active_actions(self, **kwargs) -> Response:
+    def get_ci_lifecycle_active_actions(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Returns a list of active CI actions for the specified CI.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             sys_id = kwargs.get("sys_id")
             if not sys_id:
@@ -763,10 +769,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_ci_lifecycle_compat_actions(self, **kwargs) -> Response:
+    def check_ci_lifecycle_compat_actions(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Determines whether two specified CI actions are compatible.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             actionName = kwargs.get("actionName")
             otherActionName = kwargs.get("otherActionName")
@@ -788,10 +797,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_ci_lifecycle_lease_expired(self, **kwargs) -> Response:
+    def check_ci_lifecycle_lease_expired(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Determines whether the lease has expired for the requester.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             sys_id = kwargs.get("sys_id")
             actionName = kwargs.get("actionName")
@@ -814,10 +826,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_ci_lifecycle_not_allowed_action(self, **kwargs) -> Response:
+    def check_ci_lifecycle_not_allowed_action(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Determines whether a specified CI action is not allowed.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             actionName = kwargs.get("actionName")
             ciClass = kwargs.get("ciClass")
@@ -844,10 +859,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_ci_lifecycle_not_allowed_ops_transition(self, **kwargs) -> Response:
+    def check_ci_lifecycle_not_allowed_ops_transition(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Determines whether an operational state transition is allowed.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             ciClass = kwargs.get("ciClass")
             opsLabel = kwargs.get("opsLabel")
@@ -874,10 +892,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def check_ci_lifecycle_requestor_valid(self, **kwargs) -> Response:
+    def check_ci_lifecycle_requestor_valid(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Determines whether the specified user is a valid requester.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             req_id = kwargs.get("req_id")
             if not req_id:
@@ -896,10 +917,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def get_ci_lifecycle_status(self, **kwargs) -> Response:
+    def get_ci_lifecycle_status(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Returns the current operational state for the specified CI.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             sys_id = kwargs.get("sys_id")
             if not sys_id:
@@ -985,10 +1009,13 @@ class ServiceNowApiCmdb(ServiceNowApiBase):
             print(f"API call failed: {type(e).__name__}", file=sys.stderr)
             raise
 
-    def register_ci_lifecycle_operator(self, **kwargs) -> Response:
+    def register_ci_lifecycle_operator(
+        self, params: dict[str, Any] | None = None, **kwargs
+    ) -> Response:
         """
         Registers an operator for a non-workflow user.
         """
+        kwargs = {**(params or {}), **kwargs}
         try:
             response = self._session.post(
                 url=f"{self.url}/now/cilifecyclemgmt/operators",
