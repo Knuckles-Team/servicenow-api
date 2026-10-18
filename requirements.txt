@@ -1,1 +1,1 @@
-agent-utilities>=2.0.0,<3.0.0
+agent-connector-sdk[mcp]>=0.2.1,<1.0.0

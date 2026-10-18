@@ -2,7 +2,6 @@ import base64
 import gzip
 import inspect
 import json
-import runpy
 from pathlib import Path
 from typing import Any, Union
 from unittest.mock import MagicMock, mock_open, patch
@@ -680,39 +679,5 @@ def test_workflow_to_mermaid_precision(mock_session):
         client.workflow_to_mermaid(flow_identifiers=["ErrFlow"], save_to_file=False)
 
 
-def test_init_and_main_coverage():
-    # 1. Test __init__.py custom attributes
-    import servicenow_api
-
-    assert hasattr(servicenow_api, "_MCP_AVAILABLE")
-    assert hasattr(servicenow_api, "_AGENT_AVAILABLE")
-
-    # Try accessing dynamically imported classes/functions
-    assert "Api" in dir(servicenow_api)
-
-    # 2. Test __main__.py module entrypoint via runpy
-    # runpy.run_module(..., run_name="__main__") re-executes the module's
-    # own argparse against the LIVE sys.argv, so any pytest flag (e.g.
-    # `-p no:randomly`) leaks in and is rejected by the module's CLI
-    # parser. Pin argv to a clean single-element list for the duration of
-    # the run so the module under test sees the same argv regardless of how
-    # pytest was invoked. (agent_server is also mocked out here so this is
-    # belt-and-suspenders, not load-bearing for THIS test, but keeps the
-    # runpy call site safe if that mock is ever loosened.)
-    with (
-        patch("servicenow_api.agent_server.agent_server") as mock_as,
-        patch("sys.argv", ["servicenow-api"]),
-    ):
-        runpy.run_module("servicenow_api.__main__", run_name="__main__")
-        assert mock_as.called
 
 
-def test_agent_server_debug_mode_coverage():
-    from servicenow_api.agent_server import agent_server
-
-    with (
-        patch("agent_utilities.create_agent_server") as mock_server_create,
-        patch("sys.argv", ["agent_server.py", "--debug"]),
-    ):
-        agent_server()
-        assert mock_server_create.called

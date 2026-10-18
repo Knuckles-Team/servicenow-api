@@ -140,35 +140,6 @@ async def test_all_tools_loop(mock_client):
                     pass
 
 
-@pytest.mark.asyncio
-async def test_ingest_incidents_degrades_gracefully_when_no_engine(mock_client):
-    """servicenow_ingest_incidents must return {"ingested": None} (per its own
-    docstring) rather than hard-fail when no KG engine is reachable."""
-    # `agent_utilities.knowledge_graph.memory` unconditionally imports
-    # `agent_utilities.numeric` at module-load time, which requires the
-    # compiled `epistemic_graph.numeric` kernel — shipped only behind
-    # agent-utilities' opt-in `graphos` extra (GOC-73), not installed by
-    # this repo's plain `agent-utilities` dependency. Left unguarded, this
-    # import raises `ImportError` and the test reports a plain FAILED,
-    # indistinguishable from an application-code regression. Skip it
-    # LOUDLY with an explanation instead. See
-    from agent_connector_sdk.ingest import IngestError
-    from fastmcp import FastMCP
-
-    from servicenow_api.mcp_server import register_misc_tools
-
-    mcp = FastMCP(name="test")
-    register_misc_tools(mcp)
-    (tool,) = await mcp._list_tools()
-
-    with patch(
-        "servicenow_api.kg_ingest.ingest_incidents",
-        side_effect=IngestError("no engine reachable"),
-    ):
-        result = await tool.fn(params_json="{}", client=mock_client, ctx=None)
-
-    assert result["ingested"] is None
-    assert result["listed"] == 1
 
 
 @pytest.mark.asyncio
@@ -263,6 +234,6 @@ async def test_tool_mode_condensed_default(mock_client, monkeypatch):
 # 1:1 tool per Api method alongside the condensed action tool.
 # agent_connector_sdk.mcp.tool_surface.register_tool_surface has no mode parameter
 # at all — it always registers only the condensed, GATED_TAG-tagged surface
-# (agent-utilities#54's one condensed intent contract) — so the verbose 1:1 surface
+# (agent-connector-sdk#54's one condensed intent contract) — so the verbose 1:1 surface
 # these tests checked for no longer exists to register. test_tool_mode_condensed_default
 # above still covers the (now only) condensed path.

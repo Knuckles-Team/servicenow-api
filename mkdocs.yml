@@ -1,5 +1,5 @@
 site_name: "servicenow-api"
-site_description: "Python ServiceNow API + MCP Server + A2A Agent — a typed, deterministic ServiceNow tool surface for the agent-utilities ecosystem."
+site_description: "Python ServiceNow API + MCP Server + A2A Agent — a typed, deterministic ServiceNow tool surface for the Arbora ecosystem."
 site_url: "https://knuckles-team.github.io/servicenow-api/"
 repo_name: "Knuckles-Team/servicenow-api"
 repo_url: "https://github.com/Knuckles-Team/servicenow-api"

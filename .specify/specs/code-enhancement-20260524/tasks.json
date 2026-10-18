@@ -27,8 +27,8 @@
   },
   {
     "id": "T003",
-    "title": "[Dependency Audit] Minor update: agent-utilities 0.2.40 (installed) -> 0.16.0",
-    "description": "Minor update: agent-utilities 0.2.40 (installed) -> 0.16.0",
+    "title": "[Dependency Audit] Minor update: agent-connector-sdk 0.2.40 (installed) -> 0.16.0",
+    "description": "Minor update: agent-connector-sdk 0.2.40 (installed) -> 0.16.0",
     "domain": "Dependency Audit",
     "priority": "P3-Low",
     "effort": "Small",
@@ -521,8 +521,8 @@
   },
   {
     "id": "T041",
-    "title": "[analyze_xdg_kg] Analysis error: No module named 'agent_utilities.knowledge_graph'",
-    "description": "Analysis error: No module named 'agent_utilities.knowledge_graph'",
+    "title": "[analyze_xdg_kg] Analysis error: No module named 'agent_connector_sdk.knowledge_graph'",
+    "description": "Analysis error: No module named 'agent_connector_sdk.knowledge_graph'",
     "domain": "analyze_xdg_kg",
     "priority": "P1-High",
     "effort": "Medium",
