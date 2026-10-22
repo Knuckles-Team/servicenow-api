@@ -33,7 +33,8 @@ uv_minor() { uv --version 2>/dev/null | awk '{split($2, v, "."); print v[1] * 10
 if ! command -v uv >/dev/null 2>&1 || [[ "$(uv_minor)" -lt 9 ]]; then
   log "installing a current uv"
   python3 -m pip install --quiet --user --upgrade "uv>=0.9" \
-    || curl -LsSf https://astral.sh/uv/install.sh | sh
+    || python3 -m pip install --quiet --user --break-system-packages --upgrade "uv>=0.9" \
+    || { echo "bootstrap: could not install uv>=0.9; see https://docs.astral.sh/uv/getting-started/installation/" >&2; exit 2; }
 fi
 python_version="3.14"
 if [ -f .python-version ]; then
