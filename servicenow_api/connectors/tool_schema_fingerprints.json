@@ -1,6 +1,6 @@
 {
   "algorithm": "agent-connector-sdk:mcp-tool-contract-compat:v2",
-  "connector": "servicenow-api",
+  "connector": "servicenow-mcp",
   "schema_version": "1",
   "tools": {
     "servicenow_get_incidents": "3db83abe3103ea9b8948058fe4752ca880650258c8a6c887afb5bf45b45e10d1",
