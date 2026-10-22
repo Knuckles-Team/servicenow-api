@@ -1,4 +1,4 @@
-connector: servicenow-api
+connector: servicenow-mcp
 ontology_source: servicenow
 schema_version: '1'
 resources:

@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "spec_id": "CONN-SERVICENOW-API-CONNECTOR-IDENTITY",
+  "owner_repo": "servicenow-api",
+  "delivery_state": "VERIFIED",
+  "requirement_ids": [
+    "CONN-SERVICENOW-API-CONNECTOR-IDENTITY-R001"
+  ],
+  "requirements": [
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-IDENTITY-R001",
+      "title": "Fleet name",
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "597bc0453555"
+      ],
+      "verified_by": [
+        "tests/test_fleet_name.py:35"
+      ]
+    }
+  ]
+}
