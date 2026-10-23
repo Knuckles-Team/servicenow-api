@@ -1,0 +1,22 @@
+{
+  "connector": "servicenow-mcp",
+  "sources": [
+    {
+      "source_id": "incidents",
+      "record_type": "Incident",
+      "tools": [
+        "servicenow_get_incidents"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "short_description",
+      "text_field": "description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "sysparm_limit": 50
+      },
+      "description": "ServiceNow incident records visible to the configured account (first 50)."
+    }
+  ]
+}
