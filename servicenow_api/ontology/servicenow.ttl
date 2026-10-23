@@ -123,20 +123,44 @@
 :TRMStandard a owl:Class ;
     rdfs:subClassOf :TechnologyStandard ;
     rdfs:label "TRM Standard" ;
-    rdfs:comment """A Technology Reference Model entry carrying a lifecycle state
-    (Approved, Emerging, Retirement, End-of-life). Standard table: cmdb_software_product_model
-    (life_cycle_stage); scoped sn_apm_* / custom u_* tables vary by instance.""" .
+    rdfs:comment """A Technology Reference Model entry (ServiceNow sn_apm_trm_standards_product)
+    carrying a lifecycle phase through hasPhase (Approved, Approved with Constraints,
+    Evaluation, Divest, Unapproved) and a category through inCategory.""" .
 
 :TRMCategory a owl:Class ;
     rdfs:subClassOf :Concept ;
     rdfs:label "TRM Category" ;
-    rdfs:comment "A category that groups TRM standards (standard table: cmdb_model_category)." .
+    rdfs:comment "A category that groups TRM standards (ServiceNow sn_apm_trm_standards_category)." .
+
+:TRMPhase a owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "TRM Phase" ;
+    rdfs:comment """A TRM lifecycle phase (ServiceNow sn_apm_trm_standards_phase): Approved,
+    Approved with Constraints, Evaluation, Divest or Unapproved, with a production-approved flag.""" .
+
+:TRMLifecycle a owl:Class ;
+    rdfs:subClassOf :TechnologyStandard ;
+    rdfs:label "TRM Lifecycle" ;
+    rdfs:comment """A versioned lifecycle entry of a TRM standard with a phase and start and end
+    dates (ServiceNow sn_apm_trm_standards_product_lifecycle).""" .
+
+:TRMTechnicalDebt a owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "TRM Technical Debt" ;
+    rdfs:comment """Technical debt of a business application on a TRM standard in a given phase
+    (ServiceNow sn_apm_trm_standards_technical_debt).""" .
 
 :TechnologyRequest a owl:Class ;
     rdfs:subClassOf :TRMRequest ;
     rdfs:label "Technology Request" ;
-    rdfs:comment """A request to adopt, change or retire a technology (demand intake).
-    Standard table: dmn_demand; custom intake tables (u_trm_request) vary by instance.""" .
+    rdfs:comment """A request to adopt, change or retire a technology (ServiceNow
+    sn_apm_trm_product_request).""" .
+
+:LifecycleRequest a owl:Class ;
+    rdfs:subClassOf :TechnologyRequest ;
+    rdfs:label "Lifecycle Request" ;
+    rdfs:comment """A request for a version lifecycle entry of a technology (ServiceNow
+    sn_apm_trm_product_lifecycle_request).""" .
 
 # --- Edges and properties ------------------------------------------------------------
 
@@ -187,3 +211,39 @@
     rdfs:comment "Type of a CIRelationship: dependsOn, runsOn or hostedOn (from cmdb_rel_ci.type)." ;
     rdfs:domain :CIRelationship ;
     rdfs:range xsd:string .
+
+:hasPhase a owl:ObjectProperty ;
+    rdfs:label "has phase" ;
+    rdfs:comment "Links a TRMStandard to its current TRMPhase (trm_phase)." ;
+    rdfs:domain :TRMStandard ;
+    rdfs:range :TRMPhase .
+
+:lifecycleOf a owl:ObjectProperty ;
+    rdfs:label "lifecycle of" ;
+    rdfs:comment "Links a TRMLifecycle entry to the TRMStandard it versions (trm_product)." ;
+    rdfs:domain :TRMLifecycle ;
+    rdfs:range :TRMStandard .
+
+:lifecyclePhase a owl:ObjectProperty ;
+    rdfs:label "lifecycle phase" ;
+    rdfs:comment "Links a TRMLifecycle entry to its TRMPhase." ;
+    rdfs:domain :TRMLifecycle ;
+    rdfs:range :TRMPhase .
+
+:debtOn a owl:ObjectProperty ;
+    rdfs:label "debt on" ;
+    rdfs:comment "Links a TRMTechnicalDebt row to the TRMStandard it is debt on." ;
+    rdfs:domain :TRMTechnicalDebt ;
+    rdfs:range :TRMStandard .
+
+:debtOfApplication a owl:ObjectProperty ;
+    rdfs:label "debt of application" ;
+    rdfs:comment "Links a TRMTechnicalDebt row to the BusinessApplication carrying it." ;
+    rdfs:domain :TRMTechnicalDebt ;
+    rdfs:range :BusinessApplication .
+
+:productionApproved a owl:DatatypeProperty ;
+    rdfs:label "production approved" ;
+    rdfs:comment "Whether a TRMPhase permits production use (production_approved)." ;
+    rdfs:domain :TRMPhase ;
+    rdfs:range xsd:boolean .

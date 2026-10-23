@@ -33,9 +33,39 @@ NEW_CLASSES = {
     "ChangeRequest": "Change",
     "TRMStandard": "TechnologyStandard",
     "TRMCategory": "Concept",
+    "TRMPhase": "Concept",
+    "TRMLifecycle": "TechnologyStandard",
+    "TRMTechnicalDebt": "Concept",
     "TechnologyRequest": "TRMRequest",
+    "LifecycleRequest": "TechnologyRequest",
 }
-EDGES = ("usesTechnology", "touches", "inCategory", "requestsTechnology", "hostedOn")
+EDGES = (
+    "usesTechnology",
+    "touches",
+    "inCategory",
+    "requestsTechnology",
+    "hostedOn",
+    "hasPhase",
+    "lifecycleOf",
+    "lifecyclePhase",
+    "debtOn",
+    "debtOfApplication",
+)
+# source id -> (record type, ServiceNow table)
+SOURCES = {
+    "cmdb-cis": ("ConfigurationItem", "cmdb_ci"),
+    "cmdb-ci-relationships": ("CIRelationship", "cmdb_rel_ci"),
+    "trm-standards": ("TRMStandard", "sn_apm_trm_standards_product"),
+    "trm-categories": ("TRMCategory", "sn_apm_trm_standards_category"),
+    "trm-phases": ("TRMPhase", "sn_apm_trm_standards_phase"),
+    "trm-lifecycles": ("TRMLifecycle", "sn_apm_trm_standards_product_lifecycle"),
+    "trm-technical-debt": ("TRMTechnicalDebt", "sn_apm_trm_standards_technical_debt"),
+    "trm-requests": ("TechnologyRequest", "sn_apm_trm_product_request"),
+    "trm-lifecycle-requests": (
+        "LifecycleRequest",
+        "sn_apm_trm_product_lifecycle_request",
+    ),
+}
 CLIENTS = {
     "servicenow_get_table": (ServiceNowApiSystem, "get_table"),
     "servicenow_get_change_requests": (ServiceNowApiChange, "get_change_requests"),
@@ -92,7 +122,11 @@ def test_manifest_maps_and_shapes_cover_new_types() -> None:
         "ChangeRequest",
         "TRMStandard",
         "TRMCategory",
+        "TRMPhase",
+        "TRMLifecycle",
+        "TRMTechnicalDebt",
         "TechnologyRequest",
+        "LifecycleRequest",
     ):
         assert f"sh:targetClass :{name} " in shapes, name
 
@@ -105,14 +139,8 @@ def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
         (PACKAGE.parent / "connector_manifest.yml").read_text("utf-8")
     )
     prefix = operation_prefix("servicenow-api")
-    ids = {
-        "cmdb-cis": "ConfigurationItem",
-        "cmdb-ci-relationships": "CIRelationship",
-        "trm-standards": "TRMStandard",
-        "trm-categories": "TRMCategory",
-        "trm-requests": "TechnologyRequest",
-        "change-requests": "ChangeRequest",
-    }
+    ids = {k: v[0] for k, v in SOURCES.items()}
+    ids["change-requests"] = "ChangeRequest"
     for source_id, record_type in ids.items():
         source = declaration.source(source_id)
         assert source is not None, source_id
@@ -129,7 +157,10 @@ def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
         for s in declaration.sources
         if s.tools == (f"{prefix}_get_table",)
     }
-    assert (
-        tables["cmdb-cis"] == "cmdb_ci"
-        and tables["cmdb-ci-relationships"] == "cmdb_rel_ci"
-    )
+    for source_id, (_, table) in SOURCES.items():
+        assert tables[source_id] == table, source_id
+    assert not {
+        "cmdb_software_product_model",
+        "cmdb_model_category",
+        "dmn_demand",
+    } & set(tables.values())
