@@ -4,7 +4,8 @@
   "owner_repo": "servicenow-api",
   "delivery_state": "VERIFIED",
   "requirement_ids": [
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001"
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002"
   ],
   "requirements": [
     {
@@ -16,6 +17,17 @@
       ],
       "verified_by": [
         "tests/test_default_content_surfaces.py:15"
+      ]
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
+      "title": "Ontology joins the parent graph",
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "d79a988904e1"
+      ],
+      "verified_by": [
+        "tests/test_ontology_parent_link.py:10"
       ]
     }
   ]

@@ -60,6 +60,7 @@
     owl:imports <http://knuckles.team/kg> .
 
 :ConfigurationItem a owl:Class ;
+    rdfs:subClassOf :AssetInstance ;
     rdfs:label "Configuration Item" ;
     rdfs:comment """A managed component tracked in the CMDB (server, service,
     application, ...) (ServiceNow cmdb_ci table).""" .
