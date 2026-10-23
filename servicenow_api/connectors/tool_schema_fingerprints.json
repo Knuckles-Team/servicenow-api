@@ -1,9 +1,0 @@
-{
-  "algorithm": "agent-connector-sdk:mcp-tool-contract-compat:v2",
-  "connector": "servicenow-mcp",
-  "schema_version": "1",
-  "tools": {
-    "servicenow_get_incidents": "3db83abe3103ea9b8948058fe4752ca880650258c8a6c887afb5bf45b45e10d1",
-    "servicenow_get_knowledge_articles": "a87b22db38cd6b6a4d53c6154bd5e35616770ebb68870b80a1c7e8540eb02885"
-  }
-}

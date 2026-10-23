@@ -1,9 +1,6 @@
 {
   "api_version": "arbora.io/v1",
   "artifacts": {
-    "connector_manifest.yml": "934ea2d3aa6d1da65ff0339a11b7bf676e188aba7b0db70f85e4a23114aa6c6f",
-    "servicenow_api/connectors/mcp_source_presets.json": "1274be59d829b4dc59254e587750748def233277b40bf4702498aac5fdebc6f3",
-    "servicenow_api/connectors/tool_schema_fingerprints.json": "2a2d3ba7c0db3af99b31ff487ea8d01f040033e67ba247c002d7745be0d098aa",
     "servicenow_api/ontology/fixtures/records.json": "76cc96b7e09bba4c9cc72cc07acbab4b528a56874250a01a88dd6134cffce43a",
     "servicenow_api/ontology/mappings/source.yaml": "e6fe96ed08d416c064d0ee72e7f1d1dce6a6eb7046f595c2ca93f7689209896b",
     "servicenow_api/ontology/migrations/manifest.json": "11cd12ca2482a525ff23df1a7ae98674e58e9c2f0e7b5bea02e9823d9d2787bd",
