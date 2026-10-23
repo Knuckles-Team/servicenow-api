@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "spec_id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT",
+  "owner_repo": "servicenow-api",
+  "delivery_state": "VERIFIED",
+  "requirement_ids": [
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001"
+  ],
+  "requirements": [
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001",
+      "title": "Default content",
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "2990b6e278f7"
+      ],
+      "verified_by": [
+        "tests/test_default_content_surfaces.py:15"
+      ]
+    }
+  ]
+}
