@@ -11,7 +11,7 @@ overrides = [{ name = "fastmcp-slim", extras = ["client", "server"], specifier =
 
 [[package]]
 name = "agent-connector-sdk"
-version = "0.3.11"
+version = "0.3.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -23,9 +23,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/46/49/9259f99d1d16a8f4e6f45715bf421808cf886df633f010254fc06c2211d2/agent_connector_sdk-0.3.11.tar.gz", hash = "sha256:3d2b38bd4a2781ea3dca94f147dbc5e4b26fb343d781354467ca393c21a81f14", size = 745118, upload-time = "2026-10-22T23:32:22.111Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/12/0a8cc16e76872f16520143ac925e2989ce57ffd36ce9f27e079c2cbecdd3/agent_connector_sdk-0.3.18.tar.gz", hash = "sha256:86a912ee476f6e56329e34081e831634d40f07a083ca9b5291a1d4f57aaeb9e2", size = 757450, upload-time = "2026-10-23T03:38:51.862Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/db/2985f2e6afa2a1708c86a7770616529fbd3dc01304f236e9db098e6c50bb/agent_connector_sdk-0.3.11-py3-none-any.whl", hash = "sha256:aaea4baf2fc870f9f31bfb2d9b10e090842c6e58772777804d720e602f2e33ec", size = 742982, upload-time = "2026-10-22T23:32:20.508Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/9c/542f187c014e50cf24171a33d10ed4959c4616fa62a08477981b649407b0/agent_connector_sdk-0.3.18-py3-none-any.whl", hash = "sha256:7ee79bb2680490e047d25eaa6349b8778f427e2a09870aab6f342b7c8f677eec", size = 750933, upload-time = "2026-10-23T03:38:50.403Z" },
 ]
 
 [package.optional-dependencies]
@@ -1555,9 +1555,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.3.11,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'all'", specifier = ">=0.3.11,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'mcp'", specifier = ">=0.3.11,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.3.18,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'all'", specifier = ">=0.3.18,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'mcp'", specifier = ">=0.3.18,<1.0.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.4.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },
