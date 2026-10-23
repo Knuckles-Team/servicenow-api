@@ -10,11 +10,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-:Change a owl:Class ;
-    rdfs:label "Change" ;
-    rdfs:comment """A planned addition, modification, or removal of something
-    that could affect IT services (ServiceNow change_request table).""" .
-
 :Incident a owl:Class ;
     rdfs:label "Incident" ;
     rdfs:comment """An unplanned interruption or degradation of an IT service
@@ -23,6 +18,7 @@
 :affects a owl:ObjectProperty ;
     rdfs:label "affects" ;
     rdfs:comment "Links an Incident or Change to the ConfigurationItem it impacts." ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident :Change ) ] ;
     rdfs:range :ConfigurationItem .
 
 :assignedTo a owl:ObjectProperty ;
@@ -38,6 +34,7 @@
 :priority a owl:DatatypeProperty ;
     rdfs:label "priority" ;
     rdfs:comment "Priority of the incident or change (e.g. 1 - Critical)." ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident :Change ) ] ;
     rdfs:range xsd:string .
 
 :shortDescription a owl:DatatypeProperty ;
@@ -48,6 +45,7 @@
 :state a owl:DatatypeProperty ;
     rdfs:label "state" ;
     rdfs:comment "Lifecycle state of the record (e.g. New, In Progress, Closed)." ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident :Change ) ] ;
     rdfs:range xsd:string .
 
 <http://knuckles.team/kg/servicenow> a owl:Ontology ;
@@ -79,24 +77,28 @@
 
 # --- CMDB: configuration item subtypes (cmdb_ci and its child tables) ------------
 
-:Server a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem ;
-    rdfs:label "Server" ;
+# Shared concepts Server, Application and BusinessService are owned by the epistemic-graph
+# ontology and other packs and are referenced here, never redeclared. The ServiceNow CMDB
+# subtypes below add the system-specific configuration-item parentage.
+
+:CmdbServer a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem, :Server ;
+    rdfs:label "CMDB Server" ;
     rdfs:comment "A physical or virtual server CI (ServiceNow cmdb_ci_server)." .
 
-:Application a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem ;
-    rdfs:label "Application" ;
+:CmdbApplication a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem, :Application ;
+    rdfs:label "CMDB Application" ;
     rdfs:comment "An installed or running application CI (ServiceNow cmdb_ci_appl)." .
 
 :BusinessApplication a owl:Class ;
-    rdfs:subClassOf :Application ;
+    rdfs:subClassOf :CmdbApplication ;
     rdfs:label "Business Application" ;
     rdfs:comment "An application a business capability depends on (ServiceNow cmdb_ci_business_app)." .
 
-:BusinessService a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem ;
-    rdfs:label "Business Service" ;
+:CmdbBusinessService a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem, :BusinessService ;
+    rdfs:label "CMDB Business Service" ;
     rdfs:comment "A service delivered to the business, built from CIs (ServiceNow cmdb_ci_service)." .
 
 :CIRelationship a owl:Class ;
@@ -167,8 +169,8 @@
 :hostedOn a owl:ObjectProperty ;
     rdfs:label "hosted on" ;
     rdfs:comment "Links a ConfigurationItem to the CI that hosts it (cmdb_rel_ci type Hosted on::Hosts). Sibling of kg:runsOn and kg:dependsOn." ;
-    rdfs:domain :ConfigurationItem ;
-    rdfs:range :ConfigurationItem .
+    rdfs:domain [ a owl:Class ; owl:unionOf ( :ConfigurationItem :Application :Server ) ] ;
+    rdfs:range [ a owl:Class ; owl:unionOf ( :ConfigurationItem :Application :Server ) ] .
 
 :usesTechnology a owl:ObjectProperty ;
     rdfs:label "uses technology" ;
