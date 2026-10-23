@@ -2,10 +2,6 @@ connector: servicenow-mcp
 ontology_source: servicenow
 schema_version: '1'
 resources:
-- name: Application
-  label: Application
-  id_prefix: application
-  relations: []
 - name: AssignmentGroup
   label: Assignment Group
   id_prefix: assignmentgroup
@@ -13,10 +9,6 @@ resources:
 - name: BusinessApplication
   label: Business Application
   id_prefix: businessapplication
-  relations: []
-- name: BusinessService
-  label: Business Service
-  id_prefix: businessservice
   relations: []
 - name: CIRelationship
   label: CI Relationship
@@ -30,10 +22,6 @@ resources:
     label: relationship parent
     target: ConfigurationItem
     lpg_rel_type: ''
-- name: Change
-  label: Change
-  id_prefix: change
-  relations: []
 - name: ChangeRequest
   label: Change Request
   id_prefix: changerequest
@@ -42,14 +30,22 @@ resources:
     label: touches
     target: ConfigurationItem
     lpg_rel_type: ''
+- name: CmdbApplication
+  label: CMDB Application
+  id_prefix: cmdbapplication
+  relations: []
+- name: CmdbBusinessService
+  label: CMDB Business Service
+  id_prefix: cmdbbusinessservice
+  relations: []
+- name: CmdbServer
+  label: CMDB Server
+  id_prefix: cmdbserver
+  relations: []
 - name: ConfigurationItem
   label: Configuration Item
   id_prefix: configurationitem
   relations:
-  - name: hostedOn
-    label: hosted on
-    target: ConfigurationItem
-    lpg_rel_type: ''
   - name: usesTechnology
     label: uses technology
     target: TRMStandard
@@ -69,10 +65,6 @@ resources:
 - name: Person
   label: Person
   id_prefix: person
-  relations: []
-- name: Server
-  label: Server
-  id_prefix: server
   relations: []
 - name: TRMCategory
   label: TRM Category
@@ -174,15 +166,6 @@ permissions:
   tenant_field: null
   read_roles: []
 schema_mappings:
-  Application:
-    ontology_class: ConfigurationItem
-    fields:
-      number: xsd:string
-      priority: xsd:string
-      productionApproved: xsd:boolean
-      relationshipType: xsd:string
-      shortDescription: xsd:string
-      state: xsd:string
   AssignmentGroup:
     ontology_class: Organization
     fields:
@@ -193,16 +176,7 @@ schema_mappings:
       shortDescription: xsd:string
       state: xsd:string
   BusinessApplication:
-    ontology_class: Application
-    fields:
-      number: xsd:string
-      priority: xsd:string
-      productionApproved: xsd:boolean
-      relationshipType: xsd:string
-      shortDescription: xsd:string
-      state: xsd:string
-  BusinessService:
-    ontology_class: ConfigurationItem
+    ontology_class: CmdbApplication
     fields:
       number: xsd:string
       priority: xsd:string
@@ -219,8 +193,8 @@ schema_mappings:
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
-  Change:
-    ontology_class: null
+  ChangeRequest:
+    ontology_class: Change
     fields:
       number: xsd:string
       priority: xsd:string
@@ -228,8 +202,26 @@ schema_mappings:
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
-  ChangeRequest:
-    ontology_class: Change
+  CmdbApplication:
+    ontology_class: ConfigurationItem
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  CmdbBusinessService:
+    ontology_class: ConfigurationItem
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  CmdbServer:
+    ontology_class: ConfigurationItem
     fields:
       number: xsd:string
       priority: xsd:string
@@ -275,15 +267,6 @@ schema_mappings:
       state: xsd:string
   Person:
     ontology_class: Person
-    fields:
-      number: xsd:string
-      priority: xsd:string
-      productionApproved: xsd:boolean
-      relationshipType: xsd:string
-      shortDescription: xsd:string
-      state: xsd:string
-  Server:
-    ontology_class: ConfigurationItem
     fields:
       number: xsd:string
       priority: xsd:string
@@ -400,7 +383,7 @@ sync:
     params_style: args
 provenance:
   generated_by: scripts/generate_connector_manifests.py
-  generated_at: '2026-10-23T14:00:00Z'
+  generated_at: '2026-10-23T00:00:00Z'
   source_artifacts:
   - servicenow_api/connectors/mcp_source_presets.json
   - servicenow_api/connectors/tool_schema_fingerprints.json
@@ -408,13 +391,13 @@ provenance:
   - servicenow_api/ontology/servicenow.ttl
   integrity:
     algorithm: urdna2015-sha256
-    hash: 40bc01c48c4c0a644c64e37e6b839a9a366165a732078fd12c24964d5b116308
-    triple_count: 145
+    hash: 5e80d0aab9bb341224b5ac6577ec7d5655ca20638dedb169b109d7e0e5a9891e
+    triple_count: 138
   signer: UNSIGNED-PREVIEW
   signature_algorithm: none
   signing_public_key: ''
   signature: null
-  source_commit: c6f60c9340195a727c53339bc3dcd0741300f820
+  source_commit: aa359fb7f918c75c33c9fe5dde81f1b36794e259
 policy:
   pii_fields: {}
   tenant_boundary: null
@@ -426,20 +409,22 @@ review_todos:
   \ \u2014 not attached to any resource; verify its true domain manually."
 - "relation 'assignedTo' has no declared rdfs:domain resolving to a known resource in this connector's\
   \ ontology \u2014 not attached to any resource; verify its true domain manually."
-- "schema_mappings.Application.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf] \u2014\
-  \ verify manually before relying on this crosswalk for reasoning/joins."
+- "relation 'hostedOn' has no declared rdfs:domain resolving to a known resource in this connector's ontology\
+  \ \u2014 not attached to any resource; verify its true domain manually."
 - "schema_mappings.AssignmentGroup.ontology_class = 'Organization' [source ttl rdfs:subClassOf] \u2014\
   \ verify manually before relying on this crosswalk for reasoning/joins."
-- "schema_mappings.BusinessApplication.ontology_class = 'Application' [source ttl rdfs:subClassOf] \u2014\
-  \ verify manually before relying on this crosswalk for reasoning/joins."
-- "schema_mappings.BusinessService.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf] \u2014\
-  \ verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.BusinessApplication.ontology_class = 'CmdbApplication' [source ttl rdfs:subClassOf]\
+  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.CIRelationship.ontology_class = 'JunctionLink' [source ttl rdfs:subClassOf] \u2014\
   \ verify manually before relying on this crosswalk for reasoning/joins."
-- "schema_mappings.Change.ontology_class = None [UNRESOLVED \u2014 no crosswalk found by any heuristic]\
-  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.ChangeRequest.ontology_class = 'Change' [source ttl rdfs:subClassOf] \u2014 verify\
   \ manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.CmdbApplication.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf] \u2014\
+  \ verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.CmdbBusinessService.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf]\
+  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.CmdbServer.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf] \u2014\
+  \ verify manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.ConfigurationItem.ontology_class = 'AssetInstance' [source ttl rdfs:subClassOf] \u2014\
   \ verify manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.Incident.ontology_class = 'Incident' [DRAFT \u2014 nearest hub-canonical-class-by-name\
@@ -452,8 +437,6 @@ review_todos:
 - "schema_mappings.Person.ontology_class = 'Person' [DRAFT \u2014 nearest hub-canonical-class-by-name\
   \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
   \ on this crosswalk for reasoning/joins."
-- "schema_mappings.Server.ontology_class = 'ConfigurationItem' [source ttl rdfs:subClassOf] \u2014 verify\
-  \ manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.TRMCategory.ontology_class = 'Concept' [source ttl rdfs:subClassOf] \u2014 verify manually\
   \ before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.TRMLifecycle.ontology_class = 'TechnologyStandard' [source ttl rdfs:subClassOf] \u2014\

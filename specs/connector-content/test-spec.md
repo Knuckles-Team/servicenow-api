@@ -9,3 +9,4 @@ Governing spec: [spec.md](spec.md).
 | T-003 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003` | `tests/test_ingest_sources.py` | The declaration loads, names the read-only incidents tool and a mapped record type. |
 | T-004 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004` | `tests/test_cmdb_trm_ontology.py` | New classes reach a parent, are mapped in the manifest and have shapes. |
 | T-005 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005` | `tests/test_cmdb_trm_ontology.py` | Each ingest source names a read-only tool and a mapped record type. |
+| T-006 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006` | `tests/test_cq_paths.py` | No shared concept is redeclared; incident properties have domains; no null mapping. |

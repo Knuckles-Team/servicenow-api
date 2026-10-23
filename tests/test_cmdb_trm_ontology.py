@@ -24,10 +24,10 @@ PACKAGE = Path(servicenow_api.__file__).parent
 KG = "http://knuckles.team/kg#"
 # new class -> the parent class (epistemic-graph or this pack) it must extend
 NEW_CLASSES = {
-    "Server": "ConfigurationItem",
-    "Application": "ConfigurationItem",
-    "BusinessApplication": "Application",
-    "BusinessService": "ConfigurationItem",
+    "CmdbServer": "ConfigurationItem",
+    "CmdbApplication": "ConfigurationItem",
+    "BusinessApplication": "CmdbApplication",
+    "CmdbBusinessService": "ConfigurationItem",
     "CIRelationship": "JunctionLink",
     "AssignmentGroup": "Organization",
     "ChangeRequest": "Change",
