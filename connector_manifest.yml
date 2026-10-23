@@ -62,6 +62,10 @@ resources:
   label: Knowledge Article
   id_prefix: knowledgearticle
   relations: []
+- name: LifecycleRequest
+  label: Lifecycle Request
+  id_prefix: lifecyclerequest
+  relations: []
 - name: Person
   label: Person
   id_prefix: person
@@ -74,13 +78,45 @@ resources:
   label: TRM Category
   id_prefix: trmcategory
   relations: []
+- name: TRMLifecycle
+  label: TRM Lifecycle
+  id_prefix: trmlifecycle
+  relations:
+  - name: lifecycleOf
+    label: lifecycle of
+    target: TRMStandard
+    lpg_rel_type: ''
+  - name: lifecyclePhase
+    label: lifecycle phase
+    target: TRMPhase
+    lpg_rel_type: ''
+- name: TRMPhase
+  label: TRM Phase
+  id_prefix: trmphase
+  relations: []
 - name: TRMStandard
   label: TRM Standard
   id_prefix: trmstandard
   relations:
+  - name: hasPhase
+    label: has phase
+    target: TRMPhase
+    lpg_rel_type: ''
   - name: inCategory
     label: in category
     target: TRMCategory
+    lpg_rel_type: ''
+- name: TRMTechnicalDebt
+  label: TRM Technical Debt
+  id_prefix: trmtechnicaldebt
+  relations:
+  - name: debtOfApplication
+    label: debt of application
+    target: BusinessApplication
+    lpg_rel_type: ''
+  - name: debtOn
+    label: debt on
+    target: TRMStandard
     lpg_rel_type: ''
 - name: TechnologyRequest
   label: Technology Request
@@ -143,6 +179,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -151,6 +188,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -159,6 +197,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -167,6 +206,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -175,6 +215,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -183,6 +224,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -191,6 +233,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -199,6 +242,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -207,6 +251,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -215,6 +260,16 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  LifecycleRequest:
+    ontology_class: TechnologyRequest
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -223,6 +278,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -231,6 +287,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -239,6 +296,25 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  TRMLifecycle:
+    ontology_class: TechnologyStandard
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  TRMPhase:
+    ontology_class: Concept
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -247,6 +323,16 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
+      relationshipType: xsd:string
+      shortDescription: xsd:string
+      state: xsd:string
+  TRMTechnicalDebt:
+    ontology_class: Concept
+    fields:
+      number: xsd:string
+      priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -255,6 +341,7 @@ schema_mappings:
     fields:
       number: xsd:string
       priority: xsd:string
+      productionApproved: xsd:boolean
       relationshipType: xsd:string
       shortDescription: xsd:string
       state: xsd:string
@@ -313,7 +400,7 @@ sync:
     params_style: args
 provenance:
   generated_by: scripts/generate_connector_manifests.py
-  generated_at: '2026-10-23T13:37:13Z'
+  generated_at: '2026-10-23T14:00:00Z'
   source_artifacts:
   - servicenow_api/connectors/mcp_source_presets.json
   - servicenow_api/connectors/tool_schema_fingerprints.json
@@ -321,13 +408,13 @@ provenance:
   - servicenow_api/ontology/servicenow.ttl
   integrity:
     algorithm: urdna2015-sha256
-    hash: 840dc91c1de00eb3497036ad3ea818b1a8936ec173206dffd2216e5be057b96c
-    triple_count: 106
+    hash: 40bc01c48c4c0a644c64e37e6b839a9a366165a732078fd12c24964d5b116308
+    triple_count: 145
   signer: UNSIGNED-PREVIEW
   signature_algorithm: none
   signing_public_key: ''
   signature: null
-  source_commit: 30731f627e6df9c2876d48c00a58178e18030045
+  source_commit: c6f60c9340195a727c53339bc3dcd0741300f820
 policy:
   pii_fields: {}
   tenant_boundary: null
@@ -360,6 +447,8 @@ review_todos:
   \ on this crosswalk for reasoning/joins."
 - "schema_mappings.KnowledgeArticle.ontology_class = 'Document' [source ttl rdfs:subClassOf] \u2014 verify\
   \ manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.LifecycleRequest.ontology_class = 'TechnologyRequest' [source ttl rdfs:subClassOf]\
+  \ \u2014 verify manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.Person.ontology_class = 'Person' [DRAFT \u2014 nearest hub-canonical-class-by-name\
   \ heuristic (D16 residue; human sign-off required before use)] \u2014 verify manually before relying\
   \ on this crosswalk for reasoning/joins."
@@ -367,7 +456,13 @@ review_todos:
   \ manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.TRMCategory.ontology_class = 'Concept' [source ttl rdfs:subClassOf] \u2014 verify manually\
   \ before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.TRMLifecycle.ontology_class = 'TechnologyStandard' [source ttl rdfs:subClassOf] \u2014\
+  \ verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.TRMPhase.ontology_class = 'Concept' [source ttl rdfs:subClassOf] \u2014 verify manually\
+  \ before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.TRMStandard.ontology_class = 'TechnologyStandard' [source ttl rdfs:subClassOf] \u2014\
   \ verify manually before relying on this crosswalk for reasoning/joins."
+- "schema_mappings.TRMTechnicalDebt.ontology_class = 'Concept' [source ttl rdfs:subClassOf] \u2014 verify\
+  \ manually before relying on this crosswalk for reasoning/joins."
 - "schema_mappings.TechnologyRequest.ontology_class = 'TRMRequest' [source ttl rdfs:subClassOf] \u2014\
   \ verify manually before relying on this crosswalk for reasoning/joins."
