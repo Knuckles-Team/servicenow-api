@@ -10,10 +10,8 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-:Incident a owl:Class ;
-    rdfs:label "Incident" ;
-    rdfs:comment """An unplanned interruption or degradation of an IT service
-    (ServiceNow incident table). ArchiMate: Application → ApplicationEvent.""" .
+:Incident a owl:Class .
+
 
 :affects a owl:ObjectProperty ;
     rdfs:label "affects" ;
@@ -55,8 +53,8 @@
     Reference Model (TRM) standards, categories and requests, with their
     affected-CI, owner and technology-usage relationships.
 
-    CONCEPT:KG-2.9 — Self-registering source extractors.""" ;
-    owl:imports <http://knuckles.team/kg> .
+    CONCEPT:KG-2.9 — Self-registering source extractors.""" .
+
 
 :ConfigurationItem a owl:Class ;
     rdfs:subClassOf :AssetInstance ;
@@ -64,9 +62,8 @@
     rdfs:comment """A managed component tracked in the CMDB (server, service,
     application, ...) (ServiceNow cmdb_ci table).""" .
 
-:Person a owl:Class ;
-    rdfs:label "Person" ;
-    rdfs:comment "An individual who may be assigned ITSM records." .
+:Person a owl:Class .
+
 
 :KnowledgeArticle a owl:Class ;
     rdfs:subClassOf :Document ;

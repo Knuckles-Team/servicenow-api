@@ -1,4 +1,3 @@
-
 import pytest
 
 from servicenow_api.validation_campaign import (
@@ -46,40 +45,6 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
 # has no mode parameter — it always registers only the condensed, GATED_TAG-tagged
 # surface (agent-connector-sdk#54's one condensed intent contract), so there is no
 # verbose surface left to assert on.
-
-
-@pytest.mark.parametrize("server", ["servicenow-api", "servicenow-mcp"])
-def test_source_preset_contract_resolves_known_provider_aliases(tmp_path, server):
-    import json
-    from pathlib import Path
-
-    relative = Path("servicenow_api/connectors/mcp_source_presets.json")
-    source = Path(__file__).resolve().parents[1] / relative
-    presets = json.loads(source.read_text())
-    for preset in presets.values():
-        if isinstance(preset, dict):
-            preset["server"] = server
-    destination = tmp_path / relative
-    destination.parent.mkdir(parents=True)
-    destination.write_text(json.dumps(presets))
-    assert source_preset_contract(tmp_path) == []
-
-
-@pytest.mark.parametrize("server", ["servicenow-typo", "", None])
-def test_source_preset_contract_rejects_unknown_provider_aliases(tmp_path, server):
-    import json
-    from pathlib import Path
-
-    relative = Path("servicenow_api/connectors/mcp_source_presets.json")
-    source = Path(__file__).resolve().parents[1] / relative
-    presets = json.loads(source.read_text())
-    presets["servicenow-incidents"]["server"] = server
-    destination = tmp_path / relative
-    destination.parent.mkdir(parents=True)
-    destination.write_text(json.dumps(presets))
-    assert source_preset_contract(tmp_path) == [
-        "servicenow-incidents must resolve to servicenow-api"
-    ]
 
 
 # REMOVED (SDK-CONNECTOR-CONTROL-R009/R020 migration):

@@ -41,22 +41,20 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 
 def source_preset_contract(root: Path | None = None) -> list[str]:
-    """Return violations for the signed-source-preset input contract."""
-    root = root or package_root()
-    presets = _load_json(root / "servicenow_api/connectors/mcp_source_presets.json")
+    """Return violations for the declared-source input contract (sources are declared in code)."""
+    from servicenow_api.connector_sources import CONNECTOR, declaration
+
     violations: list[str] = []
-    for name in ("servicenow-incidents", "servicenow-knowledge"):
-        preset = presets.get(name)
-        if not isinstance(preset, dict):
-            violations.append(f"missing preset: {name}")
-            continue
-        try:
-            resolve_mcp_server(preset.get("server"))
-        except ValueError:
-            violations.append(f"{name} must resolve to {CANONICAL_PROVIDER}")
-        for field in ("tool", "id_field", "updated_field", "records_path"):
-            if not preset.get(field):
-                violations.append(f"{name} missing {field}")
+    try:
+        resolve_mcp_server(CONNECTOR)
+    except ValueError:
+        violations.append(f"{CONNECTOR} must resolve to {CANONICAL_PROVIDER}")
+    for source in declaration().sources:
+        if not source.tools:
+            violations.append(f"{source.source_id} missing tool")
+        for field in ("id_field", "cursor_field", "records_path"):
+            if not getattr(source, field, None):
+                violations.append(f"{source.source_id} missing {field}")
     return violations
 
 

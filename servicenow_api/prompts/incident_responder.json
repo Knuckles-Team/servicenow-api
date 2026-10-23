@@ -4,8 +4,6 @@
   "schema_version": "1.0",
   "prompt_version": "0.1.0",
   "source": "servicenow-api",
-  "extends": "agent-connector-sdk:base",
-  "compose": "append",
   "description": "ServiceNow incident responder: triage, resolve, and track ITSM incidents and their affected CIs over the servicenow-api MCP server.",
   "metadata": {
     "topic": "ServiceNow ITSM Incident Response",

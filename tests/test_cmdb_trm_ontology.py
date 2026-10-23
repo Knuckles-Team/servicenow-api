@@ -5,8 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
-from agent_connector_sdk.ingest.sources import load_ingest_sources
+from servicenow_api.connector_sources import declaration as declared_sources
 from agent_connector_sdk.mcp.method_tools import operation_annotations, operation_verb
 from agent_connector_sdk.mcp.tool_surface import operation_prefix
 
@@ -107,15 +106,12 @@ def test_edges_connect_declared_classes() -> None:
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004")
 def test_manifest_maps_and_shapes_cover_new_types() -> None:
-    manifest = yaml.safe_load(
-        (PACKAGE.parent / "connector_manifest.yml").read_text("utf-8")
-    )
     shapes = (PACKAGE / "ontology" / "shapes" / "connector.shacl.ttl").read_text(
         "utf-8"
     )
     for name, parent in NEW_CLASSES.items():
-        assert name in manifest["schema_mappings"], name
-        assert manifest["schema_mappings"][name]["ontology_class"] == parent
+        assert name in declared_sources().schema_mappings, name
+        assert declared_sources().schema_mappings[name].ontology_class == parent
     for name in (
         "CIRelationship",
         "AssignmentGroup",
@@ -133,11 +129,8 @@ def test_manifest_maps_and_shapes_cover_new_types() -> None:
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005")
 def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
-    declaration = load_ingest_sources(PACKAGE)
+    declaration = declared_sources()
     assert declaration is not None
-    manifest = yaml.safe_load(
-        (PACKAGE.parent / "connector_manifest.yml").read_text("utf-8")
-    )
     prefix = operation_prefix("servicenow-api")
     ids = {k: v[0] for k, v in SOURCES.items()}
     ids["change-requests"] = "ChangeRequest"
@@ -145,7 +138,7 @@ def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
         source = declaration.source(source_id)
         assert source is not None, source_id
         assert source.record_type == record_type
-        assert record_type in manifest["schema_mappings"]
+        assert record_type in declared_sources().schema_mappings
         for tool in source.tools:
             cls, method_name = CLIENTS[f"{prefix}_{tool.removeprefix(prefix + '_')}"]
             annotations = operation_annotations(

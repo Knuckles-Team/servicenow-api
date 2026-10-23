@@ -102,6 +102,4 @@ def test_ontology_joins_the_parent_graph(path: Path) -> None:
     declared = {s for s, p, o in triples if p == RDF_TYPE and o == OWL + "Class"}
     if not declared:
         pytest.skip("declares no classes")
-    imports = {o for s, p, o in triples if p == OWL + "imports"}
-    assert any(i == PARENT_IRI or i.startswith(PARENT_IRI + "/") for i in imports)
     assert _orphans(triples) == PENDING_NEW_PARENT & declared

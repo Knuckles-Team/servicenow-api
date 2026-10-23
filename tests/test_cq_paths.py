@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from servicenow_api.connector_sources import declaration as declared_sources
 import re
 from pathlib import Path
 
 import pytest
-import yaml
 
 import servicenow_api
 
@@ -57,12 +57,9 @@ def test_host_edge_spans_application_and_server() -> None:
 
 
 def test_no_mapping_has_a_null_ontology_class() -> None:
-    manifest = yaml.safe_load(
-        (PACKAGE.parent / "connector_manifest.yml").read_text("utf-8")
-    )
     unmapped = [
         name
-        for name, mapping in manifest["schema_mappings"].items()
-        if not mapping["ontology_class"]
+        for name, mapping in declared_sources().schema_mappings.items()
+        if not mapping.ontology_class
     ]
     assert unmapped == []

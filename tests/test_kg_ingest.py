@@ -67,7 +67,7 @@ def _edge_types(request):
         (
             rel.source.record_id,
             rel.target.record_id,
-            rel.relation_reference.rsplit("/relations/", 1)[-1],
+            rel.relation_reference.rsplit("/", 1)[-1],
         )
         for rel in request.relationships
     }

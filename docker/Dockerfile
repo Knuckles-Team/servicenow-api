@@ -22,7 +22,7 @@ FROM builder-base AS builder-mcp
 RUN --mount=type=cache,target=/root/.cache/uv \
     for attempt in 1 2 3 4 5 6 7 8 9 10; do \
         uv pip install --system --break-system-packages --only-binary :all: \
-            --refresh-package servicenow-api "servicenow-api[mcp]==2.4.7" && exit 0; \
+            --refresh-package servicenow-api "servicenow-api[mcp]==2.4.8" && exit 0; \
         echo "wheel not installable yet (attempt ${attempt}); retrying in 30s"; \
         sleep 30; \
     done; \

@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
+from agent_connector_sdk.connector_identity import connector_name
 import ast
-import json
-import re
 import tomllib
 from pathlib import Path
 
@@ -38,16 +37,6 @@ def test_connector_name_is_the_fleet_name() -> None:
     assert pyproject["project"]["entry-points"]["agent_connector_sdk.connector"] == {
         FLEET: "servicenow_api"
     }
-    manifest_path = PACKAGE / "connector_manifest.yml"
-    if not manifest_path.is_file():
-        manifest_path = ROOT / "connector_manifest.yml"
-    manifest = manifest_path.read_text(encoding="utf-8")
-    match = re.search(r'^\s*"?connector"?\s*:\s*"?([^"\s,]+)', manifest, re.MULTILINE)
-    assert match is not None and match.group(1) == FLEET
-    fingerprints = PACKAGE / "connectors" / "tool_schema_fingerprints.json"
-    if fingerprints.is_file():
-        assert (
-            json.loads(fingerprints.read_text(encoding="utf-8"))["connector"] == FLEET
-        )
+    assert connector_name("servicenow_api") == FLEET
     for module in sorted(PACKAGE.glob("*.py")):
         assert all(name == FLEET for name in _call_connectors(module)), module.name
