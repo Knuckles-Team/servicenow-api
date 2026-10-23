@@ -17,6 +17,128 @@
         "sysparm_limit": 50
       },
       "description": "ServiceNow incident records visible to the configured account (first 50)."
+    },
+    {
+      "source_id": "cmdb-cis",
+      "record_type": "ConfigurationItem",
+      "tools": [
+        "servicenow_get_table"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "name",
+      "text_field": "short_description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "table": "cmdb_ci",
+        "sysparm_limit": 100,
+        "sysparm_display_value": "false",
+        "sysparm_exclude_reference_link": true,
+        "sysparm_fields": "sys_id,name,sys_class_name,short_description,install_status,operational_status,owned_by,managed_by_group,support_group,sys_updated_on"
+      },
+      "description": "CMDB configuration items (cmdb_ci, all classes; first 100) with class, owner, support group and status."
+    },
+    {
+      "source_id": "cmdb-ci-relationships",
+      "record_type": "CIRelationship",
+      "tools": [
+        "servicenow_get_table"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "type",
+      "text_field": null,
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "table": "cmdb_rel_ci",
+        "sysparm_limit": 100,
+        "sysparm_display_value": "false",
+        "sysparm_exclude_reference_link": true,
+        "sysparm_fields": "sys_id,parent,child,type,sys_updated_on"
+      },
+      "description": "Typed CI-to-CI relationships (cmdb_rel_ci: parent, child, type such as Depends on, Runs on, Hosted on; first 100)."
+    },
+    {
+      "source_id": "trm-standards",
+      "record_type": "TRMStandard",
+      "tools": [
+        "servicenow_get_table"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "name",
+      "text_field": "short_description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "table": "cmdb_software_product_model",
+        "sysparm_limit": 100,
+        "sysparm_display_value": "false",
+        "sysparm_exclude_reference_link": true,
+        "sysparm_fields": "sys_id,name,short_description,life_cycle_stage,life_cycle_stage_status,manufacturer,sys_updated_on"
+      },
+      "description": "TRM technology standards with lifecycle state (standard table cmdb_software_product_model; scoped sn_apm_* / u_* tables vary by instance; first 100)."
+    },
+    {
+      "source_id": "trm-categories",
+      "record_type": "TRMCategory",
+      "tools": [
+        "servicenow_get_table"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "name",
+      "text_field": "description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "table": "cmdb_model_category",
+        "sysparm_limit": 100,
+        "sysparm_display_value": "false",
+        "sysparm_exclude_reference_link": true,
+        "sysparm_fields": "sys_id,name,description,sys_updated_on"
+      },
+      "description": "TRM categories grouping technology standards (standard table cmdb_model_category; first 100)."
+    },
+    {
+      "source_id": "trm-requests",
+      "record_type": "TechnologyRequest",
+      "tools": [
+        "servicenow_get_table"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "short_description",
+      "text_field": "description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "table": "dmn_demand",
+        "sysparm_limit": 100,
+        "sysparm_display_value": "false",
+        "sysparm_exclude_reference_link": true,
+        "sysparm_fields": "sys_id,number,short_description,description,state,assignment_group,sys_updated_on"
+      },
+      "description": "Technology requests entering as demand (standard table dmn_demand; custom intake tables such as u_trm_request vary by instance; first 100)."
+    },
+    {
+      "source_id": "change-requests",
+      "record_type": "ChangeRequest",
+      "tools": [
+        "servicenow_get_change_requests"
+      ],
+      "records_path": "result",
+      "id_field": "sys_id",
+      "title_field": "short_description",
+      "text_field": "description",
+      "cursor_field": "sys_updated_on",
+      "incremental": false,
+      "arguments": {
+        "sysparm_limit": 50
+      },
+      "description": "ServiceNow change requests with their affected CI (first 50)."
     }
   ]
 }

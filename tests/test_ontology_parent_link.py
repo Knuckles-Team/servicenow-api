@@ -21,9 +21,14 @@ PARENT_CLASSES = frozenset(
     (
         "http://knuckles.team/kg#AssetInstance",
         "http://knuckles.team/kg#Change",
+        "http://knuckles.team/kg#Concept",
         "http://knuckles.team/kg#Document",
         "http://knuckles.team/kg#Incident",
+        "http://knuckles.team/kg#JunctionLink",
+        "http://knuckles.team/kg#Organization",
         "http://knuckles.team/kg#Person",
+        "http://knuckles.team/kg#TRMRequest",
+        "http://knuckles.team/kg#TechnologyStandard",
     )
 )
 # Classes for which the parent ontology has no fitting class yet. Each is a candidate for a new
