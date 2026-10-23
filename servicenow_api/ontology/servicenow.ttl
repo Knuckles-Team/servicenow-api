@@ -53,8 +53,9 @@
 <http://knuckles.team/kg/servicenow> a owl:Ontology ;
     rdfs:label "ServiceNow ITSM Ontology" ;
     rdfs:comment """ServiceNow IT Service Management extensions: incidents,
-    changes, and CMDB configuration items, with their affected-CI and assignee
-    relationships.
+    changes, CMDB configuration items and CI relationships, and Technology
+    Reference Model (TRM) standards, categories and requests, with their
+    affected-CI, owner and technology-usage relationships.
 
     CONCEPT:KG-2.9 — Self-registering source extractors.""" ;
     owl:imports <http://knuckles.team/kg> .
@@ -75,3 +76,114 @@
     rdfs:comment """A ServiceNow knowledge-base article (kb_knowledge table),
     ingested as a :Document carrying its text and source_uri. Referenced via the
     ``subtype`` property on the ingested :Document node.""" .
+
+# --- CMDB: configuration item subtypes (cmdb_ci and its child tables) ------------
+
+:Server a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem ;
+    rdfs:label "Server" ;
+    rdfs:comment "A physical or virtual server CI (ServiceNow cmdb_ci_server)." .
+
+:Application a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem ;
+    rdfs:label "Application" ;
+    rdfs:comment "An installed or running application CI (ServiceNow cmdb_ci_appl)." .
+
+:BusinessApplication a owl:Class ;
+    rdfs:subClassOf :Application ;
+    rdfs:label "Business Application" ;
+    rdfs:comment "An application a business capability depends on (ServiceNow cmdb_ci_business_app)." .
+
+:BusinessService a owl:Class ;
+    rdfs:subClassOf :ConfigurationItem ;
+    rdfs:label "Business Service" ;
+    rdfs:comment "A service delivered to the business, built from CIs (ServiceNow cmdb_ci_service)." .
+
+:CIRelationship a owl:Class ;
+    rdfs:subClassOf :JunctionLink ;
+    rdfs:label "CI Relationship" ;
+    rdfs:comment """A typed, directed relationship between two configuration items, reified
+    with its type (ServiceNow cmdb_rel_ci: parent, child, type such as Depends on::Used by,
+    Runs on::Runs, Hosted on::Hosts).""" .
+
+:AssignmentGroup a owl:Class ;
+    rdfs:subClassOf :Organization ;
+    rdfs:label "Assignment Group" ;
+    rdfs:comment "A group that owns, supports or is assigned records (ServiceNow sys_user_group)." .
+
+# --- ITSM: change requests ----------------------------------------------------------
+
+:ChangeRequest a owl:Class ;
+    rdfs:subClassOf :Change ;
+    rdfs:label "Change Request" ;
+    rdfs:comment "A ServiceNow change request record (change_request table)." .
+
+# --- TRM: technology reference model -------------------------------------------------
+
+:TRMStandard a owl:Class ;
+    rdfs:subClassOf :TechnologyStandard ;
+    rdfs:label "TRM Standard" ;
+    rdfs:comment """A Technology Reference Model entry carrying a lifecycle state
+    (Approved, Emerging, Retirement, End-of-life). Standard table: cmdb_software_product_model
+    (life_cycle_stage); scoped sn_apm_* / custom u_* tables vary by instance.""" .
+
+:TRMCategory a owl:Class ;
+    rdfs:subClassOf :Concept ;
+    rdfs:label "TRM Category" ;
+    rdfs:comment "A category that groups TRM standards (standard table: cmdb_model_category)." .
+
+:TechnologyRequest a owl:Class ;
+    rdfs:subClassOf :TRMRequest ;
+    rdfs:label "Technology Request" ;
+    rdfs:comment """A request to adopt, change or retire a technology (demand intake).
+    Standard table: dmn_demand; custom intake tables (u_trm_request) vary by instance.""" .
+
+# --- Edges and properties ------------------------------------------------------------
+
+:hostedOn a owl:ObjectProperty ;
+    rdfs:label "hosted on" ;
+    rdfs:comment "Links a ConfigurationItem to the CI that hosts it (cmdb_rel_ci type Hosted on::Hosts). Sibling of kg:runsOn and kg:dependsOn." ;
+    rdfs:domain :ConfigurationItem ;
+    rdfs:range :ConfigurationItem .
+
+:usesTechnology a owl:ObjectProperty ;
+    rdfs:label "uses technology" ;
+    rdfs:comment "Links a ConfigurationItem to the TRMStandard (technology standard) it is built on." ;
+    rdfs:domain :ConfigurationItem ;
+    rdfs:range :TRMStandard .
+
+:touches a owl:ObjectProperty ;
+    rdfs:label "touches" ;
+    rdfs:comment "Links a ChangeRequest to a ConfigurationItem it modifies (task_ci / change_request.cmdb_ci)." ;
+    rdfs:domain :ChangeRequest ;
+    rdfs:range :ConfigurationItem .
+
+:inCategory a owl:ObjectProperty ;
+    rdfs:label "in category" ;
+    rdfs:comment "Links a TRMStandard to its TRMCategory." ;
+    rdfs:domain :TRMStandard ;
+    rdfs:range :TRMCategory .
+
+:requestsTechnology a owl:ObjectProperty ;
+    rdfs:label "requests technology" ;
+    rdfs:comment "Links a TechnologyRequest to the TRMStandard it asks to adopt or change." ;
+    rdfs:domain :TechnologyRequest ;
+    rdfs:range :TRMStandard .
+
+:relationshipParent a owl:ObjectProperty ;
+    rdfs:label "relationship parent" ;
+    rdfs:comment "The parent CI of a CIRelationship (cmdb_rel_ci.parent)." ;
+    rdfs:domain :CIRelationship ;
+    rdfs:range :ConfigurationItem .
+
+:relationshipChild a owl:ObjectProperty ;
+    rdfs:label "relationship child" ;
+    rdfs:comment "The child CI of a CIRelationship (cmdb_rel_ci.child)." ;
+    rdfs:domain :CIRelationship ;
+    rdfs:range :ConfigurationItem .
+
+:relationshipType a owl:DatatypeProperty ;
+    rdfs:label "relationship type" ;
+    rdfs:comment "Type of a CIRelationship: dependsOn, runsOn or hostedOn (from cmdb_rel_ci.type)." ;
+    rdfs:domain :CIRelationship ;
+    rdfs:range xsd:string .
