@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Knuckles-Team graph mark</title>
+  <g fill="none" stroke="#2a5ca8" stroke-linecap="round" stroke-width="5">
+    <path d="M16 18 32 10l16 9v26l-16 9-16-9z"/>
+    <path d="m16 18 16 9 16-8M32 27v27M16 45l16-18 16 18"/>
+  </g>
+  <g fill="#e6a23a" stroke="#fff" stroke-width="2">
+    <circle cx="16" cy="18" r="6"/><circle cx="32" cy="10" r="6"/>
+    <circle cx="48" cy="19" r="6"/><circle cx="16" cy="45" r="6"/>
+    <circle cx="32" cy="54" r="6"/><circle cx="48" cy="45" r="6"/>
+    <circle cx="32" cy="27" r="6"/>
+  </g>
+</svg>
