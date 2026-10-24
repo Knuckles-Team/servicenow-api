@@ -15,8 +15,10 @@
         "597bc0453555"
       ],
       "verified_by": [
-        "tests/test_fleet_name.py:35"
+        "tests/test_fleet_name.py:34"
       ]
     }
-  ]
+  ],
+  "frontier": [],
+  "unserved": []
 }

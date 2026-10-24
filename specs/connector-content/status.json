@@ -2,33 +2,90 @@
   "schema_version": 2,
   "spec_id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT",
   "owner_repo": "servicenow-api",
-  "delivery_state": "VERIFIED",
+  "delivery_state": "SPECIFIED",
   "requirement_ids": [
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002"
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
   ],
   "requirements": [
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001",
       "title": "Default content",
-      "delivery_state": "VERIFIED",
+      "delivery_state": "LANDED",
       "landed_in": [
         "2990b6e278f7"
       ],
-      "verified_by": [
-        "tests/test_default_content_surfaces.py:15"
-      ]
+      "verified_by": []
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
       "title": "Ontology joins the parent graph",
-      "delivery_state": "VERIFIED",
-      "landed_in": [
-        "d79a988904e1"
-      ],
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
       "verified_by": [
         "tests/test_ontology_parent_link.py:10"
-      ]
+      ],
+      "priority": 0
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
+      "title": "Declared ingest sources",
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
+      "verified_by": [
+        "tests/test_ingest_sources.py:16"
+      ],
+      "priority": 0
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
+      "title": "CMDB and TRM ontology",
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
+      "verified_by": [
+        "tests/test_cmdb_trm_ontology.py:108",
+        "tests/test_cmdb_trm_ontology.py:80",
+        "tests/test_cmdb_trm_ontology.py:96"
+      ],
+      "priority": 0
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
+      "title": "CMDB and TRM ingest sources",
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
+      "verified_by": [
+        "tests/test_cmdb_trm_ontology.py:131"
+      ],
+      "priority": 0
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006",
+      "title": "Competency-question paths",
+      "delivery_state": "SPECIFIED",
+      "landed_in": [],
+      "verified_by": [
+        "tests/test_cq_paths.py:13"
+      ],
+      "priority": 0
     }
+  ],
+  "frontier": [
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
+  ],
+  "unserved": [
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
   ]
 }
