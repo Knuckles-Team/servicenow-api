@@ -16,14 +16,21 @@ SOURCES: tuple[Any, ...] = (
         source_id="change-requests",
         record_type="ChangeRequest",
         id_field="sys_id",
-        arguments={
-            "sysparm_limit": 50,
-        },
         cursor_field="sys_updated_on",
-        description="ServiceNow change requests with their affected CI (first 50).",
+        description="ServiceNow change requests with their affected CI.",
         records_path="result",
         text_field="description",
         title_field="short_description",
+        edges=[
+            {
+                "relationship": "touches",
+                "target_field": "cmdb_ci",
+                "target_type": "ConfigurationItem",
+                "target_id_key": "value",
+                "target_id_template": "{id}",
+                "target_stream": "cmdb-cis",
+            },
+        ],
     ),
     source_meta(
         tool="servicenow_get_table",
@@ -41,6 +48,24 @@ SOURCES: tuple[Any, ...] = (
         description="Typed CI-to-CI relationships (cmdb_rel_ci: parent, child, type such as Depends on, Runs on, Hosted on; first 100).",
         records_path="result",
         title_field="type",
+        edges=[
+            {
+                "relationship": "relationshipParent",
+                "target_field": "parent",
+                "target_type": "ConfigurationItem",
+                "target_id_key": "value",
+                "target_id_template": "{id}",
+                "target_stream": "cmdb-cis",
+            },
+            {
+                "relationship": "relationshipChild",
+                "target_field": "child",
+                "target_type": "ConfigurationItem",
+                "target_id_key": "value",
+                "target_id_template": "{id}",
+                "target_stream": "cmdb-cis",
+            },
+        ],
     ),
     source_meta(
         tool="servicenow_get_table",
@@ -59,6 +84,26 @@ SOURCES: tuple[Any, ...] = (
         records_path="result",
         text_field="short_description",
         title_field="name",
+        edges=[
+            {
+                "relationship": "ciOwnedBy",
+                "target_field": "owned_by",
+                "target_type": "Person",
+                "target_id_key": "value",
+            },
+            {
+                "relationship": "managedByGroup",
+                "target_field": "managed_by_group",
+                "target_type": "AssignmentGroup",
+                "target_id_key": "value",
+            },
+            {
+                "relationship": "supportedByGroup",
+                "target_field": "support_group",
+                "target_type": "AssignmentGroup",
+                "target_id_key": "value",
+            },
+        ],
     ),
     source_meta(
         tool="servicenow_get_incidents",
@@ -82,6 +127,28 @@ SOURCES: tuple[Any, ...] = (
         server="servicenow-mcp",
         text_field="description",
         title_field="short_description",
+        edges=[
+            {
+                "relationship": "assignedToGroup",
+                "target_field": "assignment_group",
+                "target_type": "AssignmentGroup",
+                "target_id_key": "value",
+            },
+            {
+                "relationship": "assignedTo",
+                "target_field": "assigned_to",
+                "target_type": "Person",
+                "target_id_key": "value",
+            },
+            {
+                "relationship": "impactsConfigurationItem",
+                "target_field": "cmdb_ci",
+                "target_type": "ConfigurationItem",
+                "target_id_key": "value",
+                "target_id_template": "{id}",
+                "target_stream": "cmdb-cis",
+            },
+        ],
     ),
     source_meta(
         tool="servicenow_get_knowledge_articles",
@@ -97,7 +164,7 @@ SOURCES: tuple[Any, ...] = (
             "pagination": "offset",
             "params_style": "args",
         },
-        records_path="result",
+        records_path="result.articles",
         server="servicenow-mcp",
         text_field="content",
         title_field="short_description",
