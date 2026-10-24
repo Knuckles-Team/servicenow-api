@@ -9,7 +9,8 @@
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006",
+    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007"
   ],
   "requirements": [
     {
@@ -72,6 +73,19 @@
         "tests/test_cq_paths.py:13"
       ],
       "priority": 0
+    },
+    {
+      "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007",
+      "title": "Owner, steward and CMDB edges",
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "c54fef409681"
+      ],
+      "verified_by": [
+        "tests/test_catalog_edges.py:31",
+        "tests/test_catalog_edges.py:55",
+        "tests/test_catalog_edges.py:78"
+      ]
     }
   ],
   "frontier": [
