@@ -4,7 +4,5 @@
   "owner_repo": "servicenow-api",
   "delivery_state": "RETIRED",
   "requirement_ids": [],
-  "requirements": [],
-  "frontier": [],
-  "unserved": []
+  "requirements": []
 }

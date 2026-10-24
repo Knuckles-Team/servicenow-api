@@ -18,7 +18,5 @@
         "tests/test_fleet_name.py:34"
       ]
     }
-  ],
-  "frontier": [],
-  "unserved": []
+  ]
 }
