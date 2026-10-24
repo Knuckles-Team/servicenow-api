@@ -35,7 +35,7 @@ def _call_connectors(path: Path) -> list[str]:
 def test_connector_name_is_the_fleet_name() -> None:
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert pyproject["project"]["entry-points"]["agent_connector_sdk.connector"] == {
-        FLEET: "servicenow_api"
+        FLEET: "servicenow_api:connector"
     }
     assert connector_name("servicenow_api") == FLEET
     for module in sorted(PACKAGE.glob("*.py")):

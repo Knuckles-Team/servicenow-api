@@ -4,30 +4,25 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "servicenow-api"
-version = "2.4.8"
+version = "2.4.9"
 description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.12, <3.15"
-dependencies = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0", "requests>=2.34.2",]
+dependencies = [ "agent-connector-sdk[mcp]>=0.5.4,<0.6.0", "requests>=2.34.2",]
 [[project.authors]]
-name = "Project Maintainers"
-email = "maintainers@users.noreply.github.com"
+name = "Repository Maintainers"
+email = "maintainers@knuckles.team"
 
 [project.license]
 text = "MIT"
 
 [project.optional-dependencies]
-mcp = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0",]
-all = [ "agent-connector-sdk[mcp]>=0.4.1,<1.0.0",]
 test = [
     "pytest-xdist>=3.8.0", "pytest>=9.1.1", "pytest-asyncio>=1.4.0", "pytest-cov>=7.1.0",]
 
 [project.scripts]
-servicenow-mcp = "servicenow_api.mcp_server:mcp_server"
-
-[project.entry-points."agent_connector_sdk.skill_providers"]
-servicenow-api = "servicenow_api.skills"
+servicenow-mcp = "agent_connector_sdk.cli:serve"
 
 [project.entry-points."agent_connector_sdk.prompt_providers"]
 servicenow-api = "servicenow_api.prompts"
@@ -35,12 +30,10 @@ servicenow-api = "servicenow_api.prompts"
 # CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
 # agent-connector-sdk hub (incidents, changes, CMDB items). Resolved via
 # iter_provider_dirs like the skill/prompt providers.
-[project.entry-points."agent_connector_sdk.ontology_providers"]
-servicenow-api = "servicenow_api.ontology"
 
 # The one declared connector identity: the fleet name (SDK-CONNECTOR-CONTROL-R071).
 [project.entry-points."agent_connector_sdk.connector"]
-servicenow-mcp = "servicenow_api"
+servicenow-mcp = "servicenow_api:connector"
 
 [tool.uv.workspace]
 members = ["."]
@@ -49,6 +42,7 @@ members = ["."]
 include-package-data = true
 
 [tool.ruff]
+extend-exclude = ["tests"]
 line-length = 88
 target-version = "py310"
 
@@ -82,3 +76,15 @@ override-dependencies = [
 
 [tool.pipelines_hooks.ste]
 exempt = ["specs/*", "specs/**/*"]
+
+[tool.pipelines.container]
+debug_apt = ["default-jre", "ripgrep", "tree", "fd-find", "curl", "nano", "build-essential", "cmake", "libssl-dev", "libcurl4-openssl-dev", "pkg-config", "cargo", "rustc"]
+
+[tool.pipelines.ontology]
+shape_classes = ["AssignmentGroup", "CIRelationship", "Change", "ChangeRequest", "ConfigurationItem", "Incident", "KnowledgeArticle", "LifecycleRequest", "Person", "TRMCategory", "TRMLifecycle", "TRMPhase", "TRMStandard", "TRMTechnicalDebt", "TechnologyRequest"]
+
+[tool.pipelines.codespell]
+ignore_words = ["requestor", "requestors"]
+
+[tool.pipelines.api_integration]
+baseline = 26.1

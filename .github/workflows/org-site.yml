@@ -1,0 +1,13 @@
+name: Notify org site
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    uses: Knuckles-Team/pipelines/.github/workflows/notify_org_site.yml@main
+    secrets: inherit

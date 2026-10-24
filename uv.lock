@@ -11,7 +11,7 @@ overrides = [{ name = "fastmcp-slim", extras = ["client", "server"], specifier =
 
 [[package]]
 name = "agent-connector-sdk"
-version = "0.4.2"
+version = "0.5.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -23,9 +23,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/1d/3beba9fc3d47f8c6f67da97f4fef949166730f83fbd92588169c665e9b6e/agent_connector_sdk-0.4.2.tar.gz", hash = "sha256:fd27bd23ac937a041aeacc7f197308b863ce73aee3ce9b6ccd40bc18e5b83243", size = 741264, upload-time = "2026-10-23T20:26:38.422Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2d/a0/882c0b0f681f4b56f9243e88ff44ae25725de2da0ccd4f43ecd6095afdd0/agent_connector_sdk-0.5.5.tar.gz", hash = "sha256:5990f2468ce0d293a94b069160b97faf5dcaad267b7354f94189fb50747ebe0c", size = 797176, upload-time = "2026-10-24T15:32:54.234Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/a2/f5292fe492cd4a58a539f37788b128b80009fcb2a6b34001811959ccc1a0/agent_connector_sdk-0.4.2-py3-none-any.whl", hash = "sha256:76fdc9210b0c6b92653cdf630bb2686c8c5fda7251ebe771eaff9b41188d6165", size = 740524, upload-time = "2026-10-23T20:26:39.719Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/47/b1c5b60927f76dd28143fd21af5092d1fe02e633ef3e68209d414315c9dd/agent_connector_sdk-0.5.5-py3-none-any.whl", hash = "sha256:061c6615b00a4694ee91a60b3fc7911ca41e95c69755de42faf41477d45d6acc", size = 784912, upload-time = "2026-10-24T15:32:55.459Z" },
 ]
 
 [package.optional-dependencies]
@@ -505,7 +505,7 @@ wheels = [
 
 [[package]]
 name = "epistemic-graph"
-version = "2.27.3"
+version = "2.27.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -513,12 +513,12 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyoxigraph" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d7/41/1d7c0efaff2768c538eeebbfee7667148007158b2012c40214071a0b6fe0/epistemic_graph-2.27.3.tar.gz", hash = "sha256:c6809bd900dd3fc49b88eee087f413bd8a1487d21199362309a08e8fddf74a19", size = 7506042, upload-time = "2026-10-17T17:29:01.558Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/08/83f983d4d1ee8e3528b8c42d34e4d5e6dbc0f8c3bc640b6411f44fa98dfe/epistemic_graph-2.27.6.tar.gz", hash = "sha256:293e52aeba236e084152cea1134085c2005679c8b90c92743a562ef50b955dfb", size = 7612971, upload-time = "2026-10-24T07:30:54.343Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3b/55/79078ecd1fc2d235cfdfdb96a1480b2f14a02c2bddd9236a47901684945d/epistemic_graph-2.27.3-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:c70ba4a8d94ade15e682da8378620cf90d8abc2f0bb5225736969da08da70965", size = 7558709, upload-time = "2026-10-17T17:48:13.878Z" },
-    { url = "https://files.pythonhosted.org/packages/b5/38/17f1600e94d0988efc8f3c7a03dc7735cdc21db9612156985ab80289cf86/epistemic_graph-2.27.3-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:01b0265fdcecc71409172c9da2a6a4836fb3bc3676dc23cca8e6991bd24d298f", size = 7755246, upload-time = "2026-10-17T17:56:16.995Z" },
-    { url = "https://files.pythonhosted.org/packages/b6/8c/0efdc2c6f6289d916d5dd564db562e045f9ee19c598cd1f5552dd31e62d1/epistemic_graph-2.27.3-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:7e38d04234d87c969228a4bc9c53f9b53fbcf5c9c6871d354716fd7d80ded8e9", size = 8399255, upload-time = "2026-10-17T17:49:11.521Z" },
-    { url = "https://files.pythonhosted.org/packages/40/94/8dca70982ff6a6e88c988acb0983f2ed4b1ec70a372467e241e78c79a6ad/epistemic_graph-2.27.3-cp39-abi3-win_amd64.whl", hash = "sha256:7ddeddfb4d048cdeae1a670ff1b98477cb83898c300bf0c681ce619a14b21e2a", size = 8900833, upload-time = "2026-10-17T17:52:18.802Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/9e/a3a1462c52a2467a0728280faaac19b5a6f6f07d2272e3d1ab6e5b6b6d0e/epistemic_graph-2.27.6-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:593de94dc202bf5d6a5b49451d64b1ac1feac089cdfc59bb381a94a6ece1cdc0", size = 7756065, upload-time = "2026-10-24T08:05:52.494Z" },
+    { url = "https://files.pythonhosted.org/packages/55/4e/241f8aa528bfc025c521af175bcad3825ac873df237002ab56cfdee7c9a3/epistemic_graph-2.27.6-cp39-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:f43c9977cfd76148f76397852984f225159cf41e441ce0887e258f9e10810e88", size = 7948451, upload-time = "2026-10-24T07:59:27.291Z" },
+    { url = "https://files.pythonhosted.org/packages/76/bd/d1b57aa370fda9e15c5f1a57372954fc086e25fc56c87d659830395de888/epistemic_graph-2.27.6-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:85c57dbeaad1e5142322e360f44a6fe8032e6cf75882c8293859a84fab5bea0a", size = 8601573, upload-time = "2026-10-24T07:46:55.507Z" },
+    { url = "https://files.pythonhosted.org/packages/2f/0c/de1d0101418167476cca7ff8ef6aa56637a03c738c8a5b3b37d5b8a57c0b/epistemic_graph-2.27.6-cp39-abi3-win_amd64.whl", hash = "sha256:15fcd3f87807a838a96148d62be021039c87430ce820023b57e5c531e60b1f40", size = 9410257, upload-time = "2026-10-24T07:50:22.253Z" },
 ]
 
 [[package]]
@@ -1527,7 +1527,7 @@ wheels = [
 
 [[package]]
 name = "servicenow-api"
-version = "2.4.8"
+version = "2.4.9"
 source = { editable = "." }
 dependencies = [
     { name = "agent-connector-sdk", extra = ["mcp"] },
@@ -1535,12 +1535,6 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-all = [
-    { name = "agent-connector-sdk", extra = ["mcp"] },
-]
-mcp = [
-    { name = "agent-connector-sdk", extra = ["mcp"] },
-]
 test = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -1555,16 +1549,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.4.1,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'all'", specifier = ">=0.4.1,<1.0.0" },
-    { name = "agent-connector-sdk", extras = ["mcp"], marker = "extra == 'mcp'", specifier = ">=0.4.1,<1.0.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.5.4,<0.6.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.4.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },
     { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "requests", specifier = ">=2.34.2" },
 ]
-provides-extras = ["mcp", "all", "test"]
+provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest-timeout", specifier = ">=2.4.0" }]

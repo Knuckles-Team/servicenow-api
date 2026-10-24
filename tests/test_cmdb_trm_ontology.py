@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
-from servicenow_api.connector_sources import declaration as declared_sources
+from agent_connector_sdk.ingest import load_declaration
 from agent_connector_sdk.mcp.method_tools import operation_annotations, operation_verb
 from agent_connector_sdk.mcp.tool_surface import operation_prefix
 
@@ -106,12 +107,12 @@ def test_edges_connect_declared_classes() -> None:
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004")
 def test_manifest_maps_and_shapes_cover_new_types() -> None:
-    shapes = (PACKAGE / "ontology" / "shapes" / "connector.shacl.ttl").read_text(
-        "utf-8"
-    )
+    # The SHACL shapes are generated at release from the classes of the ontology file (one node shape per class), so a
+    # class declared there is a class with a shape.
+    ontology = (PACKAGE / "ontology" / "servicenow.ttl").read_text("utf-8")
     for name, parent in NEW_CLASSES.items():
-        assert name in declared_sources().schema_mappings, name
-        assert declared_sources().schema_mappings[name].ontology_class == parent
+        assert name in load_declaration("servicenow_api").schema_mappings, name
+        assert load_declaration("servicenow_api").schema_mappings[name].ontology_class == parent
     for name in (
         "CIRelationship",
         "AssignmentGroup",
@@ -124,12 +125,12 @@ def test_manifest_maps_and_shapes_cover_new_types() -> None:
         "TechnologyRequest",
         "LifecycleRequest",
     ):
-        assert f"sh:targetClass :{name} " in shapes, name
+        assert re.search(rf"^:{name}\s+a\s+owl:Class\b", ontology, re.M), name
 
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005")
 def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
-    declaration = declared_sources()
+    declaration = load_declaration("servicenow_api")
     assert declaration is not None
     prefix = operation_prefix("servicenow-api")
     ids = {k: v[0] for k, v in SOURCES.items()}
@@ -138,7 +139,7 @@ def test_ingest_sources_name_read_only_tools_and_mapped_types() -> None:
         source = declaration.source(source_id)
         assert source is not None, source_id
         assert source.record_type == record_type
-        assert record_type in declared_sources().schema_mappings
+        assert record_type in load_declaration("servicenow_api").schema_mappings
         for tool in source.tools:
             cls, method_name = CLIENTS[f"{prefix}_{tool.removeprefix(prefix + '_')}"]
             annotations = operation_annotations(

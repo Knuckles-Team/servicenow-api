@@ -1,72 +1,23 @@
 #!/usr/bin/env python
 
-import importlib
-import inspect
-from typing import Any
+from agent_connector_sdk.connector import Connector
 
-__all__: list[str] = []
+from servicenow_api.api_client import Api
+from servicenow_api.auth import get_client
+from servicenow_api.mcp_server import register_prompts
+from servicenow_api.sdk_client import ServiceNowSdkClient, get_sdk_client
 
-CORE_MODULES: list[str] = [
-    "servicenow_api.api_client",
-    "servicenow_api.servicenow_models",
-]
-
-OPTIONAL_MODULES = {
-    "servicenow_api.mcp_server": "mcp_server",
-}
-
-
-def _expose_members(module):
-    """Expose public classes and functions from a module into globals and __all__."""
-    for name, obj in inspect.getmembers(module):
-        if (inspect.isclass(obj) or inspect.isfunction(obj)) and not name.startswith(
-            "_"
-        ):
-            globals()[name] = obj
-            if name not in __all__:
-                __all__.append(name)
-
-
-# Eagerly import core modules (keeps API wrappers fast & light)
-for module_name in CORE_MODULES:
-    if module_name:
-        module = importlib.import_module(module_name)
-        _expose_members(module)
-
-# Dynamic/lazy loading of optional modules (mcp_server)
-_loaded_optional_modules: dict[str, Any] = {}
-
-
-def _import_module_safely(module_name: str):
-    """Try to import a module and return it, or None if not available."""
-    try:
-        return importlib.import_module(module_name)
-    except ImportError:
-        return None
-
-
-def __getattr__(name: str) -> Any:
-    # Handle availability flags dynamically without eager imports
-    if name == "_MCP_AVAILABLE":
-        mcp_key = next((k for k in OPTIONAL_MODULES if "mcp_server" in k), None)
-        if mcp_key:
-            return _import_module_safely(mcp_key) is not None
-        return False
-
-    # Check optional modules
-    for module_name in OPTIONAL_MODULES:
-        if module_name not in _loaded_optional_modules:
-            module = _import_module_safely(module_name)
-            if module is not None:
-                _loaded_optional_modules[module_name] = module
-                _expose_members(module)
-
-        module = _loaded_optional_modules.get(module_name)
-        if module is not None and hasattr(module, name):
-            return getattr(module, name)
-
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def __dir__() -> list[str]:
-    return sorted(list(k for k in globals().keys() if not k.startswith("_")) + __all__)
+connector = Connector(
+    api=Api,
+    get_client=get_client,
+    tools="servicenow_api.mcp_server",
+    instructions="ServiceNow MCP Server — Manage incidents, CMDB, workflows, CICD, and more in your ServiceNow instance.",
+    verbose_targets=(
+        {
+            "client_cls": ServiceNowSdkClient,
+            "get_client": get_sdk_client,
+            "prefix": "servicenow_sdk",
+        },
+    ),
+    extra_registrations=(register_prompts,),
+)
