@@ -15,6 +15,7 @@ import hashlib
 import logging
 from typing import Any
 
+from agent_connector_sdk.connector_identity import connector_name
 from agent_connector_sdk.ingest import (
     ChangeSet,
     Document,
@@ -29,7 +30,7 @@ from agent_connector_sdk.ingest import (
 
 logger = logging.getLogger("servicenow_api.kg")
 
-_SOURCE = "servicenow-api"
+_SOURCE = connector_name("servicenow_api")
 _DOMAIN = "servicenow"
 _BINDING = IngestBinding(connector="servicenow-mcp", stream=_DOMAIN)
 

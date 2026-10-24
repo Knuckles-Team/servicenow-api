@@ -1,0 +1,16 @@
+name: Connector SDK rebuild
+
+on:
+  repository_dispatch:
+    types: [sdk-release]
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    uses: Knuckles-Team/pipelines/.github/workflows/connector_sdk_rebuild_pipeline.yml@main
+    secrets: inherit

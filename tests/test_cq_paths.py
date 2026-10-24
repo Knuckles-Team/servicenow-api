@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from servicenow_api.connector_sources import declaration as declared_sources
+from agent_connector_sdk.ingest import load_declaration
 import re
 from pathlib import Path
 
@@ -59,7 +59,7 @@ def test_host_edge_spans_application_and_server() -> None:
 def test_no_mapping_has_a_null_ontology_class() -> None:
     unmapped = [
         name
-        for name, mapping in declared_sources().schema_mappings.items()
+        for name, mapping in load_declaration("servicenow_api").schema_mappings.items()
         if not mapping.ontology_class
     ]
     assert unmapped == []

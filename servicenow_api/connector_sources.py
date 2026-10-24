@@ -9,9 +9,6 @@ from __future__ import annotations
 from typing import Any
 
 from agent_connector_sdk.ingest.live_declaration import source_meta
-from agent_connector_sdk.ingest.sources import IngestSourceDeclaration, IngestSourceSpec
-
-CONNECTOR: str = "servicenow-mcp"
 
 SOURCES: tuple[Any, ...] = (
     source_meta(
@@ -232,203 +229,90 @@ SOURCES: tuple[Any, ...] = (
     ),
 )
 
+SCHEMA_VERSION = 2
+
+FIELD_SETS: dict[str, dict[str, str]] = {
+    "fields_1": {
+        "number": "xsd:string",
+        "priority": "xsd:string",
+        "productionApproved": "xsd:boolean",
+        "relationshipType": "xsd:string",
+        "shortDescription": "xsd:string",
+        "state": "xsd:string",
+    },
+}
+
 SCHEMA_MAPPINGS: dict[str, Any] = {
     "AssignmentGroup": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Organization",
     },
     "BusinessApplication": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "CmdbApplication",
     },
     "CIRelationship": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "JunctionLink",
     },
     "ChangeRequest": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Change",
     },
     "CmdbApplication": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "ConfigurationItem",
     },
     "CmdbBusinessService": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "ConfigurationItem",
     },
     "CmdbServer": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "ConfigurationItem",
     },
     "ConfigurationItem": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "AssetInstance",
     },
     "Incident": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Incident",
     },
     "KnowledgeArticle": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Document",
     },
     "LifecycleRequest": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "TechnologyRequest",
     },
     "Person": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Person",
     },
     "TRMCategory": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Concept",
     },
     "TRMLifecycle": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "TechnologyStandard",
     },
     "TRMPhase": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Concept",
     },
     "TRMStandard": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "TechnologyStandard",
     },
     "TRMTechnicalDebt": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "Concept",
     },
     "TechnologyRequest": {
-        "fields": {
-            "number": "xsd:string",
-            "priority": "xsd:string",
-            "productionApproved": "xsd:boolean",
-            "relationshipType": "xsd:string",
-            "shortDescription": "xsd:string",
-            "state": "xsd:string",
-        },
+        "field_sets": ["fields_1"],
         "ontology_class": "TRMRequest",
     },
 }
@@ -525,23 +409,3 @@ RESOURCES: tuple[dict[str, str], ...] = (
         "name": "TechnologyRequest",
     },
 )
-
-
-def declaration() -> IngestSourceDeclaration:
-    """The declaration the server assembles from this module."""
-    specs: list[IngestSourceSpec] = []
-    for item in SOURCES:
-        for entry in item["connector_sources"]:
-            body: dict[str, Any] = {
-                k: v for k, v in entry.items() if k not in ("tool", "mapping")
-            }
-            spec = {**body, "tools": (entry["tool"],)}
-            specs.append(IngestSourceSpec.model_validate(spec))
-    return IngestSourceDeclaration.model_validate(
-        {
-            "connector": CONNECTOR,
-            "sources": specs,
-            "schema_mappings": SCHEMA_MAPPINGS,
-            "resources": RESOURCES,
-        }
-    )

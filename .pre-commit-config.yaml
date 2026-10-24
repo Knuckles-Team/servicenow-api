@@ -1,144 +1,33 @@
-# Without this, `pre-commit install` wires ONLY the pre-commit hook, so `git push`
-# runs nothing and every hook staged pre-push is silently dead code.
+# The whole pre-commit configuration of a connector (PIPE-VALIDATION-R001.9). Everything a
+# connector used to copy lives in pipelines at `rev: main`: the sanitizer, the standard-file
+# check, the codespell defaults and the gate set. A change to a shared check reaches every
+# connector with no edit here. Per-repo options go in pyproject.toml tables only.
 default_install_hook_types: [pre-commit, pre-push]
-default_language_version:
-  python: python3
-# Phase 0 dev-velocity contract (arbora-completion-program): a hook with no
-# explicit `stages:` below is commit-only, never both.
 default_stages: [pre-commit]
-exclude: 'dotnet|node_modules'
-ci:
-  autofix_prs: true
-  autoupdate_commit_msg: '[pre-commit.ci] pre-commit suggestions'
-  autoupdate_schedule: 'monthly'
-
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
   hooks:
-  - id: check-added-large-files
-    args: ["--maxkb=2000"]
-  - id: check-ast
-  - id: check-yaml
-    args: ["--unsafe"]
-  - id: check-toml
-  - id: check-json
-  - id: fix-byte-order-marker
-    exclude: .gitignore
-  - id: check-merge-conflict
-  - id: detect-private-key
   - id: trailing-whitespace
   - id: end-of-file-fixer
-  - id: no-commit-to-branch
-- repo: https://github.com/psf/black
-  rev: 258e7dbf348bc23cb70b8cdf693481c04634ebcc  # frozen: 26.10.1
-  hooks:
-  - id: black
+  - id: check-merge-conflict
+  - id: check-yaml
+    args: [--unsafe]
+  - id: check-toml
+  - id: check-json
+  - id: detect-private-key
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 38bfb07c0c64c304f47eb52090f8288150c77730  # frozen: v0.17.1
+  rev: cb8c523fd4835aba42af70f4cad5568db4df0b6c # v0.16.0
   hooks:
-  - id: ruff
-    exclude: tests
-    types_or: [python, pyi, jupyter]
-    args: ["--fix", "--ignore=E402"]
-- repo: https://github.com/jendrikseipp/vulture
-  rev: 258fe6a1974e89a2add9a45519a9e9dd9f46154e  # frozen: v2.16
+  - id: ruff-check
+  - id: ruff-format
+- repo: https://github.com/Knuckles-Team/pipelines
+  rev: main
   hooks:
-  - id: vulture
-    pass_filenames: false
-    args: [".", "vulture_whitelist.py", "--min-confidence", "95", --exclude, '.venv,venv,node_modules,.git,build,dist,servicenow_models.py']     # or 100 if you want very high confidence only
-    require_serial: true
-- repo: https://github.com/codespell-project/codespell
-  rev: 57b21406f092110c18776e39b0bda50d37c945c8  # frozen: v2.4.3
-  hooks:
-  - id: codespell
-    args:
-    - "-L"
-    - "ans,linar,nam,tread,ot,requestors,"
-    - "--ignore-words"
-    - ".codespellignore"
-    exclude: 'servicenow_api/skills/.*-docs/'
-- repo: https://github.com/PyCQA/bandit
-  rev: 92ae8b82fb422a639f0ed8d99e96cea769594e08 # 1.9.4
-  hooks:
-  - id: bandit
-    args: ["--skip", "B101,B404,B603"]
-    exclude: ^(tests/|test/|scripts/|script/|__tests__/)
-- repo: https://github.com/nbQA-dev/nbQA
-  rev: f96ec7f3b26a32619435686eb5813235f7e3327e  # frozen: 1.9.1
-  hooks:
-  - id: nbqa-ruff
-- repo: local
-  hooks:
+  - id: connector-standard
+  - id: secrets
+  - id: spec
+    stages: [pre-push]
+  - id: tests-fast
+    stages: [pre-push]
   - id: dependency-readiness
-    name: Dependency readiness — every declared intra-fleet constraint is installable
-    entry: bash -c 'P=""; d="$PWD"; while [ "$d" != "/" ]; do [ -d "$d/agent-packages/agents/repository-manager" ] && { P="$d/agent-packages/agents/repository-manager"; break; }; d=$(dirname "$d"); done; [ -n "$P" ] || P=repository-manager; uv run --no-project --python 3.12 --prerelease=allow --with "$P" python -m repository_manager.dependency_readiness .'
-    language: system
-    pass_filenames: false
-    always_run: true
-    stages: [manual, pre-push]
-  - id: mermaid-validate
-    name: mermaid-validate
-    entry: mermaid-validate
-    language: node
-    additional_dependencies: ['@zabaca/mermaid-validate@1.0.1']
-    types: [markdown]
-    pass_filenames: true
-  - id: check-agent-standards
-    name: check agent standards
-    entry: |-
-      bash -c 'for f in $(find . -type f -name "agent_server.py" -not -path "*/\.venv/*" -not -path "*/__pycache__/*"); do grep -q "warnings.filterwarnings" "$f" && grep -q "file=sys.stderr" "$f" || { echo "Missing warnings.filterwarnings or file=sys.stderr in $f"; exit 1; }; done'
-    language: system
-    pass_filenames: false
-    always_run: true
-  - id: check-cli-help
-    name: check cli help
-    entry: |-
-      bash -c 'for f in $(find . -type f \( -name "mcp_server.py" -o -name "agent_server.py" \) -not -path "*/\.venv/*" -not -path "*/__pycache__/*"); do mod=$(echo "$f" | sed -e "s/^\.\///" -e "s/\.py$//" -e "s/\//./g"); uv run --frozen --all-extras python -m "$mod" --help >/dev/null || exit 1; done'
-    language: system
-    pass_filenames: false
-    always_run: true
-  - id: env-var-drift
-    name: check env-var/config drift
-    entry: bash -c 'if [ -f uv.lock ]; then uv run python -m agent_connector_sdk.mcp.env_drift --check; else python -m agent_connector_sdk.mcp.env_drift --check; fi'
-    language: system
-    pass_filenames: false
-    files: ^(README\.md|\.env\.example|mcp_config.*\.json|.*/mcp_config.*\.json|docker/.*compose.*\.ya?ml|.*/auth\.py|.*/mcp_server\.py)$
-  - id: check-bumpversion
-    name: validate bumpversion config
-    entry: |-
-      bash -c 'if [ -f ".bumpversion.cfg" ]; then bump2version patch --dry-run --allow-dirty; fi'
-    language: system
-    pass_filenames: false
-    always_run: true
-- repo: https://github.com/AleksaC/hadolint-py
-  rev: 6e7504451511eaeb62a3e7f14d63b0296cbf86eb  # frozen: v2.15.1
-  hooks:
-  - id: hadolint
-    args:
-    - --ignore=DL3008
-    - --ignore=DL3015
-    - --ignore=DL3009
-    - --ignore=DL4006
-    - --ignore=SC2102
-- repo: https://github.com/IamTheFij/docker-pre-commit
-  rev: f626253b23de45412865c07fd076ff95d4cd77a7 # v3.0.1
-  hooks:
-  - id: docker-compose-check
-
-- repo: local
-  hooks:
-  - id: verify-api-integration
-    name: Verify API-to-MCP Integration Coverage
-    entry: python scripts/verify_api_integration.py --local
-    language: system
-    pass_filenames: false
-    always_run: true
-- repo: local
-  hooks:
-  - id: security-sanitizer
-    name: Security and Garbage Sanitizer
-    entry: python scripts/security_sanitizer.py
-    language: python
-    pass_filenames: false
-    always_run: true

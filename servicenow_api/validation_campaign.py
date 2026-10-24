@@ -42,14 +42,17 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 def source_preset_contract(root: Path | None = None) -> list[str]:
     """Return violations for the declared-source input contract (sources are declared in code)."""
-    from servicenow_api.connector_sources import CONNECTOR, declaration
+    from agent_connector_sdk.connector_identity import connector_name
+    from agent_connector_sdk.ingest import load_declaration
 
     violations: list[str] = []
     try:
-        resolve_mcp_server(CONNECTOR)
+        resolve_mcp_server(connector_name("servicenow_api"))
     except ValueError:
-        violations.append(f"{CONNECTOR} must resolve to {CANONICAL_PROVIDER}")
-    for source in declaration().sources:
+        violations.append(
+            f"{connector_name('servicenow_api')} must resolve to {CANONICAL_PROVIDER}"
+        )
+    for source in load_declaration("servicenow_api").sources:
         if not source.tools:
             violations.append(f"{source.source_id} missing tool")
         for field in ("id_field", "cursor_field", "records_path"):

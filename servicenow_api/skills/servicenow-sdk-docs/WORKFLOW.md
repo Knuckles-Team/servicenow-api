@@ -8,7 +8,7 @@ A comprehensive, self-contained collection of ServiceNow SDK (Fluent API) exampl
 
 The ServiceNow IDE and ServiceNow SDK support developing applications in source code with ServiceNow Fluent, creating JavaScript modules, and using third-party libraries. ServiceNow Fluent is a domain-specific programming language for creating application metadata in code.
 
-This respository currently does not contain the source code for the SDK
+This repository currently does not contain the source code for the SDK
 
 ### Support, Questions, and Announcements
 Visit the [discussions]([configured-endpoint]) section!
@@ -85,7 +85,7 @@ This repository contains sample code illustrating the [ServiceNow SDK]([configur
 - [Simple List API Sample](references/clientscript-sample.md) - This example shows the basic usage of the `List` fluent interface for creating UI Lists in ServiceNo...
 - [Simple Sys Module Sample](references/sys_module-sample.md) - These examples show two techniques to call a module cross-scope.
 - [Simple Table API Sample](references/record-sample.md) - This example shows the basic usage of the `Record` fluent interface for creating Tables in ServiceNo...
-- [Simple Table API Sample](references/applicationmenu-sample.md) - This example shows the basic usage of the `ApplicationMenu` fluent interface for creating Applicatio...
+- [Simple Table API Sample](references/applicationmenu-sample.md) - This example shows the basic usage of the `ApplicationMenu` fluent interface for creating Application...
 - [Simple Table API Sample](references/table-sample.md) - This example shows the basic usage of the `Table` fluent interface for creating Tables in ServiceNow
 - [Svelte UI Example](references/svelte-ui-page-sample.md) - No description provided.
 - [UI Page Sample](references/uipage-sample.md) - This example shows the the usage of `UiPage` (`sys_ui_page`)

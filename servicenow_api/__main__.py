@@ -1,4 +1,4 @@
-from servicenow_api.mcp_server import mcp_server
+from agent_connector_sdk import run
 
 if __name__ == "__main__":
-    mcp_server()
+    run()

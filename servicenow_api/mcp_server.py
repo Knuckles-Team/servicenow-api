@@ -2,7 +2,6 @@ import warnings
 
 from fastmcp import Context, FastMCP
 from fastmcp.dependencies import Depends
-from fastmcp.utilities.logging import get_logger
 from pydantic import Field
 
 with warnings.catch_warnings():
@@ -15,23 +14,14 @@ with warnings.catch_warnings():
         pass
 warnings.filterwarnings("ignore", message=".*urllib3.*or chardet.*")
 warnings.filterwarnings("ignore", message=".*urllib3.*or charset_normalizer.*")
-import asyncio
 import json
-import logging
 import sys
 from threading import local
-from typing import Any
 
-import httpx
-from agent_connector_sdk.config import load_config, setting
+from agent_connector_sdk.config import setting
+from agent_connector_sdk.connector_hooks import RegistrationContext
 from agent_connector_sdk.mcp.action_dispatch import resolve_action
 from agent_connector_sdk.mcp.concurrency import run_blocking
-from agent_connector_sdk.mcp.server import (
-    create_mcp_server,
-)
-from agent_connector_sdk.mcp.tool_surface import (
-    register_tool_surface,
-)
 from agent_connector_sdk.tls.resolve import resolve_tls_profile
 
 
@@ -43,11 +33,8 @@ def _delegation_enabled() -> bool:
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
-from servicenow_api.sdk_client import ServiceNowSdkClient, get_sdk_client
+from servicenow_api.sdk_client import get_sdk_client
 
-__version__ = "2.4.8"
-logger = get_logger(name="ServicenowMCP")
-logger.setLevel(logging.DEBUG)
 DEFAULT_SERVICENOW_USERNAME = setting("SERVICENOW_USERNAME", None)
 DEFAULT_SERVICENOW_PASSWORD = setting("SERVICENOW_PASSWORD", None)
 DEFAULT_SERVICENOW_CLIENT_ID = setting("SERVICENOW_CLIENT_ID", None)
@@ -1423,7 +1410,9 @@ def register_sdk_tools(mcp: FastMCP):
         return await run_blocking(handler, **kwargs)
 
 
-def register_prompts(mcp: FastMCP):
+def register_prompts(context: RegistrationContext):
+
+    mcp = context.server
 
     @mcp.prompt
     def create_incident_prompt(
@@ -1550,99 +1539,3 @@ def _build_openapi_client(args) -> Api:
         client_secret=client_secret,
         tls_profile=tls_profile,
     )
-
-
-def get_mcp_instance() -> tuple[Any, Any, Any, Any, Any]:
-    """Initialize and return the MCP instance, args, and middlewares."""
-    load_config()
-    args, mcp, middlewares = create_mcp_server(
-        name="ServiceNow",
-        version=__version__,
-        instructions="ServiceNow MCP Server — Manage incidents, CMDB, workflows, CICD, and more in your ServiceNow instance.",
-    )
-    imported_tools = []
-    imported_resources = []
-    if getattr(args, "openapi_file", None):
-        if _delegation_enabled():
-            raise ValueError("OpenAPI import not supported with delegation enabled")
-        try:
-            with open(args.openapi_file) as f:
-                spec = json.load(f)
-
-            async def _load_openapi_tools():
-                api = _build_openapi_client(args)
-                base_url = args.openapi_base_url or api.url
-                async with httpx.AsyncClient(
-                    base_url=base_url,
-                    headers=api.headers,
-                    **api.tls_profile.httpx_kwargs(),
-                ) as client:
-                    openapi_mcp = FastMCP.from_openapi(
-                        openapi_spec=spec, client=client, name="OpenAPI Tools"
-                    )
-                    tools = await openapi_mcp.get_tools()
-                    resources = await openapi_mcp.get_resources()
-                    return (tools, resources)
-
-            print("Importing OpenAPI tools...", file=sys.stderr)
-            imported_tools, imported_resources = asyncio.run(_load_openapi_tools())
-            print(
-                f"Imported {len(imported_tools)} tools, {len(imported_resources)} resources",
-                file=sys.stderr,
-            )
-            for tool in imported_tools:
-                mcp.add_tool(tool)
-            for resource in imported_resources:
-                mcp.add_resource(resource)
-        except Exception as exc:
-            print(f"Operation failed: {type(exc).__name__}", file=sys.stderr)
-            logger.error("OpenAPI import failed", extra={"error": "Operation failed"})
-            sys.exit(1)
-    registered_tags = register_tool_surface(
-        mcp,
-        client_cls=Api,
-        get_client=get_client,
-        service="servicenow-api",
-        tools_module=sys.modules[__name__],
-        verbose_targets=[
-            {
-                "client_cls": ServiceNowSdkClient,
-                "get_client": get_sdk_client,
-                "prefix": "servicenow_sdk",
-            }
-        ],
-    )
-    register_prompts(mcp)
-    for tool in imported_tools:
-        mcp.add_tool(tool)
-    for resource in imported_resources:
-        mcp.add_resource(resource)
-    for mw in middlewares:
-        mcp.add_middleware(mw)
-    return (mcp, args, middlewares, registered_tags, imported_tools)
-
-
-def mcp_server() -> None:
-    mcp, args, middlewares, registered_tags, imported_tools = get_mcp_instance()
-    print("\nStarting ServiceNow MCP Server", file=sys.stderr)
-    print(f"  Transport: {args.transport.upper()}", file=sys.stderr)
-    print(f"  Auth: {args.auth_type}", file=sys.stderr)
-    print(
-        f"  Delegation: {('ON' if _delegation_enabled() else 'OFF')}",
-        file=sys.stderr,
-    )
-    print(f"  Eunomia: {getattr(args, 'eunomia_type', 'n/a')}", file=sys.stderr)
-    print(f"  Imported OpenAPI Tools: {len(imported_tools)} total", file=sys.stderr)
-    if args.transport == "stdio":
-        mcp.run(transport="stdio")
-    elif args.transport == "streamable-http":
-        mcp.run(transport="streamable-http", host=args.host, port=args.port)
-    elif args.transport == "sse":
-        mcp.run(transport="sse", host=args.host, port=args.port)
-    else:
-        logger.error("Invalid transport", extra={"transport": args.transport})
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    mcp_server()
