@@ -1527,7 +1527,7 @@ wheels = [
 
 [[package]]
 name = "servicenow-api"
-version = "2.4.9"
+version = "2.4.10"
 source = { editable = "." }
 dependencies = [
     { name = "agent-connector-sdk", extra = ["mcp"] },
@@ -1549,7 +1549,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.5.4,<0.6.0" },
+    { name = "agent-connector-sdk", extras = ["mcp"], specifier = ">=0.5.5,<0.6.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.4.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },

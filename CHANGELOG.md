@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.10] - 2026-10-24
+
+### Added
+
+- Owner, steward and CMDB edges on the ingest sources (SDK 0.5.5 `EdgeSpec`): incident to assignment group,
+  assignee and CI; CI to owner, managing and support group; CI relationship to parent and child CI; change
+  request to the CI it touches (CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007). Requires `agent-connector-sdk>=0.5.5`.
+
+### Fixed
+
+- The `change-requests` source no longer passes `sysparm_limit`, which `servicenow_get_change_requests` does not
+  accept, and `servicenow-knowledge` reads `result.articles`; both syncs ended failed with 0 records (G13).
+
 ## [2.4.9] - 2026-10-24
 
 ### Changed

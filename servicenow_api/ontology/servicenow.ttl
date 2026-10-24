@@ -21,8 +21,41 @@
 
 :assignedTo a owl:ObjectProperty ;
     rdfs:label "assigned to" ;
-    rdfs:comment "Links an Incident or Change to the Person responsible for it." ;
+    rdfs:comment "Links an Incident to the Person it is assigned to (incident.assigned_to)." ;
+    rdfs:domain :Incident ;
     rdfs:range :Person .
+
+:assignedToGroup a owl:ObjectProperty ;
+    rdfs:label "assigned to group" ;
+    rdfs:comment "Links an Incident to the AssignmentGroup that works it (incident.assignment_group): the steward of the incident." ;
+    rdfs:domain :Incident ;
+    rdfs:range :AssignmentGroup .
+
+:impactsConfigurationItem a owl:ObjectProperty ;
+    rdfs:label "impacts configuration item" ;
+    rdfs:comment "Links an Incident to the ConfigurationItem it is raised against (incident.cmdb_ci)." ;
+    rdfs:subPropertyOf :affects ;
+    rdfs:domain :Incident ;
+    rdfs:range :ConfigurationItem .
+
+:ciOwnedBy a owl:ObjectProperty ;
+    rdfs:label "CI owned by" ;
+    rdfs:comment "Links a ConfigurationItem to the Person accountable for it (cmdb_ci.owned_by)." ;
+    rdfs:subPropertyOf :ownedBy ;
+    rdfs:domain :ConfigurationItem ;
+    rdfs:range :Person .
+
+:managedByGroup a owl:ObjectProperty ;
+    rdfs:label "managed by group" ;
+    rdfs:comment "Links a ConfigurationItem to the AssignmentGroup that manages it (cmdb_ci.managed_by_group): its steward." ;
+    rdfs:domain :ConfigurationItem ;
+    rdfs:range :AssignmentGroup .
+
+:supportedByGroup a owl:ObjectProperty ;
+    rdfs:label "supported by group" ;
+    rdfs:comment "Links a ConfigurationItem to the AssignmentGroup that supports it (cmdb_ci.support_group)." ;
+    rdfs:domain :ConfigurationItem ;
+    rdfs:range :AssignmentGroup .
 
 :number a owl:DatatypeProperty ;
     rdfs:label "number" ;
