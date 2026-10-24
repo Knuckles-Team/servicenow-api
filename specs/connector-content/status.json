@@ -29,8 +29,7 @@
       "landed_in": [],
       "verified_by": [
         "tests/test_ontology_parent_link.py:10"
-      ],
-      "priority": 0
+      ]
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
@@ -39,8 +38,7 @@
       "landed_in": [],
       "verified_by": [
         "tests/test_ingest_sources.py:16"
-      ],
-      "priority": 0
+      ]
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
@@ -51,8 +49,7 @@
         "tests/test_cmdb_trm_ontology.py:108",
         "tests/test_cmdb_trm_ontology.py:80",
         "tests/test_cmdb_trm_ontology.py:96"
-      ],
-      "priority": 0
+      ]
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
@@ -61,8 +58,7 @@
       "landed_in": [],
       "verified_by": [
         "tests/test_cmdb_trm_ontology.py:131"
-      ],
-      "priority": 0
+      ]
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006",
@@ -71,15 +67,14 @@
       "landed_in": [],
       "verified_by": [
         "tests/test_cq_paths.py:13"
-      ],
-      "priority": 0
+      ]
     },
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007",
       "title": "Owner, steward and CMDB edges",
       "delivery_state": "VERIFIED",
       "landed_in": [
-        "c54fef409681"
+        "8ce2c41964af"
       ],
       "verified_by": [
         "tests/test_catalog_edges.py:31",
@@ -87,19 +82,5 @@
         "tests/test_catalog_edges.py:78"
       ]
     }
-  ],
-  "frontier": [
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
-  ],
-  "unserved": [
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
-    "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006"
   ]
 }
