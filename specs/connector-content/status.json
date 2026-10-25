@@ -79,7 +79,7 @@
       "verified_by": [
         "tests/test_catalog_edges.py:31",
         "tests/test_catalog_edges.py:55",
-        "tests/test_catalog_edges.py:78"
+        "tests/test_catalog_edges.py:79"
       ]
     }
   ]
