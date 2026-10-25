@@ -55,14 +55,15 @@ def test_every_declared_edge_is_an_ontology_property_of_its_record_type() -> Non
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007")
 def test_incident_references_become_owner_group_and_ci_edges() -> None:
     source = declared_sources().source("incidents")
+    # Reference fields are requested without display values or links, so they
+    # arrive as {"value": sys_id} and the edges read the referenced id.
+    assert source.arguments["sysparm_display_value"] == "false"
+    assert source.arguments["sysparm_exclude_reference_link"] is True
     record = {
         "sys_id": "inc-1",
-        "assignment_group": {
-            "link": "https://x/api/now/table/sys_user_group/g1",
-            "value": "g1",
-        },
-        "assigned_to": {"link": "https://x/api/now/table/sys_user/u1", "value": "u1"},
-        "cmdb_ci": {"link": "https://x/api/now/table/cmdb_ci/ci1", "value": "ci1"},
+        "assignment_group": {"value": "g1"},
+        "assigned_to": {"value": "u1"},
+        "cmdb_ci": {"value": "ci1"},
     }
     edges = {
         (r.relationship, str(r.target)) for _, r in _edges("inc-1", record, source)
@@ -76,23 +77,30 @@ def test_incident_references_become_owner_group_and_ci_edges() -> None:
 
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007")
-def test_change_and_knowledge_sources_call_their_tools_with_accepted_arguments() -> (
+def test_change_and_knowledge_sources_read_their_tables_through_the_table_tool() -> (
     None
 ):
-    """G13: the change source passed sysparm_limit, which servicenow_get_change_requests
-    does not accept, and the knowledge source read `result` where the Knowledge API
-    nests the list at `result.articles`; both syncs ended failed with 0 records."""
+    """G13: `servicenow_get_change_requests` overran the MCP stream-size limit with
+    or without a limit argument, and `servicenow_get_knowledge_articles` was refused
+    by the instance; both syncs ended failed with 0 records. Both sources now read
+    their table through `servicenow_get_table`, passing only arguments the table
+    tool's model accepts (as cmdb-cis does)."""
     from agent_connector_sdk.ingest.source_sync import _records  # noqa: PLC2701
+
+    from servicenow_api.servicenow_models import TableModel
 
     declaration = declared_sources()
     change = declaration.source("change-requests")
-    assert change.tools == ("servicenow_get_change_requests",)
-    assert "sysparm_limit" not in change.arguments
+    assert change.tools == ("servicenow_get_table",)
+    assert change.arguments["table"] == "change_request"
+    assert change.records_path == "result"
+    TableModel(**change.arguments)  # every declared argument is accepted
+    fields = change.arguments["sysparm_fields"].split(",")
+    assert {"sys_id", "cmdb_ci", "sys_updated_on"} <= set(fields)
     knowledge = declaration.source("servicenow-knowledge")
-    page = {
-        "result": {
-            "meta": {"count": 1},
-            "articles": [{"sys_id": "kb1", "number": "KB0001"}],
-        }
-    }
+    assert knowledge.tools == ("servicenow_get_table",)
+    assert knowledge.arguments["table"] == "kb_knowledge"
+    assert knowledge.records_path == "result"
+    TableModel(**knowledge.arguments)  # every declared argument is accepted
+    page = {"result": [{"sys_id": "kb1", "number": "KB0001"}]}
     assert [r["sys_id"] for r in _records(page, knowledge)] == ["kb1"]
