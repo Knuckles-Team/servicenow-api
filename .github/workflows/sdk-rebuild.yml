@@ -6,6 +6,12 @@ on:
   schedule:
     - cron: '17 5 * * *'
   workflow_dispatch:
+    inputs:
+      release_repair:
+        description: Republish the already published container after the reviewed public-wheel guard.
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -13,4 +19,6 @@ permissions:
 jobs:
   rebuild:
     uses: Knuckles-Team/pipelines/.github/workflows/connector_sdk_rebuild_pipeline.yml@main
+    with:
+      release_repair: ${{ inputs.release_repair || false }}
     secrets: inherit
