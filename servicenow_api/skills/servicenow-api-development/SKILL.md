@@ -73,7 +73,7 @@ For focused feedback, run only the smallest affected test file with the locked
 environment, for example:
 
 ```bash
-uv run --frozen pytest -q tests/test_mcp_server_coverage.py
+uv run --frozen pytest -q tests/test_api_coverage.py
 uv run --frozen pytest -q tests/test_ingest_sources.py
 ```
 

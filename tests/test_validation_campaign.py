@@ -31,7 +31,7 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
     campaign = build_campaign()
     assert campaign["status"] == "ready"
     assert campaign["offline"] is True
-    assert len(campaign["skills"]) == 21
+    assert len(campaign["skills"]) == 22
     assert campaign["catalogs"] == {
         "condensed": "MCP_TOOL_MODE=intent",
         "verbose": "MCP_TOOL_MODE=verbose",
