@@ -677,7 +677,3 @@ def test_workflow_to_mermaid_precision(mock_session):
 
     with patch.object(client, "get_table", return_value=resp_err):
         client.workflow_to_mermaid(flow_identifiers=["ErrFlow"], save_to_file=False)
-
-
-
-
