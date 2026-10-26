@@ -12,6 +12,16 @@ on:
         required: false
         default: false
         type: boolean
+      release_source_sha:
+        description: Full SHA of the original package source that produced the public wheel.
+        required: false
+        default: ''
+        type: string
+      release_source_epoch:
+        description: Exact SOURCE_DATE_EPOCH used to generate the public connector payload.
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -21,4 +31,6 @@ jobs:
     uses: Knuckles-Team/pipelines/.github/workflows/connector_sdk_rebuild_pipeline.yml@main
     with:
       release_repair: ${{ inputs.release_repair || false }}
+      release_source_sha: ${{ inputs.release_source_sha || '' }}
+      release_source_epoch: ${{ inputs.release_source_epoch || '' }}
     secrets: inherit
