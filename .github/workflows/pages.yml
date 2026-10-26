@@ -1,6 +1,7 @@
 name: Deploy GitHub Pages
 
 on:
+  workflow_dispatch: {}
   push:
     branches:
       - main
@@ -8,6 +9,9 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'README.md'
+      - 'specs/**'
+      - '.github/spec-dashboard.json'
+      - '.github/workflows/pages.yml'
 
 permissions:
   contents: read
@@ -15,6 +19,10 @@ permissions:
 jobs:
   publish-pages:
     uses: Knuckles-Team/pipelines/.github/workflows/pages_pipeline.yml@main
+    with:
+      content_source: docs
+      spec_dashboard_enabled: true
+      spec_dashboard_config: .github/spec-dashboard.json
     permissions:
       contents: read
       pages: write
