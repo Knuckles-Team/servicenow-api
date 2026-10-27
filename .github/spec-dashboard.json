@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "glob": "specs/*/status.json",
+      "kind": "spec"
+    }
+  ]
+}
