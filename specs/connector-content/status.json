@@ -74,12 +74,13 @@
       "title": "Owner, steward and CMDB edges",
       "delivery_state": "VERIFIED",
       "landed_in": [
-        "8ce2c41964af"
+        "8ce2c41964af",
+        "ac308235b35e"
       ],
       "verified_by": [
         "tests/test_catalog_edges.py:31",
         "tests/test_catalog_edges.py:55",
-        "tests/test_catalog_edges.py:78"
+        "tests/test_catalog_edges.py:79"
       ]
     }
   ]
