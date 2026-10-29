@@ -1,0 +1,90 @@
+name: Connector
+
+# Copy to .github/workflows/connector.yml (reference/ci-standard.md, "Connector pipeline").
+# The ONE caller a connector carries; every pipeline change is made in pipelines'
+# connector_pipeline.yml. Routing by event:
+#   pull_request        gates, affected tests, image check
+#   push to main        org-site notify + main checks; never publishes
+#   push of a v* tag    PyPI, then Docker, and GitHub Pages
+#   schedule, repository_dispatch, workflow_dispatch   SDK rebuild
+# Releases are cut by the owner with gh: scripts/release_connector.sh in pipelines (the owner's tag push publishes).
+# Per-connector differences are `with:` inputs of the job below (all defaulted).
+# The GitHub Pages environment needs a `v*` tag deployment policy.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ['v*']
+  schedule:
+    - cron: '17 5 * * *'
+  repository_dispatch:
+    types: [sdk-release]
+  workflow_dispatch:
+    inputs:
+      release_repair:
+        description: Republish the already published container after the reviewed public-wheel guard.
+        required: false
+        default: false
+        type: boolean
+      release_source_sha:
+        description: Full SHA of the original package source that produced the public wheel.
+        required: false
+        default: ''
+        type: string
+      release_source_epoch:
+        description: Exact SOURCE_DATE_EPOCH used to generate the public connector payload.
+        required: false
+        default: ''
+        type: string
+      legacy_profile:
+        description: Preserve the reviewed tracked wheel-only package tree without renderer generation.
+        required: false
+        default: false
+        type: boolean
+
+# Pull requests cancel superseded runs; every other event queues per event and ref and never cancels.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.workflow, github.event.pull_request.number) || format('connector-{0}-{1}', github.event_name, github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  pipeline:
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: Knuckles-Team/pipelines/.github/workflows/connector_pipeline.yml@main
+    with:
+      release_repair: ${{ inputs.release_repair || false }}
+      release_source_sha: ${{ inputs.release_source_sha || '' }}
+      release_source_epoch: ${{ inputs.release_source_epoch || '' }}
+      legacy_profile: ${{ inputs.legacy_profile || false }}
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
+      org_site_app_id: ${{ secrets.org_site_app_id }}
+      org_site_app_private_key: ${{ secrets.org_site_app_private_key }}
+
+  # The one required status check (reference/ci-standard.md): named in the caller so the
+  # ruleset context is exactly `CI required`. Skipped routes pass; failed or cancelled fail.
+  ci-required:
+    name: CI required
+    if: always()
+    needs: [pipeline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Fail on a failed or cancelled pipeline (skipped is fine)
+        env:
+          RESULT: ${{ needs.pipeline.result }}
+        run: |
+          echo "pipeline result: $RESULT"
+          case "$RESULT" in failure|cancelled) echo "::error::the pipeline ended $RESULT"; exit 1;; esac

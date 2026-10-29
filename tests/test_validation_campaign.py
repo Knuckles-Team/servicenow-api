@@ -38,7 +38,7 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
     }
 
 
-# REMOVED (SDK-CONNECTOR-CONTROL-R009/R020 migration):
+# REMOVED (SCION-CONNECTOR-CONTROL-R009/R020 migration):
 # test_campaign_catalogs_register_condensed_and_verbose_surfaces asserted that
 # MCP_TOOL_MODE="verbose" registered a 1:1 tool per Api method alongside the
 # intent-gated condensed tool. agent_connector_sdk.mcp.tool_surface.register_tool_surface
@@ -47,7 +47,7 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
 # verbose surface left to assert on.
 
 
-# REMOVED (SDK-CONNECTOR-CONTROL-R009/R020 migration):
+# REMOVED (SCION-CONNECTOR-CONTROL-R009/R020 migration):
 # test_verbose_client_catalog_hides_condensed_dispatch_tools asserted the same
 # retired verbose 1:1 tool surface via a live FastMCP Client catalog; see the note
 # above test_campaign_catalogs_register_condensed_and_verbose_surfaces.

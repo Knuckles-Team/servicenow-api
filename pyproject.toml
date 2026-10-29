@@ -9,7 +9,7 @@ description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.12, <3.15"
-dependencies = [ "agent-connector-sdk[mcp]>=0.5.5,<0.6.0", "requests>=2.34.2",]
+dependencies = [ "scion-sdk[mcp]>=0.5.9,<0.6.0", "requests>=2.34.2",]
 [[project.authors]]
 name = "Repository Maintainers"
 email = "maintainers@knuckles.team"
@@ -31,7 +31,7 @@ servicenow-api = "servicenow_api.prompts"
 # agent-connector-sdk hub (incidents, changes, CMDB items). Resolved via
 # iter_provider_dirs like the skill/prompt providers.
 
-# The one declared connector identity: the fleet name (SDK-CONNECTOR-CONTROL-R071).
+# The one declared connector identity: the fleet name (SCION-CONNECTOR-CONTROL-R071).
 [project.entry-points."agent_connector_sdk.connector"]
 servicenow-mcp = "servicenow_api:connector"
 
