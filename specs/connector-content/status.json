@@ -2,7 +2,7 @@
   "schema_version": 2,
   "spec_id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT",
   "owner_repo": "servicenow-api",
-  "delivery_state": "SPECIFIED",
+  "delivery_state": "LANDED",
   "requirement_ids": [
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001",
     "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
@@ -25,8 +25,10 @@
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002",
       "title": "Ontology joins the parent graph",
-      "delivery_state": "SPECIFIED",
-      "landed_in": [],
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "ac7ac3b69a4d"
+      ],
       "verified_by": [
         "tests/test_ontology_parent_link.py:10"
       ]
@@ -34,8 +36,10 @@
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003",
       "title": "Declared ingest sources",
-      "delivery_state": "SPECIFIED",
-      "landed_in": [],
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "30731f627e6d"
+      ],
       "verified_by": [
         "tests/test_ingest_sources.py:16"
       ]
@@ -43,8 +47,11 @@
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004",
       "title": "CMDB and TRM ontology",
-      "delivery_state": "SPECIFIED",
-      "landed_in": [],
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "aa359fb7f918",
+        "c6f60c934019"
+      ],
       "verified_by": [
         "tests/test_cmdb_trm_ontology.py:108",
         "tests/test_cmdb_trm_ontology.py:80",
@@ -54,8 +61,11 @@
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005",
       "title": "CMDB and TRM ingest sources",
-      "delivery_state": "SPECIFIED",
-      "landed_in": [],
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "aa359fb7f918",
+        "c6f60c934019"
+      ],
       "verified_by": [
         "tests/test_cmdb_trm_ontology.py:131"
       ]
@@ -63,8 +73,10 @@
     {
       "id": "CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006",
       "title": "Competency-question paths",
-      "delivery_state": "SPECIFIED",
-      "landed_in": [],
+      "delivery_state": "VERIFIED",
+      "landed_in": [
+        "10089b9dad27"
+      ],
       "verified_by": [
         "tests/test_cq_paths.py:13"
       ]
