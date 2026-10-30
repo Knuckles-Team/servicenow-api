@@ -15,7 +15,7 @@ description: >-
 license: MIT
 tags: [servicenow, secops, security-incident-response, vulnerability-response, threat-intelligence, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow SecOps (SIR / VR / TI)

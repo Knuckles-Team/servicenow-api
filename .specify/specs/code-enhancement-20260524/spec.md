@@ -18,7 +18,7 @@
 
 - **FR-001**: Detected 2 agent skill(s) — will grade in CE-026
 - **FR-002**: Minor update: pytest-xdist 3.6.0 (constraint — not installed) -> 3.8.0
-- **FR-003**: Minor update: agent-connector-sdk 0.2.40 (installed) -> 0.16.0
+- **FR-003**: Minor update: scion-sdk 0.2.40 (installed) -> 0.16.0
 - **FR-004**: 4 functions exceed 200 lines (actionable refactoring targets): test_api_client_exhaustive_methods (264L), test_servicenow_change_requests_responses (247L), test_servicenow_change_request_responses (240L), workflow_to_mermaid (223L)
 - **FR-005**: Monolithic: mcp_server.py (1401L) — 4 functions with high complexity (worst: get_mcp_instance at 180L, CC=50); Low cohesion: 40 distinct concepts in one file
 - **FR-006**: Monolithic: api_client_other.py (1395L) — 2 functions with high complexity (worst: extract_action_details at 57L, CC=29); Low cohesion: 24 distinct concepts in one file
@@ -56,7 +56,7 @@
 - **FR-038**: Only 25% of env vars documented in README.md
 - **FR-039**: Undocumented env vars: ACCOUNTTOOL, ACTIVITY_SUBSCRIPTIONSTOOL, AGGREGATETOOL, APPLICATIONTOOL, ATTACHMENTTOOL, AUDIENCE, AUTHTOOL, AUTH_TYPE, BATCHTOOL, CHANGE_MANAGEMENTTOOL
 - **FR-040**: 11 Python env vars not in .env.example: AUDIENCE, DELEGATED_SCOPES, LLM_API_KEY, LLM_BASE_URL, MCP_URL
-- **FR-041**: Analysis error: No module named 'agent_connector_sdk.knowledge_graph'
+- **FR-041**: Analysis error: No module named 'scion_sdk.knowledge_graph'
 
 ## Success Criteria
 

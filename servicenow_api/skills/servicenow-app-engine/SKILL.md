@@ -15,7 +15,7 @@ description: >-
 license: MIT
 tags: [servicenow, scoped-app, metadata-as-code, app-engine-studio, fluent, packaging, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow App Engine (scoped apps as metadata-as-code)

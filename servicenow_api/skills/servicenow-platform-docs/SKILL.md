@@ -18,7 +18,7 @@ description: >-
 license: MIT
 tags: [servicenow, docs, flow-designer, app-engine-studio, irm, grc, secops, skill-graph, reference]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Platform Product Docs (Flow Designer, App Engine Studio, IRM/GRC, SecOps)

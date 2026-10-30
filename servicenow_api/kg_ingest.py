@@ -3,7 +3,7 @@
 Incidents, changes, CMDB items, knowledge documents, and attachment blobs share the
 authoritative EG client and media boundary.
 
-All writes go through the ``agent_connector_sdk.ingest`` knowledge-ingest facade (the
+All writes go through the ``scion_sdk.ingest`` knowledge-ingest facade (the
 generated EG client). Nodes use canonical ``node_type`` and edges use canonical
 ``relationship``; nodes and edges commit in one submission. Missing engine
 dependencies, rejected records, and conflicts propagate as ``IngestError``.
@@ -15,8 +15,8 @@ import hashlib
 import logging
 from typing import Any
 
-from agent_connector_sdk.connector_identity import connector_name
-from agent_connector_sdk.ingest import (
+from scion_sdk.connector_identity import connector_name
+from scion_sdk.ingest import (
     ChangeSet,
     Document,
     Entity,

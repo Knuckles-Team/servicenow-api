@@ -4,7 +4,7 @@ These specs follow the ecosystem [spec standard](https://github.com/Knuckles-Tea
 
 ## Owner
 
-This repository owns the specs with the ID prefix `CONN-SERVICENOW-API`. The connector contract, certification, and transport rules belong to [agent-connector-sdk](https://github.com/Knuckles-Team/agent-connector-sdk/tree/main/specs). The spec-delivery page rules belong to [pipelines](https://github.com/Knuckles-Team/pipelines/tree/main/specs).
+This repository owns the specs with the ID prefix `CONN-SERVICENOW-API`. The connector contract, certification, and transport rules belong to [scion-sdk](https://github.com/Knuckles-Team/scion-sdk/tree/main/specs). The spec-delivery page rules belong to [pipelines](https://github.com/Knuckles-Team/pipelines/tree/main/specs).
 
 ## Add a spec
 

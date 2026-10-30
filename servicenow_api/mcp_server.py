@@ -18,15 +18,15 @@ import json
 import sys
 from threading import local
 
-from agent_connector_sdk.config import setting
-from agent_connector_sdk.connector_hooks import RegistrationContext
-from agent_connector_sdk.mcp.action_dispatch import resolve_action
-from agent_connector_sdk.mcp.concurrency import run_blocking
-from agent_connector_sdk.tls.resolve import resolve_tls_profile
+from scion_sdk.config import setting
+from scion_sdk.connector_hooks import RegistrationContext
+from scion_sdk.mcp.action_dispatch import resolve_action
+from scion_sdk.mcp.concurrency import run_blocking
+from scion_sdk.tls.resolve import resolve_tls_profile
 
 
 def _delegation_enabled() -> bool:
-    from agent_connector_sdk.auth.delegation import DelegationSettings
+    from scion_sdk.auth.delegation import DelegationSettings
 
     return DelegationSettings.from_settings().enabled
 
@@ -64,7 +64,7 @@ def register_misc_tools(mcp: FastMCP):
         if ctx:
             await ctx.info("Ingesting ServiceNow incidents into the knowledge graph...")
 
-        from agent_connector_sdk.ingest import IngestError
+        from scion_sdk.ingest import IngestError
 
         from servicenow_api.kg_ingest import ingest_incidents
 

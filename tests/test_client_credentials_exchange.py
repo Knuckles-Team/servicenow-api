@@ -197,8 +197,8 @@ def test_explicit_grant_missing_credentials_fails_closed(transport, config, miss
 
 
 def test_delegation_takes_precedence(transport, config, monkeypatch):
-    from agent_connector_sdk.auth import delegation
-    from agent_connector_sdk.auth.tokens import AccessToken
+    from scion_sdk.auth import delegation
+    from scion_sdk.auth.tokens import AccessToken
 
     monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: True)
     monkeypatch.setattr(delegation, "current_user_token", lambda: "subject-token")
@@ -215,7 +215,7 @@ def test_delegation_takes_precedence(transport, config, monkeypatch):
 
 
 def test_delegation_failure_does_not_fallback(transport, config, monkeypatch):
-    from agent_connector_sdk.auth import delegation
+    from scion_sdk.auth import delegation
 
     monkeypatch.setattr("servicenow_api.auth._is_delegation_enabled", lambda: True)
     monkeypatch.setattr(delegation, "current_user_token", lambda: "subject-token")

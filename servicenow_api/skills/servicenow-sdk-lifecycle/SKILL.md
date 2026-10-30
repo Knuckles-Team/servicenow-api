@@ -17,7 +17,7 @@ description: >-
 license: MIT
 tags: [servicenow, now-sdk, fluent, cli, lifecycle, ci-cd, source-control, atf, deploy]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow SDK Lifecycle (the procedural spine)

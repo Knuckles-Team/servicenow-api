@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
-from agent_connector_sdk.exceptions import MissingParameterError
+from scion_sdk.exceptions import MissingParameterError
 from pydantic import ValidationError
 
 from servicenow_api.api_client import Api

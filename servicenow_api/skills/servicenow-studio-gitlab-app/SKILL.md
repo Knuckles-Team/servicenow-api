@@ -20,7 +20,7 @@ description: >-
 license: MIT
 tags: [servicenow, gitlab, source-control, ci-cd, now-sdk, app-engine, devops, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Studio + GitLab (two integration paths)

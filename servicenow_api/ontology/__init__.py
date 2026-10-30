@@ -3,6 +3,6 @@
 Data-only subpackage: it carries ``servicenow.ttl`` (the ``owl:Ontology``
 ``http://knuckles.team/kg/servicenow`` module — incidents, changes, CMDB
 configuration items and their relationships) which the Arbora hub
-federates in via the ``agent_connector_sdk.ontology_providers`` entry-point. It holds
+federates in via the ``scion_sdk.ontology_providers`` entry-point. It holds
 no business logic and no heavy imports so the hub can resolve it cheaply.
 """

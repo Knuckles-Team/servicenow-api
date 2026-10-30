@@ -28,7 +28,7 @@ The agent control plane for orchestration, workflows, evaluation, and agent skil
 
 The durable multimodal knowledge and reasoning engine for graph data, evidence, and provenance.
 
-## Agent Connector SDK
+## Scion SDK
 
 The governed source integration boundary for discovering, reading, and synchronizing external systems.
 

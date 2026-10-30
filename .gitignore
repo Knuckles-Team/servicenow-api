@@ -165,3 +165,6 @@ docker/debug.Dockerfile
 docker/*.compose.yml
 servicenow_api/ontology/shapes/connector.shacl.ttl
 servicenow_api/ontology/certification.json
+
+# Spec status is computed at read time (pipelines-hook spec-status --write), never committed.
+specs/*/status.json

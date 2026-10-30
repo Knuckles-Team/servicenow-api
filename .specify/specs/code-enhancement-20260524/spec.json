@@ -63,7 +63,7 @@
     },
     {
       "id": "FR-003",
-      "description": "Minor update: agent-connector-sdk 0.2.40 (installed) -> 0.16.0",
+      "description": "Minor update: scion-sdk 0.2.40 (installed) -> 0.16.0",
       "testable": true
     },
     {
@@ -253,7 +253,7 @@
     },
     {
       "id": "FR-041",
-      "description": "Analysis error: No module named 'agent_connector_sdk.knowledge_graph'",
+      "description": "Analysis error: No module named 'scion_sdk.knowledge_graph'",
       "testable": true
     }
   ],

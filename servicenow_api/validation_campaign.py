@@ -42,8 +42,8 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 def source_preset_contract(root: Path | None = None) -> list[str]:
     """Return violations for the declared-source input contract (sources are declared in code)."""
-    from agent_connector_sdk.connector_identity import connector_name
-    from agent_connector_sdk.ingest import load_declaration
+    from scion_sdk.connector_identity import connector_name
+    from scion_sdk.ingest import load_declaration
 
     violations: list[str] = []
     try:

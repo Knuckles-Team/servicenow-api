@@ -16,7 +16,7 @@ description: >-
 license: MIT
 tags: [servicenow, cicd, devops, update-sets, atf, source-control, rest-api, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow CI/CD & DevOps (release engineering)

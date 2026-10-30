@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from agent_connector_sdk.exceptions import require_auth  # noqa: F401
+from scion_sdk.exceptions import require_auth  # noqa: F401
 
 from servicenow_api.servicenow_models import (
     FlowGraph,
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def get_agent_workspace():
     """Resolve the connector data directory (reports are written beneath it)."""
-    from agent_connector_sdk.paths import data_dir
+    from scion_sdk.paths import data_dir
 
     return data_dir()
 
