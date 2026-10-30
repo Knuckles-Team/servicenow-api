@@ -2,10 +2,10 @@
 
 import sys
 
-from agent_connector_sdk.exceptions import (
+from pydantic import ValidationError
+from scion_sdk.exceptions import (
     MissingParameterError,
 )
-from pydantic import ValidationError
 
 from servicenow_api.api.api_client_base import ServiceNowApiBase
 from servicenow_api.servicenow_models import (

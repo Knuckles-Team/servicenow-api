@@ -12,7 +12,7 @@ description: >-
 license: MIT
 tags: [servicenow, hr, ppm, project, rest-api, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow HR & PPM

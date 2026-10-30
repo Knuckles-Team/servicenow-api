@@ -16,7 +16,7 @@ description: >-
 license: MIT
 tags: [servicenow, flow-designer, fluent, automation, subflow, trigger, low-code, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Workflow Studio (Flow Designer as code)

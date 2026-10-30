@@ -13,7 +13,7 @@ description: >-
 license: MIT
 tags: [servicenow, incident, itsm, rest-api, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Incident Management

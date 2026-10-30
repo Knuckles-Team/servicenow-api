@@ -1,6 +1,6 @@
 """Action-discovery standardization tests.
 
-Verifies the shared agent-connector-sdk resolve_action helper is wired into the
+Verifies the shared scion-sdk resolve_action helper is wired into the
 action-routed MCP tools so callers get list_actions discovery and a rich
 did-you-mean error on unknown actions.
 """

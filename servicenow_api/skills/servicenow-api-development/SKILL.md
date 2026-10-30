@@ -19,7 +19,7 @@ metadata:
 This repository owns the ServiceNow API clients, connector mappings, MCP tools,
 packaged prompts, skills, ontology, and connector identity. Shared transport,
 MCP construction, release rendering, and delivery gates belong to
-`agent-connector-sdk` and `pipelines`; admission and durable graph state belong
+`scion-sdk` and `pipelines`; admission and durable graph state belong
 to their owning repositories. Read `AGENTS.md` before changing code and keep
 tenant identifiers, credentials, endpoints, and local paths out of source,
 fixtures, logs, and skill content.

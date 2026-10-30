@@ -1,9 +1,6 @@
 from typing import Any, Generic, TypeVar
 
 import requests
-from agent_connector_sdk.exceptions import (
-    ParameterError,
-)
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -11,6 +8,9 @@ from pydantic import (
     ValidationError,
     field_validator,
     model_validator,
+)
+from scion_sdk.exceptions import (
+    ParameterError,
 )
 
 

@@ -1,4 +1,4 @@
-from agent_connector_sdk import run
+from scion_sdk import run
 
 if __name__ == "__main__":
     run()

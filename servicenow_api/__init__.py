@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from agent_connector_sdk.connector import Connector
+from scion_sdk.connector import Connector
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client

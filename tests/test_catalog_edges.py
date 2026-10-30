@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from agent_connector_sdk.ingest import load_declaration
-from agent_connector_sdk.ingest.source_sync import _edges  # noqa: PLC2701
+from scion_sdk.ingest import load_declaration
+from scion_sdk.ingest.source_sync import _edges  # noqa: PLC2701
 
 import servicenow_api
 
@@ -85,7 +85,7 @@ def test_change_and_knowledge_sources_read_their_tables_through_the_table_tool()
     by the instance; both syncs ended failed with 0 records. Both sources now read
     their table through `servicenow_get_table`, passing only arguments the table
     tool's model accepts (as cmdb-cis does)."""
-    from agent_connector_sdk.ingest.source_sync import _records  # noqa: PLC2701
+    from scion_sdk.ingest.source_sync import _records  # noqa: PLC2701
 
     from servicenow_api.servicenow_models import TableModel
 

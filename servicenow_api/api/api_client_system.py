@@ -11,11 +11,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
-from agent_connector_sdk.exceptions import (
+from pydantic import ValidationError
+from scion_sdk.exceptions import (
     MissingParameterError,
     ParameterError,
 )
-from pydantic import ValidationError
 
 from servicenow_api.servicenow_models import (
     AggregateModel,

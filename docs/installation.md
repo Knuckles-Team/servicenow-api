@@ -22,7 +22,7 @@ The base install ships the typed REST client. Install the extra for what the ope
 
 | Extra | Install | Pulls in |
 |---|---|---|
-| `mcp` | `pip install "servicenow-api[mcp]"` | FastMCP MCP-server runtime (`agent-connector-sdk[mcp]`) |
+| `mcp` | `pip install "servicenow-api[mcp]"` | FastMCP MCP-server runtime (`scion-sdk[mcp]`) |
 | `agent` | `pip install "servicenow-api[agent]"` | Pydantic-AI agent server + Logfire tracing |
 | `all` | `pip install "servicenow-api[all]"` | Everything above (MCP + agent + Logfire) |
 | `test` | `pip install "servicenow-api[test]"` | `pytest`, `pytest-asyncio`, `pytest-cov`, `pytest-xdist` |

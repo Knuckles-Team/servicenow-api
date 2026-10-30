@@ -14,7 +14,7 @@ description: >-
 license: MIT
 tags: [servicenow, change-management, itsm, cab, rest-api, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Change Management

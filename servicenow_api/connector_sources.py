@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from agent_connector_sdk.ingest.live_declaration import source_meta
+from scion_sdk.ingest.live_declaration import source_meta
 
 SOURCES: tuple[Any, ...] = (
     source_meta(

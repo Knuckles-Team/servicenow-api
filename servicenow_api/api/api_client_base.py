@@ -12,9 +12,9 @@ from typing import Any
 from urllib.parse import urlencode
 
 import requests
-from agent_connector_sdk.exceptions import MissingParameterError
-from agent_connector_sdk.tls.profile import ResolvedTLSProfile
-from agent_connector_sdk.tls.resolve import resolve_tls_profile
+from scion_sdk.exceptions import MissingParameterError
+from scion_sdk.tls.profile import ResolvedTLSProfile
+from scion_sdk.tls.resolve import resolve_tls_profile
 
 from servicenow_api.servicenow_models import (
     FlowGraph,

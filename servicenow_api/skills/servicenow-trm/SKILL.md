@@ -16,7 +16,7 @@ description: >-
 license: MIT
 tags: [servicenow, trm, apm, technology-portfolio, software-lifecycle, technical-debt, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow TRM / APM (technology portfolio)

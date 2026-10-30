@@ -2,7 +2,7 @@ import os
 from unittest.mock import patch
 
 import pytest
-from agent_connector_sdk.exceptions import AuthError, UnauthorizedError
+from scion_sdk.exceptions import AuthError, UnauthorizedError
 
 from servicenow_api.auth import get_client
 
@@ -22,18 +22,18 @@ def test_auth_no_method():
 
 
 def test_auth_oidc_delegation_success():
-    from agent_connector_sdk.auth.tokens import AccessToken
+    from scion_sdk.auth.tokens import AccessToken
 
     with patch.dict(
         os.environ, {"SERVICENOW_INSTANCE": "https://dev12345.service-now.com"}
     ):
         with patch("servicenow_api.auth._is_delegation_enabled", return_value=True):
             with patch(
-                "agent_connector_sdk.auth.delegation.current_user_token",
+                "scion_sdk.auth.delegation.current_user_token",
                 return_value="subject-token",
             ):
                 with patch(
-                    "agent_connector_sdk.auth.delegation.exchange_token",
+                    "scion_sdk.auth.delegation.exchange_token",
                     return_value=AccessToken(
                         value="mock-oidc-token", ttl_seconds=300, expires_at=0
                     ),
@@ -57,11 +57,11 @@ def test_auth_oidc_delegation_failure():
     ):
         with patch("servicenow_api.auth._is_delegation_enabled", return_value=True):
             with patch(
-                "agent_connector_sdk.auth.delegation.current_user_token",
+                "scion_sdk.auth.delegation.current_user_token",
                 return_value="subject-token",
             ):
                 with patch(
-                    "agent_connector_sdk.auth.delegation.exchange_token",
+                    "scion_sdk.auth.delegation.exchange_token",
                     side_effect=Exception("Delegation server offline"),
                 ):
                     with pytest.raises(RuntimeError, match="Token exchange failed"):

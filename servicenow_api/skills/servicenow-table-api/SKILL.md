@@ -14,7 +14,7 @@ description: >-
 license: MIT
 tags: [servicenow, table-api, aggregate, custom-api, rest-api, crud, encoded-query, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Table API (foundational)

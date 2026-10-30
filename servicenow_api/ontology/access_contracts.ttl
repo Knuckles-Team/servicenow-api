@@ -4,7 +4,7 @@
 # Access contracts (SCION-CONNECTOR-CONTROL-R021 / G24): how ConfigurationItem
 # and Incident are answered live through this connector's MCP tools, not a
 # copied snapshot. Kept in a dedicated file so the flat access-contract
-# parser (agent_connector_sdk.access_contract) never has to tokenize the
+# parser (scion_sdk.access_contract) never has to tokenize the
 # full OWL ontology in servicenow.ttl, which uses multi-line comment
 # literals outside the parser's supported subset.
 

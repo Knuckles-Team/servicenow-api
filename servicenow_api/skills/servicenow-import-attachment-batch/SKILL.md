@@ -13,7 +13,7 @@ description: >-
 license: MIT
 tags: [servicenow, import-sets, attachments, batch, integration, rest-api, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Import Sets, Attachments & Batch (integration)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from agent_connector_sdk.ingest import load_declaration
+from scion_sdk.ingest import load_declaration
 import re
 from pathlib import Path
 

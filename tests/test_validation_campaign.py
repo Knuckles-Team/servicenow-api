@@ -41,9 +41,9 @@ def test_campaign_covers_every_packaged_skill_without_live_io():
 # REMOVED (SCION-CONNECTOR-CONTROL-R009/R020 migration):
 # test_campaign_catalogs_register_condensed_and_verbose_surfaces asserted that
 # MCP_TOOL_MODE="verbose" registered a 1:1 tool per Api method alongside the
-# intent-gated condensed tool. agent_connector_sdk.mcp.tool_surface.register_tool_surface
+# intent-gated condensed tool. scion_sdk.mcp.tool_surface.register_tool_surface
 # has no mode parameter — it always registers only the condensed, GATED_TAG-tagged
-# surface (agent-connector-sdk#54's one condensed intent contract), so there is no
+# surface (scion-sdk#54's one condensed intent contract), so there is no
 # verbose surface left to assert on.
 
 

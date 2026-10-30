@@ -9,10 +9,10 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Any
 
-from agent_connector_sdk.exceptions import (
+from pydantic import ValidationError
+from scion_sdk.exceptions import (
     MissingParameterError,
 )
-from pydantic import ValidationError
 
 from servicenow_api.servicenow_models import (
     CICD,

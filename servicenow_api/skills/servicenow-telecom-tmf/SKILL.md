@@ -16,7 +16,7 @@ description: >-
 license: MIT
 tags: [servicenow, telecom, tmforum, tmf, service-qualification, product-inventory, csm, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow Telecom / TM Forum Open APIs

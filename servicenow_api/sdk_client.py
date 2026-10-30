@@ -26,8 +26,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from agent_connector_sdk.config import setting
-from agent_connector_sdk.exceptions import MissingParameterError
+from scion_sdk.config import setting
+from scion_sdk.exceptions import MissingParameterError
 
 from servicenow_api.servicenow_models import (
     SdkAuthModel,

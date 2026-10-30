@@ -2,7 +2,7 @@
 
 Exercises the real ``ingest_incidents`` / ``ingest_changes`` / ``ingest_cmdb`` /
 ``ingest_kb_articles`` / ``ingest_attachment`` seam with a fake transport one level
-below ``agent_connector_sdk.ingest.KnowledgeIngest`` (no engine required), so the
+below ``scion_sdk.ingest.KnowledgeIngest`` (no engine required), so the
 SDK's own request-building/validation/privacy-guard contract runs unfaked,
 asserting the ServiceNow record →
 :Incident / :Change / :ConfigurationItem / :Person / :Document mapping.
@@ -15,7 +15,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from agent_connector_sdk.ingest import IngestError, KnowledgeIngest
+from scion_sdk.ingest import IngestError, KnowledgeIngest
 
 from servicenow_api.kg_ingest import (
     ingest_attachment,

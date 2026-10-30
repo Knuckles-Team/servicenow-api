@@ -16,7 +16,7 @@ description: >-
 license: MIT
 tags: [servicenow, irm, grc, risk, compliance, audit, tprm, privacy, archer, onetrust, mcp]
 metadata:
-  author: Genius
+  author: Knuckles-Team
   version: '0.1.0'
 ---
 # ServiceNow IRM / GRC (risk, compliance, audit, TPRM, privacy)
