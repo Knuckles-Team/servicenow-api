@@ -1428,7 +1428,7 @@ wheels = [
 
 [[package]]
 name = "scion-sdk"
-version = "0.6.2"
+version = "0.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1441,9 +1441,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/8a/4817760b5555f97e2ca7bb5030a72a125f8ac5d5b27c009303e012343f54/scion_sdk-0.6.2.tar.gz", hash = "sha256:3b74cdd95850035edf1fd5364f8676c7ccf4717d535d2def1d082c071d5d00fc", size = 1146428, upload-time = "2026-10-30T21:53:42.862Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/ed/5b1e8eac5711b77a9c1cefd19433e111374acd8c98bb63663ce8f4f96e98/scion_sdk-0.6.3.tar.gz", hash = "sha256:690550dedd489c9ad81b0c680c3e47319c393f6a7c20d6c59cc992035ebf010d", size = 1148302, upload-time = "2026-10-30T22:29:22.453Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/60/13/1c2d6de5760b36093cce42ce3709bed5aab15d764fdce38f19e8f20526a4/scion_sdk-0.6.2-py3-none-any.whl", hash = "sha256:f700205422bf232bd6bbcee19cdeebec035224a92da3b15c5dab86168608ce07", size = 1090746, upload-time = "2026-10-30T21:53:41.272Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/94/17694d7a77632e7f9bef29c1f7df413c1b9f5a4541a82da68beb0345d09f/scion_sdk-0.6.3-py3-none-any.whl", hash = "sha256:94d7fec774a77cf4cd77fd8baee1e684c2923e5c8f444cc7bb78eb17b8da9677", size = 1091532, upload-time = "2026-10-30T22:29:20.513Z" },
 ]
 
 [package.optional-dependencies]
@@ -1454,7 +1454,7 @@ mcp = [
 
 [[package]]
 name = "servicenow-api"
-version = "2.4.12"
+version = "2.4.13"
 source = { editable = "." }
 dependencies = [
     { name = "requests" },
@@ -1481,7 +1481,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },
     { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "requests", specifier = ">=2.34.2" },
-    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.6.2,<0.7.0" },
+    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.6.3,<0.7.0" },
 ]
 provides-extras = ["test"]
 
