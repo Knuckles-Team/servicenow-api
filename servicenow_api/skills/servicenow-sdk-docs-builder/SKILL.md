@@ -5,7 +5,7 @@ description: Automation skill to generate or update the `servicenow-sdk-docs` do
 license: MIT
 tags: [servicenow, sdk, documentation, builder, automation, documentation-generation]
 metadata:
-  author: Antigravity
+  author: Repository Maintainers
   version: '0.2.0'
 ---
 # ServiceNow SDK Docs Builder
