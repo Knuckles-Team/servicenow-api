@@ -1428,7 +1428,7 @@ wheels = [
 
 [[package]]
 name = "scion-sdk"
-version = "0.6.3"
+version = "0.6.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1441,9 +1441,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/21/ed/5b1e8eac5711b77a9c1cefd19433e111374acd8c98bb63663ce8f4f96e98/scion_sdk-0.6.3.tar.gz", hash = "sha256:690550dedd489c9ad81b0c680c3e47319c393f6a7c20d6c59cc992035ebf010d", size = 1148302, upload-time = "2026-10-30T22:29:22.453Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/91/61/5a694538fe4b5c3313d18dfb2ddf28b3a15d9dd93eb6e32c4f5486326c62/scion_sdk-0.6.4.tar.gz", hash = "sha256:4441e8e543f65587def7e98a78246be303a95ca840acae73f92bdaa08d8ea10f", size = 1151330, upload-time = "2026-10-31T02:50:26.547Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/94/17694d7a77632e7f9bef29c1f7df413c1b9f5a4541a82da68beb0345d09f/scion_sdk-0.6.3-py3-none-any.whl", hash = "sha256:94d7fec774a77cf4cd77fd8baee1e684c2923e5c8f444cc7bb78eb17b8da9677", size = 1091532, upload-time = "2026-10-30T22:29:20.513Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/34/2990f86ca875f09a7ddbc2179668635b54e058cfc704d7dfea6e397c4762/scion_sdk-0.6.4-py3-none-any.whl", hash = "sha256:b5535a9342a3f675e173c933fcb3e26b59bb2f603875ad419bfb4261486ab5d2", size = 1093413, upload-time = "2026-10-31T02:50:25.131Z" },
 ]
 
 [package.optional-dependencies]
@@ -1481,7 +1481,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },
     { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "requests", specifier = ">=2.34.2" },
-    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.6.3,<0.7.0" },
+    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.6.4,<0.7.0" },
 ]
 provides-extras = ["test"]
 
