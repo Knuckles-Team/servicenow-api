@@ -185,7 +185,7 @@ description: A comprehensive, self-contained collection of ServiceNow SDK (Fluen
 license: MIT
 tags: [servicenow, sdk, fluent-api, examples, typescript, reference, self-contained]
 metadata:
-  author: Antigravity
+  author: Repository Maintainers
   version: '0.3.0'
 ---
 # ServiceNow SDK Documentation (Self-Contained)
