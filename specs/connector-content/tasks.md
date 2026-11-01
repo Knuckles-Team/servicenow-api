@@ -2,10 +2,13 @@
 
 Governing spec: [spec.md](spec.md). Design: [plan.md](plan.md). Rows: [requirements.md](requirements.md).
 
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001:** Declare the fleet identity and serve the packaged content by default.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002:** Link the ontology classes to the medulla parent classes.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003:** Declare the packaged ingestible `incidents` source.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004:** Add the CMDB and TRM classes, edges and shapes, including the TRM phase, lifecycle and technical-debt classes.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005:** Declare the CMDB, change-request and Enterprise Architecture TRM ingest sources.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006:** Reference the shared CMDB concepts, give the incident properties a domain and map every record type to a class.
-- [x] **CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007:** Declare owner, steward and CMDB edges on the ingest sources; read the change and knowledge sources through the table tool with accepted arguments.
+Each task line reads `- [ ] T001 [P] [US1] <ID>-R012.4 description`. Tasks run producer first; a checked task has landed.
+
+- [x] T001 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001 Default content.
+- [x] T002 [US2] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002 Ontology joins the parent graph.
+- [x] T003 [US3] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003 Declared ingest sources.
+- [x] T004 [US4] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004 CMDB and TRM ontology.
+- [x] T005 [US5] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005 CMDB and TRM ingest sources.
+- [x] T006 [US6] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006 Competency-question paths.
+- [x] T007 [US7] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007 Owner, steward and CMDB edges.
+- [ ] T008 [US8] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008 Declare access contracts for the competency reads of servicenow-api.
