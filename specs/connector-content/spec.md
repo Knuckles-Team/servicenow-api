@@ -36,7 +36,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: Ea
 
 ### User Story 3 - Declared ingest sources (Priority: P1)
 
-The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow_api/ontology/ingest_sources.json` declares the `incidents` source (record type `Incident`, read-only tool `servicenow_get_incidents`, first 50 records) for the connector `servicenow-mcp`, and the record type is a key of the connector manifest `schema_mappings`. It is proven independently of the other stories.
+The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow_api/connector_sources.py` declares the `incidents` source (record type `Incident`, read-only tool `servicenow_get_incidents`, first 50 records) for the connector `servicenow-mcp`, and the record type is a key of the connector manifest `schema_mappings`. It is proven independently of the other stories.
 
 **Acceptance Scenarios**:
 
@@ -44,7 +44,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: `s
 
 ### User Story 4 - CMDB and TRM ontology (Priority: P2)
 
-The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow.ttl` declares `CmdbServer`, `CmdbApplication` (parent of `BusinessApplication`) and `CmdbBusinessService` under `ConfigurationItem` and the shared `Server`, `Application` and `BusinessService`, `CIRelationship` (under the parent `JunctionLink`, typed dependsOn/runsOn/hostedOn), `AssignmentGroup` (under `Organization`), `ChangeRequest` (under `Change`), the TRM classes `TRMStandard` and `TRMLifecycle` (under `TechnologyStandard`), `TRMCategory`, `TRMPhase` and `TRMTechnicalDebt` (under `Concept`), and `TechnologyRequest` (under `TRMRequest`) with `LifecycleRequest` under it, with the edges `affects`, `ownedBy`, `usesTechnology`, `touches`, `inCategory`, `hasPhase` (TRMStandard to TRMPhase, the lifecycle phase), `lifecycleOf`, `lifecyclePhase`, `debtOn`, `debtOfApplication` and `requestsTechnology` (TechnologyRequest to TRMStandard), and a governance shape per new record class. It is proven independently of the other stories.
+The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow_api/ontology/servicenow.ttl` declares `CmdbServer`, `CmdbApplication` (parent of `BusinessApplication`) and `CmdbBusinessService` under `ConfigurationItem` and the shared `Server`, `Application` and `BusinessService`, `CIRelationship` (under the parent `JunctionLink`, typed dependsOn/runsOn/hostedOn), `AssignmentGroup` (under `Organization`), `ChangeRequest` (under `Change`), the TRM classes `TRMStandard` and `TRMLifecycle` (under `TechnologyStandard`), `TRMCategory`, `TRMPhase` and `TRMTechnicalDebt` (under `Concept`), and `TechnologyRequest` (under `TRMRequest`) with `LifecycleRequest` under it, with the edges `affects`, `ownedBy`, `usesTechnology`, `touches`, `inCategory`, `hasPhase` (TRMStandard to TRMPhase, the lifecycle phase), `lifecycleOf`, `lifecyclePhase`, `debtOn`, `debtOfApplication` and `requestsTechnology` (TechnologyRequest to TRMStandard), and a governance shape per new record class. It is proven independently of the other stories.
 
 **Acceptance Scenarios**:
 
@@ -52,7 +52,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: `s
 
 ### User Story 5 - CMDB and TRM ingest sources (Priority: P2)
 
-The fleet operator and the engine rely on this behaviour of `servicenow-api`: `ingest_sources.json` declares `cmdb-cis` (`cmdb_ci`), `cmdb-ci-relationships` (`cmdb_rel_ci`), the Enterprise Architecture TRM sources `trm-standards` (`sn_apm_trm_standards_product`), `trm-categories` (`sn_apm_trm_standards_category`), `trm-phases` (`sn_apm_trm_standards_phase`), `trm-lifecycles` (`sn_apm_trm_standards_product_lifecycle`), `trm-technical-debt` (`sn_apm_trm_standards_technical_debt`), `trm-requests` (`sn_apm_trm_product_request`) and `trm-lifecycle-requests` (`sn_apm_trm_product_lifecycle_request`), and `change-requests`, each through the read-only `servicenow_get_table` tool and each with a record type that is a key of `schema_mappings`. It is proven independently of the other stories.
+The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow_api/connector_sources.py` declares `cmdb-cis` (`cmdb_ci`), `cmdb-ci-relationships` (`cmdb_rel_ci`), the Enterprise Architecture TRM sources `trm-standards` (`sn_apm_trm_standards_product`), `trm-categories` (`sn_apm_trm_standards_category`), `trm-phases` (`sn_apm_trm_standards_phase`), `trm-lifecycles` (`sn_apm_trm_standards_product_lifecycle`), `trm-technical-debt` (`sn_apm_trm_standards_technical_debt`), `trm-requests` (`sn_apm_trm_product_request`) and `trm-lifecycle-requests` (`sn_apm_trm_product_lifecycle_request`), and `change-requests`, each through the read-only `servicenow_get_table` tool and each with a record type that is a key of `schema_mappings`. It is proven independently of the other stories.
 
 **Acceptance Scenarios**:
 
@@ -60,7 +60,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: `i
 
 ### User Story 6 - Competency-question paths (Priority: P2)
 
-The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow.ttl` references the shared `Server`, `Application`, `BusinessService` and `Change` and never redeclares them, so each has one parent chain decided by the medulla ontology; `affects`, `priority` and `state` carry a domain of `Incident` and `Change`; `hostedOn` spans `ConfigurationItem`, `Application` and `Server`; no `schema_mappings` entry has a null `ontology_class`. It is proven independently of the other stories.
+The fleet operator and the engine rely on this behaviour of `servicenow-api`: `servicenow_api/ontology/servicenow.ttl` references the shared `Server`, `Application`, `BusinessService` and `Change` and never redeclares them, so each has one parent chain decided by the medulla ontology; `affects`, `priority` and `state` carry a domain of `Incident` and `Change`; `hostedOn` spans `ConfigurationItem`, `Application` and `Server`; no `schema_mappings` entry has a null `ontology_class`. It is proven independently of the other stories.
 
 **Acceptance Scenarios**:
 

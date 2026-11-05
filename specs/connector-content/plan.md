@@ -194,11 +194,11 @@ None. The constitution check passed.
 
 - `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R001`: `servicenow-mcp` in `pyproject.toml` runs `scion_sdk.cli:serve`, which builds the server from the `scion_sdk.connector` entry point `servicenow_api:connector` (`servicenow_api/__init__.py:10`); the SDK `Connector` then lists the packaged skills, ontology and prompts.
 - `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002`: the SDK ontology loader reads `servicenow_api/ontology/` when the server builds the `connector` object (`servicenow_api/__init__.py:10`).
-- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003`: the SDK source ingest runner reads `servicenow_api/ontology/ingest_sources.json` and calls the named read-only tool.
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R003`: the SDK source ingest runner reads `servicenow_api/connector_sources.py` and calls the named read-only tool.
 - `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R004`: the SDK ontology loader reads `servicenow_api/ontology/` when the server builds the `connector` object (`servicenow_api/__init__.py:10`).
-- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005`: the SDK source ingest runner reads `servicenow_api/ontology/ingest_sources.json` and calls the named read-only tool.
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005`: the SDK source ingest runner reads `servicenow_api/connector_sources.py` and calls the named read-only tool.
 - `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006`: the SDK ontology loader reads `servicenow_api/ontology/` when the server builds the `connector` object (`servicenow_api/__init__.py:10`).
-- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007`: the SDK source ingest runner reads `servicenow_api/ontology/ingest_sources.json` and calls the named read-only tool; the runner writes the declared `EdgeSpec` edges.
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007`: the SDK source ingest runner reads `servicenow_api/connector_sources.py` and calls the named read-only tool; the runner writes the declared `EdgeSpec` edges.
 - `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008`: arbora `fleet.call` reaches the existing read tool of `servicenow_api/mcp_server.py`, whose result is validated against the `ac:AccessContract` rows declared in `servicenow_api/ontology/access_contracts.ttl`.
 
 ## Cross-repo seams
