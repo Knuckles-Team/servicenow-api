@@ -1454,7 +1454,7 @@ mcp = [
 
 [[package]]
 name = "servicenow-api"
-version = "2.4.13"
+version = "2.4.15"
 source = { editable = "." }
 dependencies = [
     { name = "requests" },

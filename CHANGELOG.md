@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.15] - 2026-11-06
+
+### Fixed
+- An HTML page served in place of a JSON API reply (a hibernating or unavailable instance, a login redirect) now raises `ServiceNowInstanceUnavailableError` naming the cause, instead of an opaque JSON decode error from every typed tool.
+
 ## [2.4.14] - 2026-10-30
 
 ### Changed
