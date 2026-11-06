@@ -436,6 +436,42 @@ def _exchange_oauth_token(
         raise e
 
 
+class ServiceNowInstanceUnavailableError(RuntimeError):
+    """The instance answered an /api/ call with an HTML page instead of JSON.
+
+    A hibernating developer instance (and a login redirect or maintenance page)
+    returns HTTP 200 with a text/html body. Without this check every typed tool
+    fails later with an opaque ``Expecting value: line 1 column 1`` JSON error.
+    """
+
+
+def _html_body_reason(text: str) -> str:
+    lowered = text[:4000].lower()
+    if "hibernat" in lowered:
+        return "the instance is hibernating (wake it from the developer portal)"
+    if "maintenance" in lowered or "unavailable" in lowered:
+        return "the instance reports maintenance or unavailability"
+    if "log in" in lowered or "login" in lowered:
+        return "the instance returned a login page (authentication rejected)"
+    return "the instance returned an HTML page instead of JSON"
+
+
+def _reject_html_reply(response, *args, **kwargs):
+    """Response hook: an HTML page served in place of a JSON API reply is an error."""
+    url = getattr(response, "url", "") or ""
+    if (
+        "/api/" in url
+        and "/attachment/" not in url
+        and response.status_code < 400
+        and "text/html" in response.headers.get("content-type", "").lower()
+    ):
+        raise ServiceNowInstanceUnavailableError(
+            f"{url.split('?', 1)[0]} returned HTML, not JSON: "
+            f"{_html_body_reason(response.text)}"
+        )
+    return response
+
+
 class ServiceNowApiBase:
     def __init__(
         self,
@@ -452,6 +488,9 @@ class ServiceNowApiBase:
             raise MissingParameterError
 
         self._session = requests.Session()
+        hooks = getattr(self._session, "hooks", None)
+        if isinstance(hooks, dict):
+            hooks.setdefault("response", []).append(_reject_html_reply)
         self.tls_profile = tls_profile or resolve_tls_profile("servicenow")
         self.tls_profile.configure_requests_session(self._session)
         self.base_url = url
