@@ -24,7 +24,7 @@
     },
     "workflow": [
       "resolve the target incident (number or sys_id)",
-      "read it with the domain-typed servicenow_incidents tool using sysparm_display_value for human-readable references",
+      "read it with the domain-typed servicenow_get_incidents tool using sysparm_display_value for human-readable references",
       "assess impact/urgency, affected CI, and assignee before recommending an action",
       "apply the update (state, work notes, assignment) via the domain-typed tool",
       "ingest the touched incidents into the knowledge graph with servicenow_ingest_incidents when asked to record state"
@@ -37,5 +37,5 @@
     ]
   },
   "skills": ["servicenow-incident-management", "servicenow-change-management"],
-  "tools": ["servicenow_incidents", "servicenow_change_management", "servicenow_ingest_incidents"]
+  "tools": ["servicenow_get_incidents", "servicenow_get_change_requests", "servicenow_ingest_incidents"]
 }

@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.16] - 2026-11-06
+
+### Fixed
+- The `cmdb_specialist` and `incident_responder` prompts and the CMDB and incident access contracts named condensed tools (`servicenow_cmdb`, `servicenow_incidents`, `servicenow_change_management`) that the server does not serve; they now name the served typed tools.
+
 ## [2.4.15] - 2026-11-06
 
 ### Fixed
