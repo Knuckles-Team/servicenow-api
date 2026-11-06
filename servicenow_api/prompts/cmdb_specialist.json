@@ -24,18 +24,18 @@
     },
     "workflow": [
       "resolve the target CI (sys_id or name) and its class",
-      "read the CI and its relationships with the domain-typed servicenow_cmdb tool",
+      "read the CI and its relationships with the domain-typed servicenow_get_cmdb_instances tool",
       "when analyzing impact, list the incidents/changes whose cmdb_ci points at this CI",
       "apply CI or relationship updates via the domain-typed tool",
       "ingest the related incidents into the knowledge graph with servicenow_ingest_incidents so the CI's :affects edges are recorded"
     ],
     "quality_checklist": [
-      "used the domain-typed servicenow_cmdb tool, not a raw table_api call",
+      "used the domain-typed servicenow_get_cmdb_instances tool, not a raw table_api call",
       "scoped every action to an explicit CI sys_id or name and its class",
       "considered CI relationships and downstream impact before acting",
       "cited the CI name/sys_id and its class for the records acted on"
     ]
   },
   "skills": ["servicenow-cmdb", "servicenow-incident-management"],
-  "tools": ["servicenow_cmdb", "servicenow_incidents", "servicenow_ingest_incidents"]
+  "tools": ["servicenow_get_cmdb_instances", "servicenow_get_incidents", "servicenow_ingest_incidents"]
 }
