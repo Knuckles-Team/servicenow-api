@@ -30,20 +30,14 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_hr` | `get_hr_profile` |
-| `servicenow_ppm` | `insert_cost_plans`, `insert_project_tasks` |
-
+| hr | `servicenow_get_hr_profile` |
+| ppm | `servicenow_insert_cost_plans`, `servicenow_insert_project_tasks` |
 ### Key parameters
 - HR: `sys_id` (the HR profile / worker `sys_user` reference) — discover it via
   `servicenow-table-api` on `sys_user` / `sn_hr_core_profile` if you only have a name.
@@ -52,7 +46,7 @@ whose keys are passed straight to the client method.
 - PPM project tasks: `project_sys_id`, `project_tasks` — an array of task rows
   (short_description, parent, planned start/end, effort).
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Fetch an HR profile (`get_hr_profile`):
 ```json
 {"sys_id":"<hr_profile_or_user_sys_id>"}
@@ -67,9 +61,9 @@ Insert project tasks / work breakdown (`insert_project_tasks`):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - These endpoints need the corresponding plugins active — **HR Service Delivery** for
-  `servicenow_hr`, **Project Portfolio Management (PPM)** for `servicenow_ppm`; a
+  `servicenow_get_hr_profile`, **Project Portfolio Management (PPM)** for `servicenow_insert_cost_plans`, `servicenow_insert_project_tasks`; a
   missing plugin surfaces as a 404/ACL error, not empty data.
 - `get_hr_profile` expects the **HR profile / worker** reference — a plain `sys_user`
   sys_id may not resolve if that user has no HR profile; discover the right id first

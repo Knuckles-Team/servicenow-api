@@ -6,7 +6,7 @@ requires **inbound** reach from the ServiceNow instance to the GitLab host.
 
 ## The recipe
 
-1. **Import** the repo as a new scoped app (`servicenow_source_control`, action
+1. **Import** the repo as a new scoped app (`servicenow_apply_remote_source_control_changes`, `servicenow_import_repository`, action
    `import_repository`):
    ```json
    {"repo_url":"https://gitlab.example/group/app-repo.git","branch_name":"main","credential_sys_id":"<credential_sys_id>"}
@@ -20,7 +20,7 @@ requires **inbound** reach from the ServiceNow instance to the GitLab host.
    {"app_sys_id":"<app_sys_id>","scope":"x_myco_app","branch_name":"main"}
    ```
    Requires `app_sys_id` **or** `scope`.
-3. **Promote** with `servicenow_cicd` (`app_repo_publish`/`app_repo_install`) —
+3. **Promote** with `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` (`app_repo_publish`/`app_repo_install`) —
    full contract: `servicenow-cicd-devops` → `references/actions-catalog.md`.
 
 ## The hard requirement: inbound reachability

@@ -42,7 +42,7 @@
 - Erasure requests: `request_type=erasure`
 - Overdue requests: `due_date<javascript:gs.beginningOfToday()^state!=closed`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Requests by state: `groupby` = `state`.
 - Requests by type: `groupby` = `request_type`.
 - Processing activities by data category: `groupby` = `data_category`.

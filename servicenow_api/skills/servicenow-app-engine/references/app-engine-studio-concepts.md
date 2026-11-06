@@ -31,7 +31,7 @@ Two UI surfaces build the same scoped-app metadata this skill authors as code:
 - Prefer code-first for anything that benefits from review/versioning (data model, logic,
   security); AES is convenient for rapid experience/page building, which can then be
   transformed into code.
-- Use `servicenow_flows` (via `servicenow-workflow-studio`) to introspect UI-built flows
+- Use `servicenow_workflow_to_mermaid`, `servicenow_collect_graph_for_roots`, `servicenow_get_flow_metadata` (via `servicenow-workflow-studio`) to introspect UI-built flows
   before transforming them, so the generated Fluent is understood, not blindly imported.
 
 ## Gotchas

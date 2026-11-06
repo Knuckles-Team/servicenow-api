@@ -23,7 +23,7 @@ export default Test(
 ```
 Group tests into a **test suite** on the instance so they can be run as a unit.
 
-## Running (MCP — `servicenow_testing`)
+## Running (MCP — `servicenow_run_test_suite`)
 Run a suite (action `run_test_suite`):
 ```json
 {"test_suite_sys_id":"<suite_sys_id>","os_name":"","os_version":"","browser_name":"","browser_version":""}

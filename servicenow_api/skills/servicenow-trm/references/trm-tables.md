@@ -11,7 +11,7 @@
 
 ## Discover-first recipe
 1. **Find the tables.** List scoped tables via the dictionary:
-   `servicenow_table_api` `get_table` on `sys_db_object` filtered by prefix —
+   `servicenow_get_table` on `sys_db_object` filtered by prefix —
    ```json
    {"table":"sys_db_object","sysparm_query":"nameSTARTSWITHsn_apm_^ORnameSTARTSWITHsamp_","sysparm_fields":"name,label,sys_scope","sysparm_limit":100}
    ```
@@ -63,7 +63,7 @@
 - EOL within next year: `end_of_lifeISNOTEMPTY^end_of_life<=javascript:gs.beginningOfNextYear()^ORDERBYend_of_life`
 - Non-compliant with a standard: `u_standard_compliance=false` (confirm field name)
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Count by lifecycle stage: `groupby` = the lifecycle field (e.g. `life_cycle_stage`).
 - Count by owner group: `groupby` = `managed_by_group`.
 - `get_stats` maps `groupby`→`sysparm_group_by`, `stats:"true"`→`sysparm_count=true` (accepts a JSON bool or string; either normalizes correctly).

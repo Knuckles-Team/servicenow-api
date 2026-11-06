@@ -37,7 +37,7 @@
 - Critical open: `priority=1^active=true`
 - Assigned to a group: `assignment_group=<sys_id>^active=true`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - By priority: `groupby` = `priority`.
 - By state: `groupby` = `state`.
 - By assignment group: `groupby` = `assignment_group`.

@@ -6,7 +6,7 @@
 > installed** on the instance — they are NOT guaranteed. Always discover what's
 > installed before calling a raw endpoint. Query/aggregate/table mechanics come from
 > the `servicenow-table-api` skill; the raw-call mechanics come from
-> `servicenow_custom_api` `api_request`.
+> `servicenow_api_request`.
 
 ## Discover-first recipe
 1. **List installed telecom scopes** via `api_request`:

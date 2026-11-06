@@ -49,7 +49,7 @@ Publish a catalog item / record producer (with a variable set) that creates an
 ## 7. Build, deploy, test
 Hand off to **`servicenow-sdk-lifecycle`**:
 `now-sdk dependencies` (if borrowing platform tables) → `now-sdk build` →
-`deploy`/`install` → run an ATF suite (`servicenow_testing`).
+`deploy`/`install` → run an ATF suite (`servicenow_run_test_suite`).
 
 ## Assembly gotchas
 - Keep every artifact in the **same scope** (`x_acme_asset_*`); reference the role by its

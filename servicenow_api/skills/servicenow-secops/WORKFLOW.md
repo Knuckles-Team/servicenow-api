@@ -1,6 +1,6 @@
 # Servicenow Secops
 
-ServiceNow Security Operations (SecOps) — Security Incident Response (SIR), Vulnerability Response (VR), and Threat Intelligence (TI). Use when the agent must triage security incidents by priority, list vulnerable items by risk/state, or work threat-intel observables. SecOps areas expose only limited REST, so the reliable path is table-first via servicenow_table_api / servicenow_aggregate / servicenow_custom_api against scoped sn_si_* (SIR), sn_vul_* (VR), and sn_ti_* (TI) tables that vary by instance and plugin version. Do NOT use for regular ITSM incidents (use servicenow-incident-management), generic table CRUD (servicenow-table-api), risk/GRC (servicenow-irm-grc), or CMDB CIs (servicenow-cmdb); prefer those.
+ServiceNow Security Operations (SecOps) — Security Incident Response (SIR), Vulnerability Response (VR), and Threat Intelligence (TI). Use when the agent must triage security incidents by priority, list vulnerable items by risk/state, or work threat-intel observables. SecOps areas expose only limited REST, so the reliable path is table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request against scoped sn_si_* (SIR), sn_vul_* (VR), and sn_ti_* (TI) tables that vary by instance and plugin version. Do NOT use for regular ITSM incidents (use servicenow-incident-management), generic table CRUD (servicenow-table-api), risk/GRC (servicenow-irm-grc), or CMDB CIs (servicenow-cmdb); prefer those.
 
 # ServiceNow SecOps (SIR / VR / TI)
 
@@ -32,21 +32,15 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method (see `servicenow-table-api`).
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_table_api` | `get_table`, `get_table_record`, `add_table_record`, `update_table_record`, `patch_table_record`, `delete_table_record` |
-| `servicenow_aggregate` | `get_stats` |
-| `servicenow_custom_api` | `api_request` |
-
+| table api | `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record`, `servicenow_update_table_record`, `servicenow_patch_table_record`, `servicenow_delete_table_record` |
+| aggregate | `servicenow_get_stats` |
+| custom api | `servicenow_api_request` |
 ## Discover first (scoped tables vary)
 SecOps scoped table names, fields, and state/priority choice values differ by instance
 and plugin version. **Never assume a schema.** Confirm the table and inspect real
@@ -56,14 +50,14 @@ fields first:
 ```
 Encoded-query / pagination / `get_stats` mechanics all come from `servicenow-table-api`.
 
-## Sub-module recipes (`params_json`)
+## Recipes (tool arguments)
 
 ### Security Incident Response (SIR) — candidate tables in `references/sir-tables.md`
 Open security incidents by priority (newest first) via `get_table`:
 ```json
 {"table":"sn_si_incident","sysparm_query":"active=true^ORDERBYpriority^ORDERBYDESCsys_created_on","sysparm_fields":"number,short_description,priority,state,assignment_group,risk_score","sysparm_limit":25,"sysparm_display_value":"true"}
 ```
-Roll up security incidents by priority via `servicenow_aggregate` `get_stats`:
+Roll up security incidents by priority via `servicenow_get_stats`:
 ```json
 {"table_name":"sn_si_incident","query":"active=true","groupby":"priority","stats":true}
 ```
@@ -85,7 +79,7 @@ List threat-intel observables (most recent first) via `get_table`:
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Scoped `sn_si_*` / `sn_vul_*` / `sn_ti_*` **table names, fields, and state/priority
   choice values vary per instance/plugin** — always `get_table` with `sysparm_limit:1`
   first, and confirm state values via `sys_choice` before filtering on them.

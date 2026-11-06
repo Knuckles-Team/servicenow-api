@@ -26,7 +26,7 @@ subscriptions, and MetricBase writes. Six condensed tools.
 ## When to use
 - Send a notification email from the instance (`send_email`).
 - Render a **deployed** flow to a Mermaid diagram, collect a flow graph from roots, or
-  read a flow's metadata (`servicenow_flows`).
+  read a flow's metadata (`servicenow_workflow_to_mermaid`, `servicenow_collect_graph_for_roots`, `servicenow_get_flow_metadata`).
 - Look up a record's data-classification (`get_data_classification`).
 - Fetch application metadata (`get_application`).
 - List activity subscriptions (`get_activity_subscriptions`).
@@ -52,24 +52,18 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_email` | `send_email` |
-| `servicenow_flows` | `workflow_to_mermaid`, `collect_graph_for_roots`, `get_flow_metadata` |
-| `servicenow_data_classification` | `get_data_classification` |
-| `servicenow_application` | `get_application` |
-| `servicenow_activity_subscriptions` | `get_activity_subscriptions` |
-| `servicenow_metricbase` | `metricbase_insert` |
-
+| email | `servicenow_send_email` |
+| flows | `servicenow_workflow_to_mermaid`, `servicenow_collect_graph_for_roots`, `servicenow_get_flow_metadata` |
+| data classification | `servicenow_get_data_classification` |
+| application | `servicenow_get_application` |
+| activity subscriptions | `servicenow_get_activity_subscriptions` |
+| metricbase | `servicenow_metricbase_insert` |
 ### Key parameters
 - Email: `recipients` (or `to`), `subject`, `body` / `html`, optional
   `cc`, `bcc`, `table` + `record_sys_id` to associate the email with a record.
@@ -81,7 +75,7 @@ whose keys are passed straight to the client method.
 - MetricBase: `subject` (the record the metric belongs to), `metric`, `values`
   (timestamped points).
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Send a notification email (`send_email`):
 ```json
 {"recipients":"ada@example.com","subject":"Deploy complete","body":"Release 1.4.0 is live.","table":"incident","record_sys_id":"<sys_id>"}
@@ -101,7 +95,7 @@ Insert a MetricBase point (`metricbase_insert`):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - `workflow_to_mermaid` visualizes an **already-deployed** flow (read-only); it does not
   author or edit — use the `servicenow-workflow-studio` dev-tooling skill for that.
 - `send_email` respects instance **email/notification config** (send may be queued or

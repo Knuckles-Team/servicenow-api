@@ -38,7 +38,7 @@
 - Observables of a type: `type=<sys_id>` (e.g. IP address / domain / hash)
 - Observables tied to an incident: `security_incident=<sys_id>`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Observables by type: `groupby` = `type`.
 - Observables by finding/reputation: `groupby` = `finding`.
 - Observables by source/feed: `groupby` = `source`.

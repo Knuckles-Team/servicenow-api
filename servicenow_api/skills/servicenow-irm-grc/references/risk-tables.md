@@ -41,7 +41,7 @@
 - High residual risk: `residual_risk>=high` (confirm choice value)
 - Overdue reviews: `review_date<javascript:gs.beginningOfToday()`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Register by state: `groupby` = `state`.
 - Register by owner group: `groupby` = `managed_by_group`.
 - By profile/entity: `groupby` = `profile`.

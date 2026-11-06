@@ -85,10 +85,9 @@ outputs to the body.
 - **`references/mapping-to-flow-designer.md`** — Fluent construct ↔ Flow Designer UI
   element table. Read when explaining code to a UI user or reverse-engineering a UI flow.
 
-## Introspecting deployed flows (MCP — `servicenow_flows`)
+## Introspecting deployed flows (MCP — `servicenow_workflow_to_mermaid`, `servicenow_collect_graph_for_roots`, `servicenow_get_flow_metadata`)
 Once a flow is deployed, inspect it on the instance with the `servicenow-api` MCP server.
-Call as `servicenow_flows(action="...", params_json="{...}")` (JSON string). Env + tag
-matrix: `agent-tools/mcp-client/references/servicenow-api.md`.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 | Action | Purpose |
 |--------|---------|

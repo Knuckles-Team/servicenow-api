@@ -25,7 +25,7 @@ this table to explain code to a UI user, or to reverse-engineer a UI-built flow 
 
 ## Reverse-engineering a deployed flow
 To go UI → code understanding, introspect the deployed flow with the `servicenow-api` MCP
-server (`servicenow_flows`): `workflow_to_mermaid` to see the branch/step structure,
+server (`servicenow_workflow_to_mermaid`, `servicenow_collect_graph_for_roots`, `servicenow_get_flow_metadata`): `workflow_to_mermaid` to see the branch/step structure,
 `collect_graph_for_roots` to map subflow/dependency trees, `get_flow_metadata` for the
 trigger/table/state. Then re-express each node using the table above.
 

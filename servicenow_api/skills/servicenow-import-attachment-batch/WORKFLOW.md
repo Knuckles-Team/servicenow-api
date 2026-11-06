@@ -31,21 +31,15 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_import_sets` | `get_import_set`, `insert_import_set`, `insert_multiple_import_sets` |
-| `servicenow_attachment` | `get_attachment`, `upload_attachment`, `delete_attachment` |
-| `servicenow_batch` | `batch_request` |
-
+| import sets | `servicenow_get_import_set`, `servicenow_insert_import_set`, `servicenow_insert_multiple_import_sets` |
+| attachment | `servicenow_get_attachment`, `servicenow_upload_attachment`, `servicenow_delete_attachment` |
+| batch | `servicenow_batch_request` |
 ### Key parameters
 - Import sets: `table` (the import-set/staging table, e.g. `u_imp_users`), `data`
   (single row object) or `records` (array of row objects for the multiple insert),
@@ -55,7 +49,7 @@ whose keys are passed straight to the client method.
 - Batch: `requests` — an array of sub-request objects (`id`, `method`, `url`,
   `headers`, `body`); the response returns each keyed by its `id`.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Bulk insert rows via an import set (`insert_multiple_import_sets`) — the transform map
 on the staging table routes each row to its target table:
 ```json
@@ -75,8 +69,7 @@ Bundle several calls into one round-trip (`batch_request`):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it. In `batch_request`
-  each sub-request `body` is itself a **string**, so it is double-encoded.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Import sets stage into an **import table**, not the target — the row's real fate is
   decided by its **transform map**. Read `get_import_set` for the row's
   `sys_import_state` / `sys_transform_map` result; a "success" import can still map to

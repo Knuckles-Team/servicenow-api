@@ -3,15 +3,13 @@
 Reference for the six condensed release-engineering tools. Each row is an `action`
 plus the common `params_json` keys it accepts. Keys are passed straight through to the
 client method; discover unknown ids first with `servicenow-table-api` (e.g. app sys_id
-from `sys_app`, suite sys_id from `sys_atf_test_suite`).
+from `sys_app`, suite sys_id from `sys_atf_test_suite`).Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-> All calls: `servicenow_<tool>(action="<action>", params_json="{...}")`.
-
-## `servicenow_cicd` — application & code CI/CD
+## `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` — application & code CI/CD
 Asynchronous. Install/scan actions return a progress/tracker id; poll `progress`
 (generic) or `instance_scan_progress` (scans) until complete.
 
-| Action | Purpose | Common params_json keys |
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `batch_install` | Install a batch descriptor (multiple packages) | `packages`, `name`, `notes` |
 | `batch_install_result` | Fetch result of a batch install | `result_id` |
@@ -31,9 +29,9 @@ Read-oriented gating and metadata; `register_devops_artifact` is the mutating on
 **Gotcha**: unlike every other tool on this page, these eight actions bypass
 `CICDModel` entirely and read **camelCase** keys straight off `kwargs` (they call
 `sn_devops/...` endpoints directly) — do not use the snake_case keys from the
-`servicenow_cicd`/`servicenow_update_sets` tables above/below.
+`servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`/`servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview` tables above/below.
 
-| Action | Purpose | Common params_json keys |
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `check_devops_change_control` | Check whether change control is required/enabled | `toolId` (req), `toolType` (default `"jenkins"`), `orchestrationTaskName`, `orchestrationTaskURL`, `testConnection` |
 | `register_devops_artifact` | Register a build artifact/package | `artifacts` (req, list), `orchestrationToolId`, `toolId`, `branchName`, `pipelineName`, `projectName`, `stageName`, `taskExecutionNumber` |
@@ -44,11 +42,11 @@ Read-oriented gating and metadata; `register_devops_artifact` is the mutating on
 | `get_devops_orchestration_schema` | Orchestration task payload schema | `resource` (req) |
 | `get_devops_plan_schema` | Planning payload schema | `resource` (req) |
 
-## `servicenow_update_sets` — configuration promotion
+## `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview` — configuration promotion
 Chain the returned sys_id through the lifecycle — note the id's key name changes at
 each hop (`update_set_id` → `remote_update_set_id`). Always preview before commit.
 
-| Action | Purpose | Common params_json keys |
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `update_set_create` | Create a local update set | `update_set_name` (req), one of `sys_id`/`scope` (req), `description` |
 | `update_set_retrieve` | Retrieve a remote update set onto this instance | `update_set_id` (req), `update_source_id`, `update_source_instance_id`, `auto_preview`, `cleanup_retrieved` |
@@ -62,19 +60,19 @@ key anywhere in `CICDModel` — passing those (instead of the keys above) is sil
 dropped (not rejected), so the call fails with a confusing `MissingParameterError`
 that gives no hint the key name was simply wrong.
 
-## `servicenow_source_control` — repo integration
-| Action | Purpose | Common params_json keys |
+## `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` — repo integration
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `apply_remote_source_control_changes` | Pull remote branch changes into the app | `app_sys_id`, `branch_name`, `auto_upgrade_base_app` |
 | `import_repository` | Import a repository as a new scoped app | `repo_url`, `branch_name`, `credential_sys_id`, `auto_upgrade_base_app` |
 
-## `servicenow_plugins` — plugin lifecycle
-| Action | Purpose | Common params_json keys |
+## `servicenow_activate_plugin`, `servicenow_rollback_plugin` — plugin lifecycle
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `activate_plugin` | Activate a plugin by id | `plugin_id` |
 | `rollback_plugin` | Roll back a plugin activation | `plugin_id` |
 
-## `servicenow_testing` — Automated Test Framework
-| Action | Purpose | Common params_json keys |
+## `servicenow_run_test_suite` — Automated Test Framework
+| Tool | Purpose | Common parameters |
 |--------|---------|-------------------------|
 | `run_test_suite` | Run an ATF test suite | `test_suite_sys_id`, `os_name`, `browser_name`, `browser_version` |

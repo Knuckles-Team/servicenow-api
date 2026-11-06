@@ -44,19 +44,13 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tool; it takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_knowledge_management` | `get_knowledge_articles`, `get_knowledge_article`, `get_knowledge_article_attachment`, `get_featured_knowledge_article`, `get_most_viewed_knowledge_articles` |
-
+| knowledge management | `servicenow_get_knowledge_articles`, `servicenow_get_knowledge_article`, `servicenow_get_knowledge_article_attachment`, `servicenow_get_featured_knowledge_article`, `servicenow_get_most_viewed_knowledge_articles` |
 ### Key parameters
 - `sys_id` — the article sys_id for `get_knowledge_article` /
   `get_knowledge_article_attachment`.
@@ -64,7 +58,7 @@ whose keys are passed straight to the client method.
   and pagination (`limit`, `offset`) as the API expects. When unsure of the exact
   key name for the instance/version, list first and inspect the response shape.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Search / list knowledge articles by keyword (paginated):
 ```json
 {"query":"vpn setup","limit":20,"offset":0}
@@ -83,7 +77,7 @@ Get most-viewed articles (top N):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - The Knowledge API returns published/viewable articles subject to the caller's
   KB read criteria — an article missing from results may be a permissions/criteria
   issue, not an absent record.
