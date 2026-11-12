@@ -4,7 +4,6 @@ from scion_sdk.connector import Connector
 
 from servicenow_api.api_client import Api
 from servicenow_api.auth import get_client
-from servicenow_api.mcp_server import register_prompts
 from servicenow_api.sdk_client import ServiceNowSdkClient, get_sdk_client
 
 connector = Connector(
@@ -19,5 +18,4 @@ connector = Connector(
             "prefix": "servicenow_sdk",
         },
     ),
-    extra_registrations=(register_prompts,),
 )
