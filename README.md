@@ -93,7 +93,7 @@ The table below is auto-generated from the MCP server — do not edit by hand.
 | `servicenow_hr` | `HRTOOL` | Manage servicenow hr operations. |
 | `servicenow_import_sets` | `IMPORT_SETSTOOL` | Manage servicenow import sets operations. |
 | `servicenow_incidents` | `INCIDENTSTOOL` | Manage servicenow incidents operations. |
-| `servicenow_ingest_incidents` | `MISCTOOL` | Natively ingest ServiceNow incidents into epistemic-graph as typed :Incident nodes. |
+| `servicenow_ingest_incidents` | `MISCTOOL` | Natively ingest ServiceNow incidents into medulla as typed :Incident nodes. |
 | `servicenow_knowledge_management` | `KNOWLEDGE_MANAGEMENTTOOL` | Manage servicenow knowledge management operations. |
 | `servicenow_metricbase` | `METRICBASETOOL` | Manage servicenow metricbase operations. |
 | `servicenow_plugins` | `PLUGINSTOOL` | Manage servicenow plugins operations. |
@@ -274,8 +274,8 @@ When query strings or parameters are provided, an LLM-free **Knowledge Graph res
 <!-- MCP-CONFIG-EXAMPLES:START -->
 
 > **Install the connector-focused `[mcp]` extra.** Examples use `servicenow-api[mcp]` to add
-> FastMCP / FastAPI through `scion-sdk[mcp]`; the required Agent Utilities core
-> still carries `epistemic-graph[full]`. The `[agent-runtime]` extra additionally
+> FastMCP / FastAPI through `scion-sdk[mcp]`; the required Meristem core
+> still carries `medulla[full]`. The `[agent-runtime]` extra additionally
 > enables model orchestration.
 
 #### stdio Transport (local IDEs — Cursor, Claude Desktop, VS Code)
@@ -783,8 +783,8 @@ Pick the extra that matches what the operator want to run:
 
 | Extra | Installs | Use when |
 |-------|----------|----------|
-| `servicenow-api[mcp]` | Connector-focused MCP server (`scion-sdk[mcp]` — FastMCP/FastAPI + `epistemic-graph[full]`) | The operator only run the **MCP server** (smallest install / image) |
-| `servicenow-api[agent]` | Agent runtime (`scion-sdk[agent-runtime,logfire]` — model orchestration + `epistemic-graph[full]`) | The operator run the **integrated agent** |
+| `servicenow-api[mcp]` | Connector-focused MCP server (`scion-sdk[mcp]` — FastMCP/FastAPI + `medulla[full]`) | The operator only run the **MCP server** (smallest install / image) |
+| `servicenow-api[agent]` | Agent runtime (`scion-sdk[agent-runtime,logfire]` — model orchestration + `medulla[full]`) | The operator run the **integrated agent** |
 | `servicenow-api[all]` | Everything (`mcp` + `agent` + `logfire`) | Development / both surfaces |
 
 ```bash
@@ -804,8 +804,8 @@ One multi-stage `docker/Dockerfile` builds two right-sized images, selected by `
 
 | Image tag | Build target | Contents | Entrypoint |
 |-----------|--------------|----------|------------|
-| `example/servicenow-api:mcp` | `--target mcp` | `servicenow-api[mcp]` — **connector-focused**, includes `epistemic-graph[full]`; no model-orchestration stack | `servicenow-mcp` |
-| `example/servicenow-api@sha256:<digest>` | `--target agent` (default) | `servicenow-api[agent]` — **agent runtime**, model orchestration + `epistemic-graph[full]` | `servicenow-agent` |
+| `example/servicenow-api:mcp` | `--target mcp` | `servicenow-api[mcp]` — **connector-focused**, includes `medulla[full]`; no model-orchestration stack | `servicenow-mcp` |
+| `example/servicenow-api@sha256:<digest>` | `--target agent` (default) | `servicenow-api[agent]` — **agent runtime**, model orchestration + `medulla[full]` | `servicenow-agent` |
 
 ```bash
 docker build --target mcp   -t example/servicenow-api:mcp    docker/   # connector-focused MCP server
@@ -815,16 +815,16 @@ docker build --target agent -t example/servicenow-api:agent-local docker/   # ag
 `docker/mcp.compose.yml` runs the connector-focused `:mcp` server; `docker/agent.compose.yml` runs the
 agent (`immutable agent digest`) with a co-located `:mcp` sidecar.
 
-### Knowledge-graph database (`epistemic-graph`)
+### Knowledge-graph database (`medulla`)
 
-Both `[mcp]` and `[agent]` carry the **epistemic-graph** engine through the required
-Agent Utilities core dependency (`epistemic-graph[full]`). The `[mcp]` extra keeps
+Both `[mcp]` and `[agent]` carry the **medulla** engine through the required
+Meristem core dependency (`medulla[full]`). The `[mcp]` extra keeps
 the server connector-focused; `[agent]` also enables model orchestration. Local
 deployments can use the bundled engine. For production or shared state, run
-**epistemic-graph as a dedicated database service** and configure the runtime to use it.
+**medulla as a dedicated database service** and configure the runtime to use it.
 Deployment recipes (single-node + Raft HA), connection configuration, and architecture
 diagrams are documented in the
-[epistemic-graph deployment guide](https://knuckles-team.github.io/epistemic-graph/deployment/).
+[medulla deployment guide](https://knuckles-team.github.io/medulla/deployment/).
 
 ---
 

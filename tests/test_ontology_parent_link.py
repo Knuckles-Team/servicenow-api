@@ -1,4 +1,4 @@
-"""Every class of the packaged ontology reaches an epistemic-graph parent class (CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002)."""
+"""Every class of the packaged ontology reaches an medulla parent class (CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002)."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ ONTOLOGIES = sorted(
 OWL = "http://www.w3.org/2002/07/owl#"
 RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 SUBCLASS = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-# Parent classes of the epistemic-graph ontology that this connector links to or redeclares.
+# Parent classes of the medulla ontology that this connector links to or redeclares.
 PARENT_CLASSES = frozenset(
     (
         "http://knuckles.team/kg#AssetInstance",

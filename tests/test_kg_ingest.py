@@ -1,4 +1,4 @@
-"""Native epistemic-graph typed-node ingestion — Wire-First coverage.
+"""Native medulla typed-node ingestion — Wire-First coverage.
 
 Exercises the real ``ingest_incidents`` / ``ingest_changes`` / ``ingest_cmdb`` /
 ``ingest_kb_articles`` / ``ingest_attachment`` seam with a fake transport one level

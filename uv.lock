@@ -1481,7 +1481,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=7.1.0" },
     { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "requests", specifier = ">=2.34.2" },
-    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.10.1" },
+    { name = "scion-sdk", extras = ["mcp"], specifier = ">=0.10.1,<0.11" },
 ]
 provides-extras = ["test"]
 

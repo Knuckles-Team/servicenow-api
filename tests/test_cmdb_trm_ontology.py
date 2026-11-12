@@ -22,7 +22,7 @@ from tests.test_ontology_parent_link import (
 
 PACKAGE = Path(servicenow_api.__file__).parent
 KG = "http://knuckles.team/kg#"
-# new class -> the parent class (epistemic-graph or this pack) it must extend
+# new class -> the parent class (medulla or this pack) it must extend
 NEW_CLASSES = {
     "CmdbServer": "ConfigurationItem",
     "CmdbApplication": "ConfigurationItem",

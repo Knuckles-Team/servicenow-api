@@ -107,7 +107,7 @@
 
 # --- CMDB: configuration item subtypes (cmdb_ci and its child tables) ------------
 
-# Shared concepts Server, Application and BusinessService are owned by the epistemic-graph
+# Shared concepts Server, Application and BusinessService are owned by the medulla
 # ontology and other packs and are referenced here, never redeclared. The ServiceNow CMDB
 # subtypes below add the system-specific configuration-item parentage.
 

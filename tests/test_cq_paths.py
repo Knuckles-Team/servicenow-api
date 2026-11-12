@@ -14,7 +14,7 @@ pytestmark = pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006")
 
 PACKAGE = Path(servicenow_api.__file__).parent
 TTL = (PACKAGE / "ontology" / "servicenow.ttl").read_text("utf-8")
-# Concepts the epistemic-graph ontology and other packs own: referenced, never declared here.
+# Concepts the medulla ontology and other packs own: referenced, never declared here.
 SHARED = ("Server", "Application", "BusinessService", "Change")
 
 

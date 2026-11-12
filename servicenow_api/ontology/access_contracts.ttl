@@ -1,4 +1,4 @@
-@prefix ac: <https://knuckles-team.github.io/agent-connector-sdk/access#> .
+@prefix ac: <https://knuckles-team.github.io/scion-sdk/access#> .
 @prefix sn: <http://knuckles.team/kg#> .
 
 # Access contracts (SCION-CONNECTOR-CONTROL-R021 / G24): how ConfigurationItem
