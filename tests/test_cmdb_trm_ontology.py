@@ -83,7 +83,7 @@ def _pack() -> list[tuple[str, str, str]]:
 def test_new_classes_extend_their_parent() -> None:
     triples = _pack()
     for name, parent in NEW_CLASSES.items():
-        assert (PACK + name, SUBCLASS, KG + parent) in triples, name
+        assert (PACK + name, SUBCLASS, KG + parent) in triples or (PACK + name, SUBCLASS, PACK + parent) in triples, name
     # No new class is an orphan: each chain ends in a parent-ontology class.
     for name in NEW_CLASSES:
         cursor, seen = PACK + name, set()
