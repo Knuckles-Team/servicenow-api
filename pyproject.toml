@@ -28,7 +28,7 @@ servicenow-mcp = "scion_sdk.cli:serve"
 servicenow-api = "servicenow_api.prompts"
 
 # CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
-# scion-sdk>=0.11.0,<0.12 hub (incidents, changes, CMDB items). Resolved via
+# scion-sdk hub (incidents, changes, CMDB items). Resolved via
 # iter_provider_dirs like the skill/prompt providers.
 
 # The one declared connector identity: the fleet name (SCION-CONNECTOR-CONTROL-R071).
