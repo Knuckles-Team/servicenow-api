@@ -39,7 +39,7 @@
 - High-tier / critical vendors: `tier=high^ORtier=critical`
 - Overdue reassessments: `next_assessment_date<javascript:gs.beginningOfToday()`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Assessments by state: `groupby` = `state`.
 - Vendors by tier: `groupby` = `tier`.
 - Findings by risk rating: `groupby` = `risk_rating`.

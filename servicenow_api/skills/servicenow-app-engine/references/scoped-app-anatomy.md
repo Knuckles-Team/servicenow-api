@@ -50,4 +50,4 @@ constructs and everything is reachable from the project.
 - Server scripts live in `src/server/` and are referenced (`Now.include('./x.server.js')`
   or an import), never inlined into the metadata object.
 - `sys_scope` is the instance-side record for the scope; the app installs under it and its
-  sys_id identifies the app for `servicenow_cicd` / update-set operations.
+  sys_id identifies the app for `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` / update-set operations.

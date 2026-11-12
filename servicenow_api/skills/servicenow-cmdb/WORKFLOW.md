@@ -31,20 +31,14 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON
-string** whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_cmdb` | `get_cmdb`, `get_cmdb_instances`, `get_cmdb_instance`, `create_cmdb_instance`, `update_cmdb_instance`, `patch_cmdb_instance`, `create_cmdb_relation`, `delete_cmdb_relation`, `ingest_cmdb_data` |
-| `servicenow_cilifecycle` | `get_ci_lifecycle_status`, `set_ci_lifecycle_status`, `get_ci_lifecycle_active_actions`, `add_ci_lifecycle_action`, `delete_ci_lifecycle_action`, `extend_ci_lifecycle_lease`, `check_ci_lifecycle_compat_actions`, `check_ci_lifecycle_lease_expired`, `check_ci_lifecycle_not_allowed_action`, `check_ci_lifecycle_not_allowed_ops_transition`, `check_ci_lifecycle_requestor_valid`, `register_ci_lifecycle_operator`, `unregister_ci_lifecycle_operator` |
-
+| cmdb | `servicenow_get_cmdb`, `servicenow_get_cmdb_instances`, `servicenow_get_cmdb_instance`, `servicenow_create_cmdb_instance`, `servicenow_update_cmdb_instance`, `servicenow_patch_cmdb_instance`, `servicenow_create_cmdb_relation`, `servicenow_delete_cmdb_relation`, `servicenow_ingest_cmdb_data` |
+| cilifecycle | `servicenow_get_ci_lifecycle_status`, `servicenow_set_ci_lifecycle_status`, `servicenow_get_ci_lifecycle_active_actions`, `servicenow_add_ci_lifecycle_action`, `servicenow_delete_ci_lifecycle_action`, `servicenow_extend_ci_lifecycle_lease`, `servicenow_check_ci_lifecycle_compat_actions`, `servicenow_check_ci_lifecycle_lease_expired`, `servicenow_check_ci_lifecycle_not_allowed_action`, `servicenow_check_ci_lifecycle_not_allowed_ops_transition`, `servicenow_check_ci_lifecycle_requestor_valid`, `servicenow_register_ci_lifecycle_operator`, `servicenow_unregister_ci_lifecycle_operator` |
 ### Key parameters
 - `class_name` (a.k.a. CMDB class, e.g. `cmdb_ci_server`, `cmdb_ci_linux_server`)
   — for `get_cmdb_instances` / `get_cmdb` and instance create.
@@ -55,9 +49,9 @@ string** whose keys are passed straight to the client method.
   `create_cmdb_relation` / `delete_cmdb_relation`.
 - Lifecycle keys (`status`, `action`, operator/requestor identifiers, lease info)
   — the lifecycle-operator/action model is described in
-  `references/ci-lifecycle.md`; read it before calling `servicenow_cilifecycle`.
+  `references/ci-lifecycle.md`; read it before calling `servicenow_get_ci_lifecycle_status`, `servicenow_set_ci_lifecycle_status`, `servicenow_get_ci_lifecycle_active_actions`.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Query CIs of a class (`get_cmdb_instances`, few fields):
 ```json
 {"class_name":"cmdb_ci_linux_server","sysparm_query":"operational_status=1","sysparm_fields":"name,sys_id,ip_address,operational_status","sysparm_limit":25,"sysparm_display_value":"true"}
@@ -70,7 +64,7 @@ Create a CI relationship (`create_cmdb_relation`):
 ```json
 {"parent":"<app_ci_sys_id>","child":"<server_ci_sys_id>","type":"Runs on::Runs"}
 ```
-Get, then set, a CI's lifecycle status (`servicenow_cilifecycle`, two calls):
+Get, then set, a CI's lifecycle status (`servicenow_get_ci_lifecycle_status`, `servicenow_set_ci_lifecycle_status`, `servicenow_get_ci_lifecycle_active_actions`, two calls):
 ```json
 {"sys_id":"<ci_sys_id>"}
 ```
@@ -79,7 +73,7 @@ Get, then set, a CI's lifecycle status (`servicenow_cilifecycle`, two calls):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - CMDB class names are hierarchical (`cmdb_ci` → `cmdb_ci_hardware` →
   `cmdb_ci_server` → …); query the most specific class you can, and confirm the
   exact class name on the instance (they vary by installed plugins).

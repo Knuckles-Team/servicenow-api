@@ -45,19 +45,13 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tool; it takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_incidents` | `get_incidents`, `get_incident`, `create_incident` |
-
+| incidents | `servicenow_get_incidents`, `servicenow_get_incident`, `servicenow_create_incident` |
 ### Key parameters
 - `sys_id` — required for `get_incident`.
 - `data` — object of field→value for `create_incident` (`short_description`,
@@ -66,7 +60,7 @@ whose keys are passed straight to the client method.
   `sysparm_offset`, `sysparm_display_value`) follow Table-API encoded-query syntax
   — see `servicenow-table-api` for the cheat-sheet.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 List active incidents ordered by priority (newest first, few fields):
 ```json
 {"sysparm_query":"active=true^ORDERBYpriority^ORDERBYDESCsys_created_on","sysparm_fields":"number,short_description,priority,state,assigned_to","sysparm_limit":25,"sysparm_display_value":"true"}
@@ -81,7 +75,7 @@ Create an incident:
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - `urgency`/`impact` are choice values (typically `1`=High … `3`=Low); the derived
   `priority` is calculated by the platform, not set directly.
 - `caller_id` expects a `sys_user` **sys_id** (or a value the instance can resolve);

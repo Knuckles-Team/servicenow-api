@@ -8,7 +8,7 @@ description: >-
   compliance. Use when the agent must inventory the tech/software portfolio, roll up
   records by lifecycle stage, deep-dive a technology by sys_id, or set a technology's
   lifecycle/approval state. APM/TRM has no dedicated REST family, so it is driven
-  table-first via servicenow_table_api / servicenow_aggregate / servicenow_custom_api
+  table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request
   against scoped tables that vary by instance and plugin version. Do NOT use for
   generic table CRUD (use servicenow-table-api), CMDB configuration items
   (servicenow-cmdb), risk/GRC (servicenow-irm-grc), or security
@@ -51,21 +51,15 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method (see `servicenow-table-api`).
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_table_api` | `get_table`, `get_table_record`, `add_table_record`, `update_table_record`, `patch_table_record`, `delete_table_record` |
-| `servicenow_aggregate` | `get_stats` |
-| `servicenow_custom_api` | `api_request` |
-
+| table api | `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record`, `servicenow_update_table_record`, `servicenow_patch_table_record`, `servicenow_delete_table_record` |
+| aggregate | `servicenow_get_stats` |
+| custom api | `servicenow_api_request` |
 ## Discover first (scoped tables vary)
 TRM/APM table names differ by instance and plugin version. **Never assume a schema.**
 Confirm the table exists and inspect its real fields before building queries:
@@ -74,14 +68,14 @@ Confirm the table exists and inspect its real fields before building queries:
 ```
 Candidate tables/fields and the discover-first recipe: `references/trm-tables.md`.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Encoded-query, pagination, and `get_stats` mechanics all follow `servicenow-table-api`.
 
 Portfolio inventory (active records, newest first, few fields) via `get_table`:
 ```json
 {"table":"sn_apm_application","sysparm_query":"active=true^ORDERBYDESCsys_created_on","sysparm_fields":"number,name,u_lifecycle_stage,owned_by","sysparm_limit":50,"sysparm_display_value":"true"}
 ```
-Lifecycle roll-up (count per stage) via `servicenow_aggregate` `get_stats` — swap
+Lifecycle roll-up (count per stage) via `servicenow_get_stats` — swap
 `groupby` to the real lifecycle-stage field you found during discovery:
 ```json
 {"table_name":"cmdb_software_product_model","query":"","groupby":"life_cycle_stage","stats":true}
@@ -101,7 +95,7 @@ Software EOL / end-of-support scan via `get_table` on `cmdb_software_product_mod
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Scoped `sn_apm_*` tables and lifecycle/approval **field names and choice values
   vary per instance/plugin** — always `get_table` with `sysparm_limit:1` first.
 - Lifecycle can live on different records: technology/business-application state on
@@ -112,7 +106,7 @@ Software EOL / end-of-support scan via `get_table` on `cmdb_software_product_mod
 ## Related
 - **Composed by:** the universal-skills `servicenow_trm_tracker` workflow (at
   `agent-packages/skills/universal-skills/universal_skills/workflows/ops/servicenow_trm_tracker/`)
-  composes this skill's `servicenow_table_api` calls — it queries the TRM request
+  composes this skill's `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record` calls — it queries the TRM request
   table (typically `u_trm_request` / `dmn_demand`) via `get_table`, deep-dives the
   selected record via `get_table_record`, then persists results to the KG.
 - Fall back to `servicenow-table-api` for any TRM/APM table this skill doesn't cover.

@@ -1,13 +1,13 @@
 # Servicenow Telecom Tmf
 
-ServiceNow Telecom (TSM/TSOM) TM Forum Open APIs — drives service qualification (TMF645), product inventory (TMF637), account (TMF666/629), and any other TM Forum Open API (TMF622 product ordering, TMF641 service ordering, TMF642 alarm management) exposed by Store-installed scoped telecom apps. Use when the agent must run a service qualification, list product inventory, fetch an account, or call a raw TMF endpoint. It uses the domain-typed tools servicenow_service_qualification / servicenow_product_inventory / servicenow_account, and servicenow_custom_api api_request for other TMF endpoints whose scoped-app path depends on which TMF plugins are installed (discover-first). Do NOT use for generic table CRUD (use servicenow-table-api), CMDB CIs (servicenow-cmdb), or ITSM incidents (servicenow-incident-management); prefer those.
+ServiceNow Telecom (TSM/TSOM) TM Forum Open APIs — drives service qualification (TMF645), product inventory (TMF637), account (TMF666/629), and any other TM Forum Open API (TMF622 product ordering, TMF641 service ordering, TMF642 alarm management) exposed by Store-installed scoped telecom apps. Use when the agent must run a service qualification, list product inventory, fetch an account, or call a raw TMF endpoint. It uses the domain-typed tools servicenow_service_qualification / servicenow_product_inventory / servicenow_account, and servicenow_api_request api_request for other TMF endpoints whose scoped-app path depends on which TMF plugins are installed (discover-first). Do NOT use for generic table CRUD (use servicenow-table-api), CMDB CIs (servicenow-cmdb), or ITSM incidents (servicenow-incident-management); prefer those.
 
 # ServiceNow Telecom / TM Forum Open APIs
 
 ServiceNow's telecom offering (**Telecommunications Service Management / Operations
 Management — TSM/TSOM**) surfaces the **TM Forum (TMF) Open APIs** as Store-installed
 scoped applications. This skill drives those APIs through the domain-typed tools where
-they exist, and through the raw `servicenow_custom_api` escape-hatch for the rest —
+they exist, and through the raw `servicenow_api_request` escape-hatch for the rest —
 just as `servicenow-table-api` teaches for modules without a first-class typed tool.
 
 ## When to use
@@ -33,21 +33,16 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **domain-typed** tools; each takes `action` + a `params_json` **JSON
-string** whose keys are passed straight to the client method (see `servicenow-table-api`).
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions | TMF |
+| Area | Typed tools | TMF |
 |----------------|---------|-----|
 | `servicenow_service_qualification` | `check_service_qualification`, `get_service_qualification`, `process_service_qualification_result` | TMF645 |
 | `servicenow_product_inventory` | `get_product_inventory`, `delete_product_inventory` | TMF637 |
 | `servicenow_account` | `get_account` | TMF666/629 |
-| `servicenow_custom_api` | `api_request` | any other TMF API |
+| `servicenow_api_request` | `api_request` | any other TMF API |
 
 ## Discover first (scoped-app paths vary)
 The exact scoped-app REST path/table for a given TMF API depends on **which TMF
@@ -58,7 +53,7 @@ plugins are installed** and their scope prefix (e.g. `sn_ind_tmt_*`, `sn_ind_tsm
 ```
 TMF-API → purpose → typical scoped-app endpoint/table map: `references/tmf-apis.md`.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 
 Run a **service qualification** (TMF645) via `check_service_qualification` — the body
 shape follows the TMF645 `CheckServiceQualification` resource (confirm required fields
@@ -87,7 +82,7 @@ Fetch an **account** (TMF666/629) via `get_account`:
 ```json
 {"id":"<account_id>"}
 ```
-Call a **raw TMF endpoint** via `servicenow_custom_api` `api_request` — endpoint is the
+Call a **raw TMF endpoint** via `servicenow_api_request` — endpoint is the
 path after the instance base (no leading slash); the `sn_ind_tmt_*` scope prefix is a
 **candidate** you must confirm during discovery:
 ```json
@@ -95,7 +90,7 @@ path after the instance base (no leading slash); the `sn_ind_tmt_*` scope prefix
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Scoped-app **endpoint paths, versions (`v4`/`v5`), and scope prefixes vary per
   installed TMF plugin** — always discover installed `sn_ind_*` scopes first; treat
   the paths in `references/tmf-apis.md` as candidates, not guarantees.
@@ -103,6 +98,6 @@ path after the instance base (no leading slash); the `sn_ind_tmt_*` scope prefix
   `@type`, nested `serviceQualificationItem`, `relatedParty`, …) — validate the exact
   required fields against your app's API version.
 - Not every TMF API has a domain-typed tool — for those (ordering, alarms,
-  qualification variants), use `servicenow_custom_api` `api_request`.
+  qualification variants), use `servicenow_api_request`.
 - For anything backed by a plain table with no TMF endpoint, fall back to
   `servicenow-table-api`.

@@ -13,8 +13,8 @@ now-sdk install --auth <alias>   # push to the profile's instance
 ```
 `install` supports the OAuth `client_credentials` flow via env vars for CI/CD.
 
-## Remote orchestration (MCP — `servicenow_cicd`)
-Call as `servicenow_cicd(action="...", params_json="{...}")` (JSON string).
+## Remote orchestration (MCP — `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`)
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 Install an app from a linked source-control repo:
 ```json
@@ -47,12 +47,12 @@ Instance scans for compliance/quality — actions `full_scan`, `point_scan`, `su
 
 ## Choosing a path
 - Deploying your own working copy to *your* dev instance → **CLI** (`deploy`/`install`).
-- Promoting a versioned app across environments via repo/app-repo → **`servicenow_cicd`**.
-- Field-level promotion via update sets → `servicenow_update_sets` (see `source-control.md`).
+- Promoting a versioned app across environments via repo/app-repo → **`servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`**.
+- Field-level promotion via update sets → `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview` (see `source-control.md`).
 
 ## Gotchas
 - `deploy`/`install` fail or ship stale metadata without a fresh `build`.
-- `servicenow_cicd` calls are asynchronous — capture the returned progress id and poll
+- `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` calls are asynchronous — capture the returned progress id and poll
   `progress` until complete before asserting success.
 - Exact param keys differ slightly by instance family version; when a key is uncertain,
   discover with a minimal call and inspect the response, or check the verbose 1:1 tool.

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.17] - 2026-11-12
+
+### Changed
+- Declared the full connector surface: tool-use contracts for all 133 tools grouped by task, links from every skill and prompt, data locations, five business roles, an operator prompt and five business-role agent prompts.
+- Removed the hand-written action-routed domain tools and the five template prompts; each API operation is one typed tool (the same 133 names).
+- Raised scion-sdk to >=0.10.1.
+
 ## [2.4.16] - 2026-11-06
 
 ### Fixed

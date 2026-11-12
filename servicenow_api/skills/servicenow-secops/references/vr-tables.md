@@ -42,7 +42,7 @@
 - Overdue remediations: `due_date<javascript:gs.beginningOfToday()^active=true`
 - High severity: `severity=high^active=true`
 
-## Aggregate roll-ups (servicenow_aggregate `get_stats`)
+## Aggregate roll-ups (servicenow_get_stats `get_stats`)
 - Items by state: `groupby` = `state`.
 - Items by risk rating: `groupby` = `risk_rating`.
 - Items by assignment group: `groupby` = `assignment_group`.

@@ -37,27 +37,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_TLS_PROFILE` | optional | Named outbound TLS policy from AgentConfig |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method. Grouped by sub-area:
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Sub-area | Condensed tool | Actions |
+| Sub-area | Area | Typed tools |
 |----------|----------------|---------|
-| App/code CI/CD | `servicenow_cicd` | `batch_install`, `batch_install_result`, `batch_rollback`, `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `full_scan`, `point_scan`, `combo_suite_scan`, `suite_scan`, `instance_scan_progress`, `progress` |
+| App/code CI/CD | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` | `batch_install`, `batch_install_result`, `batch_rollback`, `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `full_scan`, `point_scan`, `combo_suite_scan`, `suite_scan`, `instance_scan_progress`, `progress` |
 | DevOps change | `servicenow_devops` | `check_devops_change_control`, `register_devops_artifact`, `check_devops_step_mapping`, `get_devops_change_info`, `get_devops_code_schema`, `get_devops_onboarding_status`, `get_devops_orchestration_schema`, `get_devops_plan_schema` |
-| Update sets | `servicenow_update_sets` | `update_set_create`, `update_set_retrieve`, `update_set_preview`, `update_set_commit`, `update_set_commit_multiple`, `update_set_back_out` |
-| Source control | `servicenow_source_control` | `apply_remote_source_control_changes`, `import_repository` |
-| Plugins | `servicenow_plugins` | `activate_plugin`, `rollback_plugin` |
-| Testing | `servicenow_testing` | `run_test_suite` |
+| Update sets | `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview` | `update_set_create`, `update_set_retrieve`, `update_set_preview`, `update_set_commit`, `update_set_commit_multiple`, `update_set_back_out` |
+| Source control | `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` | `apply_remote_source_control_changes`, `import_repository` |
+| Plugins | `servicenow_activate_plugin`, `servicenow_rollback_plugin` | `activate_plugin`, `rollback_plugin` |
+| Testing | `servicenow_run_test_suite` | `run_test_suite` |
 
 Exact `params_json` keys per action: **`references/actions-catalog.md`**.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Install an app from its repo, then poll progress until done (`app_repo_install`
 returns a `progress_id` / rollback link; feed it back to `progress`):
 ```json
@@ -82,7 +77,7 @@ Run an ATF suite by sys_id (`run_test_suite`):
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - CI/CD and scan calls are **asynchronous**: the install/scan actions return a
   progress/tracker id — poll `progress` (CI/CD generic) or `instance_scan_progress`
   (scans) until the status is complete before treating the result as final.

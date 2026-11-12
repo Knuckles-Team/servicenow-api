@@ -1,6 +1,6 @@
 # CI Lifecycle Management — operator / action / lease model
 
-Reference for the `servicenow_cilifecycle` tool. CI Lifecycle Management (part of
+Reference for the `servicenow_get_ci_lifecycle_status`, `servicenow_set_ci_lifecycle_status`, `servicenow_get_ci_lifecycle_active_actions` tool. CI Lifecycle Management (part of
 ServiceNow ITOM) governs *how* a configuration item may transition between
 lifecycle states and *who* is allowed to make those transitions. Read this before
 mutating lifecycle state — transitions are guarded and can be rejected.

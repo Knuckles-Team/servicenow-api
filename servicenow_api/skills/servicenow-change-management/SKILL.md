@@ -47,15 +47,9 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the condensed surface (used below) vs. the
-one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tool `servicenow_change_management`; it takes `action` +
-a `params_json` **JSON string** whose keys are passed straight to the client
-method. Actions grouped by lifecycle stage:
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 **Query / read**
 `get_change_requests`, `get_change_request`, `get_change_request_nextstate`,
@@ -91,7 +85,7 @@ method. Actions grouped by lifecycle stage:
   `risk` codes vary by instance — see `references/change-states.md` before
   hard-coding values.
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 List active change requests (newest first, few fields):
 ```json
 {"sysparm_query":"active=true^ORDERBYDESCsys_created_on","sysparm_fields":"number,short_description,type,state,risk,start_date","sysparm_limit":25,"sysparm_display_value":"true"}
@@ -107,11 +101,10 @@ CAB flow — conflict check, then approve (two calls):
 ```json
 {"sys_id":"<change_sys_id>","state":"approved"}
 ```
-(First `params_json` → `check_change_request_conflict`; second →
-`approve_change_request`. Review the returned conflicts before approving.)
+(First call → `check_change_request_conflict`; second call → `approve_change_request`. Review the returned conflicts before approving.)
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Field codes (`state`, `type`, `risk`, `impact`) are instance-configurable — read
   `references/change-states.md` and confirm against the target instance; don't
   assume numeric mappings.

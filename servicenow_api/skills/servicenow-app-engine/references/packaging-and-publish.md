@@ -2,11 +2,11 @@
 
 Once built (`servicenow-sdk-lifecycle` → `build`), a scoped app is promoted across
 instances via the `servicenow-api` MCP server. Two mechanisms: **the application repo /
-CI/CD** (`servicenow_cicd`) and **update sets** (`servicenow_update_sets`). Call tools as
+CI/CD** (`servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`) and **update sets** (`servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`). Call tools as
 `servicenow_<domain>(action="...", params_json="{...}")` (JSON string). Env + tag matrix:
 `agent-tools/mcp-client/references/servicenow-api.md`.
 
-## Path A — app repo / CI/CD (`servicenow_cicd`)
+## Path A — app repo / CI/CD (`servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`)
 Preferred for versioned, code-first apps.
 
 1. **Publish** the app to the application repository (action `app_repo_publish`):
@@ -38,7 +38,7 @@ Preferred for versioned, code-first apps.
 The `<app_sys_id>` is the app's `sys_scope`/application record id (see
 `scoped-app-anatomy.md`).
 
-## Path B — update sets (`servicenow_update_sets`)
+## Path B — update sets (`servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`)
 Use when changes originate in the UI, or must be previewed for collisions before commit.
 
 ```json
@@ -54,7 +54,7 @@ Use when changes originate in the UI, or must be previewed for collisions before
 - **UI-originated or mixed changes needing collision preview** → Path B (update sets).
 
 ## Gotchas
-- `servicenow_cicd` calls are **asynchronous** — always capture the returned progress id and
+- `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` calls are **asynchronous** — always capture the returned progress id and
   poll `progress` before declaring success.
 - **Always `update_set_preview` before commit** — it surfaces collisions/skips you must
   resolve.

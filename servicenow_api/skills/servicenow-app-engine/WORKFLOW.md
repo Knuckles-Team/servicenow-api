@@ -47,7 +47,7 @@ constructs, then ship them via the SDK lifecycle.
   business rule + ACL + application menu + catalog item), cross-referencing the samples.
   Read when building a whole app rather than one artifact.
 - **`references/packaging-and-publish.md`** — package and promote the scoped app across
-  instances via `servicenow_cicd` + `servicenow_update_sets`. Read at release time.
+  instances via `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` + `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`. Read at release time.
 
 ## Quick artifact map (full table in metadata-as-code-mapping.md)
 | App concern | Fluent API | Sample (in `servicenow-sdk-docs`) |

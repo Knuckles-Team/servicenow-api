@@ -48,11 +48,7 @@ Sibling skills own the *content* of each artifact; this skill owns the *ordering
 - For MCP-driven steps: connect via the `mcp-client` skill to the **`servicenow-api`**
   server. Env: `SERVICENOW_INSTANCE`, `SERVICENOW_USERNAME`, `SERVICENOW_PASSWORD`
   (+ optional OAuth `SERVICENOW_CLIENT_ID`/`SERVICENOW_CLIENT_SECRET`,
-  `SERVICENOW_SSL_VERIFY`). Full env/tag matrix (do not duplicate):
-  `agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-  (`condensed`|`verbose`|`both`) selects the 30 condensed tools (used below) vs. the
-  119 one-to-one verbose tools.
-
+  `SERVICENOW_SSL_VERIFY`).
 ## The lifecycle (ordered)
 1. **Init** the project — scaffold or convert from an installed app. → `references/project-init.md`
 2. **Auth** the CLI to the target instance and pick a profile. → `references/auth-and-profiles.md`
@@ -84,29 +80,27 @@ MCP tool.*
 | Pull table type defs (`dependencies`) | ✅ | — |
 | Compile package (`build`) / XML→Fluent (`transform`) | ✅ | — |
 | Deploy the built package to *your* dev instance | ✅ (`deploy`/`install`) | — |
-| Install an app **from a source-control repo** on a remote instance | — | `servicenow_cicd` → `app_repo_install` |
-| Publish an app to the app repo | — | `servicenow_cicd` → `app_repo_publish` |
-| Roll an app back | — | `servicenow_cicd` → `app_repo_rollback` |
-| Batch install multiple apps | — | `servicenow_cicd` → `batch_install` |
-| Instance scans (compliance) | — | `servicenow_cicd` → `full_scan`/`point_scan`/`suite_scan` |
-| Poll a running CI/CD job | — | `servicenow_cicd` → `progress` |
-| Import a repo / apply remote SC changes | — | `servicenow_source_control` |
-| Create/preview/commit/back-out update sets | — | `servicenow_update_sets` |
-| Run an ATF suite on the instance | — | `servicenow_testing` → `run_test_suite` |
-| Activate / roll back a plugin | — | `servicenow_plugins` |
+| Install an app **from a source-control repo** on a remote instance | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `app_repo_install` |
+| Publish an app to the app repo | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `app_repo_publish` |
+| Roll an app back | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `app_repo_rollback` |
+| Batch install multiple apps | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `batch_install` |
+| Instance scans (compliance) | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `full_scan`/`point_scan`/`suite_scan` |
+| Poll a running CI/CD job | — | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` → `progress` |
+| Import a repo / apply remote SC changes | — | `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` |
+| Create/preview/commit/back-out update sets | — | `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview` |
+| Run an ATF suite on the instance | — | `servicenow_run_test_suite` → `run_test_suite` |
+| Activate / roll back a plugin | — | `servicenow_activate_plugin`, `servicenow_rollback_plugin` |
 
-## MCP handoff — condensed tools
-Call condensed tools as `servicenow_<domain>(action="...", params_json="{...}")` where
-`params_json` is a **JSON string** (serialize it — it is not an object).
+## MCP handoff
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 | Condensed tool | Actions (lifecycle-relevant) |
 |----------------|------------------------------|
-| `servicenow_source_control` | `apply_remote_source_control_changes`, `import_repository` |
-| `servicenow_cicd` | `app_repo_install`, `app_repo_publish`, `app_repo_rollback`, `batch_install`, `full_scan`, `point_scan`, `suite_scan`, `progress` |
-| `servicenow_update_sets` | `update_set_create`, `update_set_retrieve`, `update_set_preview`, `update_set_commit`, `update_set_commit_multiple`, `update_set_back_out` |
-| `servicenow_testing` | `run_test_suite` |
-| `servicenow_plugins` | `activate_plugin`, `rollback_plugin` |
-
+| source control | `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` |
+| cicd | `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`, `servicenow_batch_install`, `servicenow_full_scan`, `servicenow_point_scan`, `servicenow_suite_scan`, `servicenow_progress` |
+| update sets | `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`, `servicenow_update_set_commit`, `servicenow_update_set_commit_multiple`, `servicenow_update_set_back_out` |
+| testing | `servicenow_run_test_suite` |
+| plugins | `servicenow_activate_plugin`, `servicenow_rollback_plugin` |
 Details, parameters, and `params_json` recipes for each handoff live in
 `references/source-control.md`, `references/deploy-and-install.md`, and
 `references/atf-run.md`. Open them just-in-time.

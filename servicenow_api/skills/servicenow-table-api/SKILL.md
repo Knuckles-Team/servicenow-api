@@ -45,22 +45,16 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
-Full env/tag matrix (do not re-document here): the mcp-client reference
-`agent-tools/mcp-client/references/servicenow-api.md`. `MCP_TOOL_MODE`
-(`condensed`|`verbose`|`both`) selects the 30-tool condensed surface (used below) vs.
-the 119 one-to-one verbose tools.
 
 ## Tools & actions
-Prefer the **condensed** tools; each takes `action` + a `params_json` **JSON string**
-whose keys are passed straight to the client method.
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
-| Condensed tool | Actions |
+| Area | Typed tools |
 |----------------|---------|
-| `servicenow_table_api` | `get_table`, `get_table_record`, `add_table_record`, `update_table_record`, `patch_table_record`, `delete_table_record` |
-| `servicenow_aggregate` | `get_stats` |
-| `servicenow_custom_api` | `api_request` |
-| `servicenow_auth` | `refresh_auth_token` |
-
+| table api | `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record`, `servicenow_update_table_record`, `servicenow_patch_table_record`, `servicenow_delete_table_record` |
+| aggregate | `servicenow_get_stats` |
+| custom api | `servicenow_api_request` |
+| auth | `servicenow_refresh_auth_token` |
 ### Key parameters (Table API)
 - `table` (required) — table name.
 - `table_record_sys_id` — sys_id for single-record get/update/patch/delete.
@@ -81,7 +75,7 @@ whose keys are passed straight to the client method.
 - Order: `^ORDERBYfield` (asc) / `^ORDERBYDESCfield` (desc)
 - Example: `active=true^priority<=2^ORDERBYDESCsys_created_on`
 
-## Recipes (`params_json`)
+## Recipes (tool arguments)
 Query open, high-priority records (return a few fields, newest first):
 ```json
 {"table":"incident","sysparm_query":"active=true^priority<=2^ORDERBYDESCsys_created_on","sysparm_fields":"number,short_description,priority,state","sysparm_limit":20,"sysparm_display_value":"true"}
@@ -98,18 +92,18 @@ Partial update (`patch_table_record`):
 ```json
 {"table":"incident","table_record_sys_id":"<sys_id>","data":{"state":"6","close_notes":"resolved"}}
 ```
-Group-by roll-up via `servicenow_aggregate` `get_stats` (counts per group):
+Group-by roll-up via `servicenow_get_stats` (counts per group):
 ```json
 {"table_name":"incident","query":"active=true","groupby":"priority","stats":true}
 ```
-Raw escape-hatch via `servicenow_custom_api` `api_request` (endpoint is the path after
+Raw escape-hatch via `servicenow_api_request` (endpoint is the path after
 the instance base, no leading slash):
 ```json
 {"method":"GET","endpoint":"api/now/table/sys_user?sysparm_limit=1"}
 ```
 
 ## Gotchas
-- `params_json` is a **string** of JSON, not an object — serialize it.
+- Pass arguments as named parameters; nested objects are plain JSON objects.
 - Prefer `sysparm_fields` + a sane `sysparm_limit`; unbounded reads are slow and large.
 - `sysparm_display_value=true` returns human labels but hides raw values — use `all` to
   get both when you need the sys_id/reference behind a label.

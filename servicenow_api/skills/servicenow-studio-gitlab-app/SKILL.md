@@ -4,13 +4,13 @@ skill_type: skill
 description: >-
   Wire a ServiceNow scoped app (App Engine Studio / Fluent) to a GitLab
   repository and drive its promotion two ways — Path A: native Studio source
-  control (`servicenow_source_control` → `import_repository` /
-  `apply_remote_source_control_changes`, handing off to `servicenow_cicd` for
-  publish/install), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a
+  control (`servicenow_apply_remote_source_control_changes`,
+  `servicenow_import_repository`, then `servicenow_app_repo_install` /
+  `servicenow_app_repo_publish`), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a
   pipeline job, then publish/verify through the same `sn_cicd`/Table-API
   endpoints). Use when the agent must connect an app's source to GitLab, pick
-  between the two integration paths, or author/debug the `.gitlab-ci.yml` that
-  drives a scoped-app pipeline. Do NOT use for the app's own metadata anatomy
+  between the two integration paths, or debug the `.gitlab-ci.yml` of a scoped-app
+  pipeline. Do NOT use for the app's own metadata anatomy
   (use servicenow-app-engine), the now-sdk CLI lifecycle itself (use
   servicenow-sdk-lifecycle), Flow Designer authoring (use
   servicenow-workflow-studio), the CI/CD and DevOps action catalog once a
@@ -29,8 +29,8 @@ Connects a scoped app's source to a GitLab repository and promotes it, via **two
 independent paths** that can be used separately or together:
 
 - **Path A — native Studio source control.** ServiceNow itself pulls from (or
-  imports) the GitLab repo over `servicenow_source_control`, then promotes with
-  `servicenow_cicd` (`servicenow-cicd-devops` owns that action catalog).
+  imports) the GitLab repo over `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository`, then promotes with
+  `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` (`servicenow-cicd-devops` owns that action catalog).
   Requires the instance's **outbound** reach to the GitLab host.
 - **Path B — GitLab-CI-driven.** A GitLab pipeline runs `now-sdk build`/`install`
   (outbound from the GitLab runner to the instance), then the same publish/verify
@@ -57,8 +57,8 @@ claim in this skill.
 - The `now-sdk` CLI lifecycle itself (init/auth/build/deploy/ATF, run locally or
   in a pipeline step) → `servicenow-sdk-lifecycle`.
 - Flow Designer flows/subflows/actions → `servicenow-workflow-studio`.
-- The full CI/CD & DevOps action catalog (`servicenow_cicd`/`servicenow_devops`/
-  `servicenow_update_sets`/`servicenow_plugins`/`servicenow_testing` parameter
+- The full CI/CD & DevOps action catalog (`servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`/`servicenow_devops`/
+  `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`/`servicenow_activate_plugin`, `servicenow_rollback_plugin`/`servicenow_run_test_suite` parameter
   reference) once a pipeline already exists → `servicenow-cicd-devops`.
 - GitLab-side pipeline authoring/debugging unrelated to a ServiceNow target →
   gitlab-api's own `gitlab-pipelines` skill.
@@ -79,7 +79,7 @@ if it doesn't exist yet.
   `mcp_server.py`/client file:line it was verified against on both sides
   (`servicenow-api` and `gitlab-api`). Read to confirm a tool name before calling it.
 - **`references/path-a-native-source-control.md`** — the native-Studio path: the
-  `import_repository`/`apply_remote_source_control_changes` → `servicenow_cicd`
+  `import_repository`/`apply_remote_source_control_changes` → `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`
   hand-off, and the hard inbound-reachability requirement when GitLab sits behind
   an access proxy (e.g. Cloudflare Access) — what that needs and why it's an
   **owner-approval-required** decision, never one this skill makes for you.
@@ -98,12 +98,12 @@ if it doesn't exist yet.
 ```json
 {"repo_url":"https://gitlab.example/group/app-repo.git","branch_name":"main","credential_sys_id":"<credential_sys_id>"}
 ```
-(`servicenow_source_control` action `import_repository`, creates the scoped app from
+(`servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` action `import_repository`, creates the scoped app from
 the repo) → once the app exists, pull further branch changes:
 ```json
 {"app_sys_id":"<app_sys_id>","scope":"x_myco_app","branch_name":"main"}
 ```
-(action `apply_remote_source_control_changes`) → promote with `servicenow_cicd`
+(action `apply_remote_source_control_changes`) → promote with `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`
 (`app_repo_publish`/`app_repo_install`) — full parameter reference:
 `servicenow-cicd-devops` → `references/actions-catalog.md`.
 
@@ -119,8 +119,8 @@ the repo) → once the app exists, pull further branch changes:
    forever, which looks like a hang but is a runner-assignment gap, not a
    pipeline or ServiceNow defect).
 5. Once a job completes, verify the ServiceNow side directly:
-   `servicenow_table_api` action `get_table` on `sys_app`/`sys_scope`, or
-   `servicenow_cicd` action `progress` on the returned tracker id.
+   `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record` action `get_table` on `sys_app`/`sys_scope`, or
+   `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` action `progress` on the returned tracker id.
 
 ## Gotchas
 - **Path A requires inbound reach to GitLab from the ServiceNow instance.** If

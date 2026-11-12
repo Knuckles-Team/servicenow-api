@@ -5,8 +5,8 @@ Fluent projects are ordinary git repos — commit `src/`, `now.config.json`, `pa
 between instances: **source control** (repo ↔ instance) and **update sets** (change
 capture/promotion).
 
-## Source control (MCP — `servicenow_source_control`)
-Call as `servicenow_source_control(action="...", params_json="{...}")`.
+## Source control (MCP — `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository`)
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 Import a repository into the instance (action `import_repository`):
 ```json
@@ -19,8 +19,8 @@ Apply remote source-control changes (pull latest onto the instance; action
 {"app_sys_id":"<app_sys_id>","branch_name":"main","auto_upgrade_base_app":false}
 ```
 
-## Update sets (MCP — `servicenow_update_sets`)
-Call as `servicenow_update_sets(action="...", params_json="{...}")`.
+## Update sets (MCP — `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`)
+Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 | Action | Purpose |
 |--------|---------|
@@ -40,7 +40,7 @@ Create then commit:
 ```
 
 ## Choosing between them
-- **Fluent-as-code shops** promote via git + `servicenow_source_control` (+ `servicenow_cicd`
+- **Fluent-as-code shops** promote via git + `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` (+ `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`
   install/publish). This is the preferred path for apps built with this skill.
 - **Update sets** remain the classic capture/promote mechanism and are still needed when
   changes originate in the UI or must be previewed for collisions before commit.

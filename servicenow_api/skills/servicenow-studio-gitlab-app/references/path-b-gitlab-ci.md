@@ -1,7 +1,7 @@
 # Path B — GitLab-CI-driven promotion
 
 A GitLab pipeline builds the scoped app with the `now-sdk` CLI and promotes it
-through the same `sn_cicd`/Table-API surface `servicenow_cicd`/`servicenow_table_api`
+through the same `sn_cicd`/Table-API surface `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`/`servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record`
 wrap — reachability runs the other direction from Path A: the **GitLab runner**
 reaches outbound to the ServiceNow instance, not the instance reaching GitLab.
 
@@ -13,8 +13,8 @@ reaches outbound to the ServiceNow instance, not the instance reaching GitLab.
 |---|---|---|
 | `build` | `build` | `now-sdk build` the Fluent project into installable artifacts |
 | `deploy` | `deploy_to_instance` | `now-sdk install` against `$SN_INSTANCE_URL` |
-| `promote` | `publish_to_app_repo` | `POST /api/sn_cicd/app_repo/publish` — the same endpoint `servicenow_cicd` action `app_repo_publish` wraps (`servicenow_api/api/api_client_devops.py`) |
-| `verify` | `verify_app_record` | `GET /api/now/table/sys_app` filtered by scope — the same endpoint `servicenow_table_api` action `get_table` wraps |
+| `promote` | `publish_to_app_repo` | `POST /api/sn_cicd/app_repo/publish` — the same endpoint `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` action `app_repo_publish` wraps (`servicenow_api/api/api_client_devops.py`) |
+| `verify` | `verify_app_record` | `GET /api/now/table/sys_app` filtered by scope — the same endpoint `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record` action `get_table` wraps |
 
 Jobs `needs:` the previous stage's job, so a failure anywhere stops the chain.
 

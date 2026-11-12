@@ -1,18 +1,14 @@
-# Tool map — every action this skill cites, with its verified location
-
-All calls: `servicenow_<tool>(action="<action>", params_json="{...}")` /
-`gitlab_<tool>(action="<action>", params_json="{...}")` — `params_json` is a JSON
-**string**, not an object.
+# Tool map — every action this skill cites, with its verified locationEach operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).
 
 ## ServiceNow side (`servicenow-api` MCP server)
 
 | Tool | Action | Registered at | Client method |
 |---|---|---|---|
-| `servicenow_source_control` | `import_repository` | `servicenow_api/mcp_server.py:357` (`register_source_control_tools`) | `Api.import_repository` — `servicenow_api/api/api_client_devops.py:545` |
-| `servicenow_source_control` | `apply_remote_source_control_changes` | `servicenow_api/mcp_server.py:357` | `Api.apply_remote_source_control_changes` — `servicenow_api/api/api_client_other.py:759` |
-| `servicenow_cicd` | `app_repo_publish` / `app_repo_install` / `app_repo_rollback` / `progress` | `servicenow_api/mcp_server.py:242` (`register_cicd_tools`) | see `servicenow-app-engine` → `references/packaging-and-publish.md` and `servicenow-cicd-devops` → `references/actions-catalog.md` for the full parameter contract |
-| `servicenow_table_api` | `get_table` / `add_table_record` | `servicenow_api/mcp_server.py:1017` (`register_table_api_tools`) | `Api.get_table` / `Api.add_table_record` — used here to create/verify the `sys_scope`/`sys_app` records the app lives in |
-| `servicenow_testing` | `run_test_suite` | `servicenow_api/mcp_server.py:401` (`register_testing_tools`) | ATF gate before/after promotion — see `servicenow-cicd-devops` |
+| `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` | `import_repository` | `servicenow_api/mcp_server.py:357` (`register_source_control_tools`) | `Api.import_repository` — `servicenow_api/api/api_client_devops.py:545` |
+| `servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` | `apply_remote_source_control_changes` | `servicenow_api/mcp_server.py:357` | `Api.apply_remote_source_control_changes` — `servicenow_api/api/api_client_other.py:759` |
+| `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` | `app_repo_publish` / `app_repo_install` / `app_repo_rollback` / `progress` | `servicenow_api/mcp_server.py:242` (`register_cicd_tools`) | see `servicenow-app-engine` → `references/packaging-and-publish.md` and `servicenow-cicd-devops` → `references/actions-catalog.md` for the full parameter contract |
+| `servicenow_get_table`, `servicenow_get_table_record`, `servicenow_add_table_record` | `get_table` / `add_table_record` | `servicenow_api/mcp_server.py:1017` (`register_table_api_tools`) | `Api.get_table` / `Api.add_table_record` — used here to create/verify the `sys_scope`/`sys_app` records the app lives in |
+| `servicenow_run_test_suite` | `run_test_suite` | `servicenow_api/mcp_server.py:401` (`register_testing_tools`) | ATF gate before/after promotion — see `servicenow-cicd-devops` |
 
 ## GitLab side (`gitlab-api` MCP server)
 
@@ -32,8 +28,8 @@ All calls: `servicenow_<tool>(action="<action>", params_json="{...}")` /
 - `now-sdk` CLI lifecycle (init/auth/build/transform/deploy/ATF) →
   `servicenow-sdk-lifecycle` → `references/build-transform.md`,
   `references/deploy-and-install.md`, `references/source-control.md`.
-- Full CI/CD & DevOps action catalog (every `servicenow_cicd`/`servicenow_devops`/
-  `servicenow_update_sets`/`servicenow_plugins` parameter) →
+- Full CI/CD & DevOps action catalog (every `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback`/`servicenow_devops`/
+  `servicenow_update_set_create`, `servicenow_update_set_retrieve`, `servicenow_update_set_preview`/`servicenow_activate_plugin`, `servicenow_rollback_plugin` parameter) →
   `servicenow-cicd-devops` → `references/actions-catalog.md`.
 - GitLab-side pipeline authoring/troubleshooting not tied to a ServiceNow
   target → gitlab-api's own `gitlab-pipelines` skill.
