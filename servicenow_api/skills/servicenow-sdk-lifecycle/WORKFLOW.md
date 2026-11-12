@@ -30,7 +30,7 @@ Sibling skills own the *content* of each artifact; this skill owns the *ordering
 - For MCP-driven steps: connect via the `mcp-client` skill to the **`servicenow-api`**
   server. Env: `SERVICENOW_INSTANCE`, `SERVICENOW_USERNAME`, `SERVICENOW_PASSWORD`
   (+ optional OAuth `SERVICENOW_CLIENT_ID`/`SERVICENOW_CLIENT_SECRET`,
-  `SERVICENOW_TLS_PROFILE`). 
+  `SERVICENOW_TLS_PROFILE`).
 ## The lifecycle (ordered)
 1. **Init** the project — scaffold or convert from an installed app. → `references/project-init.md`
 2. **Auth** the CLI to the target instance and pick a profile. → `references/auth-and-profiles.md`

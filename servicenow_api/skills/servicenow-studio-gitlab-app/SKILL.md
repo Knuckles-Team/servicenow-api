@@ -4,13 +4,13 @@ skill_type: skill
 description: >-
   Wire a ServiceNow scoped app (App Engine Studio / Fluent) to a GitLab
   repository and drive its promotion two ways — Path A: native Studio source
-  control (`servicenow_apply_remote_source_control_changes`, `servicenow_import_repository` → `import_repository` /
-  `apply_remote_source_control_changes`, handing off to `servicenow_app_repo_install`, `servicenow_app_repo_publish`, `servicenow_app_repo_rollback` for
-  publish/install), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a
+  control (`servicenow_apply_remote_source_control_changes`,
+  `servicenow_import_repository`, then `servicenow_app_repo_install` /
+  `servicenow_app_repo_publish`), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a
   pipeline job, then publish/verify through the same `sn_cicd`/Table-API
   endpoints). Use when the agent must connect an app's source to GitLab, pick
-  between the two integration paths, or author/debug the `.gitlab-ci.yml` that
-  drives a scoped-app pipeline. Do NOT use for the app's own metadata anatomy
+  between the two integration paths, or debug the `.gitlab-ci.yml` of a scoped-app
+  pipeline. Do NOT use for the app's own metadata anatomy
   (use servicenow-app-engine), the now-sdk CLI lifecycle itself (use
   servicenow-sdk-lifecycle), Flow Designer authoring (use
   servicenow-workflow-studio), the CI/CD and DevOps action catalog once a
