@@ -9,7 +9,7 @@ description = "Python ServiceNow API Wrapper"
 readme = "README.md"
 classifiers = [ "Development Status :: 5 - Production/Stable", "License :: Public Domain", "Environment :: Console", "Operating System :: POSIX :: Linux", "Programming Language :: Python :: 3",]
 requires-python = ">=3.12, <3.15"
-dependencies = [ "scion-sdk[mcp]>=0.10.1,<0.11", "requests>=2.34.2",]
+dependencies = [ "scion-sdk[mcp]>=0.11.0,<0.12", "requests>=2.34.2",]
 [[project.authors]]
 name = "Repository Maintainers"
 email = "maintainers@knuckles.team"
@@ -28,7 +28,7 @@ servicenow-mcp = "scion_sdk.cli:serve"
 servicenow-api = "servicenow_api.prompts"
 
 # CONCEPT:KG-2.320 — federate this package's OWL/RDF ontology module into the
-# scion-sdk hub (incidents, changes, CMDB items). Resolved via
+# scion-sdk>=0.11.0,<0.12 hub (incidents, changes, CMDB items). Resolved via
 # iter_provider_dirs like the skill/prompt providers.
 
 # The one declared connector identity: the fleet name (SCION-CONNECTOR-CONTROL-R071).

@@ -28,7 +28,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: `p
 
 ### User Story 2 - Ontology joins the parent graph (Priority: P1)
 
-The fleet operator and the engine rely on this behaviour of `servicenow-api`: Each `<package>/ontology/*.ttl` that declares classes imports `http://knuckles.team/kg`, and each class reaches an medulla parent class through `rdfs:subClassOf`. It is proven independently of the other stories.
+The fleet operator and the engine rely on this behaviour of `servicenow-api`: Each `<package>/ontology/*.ttl` that declares classes imports `https://knuckles-team.github.io/ontology/core`, and each class reaches an medulla parent class through `rdfs:subClassOf`. It is proven independently of the other stories.
 
 **Acceptance Scenarios**:
 

@@ -53,7 +53,7 @@ def test_incident_properties_carry_an_incident_domain(prop: str) -> None:
 
 def test_host_edge_spans_application_and_server() -> None:
     block = _block("hostedOn")
-    assert block.count(":Application :Server") == 2
+    assert block.count("core:Application core:Server") == 2
 
 
 def test_no_mapping_has_a_null_ontology_class() -> None:

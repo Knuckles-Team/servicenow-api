@@ -1,5 +1,5 @@
-@prefix ac: <https://knuckles-team.github.io/scion-sdk/access#> .
-@prefix sn: <http://knuckles.team/kg#> .
+@prefix ac: <https://knuckles-team.github.io/ontology/access#> .
+@prefix : <https://knuckles-team.github.io/ontology/connector/servicenow#> .
 
 # Access contracts (SCION-CONNECTOR-CONTROL-R021 / G24): how ConfigurationItem
 # and Incident are answered live through this connector's MCP tools, not a
@@ -8,8 +8,8 @@
 # full OWL ontology in servicenow.ttl, which uses multi-line comment
 # literals outside the parser's supported subset.
 
-sn:cmdbAccess a ac:AccessContract ;
-    ac:classIri sn:ConfigurationItem ;
+:cmdbAccess a ac:AccessContract ;
+    ac:classIri :ConfigurationItem ;
     ac:sourceId "servicenow-api" ;
     ac:entity "cmdb_ci" ;
     ac:keyField "sys_id" ;
@@ -23,11 +23,11 @@ sn:cmdbAccess a ac:AccessContract ;
     ac:freshnessSeconds 300 ;
     ac:costHint "medium" .
 
-sn:cmdbShortDescriptionBinding a ac:PropertyBinding ;
-    ac:contract sn:cmdbAccess ; ac:property sn:shortDescription ; ac:field "name" .
+:cmdbShortDescriptionBinding a ac:PropertyBinding ;
+    ac:contract :cmdbAccess ; ac:property :shortDescription ; ac:field "name" .
 
-sn:incidentAccess a ac:AccessContract ;
-    ac:classIri sn:Incident ;
+:incidentAccess a ac:AccessContract ;
+    ac:classIri :Incident ;
     ac:sourceId "servicenow-api" ;
     ac:entity "incident" ;
     ac:keyField "sys_id" ;
@@ -41,11 +41,11 @@ sn:incidentAccess a ac:AccessContract ;
     ac:freshnessSeconds 60 ;
     ac:costHint "medium" .
 
-sn:incidentNumberBinding a ac:PropertyBinding ;
-    ac:contract sn:incidentAccess ; ac:property sn:number ; ac:field "number" .
+:incidentNumberBinding a ac:PropertyBinding ;
+    ac:contract :incidentAccess ; ac:property :number ; ac:field "number" .
 
-sn:incidentPriorityBinding a ac:PropertyBinding ;
-    ac:contract sn:incidentAccess ; ac:property sn:priority ; ac:field "priority" .
+:incidentPriorityBinding a ac:PropertyBinding ;
+    ac:contract :incidentAccess ; ac:property :priority ; ac:field "priority" .
 
-sn:incidentStateBinding a ac:PropertyBinding ;
-    ac:contract sn:incidentAccess ; ac:property sn:state ; ac:field "state" .
+:incidentStateBinding a ac:PropertyBinding ;
+    ac:contract :incidentAccess ; ac:property :state ; ac:field "state" .
