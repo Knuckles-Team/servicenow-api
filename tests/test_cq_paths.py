@@ -14,7 +14,7 @@ pytestmark = pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006")
 
 PACKAGE = Path(servicenow_api.__file__).parent
 TTL = (PACKAGE / "ontology" / "servicenow.ttl").read_text("utf-8")
-# Concepts the epistemic-graph ontology and other packs own: referenced, never declared here.
+# Concepts the medulla ontology and other packs own: referenced, never declared here.
 SHARED = ("Server", "Application", "BusinessService", "Change")
 
 
@@ -53,7 +53,7 @@ def test_incident_properties_carry_an_incident_domain(prop: str) -> None:
 
 def test_host_edge_spans_application_and_server() -> None:
     block = _block("hostedOn")
-    assert block.count(":Application :Server") == 2
+    assert block.count("core:Application core:Server") == 2
 
 
 def test_no_mapping_has_a_null_ontology_class() -> None:

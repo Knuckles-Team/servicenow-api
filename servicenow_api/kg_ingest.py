@@ -1,4 +1,4 @@
-"""Native epistemic-graph ingestion for ServiceNow records and attachments.
+"""Native medulla ingestion for ServiceNow records and attachments.
 
 Incidents, changes, CMDB items, knowledge documents, and attachment blobs share the
 authoritative EG client and media boundary.

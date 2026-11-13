@@ -1,4 +1,4 @@
-"""Every class of the packaged ontology reaches an epistemic-graph parent class (CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002)."""
+"""Every class of the packaged ontology reaches an medulla parent class (CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002)."""
 
 from __future__ import annotations
 
@@ -9,26 +9,26 @@ import pytest
 
 pytestmark = pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R002")
 
-PARENT_IRI = "http://knuckles.team/kg"
+PARENT_IRI = "https://knuckles-team.github.io/ontology/core"
 ONTOLOGIES = sorted(
     (Path(__file__).resolve().parents[1] / "servicenow_api" / "ontology").glob("*.ttl")
 )
 OWL = "http://www.w3.org/2002/07/owl#"
 RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 SUBCLASS = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-# Parent classes of the epistemic-graph ontology that this connector links to or redeclares.
+# Parent classes of the medulla ontology that this connector links to or redeclares.
 PARENT_CLASSES = frozenset(
     (
-        "http://knuckles.team/kg#AssetInstance",
-        "http://knuckles.team/kg#Change",
-        "http://knuckles.team/kg#Concept",
-        "http://knuckles.team/kg#Document",
-        "http://knuckles.team/kg#Incident",
-        "http://knuckles.team/kg#JunctionLink",
-        "http://knuckles.team/kg#Organization",
-        "http://knuckles.team/kg#Person",
-        "http://knuckles.team/kg#TRMRequest",
-        "http://knuckles.team/kg#TechnologyStandard",
+        "https://knuckles-team.github.io/ontology/core#AssetInstance",
+        "https://knuckles-team.github.io/ontology/core#Change",
+        "https://knuckles-team.github.io/ontology/core#Concept",
+        "https://knuckles-team.github.io/ontology/core#Document",
+        "https://knuckles-team.github.io/ontology/connector/servicenow#Incident",
+        "https://knuckles-team.github.io/ontology/core#JunctionLink",
+        "https://knuckles-team.github.io/ontology/core#Organization",
+        "https://knuckles-team.github.io/ontology/connector/servicenow#Person",
+        "https://knuckles-team.github.io/ontology/core#TRMRequest",
+        "https://knuckles-team.github.io/ontology/core#TechnologyStandard",
     )
 )
 # Classes for which the parent ontology has no fitting class yet. Each is a candidate for a new

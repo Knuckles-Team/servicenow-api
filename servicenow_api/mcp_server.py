@@ -50,7 +50,7 @@ def register_misc_tools(mcp: FastMCP):
             default=None, description="MCP context for progress reporting"
         ),
     ) -> dict:
-        """Natively ingest ServiceNow incidents into epistemic-graph as typed :Incident nodes.
+        """Natively ingest ServiceNow incidents into medulla as typed :Incident nodes.
 
         Lists incidents via the ServiceNow API and pushes them (with their affected
         :ConfigurationItem and :Person assignee, via :affects / :assignedTo links) into the
