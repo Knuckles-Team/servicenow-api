@@ -1,0 +1,12 @@
+{
+  "result": [
+    {
+      "sys_id": "0123456789abcdef0123456789abcdef",
+      "number": "INC0010001",
+      "state": "2",
+      "priority": "3",
+      "cmdb_ci": "fedcba9876543210fedcba9876543210",
+      "short_description": "Fixture incident"
+    }
+  ]
+}

@@ -59,6 +59,12 @@
     rdfs:domain :ConfigurationItem ;
     rdfs:range :AssignmentGroup .
 
+:cmdbCi a owl:DatatypeProperty ;
+    rdfs:label "configuration item reference" ;
+    rdfs:comment "Reference to the configuration item an Incident is raised against (incident.cmdb_ci)." ;
+    rdfs:domain :Incident ;
+    rdfs:range xsd:string .
+
 :number a owl:DatatypeProperty ;
     rdfs:label "number" ;
     rdfs:comment "Human-readable ServiceNow record number (e.g. INC0010001)." ;

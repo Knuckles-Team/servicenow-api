@@ -49,3 +49,6 @@
 
 :incidentStateBinding a ac:PropertyBinding ;
     ac:contract :incidentAccess ; ac:property :state ; ac:field "state" .
+
+:incidentCmdbCiBinding a ac:PropertyBinding ;
+    ac:contract :incidentAccess ; ac:property :cmdbCi ; ac:field "cmdb_ci" .
