@@ -11,58 +11,42 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-:Incident a owl:Class ;
-    rdfs:subClassOf core:Incident .
-
-
-:affects a owl:ObjectProperty ;
-    rdfs:label "affects" ;
-    rdfs:comment "Links an Incident or Change to the ConfigurationItem it impacts." ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident core:Change ) ] ;
-    rdfs:range :ConfigurationItem .
-
-:assignedTo a owl:ObjectProperty ;
-    rdfs:label "assigned to" ;
-    rdfs:comment "Links an Incident to the Person it is assigned to (incident.assigned_to)." ;
-    rdfs:domain :Incident ;
-    rdfs:range :Person .
-
 :assignedToGroup a owl:ObjectProperty ;
     rdfs:label "assigned to group" ;
     rdfs:comment "Links an Incident to the AssignmentGroup that works it (incident.assignment_group): the steward of the incident." ;
-    rdfs:domain :Incident ;
-    rdfs:range :AssignmentGroup .
+    rdfs:domain core:Incident ;
+    rdfs:range core:AssignmentGroup .
 
 :impactsConfigurationItem a owl:ObjectProperty ;
     rdfs:label "impacts configuration item" ;
     rdfs:comment "Links an Incident to the ConfigurationItem it is raised against (incident.cmdb_ci)." ;
-    rdfs:subPropertyOf :affects ;
-    rdfs:domain :Incident ;
-    rdfs:range :ConfigurationItem .
+    rdfs:subPropertyOf core:affects ;
+    rdfs:domain core:Incident ;
+    rdfs:range core:ConfigurationItem .
 
 :ciOwnedBy a owl:ObjectProperty ;
     rdfs:label "CI owned by" ;
     rdfs:comment "Links a ConfigurationItem to the Person accountable for it (cmdb_ci.owned_by)." ;
     rdfs:subPropertyOf core:ownedBy ;
-    rdfs:domain :ConfigurationItem ;
-    rdfs:range :Person .
+    rdfs:domain core:ConfigurationItem ;
+    rdfs:range core:Person .
 
 :managedByGroup a owl:ObjectProperty ;
     rdfs:label "managed by group" ;
     rdfs:comment "Links a ConfigurationItem to the AssignmentGroup that manages it (cmdb_ci.managed_by_group): its steward." ;
-    rdfs:domain :ConfigurationItem ;
-    rdfs:range :AssignmentGroup .
+    rdfs:domain core:ConfigurationItem ;
+    rdfs:range core:AssignmentGroup .
 
 :supportedByGroup a owl:ObjectProperty ;
     rdfs:label "supported by group" ;
     rdfs:comment "Links a ConfigurationItem to the AssignmentGroup that supports it (cmdb_ci.support_group)." ;
-    rdfs:domain :ConfigurationItem ;
-    rdfs:range :AssignmentGroup .
+    rdfs:domain core:ConfigurationItem ;
+    rdfs:range core:AssignmentGroup .
 
 :cmdbCi a owl:DatatypeProperty ;
     rdfs:label "configuration item reference" ;
     rdfs:comment "Reference to the configuration item an Incident is raised against (incident.cmdb_ci)." ;
-    rdfs:domain :Incident ;
+    rdfs:domain core:Incident ;
     rdfs:range xsd:string .
 
 :number a owl:DatatypeProperty ;
@@ -70,21 +54,9 @@
     rdfs:comment "Human-readable ServiceNow record number (e.g. INC0010001)." ;
     rdfs:range xsd:string .
 
-:priority a owl:DatatypeProperty ;
-    rdfs:label "priority" ;
-    rdfs:comment "Priority of the incident or change (e.g. 1 - Critical)." ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident core:Change ) ] ;
-    rdfs:range xsd:string .
-
 :shortDescription a owl:DatatypeProperty ;
     rdfs:label "short description" ;
     rdfs:comment "Brief summary of the ITSM record or configuration item." ;
-    rdfs:range xsd:string .
-
-:state a owl:DatatypeProperty ;
-    rdfs:label "state" ;
-    rdfs:comment "Lifecycle state of the record (e.g. New, In Progress, Closed)." ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( :Incident core:Change ) ] ;
     rdfs:range xsd:string .
 
 <https://knuckles-team.github.io/ontology/connector/servicenow> a owl:Ontology ;
@@ -95,17 +67,6 @@
     affected-CI, owner and technology-usage relationships.
 
     CONCEPT:KG-2.9 — Self-registering source extractors.""" .
-
-
-:ConfigurationItem a owl:Class ;
-    rdfs:subClassOf core:AssetInstance ;
-    rdfs:label "Configuration Item" ;
-    rdfs:comment """A managed component tracked in the CMDB (server, service,
-    application, ...) (ServiceNow cmdb_ci table).""" .
-
-:Person a owl:Class ;
-    rdfs:subClassOf core:Person .
-
 
 :KnowledgeArticle a owl:Class ;
     rdfs:subClassOf core:Document ;
@@ -121,22 +82,17 @@
 # subtypes below add the system-specific configuration-item parentage.
 
 :CmdbServer a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem, core:Server ;
+    rdfs:subClassOf core:ConfigurationItem, core:Server ;
     rdfs:label "CMDB Server" ;
     rdfs:comment "A physical or virtual server CI (ServiceNow cmdb_ci_server)." .
 
 :CmdbApplication a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem, core:Application ;
+    rdfs:subClassOf core:ConfigurationItem, core:Application ;
     rdfs:label "CMDB Application" ;
     rdfs:comment "An installed or running application CI (ServiceNow cmdb_ci_appl)." .
 
-:BusinessApplication a owl:Class ;
-    rdfs:subClassOf :CmdbApplication ;
-    rdfs:label "Business Application" ;
-    rdfs:comment "An application a business capability depends on (ServiceNow cmdb_ci_business_app)." .
-
 :CmdbBusinessService a owl:Class ;
-    rdfs:subClassOf :ConfigurationItem, core:BusinessService ;
+    rdfs:subClassOf core:ConfigurationItem, core:BusinessService ;
     rdfs:label "CMDB Business Service" ;
     rdfs:comment "A service delivered to the business, built from CIs (ServiceNow cmdb_ci_service)." .
 
@@ -147,37 +103,14 @@
     with its type (ServiceNow cmdb_rel_ci: parent, child, type such as Depends on::Used by,
     Runs on::Runs, Hosted on::Hosts).""" .
 
-:AssignmentGroup a owl:Class ;
-    rdfs:subClassOf core:Organization ;
-    rdfs:label "Assignment Group" ;
-    rdfs:comment "A group that owns, supports or is assigned records (ServiceNow sys_user_group)." .
-
 # --- ITSM: change requests ----------------------------------------------------------
 
-:ChangeRequest a owl:Class ;
-    rdfs:subClassOf core:Change ;
-    rdfs:label "Change Request" ;
-    rdfs:comment "A ServiceNow change request record (change_request table)." .
-
 # --- TRM: technology reference model -------------------------------------------------
-
-:TRMStandard a owl:Class ;
-    rdfs:subClassOf core:TechnologyStandard ;
-    rdfs:label "TRM Standard" ;
-    rdfs:comment """A Technology Reference Model entry (ServiceNow sn_apm_trm_standards_product)
-    carrying a lifecycle phase through hasPhase (Approved, Approved with Constraints,
-    Evaluation, Divest, Unapproved) and a category through inCategory.""" .
 
 :TRMCategory a owl:Class ;
     rdfs:subClassOf core:Concept ;
     rdfs:label "TRM Category" ;
     rdfs:comment "A category that groups TRM standards (ServiceNow sn_apm_trm_standards_category)." .
-
-:TRMPhase a owl:Class ;
-    rdfs:subClassOf core:Concept ;
-    rdfs:label "TRM Phase" ;
-    rdfs:comment """A TRM lifecycle phase (ServiceNow sn_apm_trm_standards_phase): Approved,
-    Approved with Constraints, Evaluation, Divest or Unapproved, with a production-approved flag.""" .
 
 :TRMLifecycle a owl:Class ;
     rdfs:subClassOf core:TechnologyStandard ;
@@ -205,86 +138,50 @@
 
 # --- Edges and properties ------------------------------------------------------------
 
-:hostedOn a owl:ObjectProperty ;
-    rdfs:label "hosted on" ;
-    rdfs:comment "Links a ConfigurationItem to the CI that hosts it (cmdb_rel_ci type Hosted on::Hosts). Sibling of kg:runsOn and kg:dependsOn." ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( :ConfigurationItem core:Application core:Server ) ] ;
-    rdfs:range [ a owl:Class ; owl:unionOf ( :ConfigurationItem core:Application core:Server ) ] .
-
-:usesTechnology a owl:ObjectProperty ;
-    rdfs:label "uses technology" ;
-    rdfs:comment "Links a ConfigurationItem to the TRMStandard (technology standard) it is built on." ;
-    rdfs:domain :ConfigurationItem ;
-    rdfs:range :TRMStandard .
-
-:touches a owl:ObjectProperty ;
-    rdfs:label "touches" ;
-    rdfs:comment "Links a ChangeRequest to a ConfigurationItem it modifies (task_ci / change_request.cmdb_ci)." ;
-    rdfs:domain :ChangeRequest ;
-    rdfs:range :ConfigurationItem .
-
 :inCategory a owl:ObjectProperty ;
     rdfs:label "in category" ;
     rdfs:comment "Links a TRMStandard to its TRMCategory." ;
-    rdfs:domain :TRMStandard ;
+    rdfs:domain core:TRMStandard ;
     rdfs:range :TRMCategory .
 
 :requestsTechnology a owl:ObjectProperty ;
     rdfs:label "requests technology" ;
     rdfs:comment "Links a TechnologyRequest to the TRMStandard it asks to adopt or change." ;
     rdfs:domain :TechnologyRequest ;
-    rdfs:range :TRMStandard .
+    rdfs:range core:TRMStandard .
 
 :relationshipParent a owl:ObjectProperty ;
     rdfs:label "relationship parent" ;
     rdfs:comment "The parent CI of a CIRelationship (cmdb_rel_ci.parent)." ;
     rdfs:domain :CIRelationship ;
-    rdfs:range :ConfigurationItem .
+    rdfs:range core:ConfigurationItem .
 
 :relationshipChild a owl:ObjectProperty ;
     rdfs:label "relationship child" ;
     rdfs:comment "The child CI of a CIRelationship (cmdb_rel_ci.child)." ;
     rdfs:domain :CIRelationship ;
-    rdfs:range :ConfigurationItem .
-
-:relationshipType a owl:DatatypeProperty ;
-    rdfs:label "relationship type" ;
-    rdfs:comment "Type of a CIRelationship: dependsOn, runsOn or hostedOn (from cmdb_rel_ci.type)." ;
-    rdfs:domain :CIRelationship ;
-    rdfs:range xsd:string .
-
-:hasPhase a owl:ObjectProperty ;
-    rdfs:label "has phase" ;
-    rdfs:comment "Links a TRMStandard to its current TRMPhase (trm_phase)." ;
-    rdfs:domain :TRMStandard ;
-    rdfs:range :TRMPhase .
+    rdfs:range core:ConfigurationItem .
 
 :lifecycleOf a owl:ObjectProperty ;
     rdfs:label "lifecycle of" ;
     rdfs:comment "Links a TRMLifecycle entry to the TRMStandard it versions (trm_product)." ;
     rdfs:domain :TRMLifecycle ;
-    rdfs:range :TRMStandard .
-
-:lifecyclePhase a owl:ObjectProperty ;
-    rdfs:label "lifecycle phase" ;
-    rdfs:comment "Links a TRMLifecycle entry to its TRMPhase." ;
-    rdfs:domain :TRMLifecycle ;
-    rdfs:range :TRMPhase .
+    rdfs:range core:TRMStandard .
 
 :debtOn a owl:ObjectProperty ;
     rdfs:label "debt on" ;
     rdfs:comment "Links a TRMTechnicalDebt row to the TRMStandard it is debt on." ;
     rdfs:domain :TRMTechnicalDebt ;
-    rdfs:range :TRMStandard .
+    rdfs:range core:TRMStandard .
 
 :debtOfApplication a owl:ObjectProperty ;
     rdfs:label "debt of application" ;
     rdfs:comment "Links a TRMTechnicalDebt row to the BusinessApplication carrying it." ;
     rdfs:domain :TRMTechnicalDebt ;
-    rdfs:range :BusinessApplication .
+    rdfs:range core:BusinessApplication .
 
 :productionApproved a owl:DatatypeProperty ;
     rdfs:label "production approved" ;
     rdfs:comment "Whether a TRMPhase permits production use (production_approved)." ;
-    rdfs:domain :TRMPhase ;
+    rdfs:domain core:TRMPhase ;
     rdfs:range xsd:boolean .

@@ -32,7 +32,11 @@ def test_competency_contracts_certified(monkeypatch):
     assert {field for _, field in contract.predicates} == fields
     for prop, _ in contract.predicates:
         local = prop.rsplit("#", 1)[-1]
-        assert f":{local} a owl:DatatypeProperty" in ontology
+        if prop.startswith("https://knuckles-team.github.io/ontology/connector/"):
+            assert f":{local} a owl:DatatypeProperty" in ontology
+        else:
+            # A core property: referenced by its core IRI, never declared by the pack.
+            assert f":{local} a owl:" not in ontology
 
     monkeypatch.setenv("SERVICENOW_INSTANCE", "https://fixture.invalid/api")
     monkeypatch.setenv("SERVICENOW_USERNAME", "fixture-user")

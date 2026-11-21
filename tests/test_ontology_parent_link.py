@@ -19,14 +19,23 @@ SUBCLASS = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
 # Parent classes of the medulla ontology that this connector links to or redeclares.
 PARENT_CLASSES = frozenset(
     (
+        "https://knuckles-team.github.io/ontology/core#Application",
+        "https://knuckles-team.github.io/ontology/core#AssignmentGroup",
+        "https://knuckles-team.github.io/ontology/core#BusinessApplication",
+        "https://knuckles-team.github.io/ontology/core#BusinessService",
+        "https://knuckles-team.github.io/ontology/core#ChangeRequest",
+        "https://knuckles-team.github.io/ontology/core#ConfigurationItem",
+        "https://knuckles-team.github.io/ontology/core#Server",
+        "https://knuckles-team.github.io/ontology/core#TRMPhase",
+        "https://knuckles-team.github.io/ontology/core#TRMStandard",
         "https://knuckles-team.github.io/ontology/core#AssetInstance",
         "https://knuckles-team.github.io/ontology/core#Change",
         "https://knuckles-team.github.io/ontology/core#Concept",
         "https://knuckles-team.github.io/ontology/core#Document",
-        "https://knuckles-team.github.io/ontology/connector/servicenow#Incident",
+        "https://knuckles-team.github.io/ontology/core#Incident",
         "https://knuckles-team.github.io/ontology/core#JunctionLink",
         "https://knuckles-team.github.io/ontology/core#Organization",
-        "https://knuckles-team.github.io/ontology/connector/servicenow#Person",
+        "https://knuckles-team.github.io/ontology/core#Person",
         "https://knuckles-team.github.io/ontology/core#TRMRequest",
         "https://knuckles-team.github.io/ontology/core#TechnologyStandard",
     )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -23,8 +24,8 @@ def _domain_and_range(name: str) -> tuple[str, str]:
         f"\n:{name} a owl:ObjectProperty"
     )[1]
     block = block.split(" .\n")[0]
-    domain = block.split("rdfs:domain :")[1].split()[0]
-    target = block.split("rdfs:range :")[1].split()[0]
+    domain = re.search(r"rdfs:domain (?:\w+)?:(\w+)", block).group(1)
+    target = re.search(r"rdfs:range (?:\w+)?:(\w+)", block).group(1)
     return domain, target
 
 
@@ -34,9 +35,12 @@ def test_every_declared_edge_is_an_ontology_property_of_its_record_type() -> Non
     seen = set()
     for source in declaration.sources:
         for edge in source.edges:
-            domain, target = _domain_and_range(edge.relationship)
-            assert domain == source.record_type, edge.relationship
-            assert target == edge.target_type, edge.relationship
+            if f"\n:{edge.relationship} a owl:ObjectProperty" in ONTOLOGY.read_text(
+                encoding="utf-8"
+            ):
+                domain, target = _domain_and_range(edge.relationship)
+                assert domain == source.record_type, edge.relationship
+                assert target == edge.target_type, edge.relationship
             assert edge.target_type in declaration.schema_mappings
             seen.add((source.source_id, edge.relationship))
     assert {
