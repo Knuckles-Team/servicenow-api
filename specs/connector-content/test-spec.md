@@ -12,6 +12,7 @@ Governing spec: [spec.md](spec.md).
 | T-006 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006` | `tests/test_cq_paths.py::test_shared_concepts_are_not_redeclared` | The test finds no shared-concept declaration, the incident domains, the host edge span and no null mapping. |
 | T-007 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007` | `tests/test_catalog_edges.py::test_every_declared_edge_is_an_ontology_property_of_its_record_type` | `tests/test_catalog_edges.py::test_every_declared_edge_is_an_ontology_property_of_its_record_type` and `::test_incident_references_become_owner_group_and_ci_edges` and `::test_change_and_knowledge_sources_read_their_tables_through_the_table_tool`. |
 | T-008 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008` | `tests/test_access_contracts.py::test_competency_contracts_certified` (planned) | Test: `tests/test_access_contracts.py::test_competency_contracts_certified` (L2) runs the connector ontology certification and validates each recording against its contract. |
+| T-009 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011` | `tests/test_pack_extends_core.py` | No core term is redeclared and no retired IRI base remains. |
 
 ## Negative and boundary cases
 

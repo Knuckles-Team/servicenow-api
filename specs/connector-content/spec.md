@@ -81,11 +81,13 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: Su
 **Acceptance Scenarios**:
 
 1. **Given** the `servicenow-api` connector built from the default branch, **When** `tests/test_access_contracts.py::test_competency_contracts_certified` runs, **Then** test: `tests/test_access_contracts.py::test_competency_contracts_certified` (L2) runs the connector ontology certification and validates each recording against its contract.
+9. **Given** the connector is configured, **When** the behaviour of row `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011` (pack extends only the core ontology) is exercised, **Then** no core class or property is redeclared and no retired IRI base remains. Test: `tests/test_pack_extends_core.py::test_pack_declares_no_core_term`.
 
 ### Edge Cases
 
 - The vendor service is unreachable or rejects the credential: the connector returns the SDK typed error and never a partial result.
 - An argument outside the documented inputs is refused with the SDK typed refusal and causes no effect on the vendor service.
+- If `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011` is not met, its proving test fails: pack extends only the core ontology.
 
 ## Requirements
 
@@ -97,6 +99,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: Su
 - **FR-006**: Competency-question paths. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006`.
 - **FR-007**: Owner, steward and CMDB edges. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007`.
 - **FR-008**: Declare access contracts for the competency reads of servicenow-api. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008`.
+- **FR-009**: Pack extends only the core ontology. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011`.
 
 ## Success Criteria
 
@@ -108,6 +111,7 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: Su
 - **SC-006**: The test finds no shared-concept declaration, the incident domains, the host edge span and no null mapping. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006`.
 - **SC-007**: `tests/test_catalog_edges.py::test_every_declared_edge_is_an_ontology_property_of_its_record_type` and `::test_incident_references_become_owner_group_and_ci_edges` and `::test_change_and_knowledge_sources_read_their_tables_through_the_table_tool`. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007`.
 - **SC-008**: Test: `tests/test_access_contracts.py::test_competency_contracts_certified` (L2) runs the connector ontology certification and validates each recording against its contract. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008`.
+- **SC-009**: No pack term redeclares a core term and no retired IRI base remains. Rows: `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011`.
 
 ## Assumptions
 
@@ -126,3 +130,4 @@ The fleet operator and the engine rely on this behaviour of `servicenow-api`: Su
 | FR-006 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R006` | plan.md Production caller chain | T-006 | tests/test_cq_paths.py::test_shared_concepts_are_not_redeclared |
 | FR-007 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R007` | plan.md Production caller chain | T-007 | tests/test_catalog_edges.py::test_every_declared_edge_is_an_ontology_property_of_its_record_type |
 | FR-008 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R008` | plan.md Production caller chain | T-008 | tests/test_access_contracts.py::test_competency_contracts_certified |
+| FR-009 | `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011` | [plan.md](plan.md) | T-009 | [test-spec.md](test-spec.md) |

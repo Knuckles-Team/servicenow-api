@@ -41,6 +41,11 @@ NEW_CLASSES = {
     "TechnologyRequest": "TRMRequest",
     "LifecycleRequest": "TechnologyRequest",
 }
+# Classes and properties the core ontology owns: referenced by core IRI, never declared by the pack.
+CORE_CLASSES = frozenset(
+    {"BusinessApplication", "AssignmentGroup", "ChangeRequest", "TRMStandard", "TRMPhase"}
+)
+CORE_EDGES = frozenset({"usesTechnology", "touches", "hostedOn", "hasPhase", "lifecyclePhase"})
 EDGES = (
     "usesTechnology",
     "touches",
@@ -83,9 +88,12 @@ def _pack() -> list[tuple[str, str, str]]:
 def test_new_classes_extend_their_parent() -> None:
     triples = _pack()
     for name, parent in NEW_CLASSES.items():
+        if name in CORE_CLASSES:
+            assert not any(s == PACK + name for s, _, _ in triples), name
+            continue
         assert (PACK + name, SUBCLASS, KG + parent) in triples or (PACK + name, SUBCLASS, PACK + parent) in triples, name
     # No new class is an orphan: each chain ends in a parent-ontology class.
-    for name in NEW_CLASSES:
+    for name in NEW_CLASSES.keys() - CORE_CLASSES:
         cursor, seen = PACK + name, set()
         while cursor not in PARENT_CLASSES:
             assert cursor not in seen, f"{name} loops"
@@ -100,7 +108,8 @@ def test_edges_connect_declared_classes() -> None:
     triples = _pack()
     declared = {s for s, p, o in triples if o.endswith("#Class")}
     for edge in EDGES:
-        assert any(s == PACK + edge for s, _, _ in triples), edge
+        declared_here = any(s == PACK + edge for s, _, _ in triples)
+        assert declared_here != (edge in CORE_EDGES), edge
     for s, p, o in triples:
         if s.startswith(PACK) and p.endswith(("#domain", "#range")) and o.startswith((KG, PACK)):
             local = o.removeprefix(KG).removeprefix(PACK)
@@ -114,6 +123,8 @@ def test_manifest_maps_and_shapes_cover_new_types() -> None:
     ontology = (PACKAGE / "ontology" / "servicenow.ttl").read_text("utf-8")
     for name, parent in NEW_CLASSES.items():
         assert name in load_declaration("servicenow_api").schema_mappings, name
+        if name in CORE_CLASSES:
+            continue
         assert load_declaration("servicenow_api").schema_mappings[name].ontology_class == parent
     for name in (
         "CIRelationship",
@@ -127,7 +138,8 @@ def test_manifest_maps_and_shapes_cover_new_types() -> None:
         "TechnologyRequest",
         "LifecycleRequest",
     ):
-        assert re.search(rf"^:{name}\s+a\s+owl:Class\b", ontology, re.M), name
+        declared = re.search(rf"^:{name}\s+a\s+owl:Class\b", ontology, re.M)
+        assert bool(declared) != (name in CORE_CLASSES), name
 
 
 @pytest.mark.spec("CONN-SERVICENOW-API-CONNECTOR-CONTENT-R005")

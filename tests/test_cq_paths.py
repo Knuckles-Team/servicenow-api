@@ -45,15 +45,9 @@ def test_subtypes_join_the_configuration_item_and_shared_concept(
     assert f":{shared}" in block
 
 
-@pytest.mark.parametrize("prop", ("affects", "priority", "state"))
-def test_incident_properties_carry_an_incident_domain(prop: str) -> None:
-    block = _block(prop)
-    assert re.search(r"rdfs:domain \[ a owl:Class ; owl:unionOf \( :Incident ", block)
-
-
-def test_host_edge_spans_application_and_server() -> None:
-    block = _block("hostedOn")
-    assert block.count("core:Application core:Server") == 2
+@pytest.mark.parametrize("prop", ("affects", "priority", "state", "hostedOn"))
+def test_core_properties_are_not_redeclared(prop: str) -> None:
+    assert not re.search(rf"^:{prop} a ", TTL, flags=re.M), prop
 
 
 def test_no_mapping_has_a_null_ontology_class() -> None:
