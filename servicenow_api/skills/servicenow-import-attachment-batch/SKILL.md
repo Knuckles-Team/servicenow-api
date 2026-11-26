@@ -2,14 +2,11 @@
 name: servicenow-import-attachment-batch
 skill_type: skill
 description: >-
-  ServiceNow data-ingest, file, and batched-REST surface — push rows through Import
-  Sets (single and bulk), upload/get/delete record attachments, and bundle many REST
-  calls into one batch request via the servicenow-api MCP server. Use when the agent
-  must load external data through a transform-mapped import set, attach or fetch a file
-  on a record, or minimize round-trips by batching multiple operations. Do NOT use for
-  direct table CRUD without a transform map (servicenow-table-api), release/CI-CD or
-  update-set promotion (servicenow-cicd-devops), or HR/PPM inserts
-  (servicenow-hr-ppm).
+  Load data and files through the ServiceNow Import Set, Attachment and Batch
+  REST APIs on the servicenow-api MCP server. Use to push rows through a
+  transform map, upload or fetch record attachments, or batch many calls into
+  one request. Do NOT use for direct table CRUD (servicenow-table-api) or
+  update-set promotion (servicenow-cicd-devops).
 license: MIT
 tags: [servicenow, import-sets, attachments, batch, integration, rest-api, mcp]
 metadata:
@@ -17,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Import Sets, Attachments & Batch (integration)
+
+Scope: ServiceNow data-ingest, file, and batched-REST surface — push rows through Import Sets (single and bulk), upload/get/delete record attachments, and bundle many REST calls into one batch request via the servicenow-api MCP server. Use when the agent must load external data through a transform-mapped import set, attach or fetch a file on a record, or minimize round-trips by batching multiple operations. Do NOT use for direct table CRUD without a transform map (servicenow-table-api), release/CI-CD or update-set promotion (servicenow-cicd-devops), or HR/PPM inserts (servicenow-hr-ppm).
 
 The integration on-ramp: land external data through transform-mapped **import sets**,
 manage **attachments** (files) on records, and collapse many REST calls into a single
@@ -45,6 +44,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Confirm the staging table exists with `servicenow_get_table` on `sys_db_object`, and verify its name matches the import `table` value.
+2. Insert rows with `servicenow_insert_import_set` or `servicenow_insert_multiple_import_sets`, and verify the response lists a transform result per row.
+3. Attach a file with `servicenow_upload_attachment` using `table_name`, `table_sys_id` and `file_name`, and verify the returned attachment `sys_id`.
+4. Combine calls with `servicenow_batch_request` and `requests`, and verify each sub-response by its `id` returns a success status.
+5. Read back with `servicenow_get_import_set` or `servicenow_get_attachment`, and verify the result matches what was sent.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Rows land but are not transformed | No transform map on the staging table | Create or select the transform map and resend; check the per-row result from `servicenow_get_import_set` |
+| Attachment upload fails | Wrong `table_sys_id` or unsupported `content_type` | Look up the record with `servicenow_get_table_record` and set the correct `content_type` |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

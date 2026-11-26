@@ -2,13 +2,11 @@
 name: servicenow-hr-ppm
 skill_type: skill
 description: >-
-  ServiceNow HR Service Delivery and Project Portfolio Management surface — fetch an
-  employee HR profile and insert PPM cost plans and project tasks via the servicenow-api
-  MCP server. Use when the agent must read a worker's HR profile or seed project
-  financials (cost plans) and project task breakdowns through the dedicated HR/PPM
-  endpoints. Do NOT use for generic table CRUD (servicenow-table-api), release/CI-CD
-  (servicenow-cicd-devops), data ingest/attachments (servicenow-import-attachment-batch),
-  or email/flows/metricbase (servicenow-platform-utilities).
+  Read HR profiles and insert PPM cost plans and project tasks through the
+  dedicated HR and PPM endpoints on the servicenow-api MCP server. Use to
+  fetch a worker HR profile or seed project financials and task breakdowns. Do
+  NOT use for generic table CRUD (servicenow-table-api) or bulk import
+  (servicenow-import-attachment-batch).
 license: MIT
 tags: [servicenow, hr, ppm, project, rest-api, mcp]
 metadata:
@@ -16,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow HR & PPM
+
+Scope: ServiceNow HR Service Delivery and Project Portfolio Management surface — fetch an employee HR profile and insert PPM cost plans and project tasks via the servicenow-api MCP server. Use when the agent must read a worker's HR profile or seed project financials (cost plans) and project task breakdowns through the dedicated HR/PPM endpoints. Do NOT use for generic table CRUD (servicenow-table-api), release/CI-CD (servicenow-cicd-devops), data ingest/attachments (servicenow-import-attachment-batch), or email/flows/metricbase (servicenow-platform-utilities).
 
 The dedicated endpoints for HR Service Delivery profiles and Project Portfolio
 Management financials/work-breakdown. Two condensed tools.
@@ -43,6 +43,21 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Find the worker or project `sys_id` with `servicenow_get_table` on `sys_user` or the project table, and verify exactly one record is returned.
+2. Fetch the profile with `servicenow_get_hr_profile` and the `sys_id`, and verify the response carries the expected worker.
+3. Insert cost plans with `servicenow_insert_cost_plans` using `project_sys_id` and `cost_plans`, and verify the response lists one created row per plan.
+4. Insert tasks with `servicenow_insert_project_tasks` using `project_sys_id` and `project_tasks`, and verify the created tasks by reading them back with `servicenow_get_table`.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| HR profile returns 403 or empty | Caller lacks HR roles or the sys_id is not an HR profile | Resolve the profile sys_id through `servicenow_get_table` and use an account with HR read roles |
+| Insert rejected | Rows malformed or `project_sys_id` unknown | Confirm the project exists via `servicenow_get_table`, and match the row fields in Key parameters |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

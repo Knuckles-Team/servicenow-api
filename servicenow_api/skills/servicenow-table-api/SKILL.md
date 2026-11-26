@@ -2,15 +2,11 @@
 name: servicenow-table-api
 skill_type: skill
 description: >-
-  Foundational ServiceNow data access — generic Table API CRUD, Aggregate/stats
-  roll-ups, and raw REST escape-hatch via the servicenow-api MCP server. Use when
-  the agent must read, insert, update, patch, delete, count, or aggregate records in
-  ANY ServiceNow table (including scoped app tables with no dedicated API), or call a
-  REST endpoint the typed tools do not cover. Teaches encoded-query (sysparm_query)
-  syntax, field/pagination controls, and group-by aggregation. Do NOT use for a
-  domain that has its own skill (incidents → servicenow-incident-management, change →
-  servicenow-change-management, CMDB → servicenow-cmdb, TRM/APM → servicenow-trm,
-  risk/GRC → servicenow-irm-grc, security → servicenow-secops); prefer those.
+  Do generic ServiceNow Table API CRUD, Aggregate stats and raw REST requests
+  via the servicenow-api MCP server. Use to read, insert, update, delete,
+  count or aggregate records in any table, or call an endpoint typed tools
+  lack. Do NOT use for domains with a dedicated skill such as incidents,
+  change, CMDB, TRM, GRC or security.
 license: MIT
 tags: [servicenow, table-api, aggregate, custom-api, rest-api, crud, encoded-query, mcp]
 metadata:
@@ -18,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Table API (foundational)
+
+Scope: Foundational ServiceNow data access — generic Table API CRUD, Aggregate/stats roll-ups, and raw REST escape-hatch via the servicenow-api MCP server. Use when the agent must read, insert, update, patch, delete, count, or aggregate records in ANY ServiceNow table (including scoped app tables with no dedicated API), or call a REST endpoint the typed tools do not cover. Teaches encoded-query (sysparm_query) syntax, field/pagination controls, and group-by aggregation. Do NOT use for a domain that has its own skill (incidents → servicenow-incident-management, change → servicenow-change-management, CMDB → servicenow-cmdb, TRM/APM → servicenow-trm, risk/GRC → servicenow-irm-grc, security → servicenow-secops); prefer those.
 
 The generic, table-agnostic primitive that every other ServiceNow skill builds on.
 When a module has **no dedicated REST API** (TRM/APM, IRM/GRC, SecOps, custom scoped
@@ -45,6 +43,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Check whether a domain skill owns the table, and verify none applies before calling `servicenow_get_table`.
+2. Read with `servicenow_get_table` using `table`, `sysparm_query`, `sysparm_fields` and `sysparm_limit`, and verify the returned rows match the filter.
+3. Write with `servicenow_add_table_record` or `servicenow_patch_table_record` and `data`, and verify by re-reading with `servicenow_get_table_record`.
+4. Aggregate with `servicenow_get_stats` and `groupby`, and verify the group counts sum to the total.
+5. Delete with `servicenow_delete_table_record` and `table_record_sys_id` only after explicit approval, and verify the record is no longer returned.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Empty result | `sysparm_query` syntax error or wrong table | Rerun with `sysparm_limit` 1 and no query, then add conditions using the encoded-query cheat-sheet |
+| 401 after a long session | Token expired | Call `servicenow_refresh_auth_token` and repeat the request |
+| Write rejected | ACL or mandatory field rule | Check required fields in the response message and the caller roles, then resend `data` with those fields |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

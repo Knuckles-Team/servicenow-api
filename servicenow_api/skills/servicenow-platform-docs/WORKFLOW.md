@@ -1,6 +1,6 @@
 # Servicenow Platform Docs
 
-ServiceNow PRODUCT documentation (concepts, not code) for the Now Platform build/automation and security/risk suites the fleet unifies: Flow Designer / Workflow Studio (no-code automation), App Engine Studio / Application Studio (low-code app building), Integrated Risk Management (IRM/GRC — risk, policy & compliance, audit, vendor/TPRM, privacy), and Security Operations (SecOps — Security Incident Response, Vulnerability Response, Threat Intelligence). Use when the agent needs to understand what these products are, their core concepts, component/table vocabulary, and how they fit together on the Now Platform. Read reference/flow-designer.md, app-engine-studio.md, irm-grc.md, or secops.md, and OVERVIEW.md first for the cross-cutting map. Do NOT use for ServiceNow SDK / Fluent (now-sdk) TypeScript syntax or the metadata-as-code toolchain — use servicenow-sdk-docs for code. Do NOT use for Table API CRUD (servicenow-table-api) or execution-oriented IRM/SecOps MCP table skills.
+ServiceNow PRODUCT documentation (concepts, not code) for the Now Platform build/automation and security/risk suites the fleet unifies: Flow Designer / Workflow Studio (no-code automation), App Engine Studio / Application Studio (low-code app building), Integrated Risk Management (IRM/GRC — risk, policy & compliance, audit, vendor/TPRM, privacy), and Security Operations (SecOps — Security Incident Response, Vulnerability Response, Threat Intelligence). Use when the agent needs to understand what these products are, their core concepts, component/table vocabulary, and how they fit together on the Now Platform. Read references/flow-designer.md, app-engine-studio.md, irm-grc.md, or secops.md, and OVERVIEW.md first for the cross-cutting map. Do NOT use for ServiceNow SDK / Fluent (now-sdk) TypeScript syntax or the metadata-as-code toolchain — use servicenow-sdk-docs for code. Do NOT use for Table API CRUD (servicenow-table-api) or execution-oriented IRM/SecOps MCP table skills.
 
 # ServiceNow Platform Product Docs (Flow Designer, App Engine Studio, IRM/GRC, SecOps)
 
@@ -24,13 +24,13 @@ this product and how does it fit the platform?"*, not *"what is the SDK syntax?"
 
 | Area | File | Read it for |
 |------|------|-------------|
-| Flow Designer / Workflow Studio | [`reference/flow-designer.md`](reference/flow-designer.md) | No-code automation: flows, subflows, actions, triggers, flow logic, decision tables, data pills, spokes / IntegrationHub |
-| App Engine Studio / Application Studio | [`reference/app-engine-studio.md`](reference/app-engine-studio.md) | Low-code app building: scoped apps, tables, forms, experiences/UI, flows, App Engine Management Center (AEMC), citizen-developer roles |
-| Integrated Risk Management (IRM/GRC) | [`reference/irm-grc.md`](reference/irm-grc.md) | Risk Management, Policy & Compliance, Audit, Vendor/TPRM, Privacy — the GRC suite, entity/profile framework, controls & indicators |
-| Security Operations (SecOps) | [`reference/secops.md`](reference/secops.md) | Security Incident Response, Vulnerability Response, Configuration Compliance, Threat Intelligence — the SOAR engine on the Now Platform |
+| Flow Designer / Workflow Studio | [`references/flow-designer.md`](references/flow-designer.md) | No-code automation: flows, subflows, actions, triggers, flow logic, decision tables, data pills, spokes / IntegrationHub |
+| App Engine Studio / Application Studio | [`references/app-engine-studio.md`](references/app-engine-studio.md) | Low-code app building: scoped apps, tables, forms, experiences/UI, flows, App Engine Management Center (AEMC), citizen-developer roles |
+| Integrated Risk Management (IRM/GRC) | [`references/irm-grc.md`](references/irm-grc.md) | Risk Management, Policy & Compliance, Audit, Vendor/TPRM, Privacy — the GRC suite, entity/profile framework, controls & indicators |
+| Security Operations (SecOps) | [`references/secops.md`](references/secops.md) | Security Incident Response, Vulnerability Response, Configuration Compliance, Threat Intelligence — the SOAR engine on the Now Platform |
 
-See [`OVERVIEW.md`](OVERVIEW.md) for the one-page cross-cutting map, and
-[`index.json`](index.json) / [`sources.json`](sources.json) for the machine-readable
+See [`OVERVIEW.md`](references/OVERVIEW.md) for the one-page cross-cutting map, and
+[`index.json`](references/index.json) / [`sources.json`](references/sources.json) for the machine-readable
 navigation and provenance/freshness manifests.
 
 ## Freshness note

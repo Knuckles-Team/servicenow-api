@@ -2,17 +2,11 @@
 name: servicenow-workflow-studio
 skill_type: skill
 description: >-
-  Author ServiceNow Flow Designer flows, subflows, and actions as code with the
-  Fluent `@servicenow/sdk/automation` API (`Flow`, `Subflow`, `wfa.trigger`,
-  `wfa.action`, `wfa.flowLogic`, `wfa.dataPill`), plus how each Fluent construct
-  maps to the Flow Designer UI. Use when the agent must write or explain a flow,
-  subflow, trigger, flow-logic branch/loop, data pill, or script action in code,
-  or introspect a deployed flow's graph via the servicenow-api MCP server. Do NOT
-  use for the build/deploy/ATF lifecycle of the app that contains the flow (use
-  servicenow-sdk-lifecycle), for scoped-app metadata anatomy (use
-  servicenow-app-engine), for the raw bundled flow samples (use
-  servicenow-sdk-docs), or for record CRUD against a live instance (use
-  servicenow-table-api).
+  Author ServiceNow Flow Designer flows, subflows and actions as code with the
+  Fluent automation API, and map each construct to the Flow Designer UI. Use
+  to write or explain a flow, trigger, branch, data pill or script action, or
+  inspect a deployed flow. Do NOT use for the build or deploy lifecycle
+  (servicenow-sdk-lifecycle) or table CRUD (servicenow-table-api).
 license: MIT
 tags: [servicenow, flow-designer, fluent, automation, subflow, trigger, low-code, mcp]
 metadata:
@@ -20,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Workflow Studio (Flow Designer as code)
+
+Scope: Author ServiceNow Flow Designer flows, subflows, and actions as code with the Fluent `@servicenow/sdk/automation` API (`Flow`, `Subflow`, `wfa.trigger`, `wfa.action`, `wfa.flowLogic`, `wfa.dataPill`), plus how each Fluent construct maps to the Flow Designer UI. Use when the agent must write or explain a flow, subflow, trigger, flow-logic branch/loop, data pill, or script action in code, or introspect a deployed flow's graph via the servicenow-api MCP server. Do NOT use for the build/deploy/ATF lifecycle of the app that contains the flow (use servicenow-sdk-lifecycle), for scoped-app metadata anatomy (use servicenow-app-engine), for the raw bundled flow samples (use servicenow-sdk-docs), or for record CRUD against a live instance (use servicenow-table-api).
 
 Flow Designer is ServiceNow's low-code automation surface. The Fluent
 `@servicenow/sdk/automation` API expresses the *same* flows/subflows/actions as
@@ -50,6 +46,21 @@ Every construct below has a worked example bundled in the sibling skill:
 
 Open those when you need a full, real file; the references here teach the *shape and
 rules* so you can compose new ones.
+
+## Steps
+
+1. Pick the closest sample from the Canonical samples section with `grep -l "wfa.trigger" <sample files>`, and verify it uses the trigger type you need.
+2. Write the flow with `Flow` or `Subflow` and `wfa.trigger`, `wfa.action` and `wfa.flowLogic`, and verify the file compiles with `pnpm run build`.
+3. Deploy via the lifecycle in `servicenow-sdk-lifecycle`, and verify the flow exists with `servicenow_get_flow_metadata`.
+4. Render the deployed flow with `servicenow_workflow_to_mermaid`, and verify the diagram matches the authored steps.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Build fails on automation imports | Wrong package path or SDK version | Import from `@servicenow/sdk/automation` and compare with the canonical sample |
+| Flow metadata not found | Flow not deployed or wrong `sys_id` | Look up the id with `servicenow_get_table` on `sys_hub_flow` after deploy |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## The shape of a flow
 ```typescript

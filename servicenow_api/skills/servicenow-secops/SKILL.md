@@ -2,16 +2,11 @@
 name: servicenow-secops
 skill_type: skill
 description: >-
-  ServiceNow Security Operations (SecOps) — Security Incident Response (SIR),
-  Vulnerability Response (VR), and Threat Intelligence (TI). Use when the agent must
-  triage security incidents by priority, list vulnerable items by risk/state, or
-  work threat-intel observables. SecOps areas expose only limited REST, so the
-  reliable path is table-first via servicenow_get_table / servicenow_get_stats /
-  servicenow_api_request against scoped sn_si_ (SIR), sn_vul_ (VR), and sn_ti_ (TI)
-  tables that vary by instance and plugin version. Do NOT use for regular ITSM
-  incidents (use servicenow-incident-management), generic table CRUD
-  (servicenow-table-api), risk/GRC (servicenow-irm-grc), or CMDB CIs
-  (servicenow-cmdb); prefer those.
+  Work ServiceNow Security Operations (Security Incident Response,
+  Vulnerability Response, Threat Intelligence) table-first through the
+  servicenow-api MCP server. Use to triage security incidents, list vulnerable
+  items by risk, or work threat-intel observables. Do NOT use for ITSM
+  incidents (servicenow-incident-management) or GRC (servicenow-irm-grc).
 license: MIT
 tags: [servicenow, secops, security-incident-response, vulnerability-response, threat-intelligence, mcp]
 metadata:
@@ -19,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow SecOps (SIR / VR / TI)
+
+Scope: ServiceNow Security Operations (SecOps) — Security Incident Response (SIR), Vulnerability Response (VR), and Threat Intelligence (TI). Use when the agent must triage security incidents by priority, list vulnerable items by risk/state, or work threat-intel observables. SecOps areas expose only limited REST, so the reliable path is table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request against scoped sn_si_ (SIR), sn_vul_ (VR), and sn_ti_ (TI) tables that vary by instance and plugin version. Do NOT use for regular ITSM incidents (use servicenow-incident-management), generic table CRUD (servicenow-table-api), risk/GRC (servicenow-irm-grc), or CMDB CIs (servicenow-cmdb); prefer those.
 
 Table-driven access to the ServiceNow **Security Operations** suite:
 **Security Incident Response (SIR)**, **Vulnerability Response (VR)**, and **Threat
@@ -48,6 +45,21 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Confirm the scoped table with `servicenow_get_table` and `sysparm_limit` 1, and verify the fields match the reference tables in `references/`.
+2. List the working set with `servicenow_get_table` on `sn_si_incident`, `sn_vul_vulnerable_item` or the threat-intel table, and verify the rows are the intended domain.
+3. Roll up with `servicenow_get_stats` and `groupby` `priority`, and verify counts add up to the unfiltered total.
+4. Change a record with `servicenow_patch_table_record` after reading it with `servicenow_get_table_record`, and verify the field on a re-read.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Table not found | Plugin missing or names differ by version | List `sys_db_object` entries starting `sn_si_`, `sn_vul_` or `sn_ti_` with `servicenow_get_table` and use the real name |
+| State filter returns nothing | State values differ on the instance | Look up valid values in `sys_choice` with `servicenow_get_table` before filtering |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

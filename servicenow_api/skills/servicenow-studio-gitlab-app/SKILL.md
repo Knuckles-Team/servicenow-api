@@ -2,21 +2,11 @@
 name: servicenow-studio-gitlab-app
 skill_type: skill
 description: >-
-  Wire a ServiceNow scoped app (App Engine Studio / Fluent) to a GitLab
-  repository and drive its promotion two ways — Path A: native Studio source
-  control (`servicenow_apply_remote_source_control_changes`,
-  `servicenow_import_repository`, then `servicenow_app_repo_install` /
-  `servicenow_app_repo_publish`), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a
-  pipeline job, then publish/verify through the same `sn_cicd`/Table-API
-  endpoints). Use when the agent must connect an app's source to GitLab, pick
-  between the two integration paths, or debug the `.gitlab-ci.yml` of a scoped-app
-  pipeline. Do NOT use for the app's own metadata anatomy
-  (use servicenow-app-engine), the now-sdk CLI lifecycle itself (use
-  servicenow-sdk-lifecycle), Flow Designer authoring (use
-  servicenow-workflow-studio), the CI/CD and DevOps action catalog once a
-  pipeline is already promoting (use servicenow-cicd-devops), or GitLab-side
-  pipeline mechanics unrelated to ServiceNow (use gitlab-api's own
-  `gitlab-pipelines` skill).
+  Wire a ServiceNow scoped app to a GitLab repository and promote it via Path
+  A (native Studio source control) or Path B (GitLab CI with now-sdk). Use to
+  connect app source to GitLab, choose a path, or debug the pipeline file. Do
+  NOT use for app anatomy (servicenow-app-engine) or the CI/CD action catalog
+  (servicenow-cicd-devops).
 license: MIT
 tags: [servicenow, gitlab, source-control, ci-cd, now-sdk, app-engine, devops, mcp]
 metadata:
@@ -24,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Studio + GitLab (two integration paths)
+
+Scope: Wire a ServiceNow scoped app (App Engine Studio / Fluent) to a GitLab repository and drive its promotion two ways — Path A: native Studio source control (`servicenow_apply_remote_source_control_changes`, `servicenow_import_repository`, then `servicenow_app_repo_install` / `servicenow_app_repo_publish`), or Path B: GitLab-CI-driven (`now-sdk build`/`install` in a pipeline job, then publish/verify through the same `sn_cicd`/Table-API endpoints). Use when the agent must connect an app's source to GitLab, pick between the two integration paths, or debug the `.gitlab-ci.yml` of a scoped-app pipeline. Do NOT use for the app's own metadata anatomy (use servicenow-app-engine), the now-sdk CLI lifecycle itself (use servicenow-sdk-lifecycle), Flow Designer authoring (use servicenow-workflow-studio), the CI/CD and DevOps action catalog once a pipeline is already promoting (use servicenow-cicd-devops), or GitLab-side pipeline mechanics unrelated to ServiceNow (use gitlab-api's own `gitlab-pipelines` skill).
 
 Connects a scoped app's source to a GitLab repository and promotes it, via **two
 independent paths** that can be used separately or together:
@@ -73,6 +65,22 @@ Two MCP servers, both via the `mcp-client` skill:
 
 A scoped app project (`now.config.json`, `src/fluent/`) — see `servicenow-app-engine`
 if it doesn't exist yet.
+
+## Steps
+
+1. Choose the path with the table in Choosing a path, and verify which side can reach the other using `servicenow_get_table` on `sys_app` for Path A or `gitlab_runners` for Path B.
+2. For Path A run `servicenow_import_repository` with `repo_url`, `branch_name` and `credential_sys_id`, and verify the scoped app exists in `servicenow_get_table` on `sys_app`.
+3. Pull later changes with `servicenow_apply_remote_source_control_changes` using `app_sys_id`, `scope` and `branch_name`, and verify the call reports success.
+4. For Path B copy `assets/gitlab-ci-template.yml` to `.gitlab-ci.yml` and set the pipeline variables, and verify the pipeline created has `yaml_errors` null.
+5. Promote with `servicenow_app_repo_publish` and `servicenow_app_repo_install`, and verify the `progress` action ends in success.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Import fails to reach the repository | Instance cannot reach the GitLab host | Use Path B, or ask the owner to approve a perimeter change as described in `references/path-a-native-source-control.md` |
+| Pipeline jobs stay pending | No online runner assigned | Check runners with `gitlab_runners` action `get_all` and assign an online runner |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Reference map — open just-in-time
 - **`references/tool-map.md`** — every tool/action this skill cites, with the

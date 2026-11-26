@@ -2,17 +2,11 @@
 name: servicenow-irm-grc
 skill_type: skill
 description: >-
-  ServiceNow Integrated Risk Management / GRC — the ServiceNow equivalent of RSA
-  Archer (GRC) and OneTrust (privacy). Covers Risk Management, Policy and Compliance,
-  Audit Management, Vendor / Third-Party Risk (TPRM), and Privacy Management. Use
-  when the agent must list open risks, roll up compliance by control state, list
-  open audit findings, work the vendor-risk assessment queue, or handle privacy
-  data-subject / processing-activity records. IRM/GRC has no dedicated REST family,
-  so it is driven table-first via servicenow_get_table / servicenow_get_stats /
-  servicenow_api_request against scoped sn_risk_ / sn_compliance_ / sn_audit_ /
-  sn_vdr_ tables that vary by instance and plugin version. Do NOT use for generic
-  table CRUD (use servicenow-table-api), security incidents/vulnerabilities
-  (servicenow-secops), or the technology portfolio (servicenow-trm); prefer those.
+  Work ServiceNow Integrated Risk Management and GRC (risk, compliance, audit,
+  vendor risk, privacy) table-first through the servicenow-api MCP server. Use
+  to list open risks, roll up control states, list audit findings or work
+  vendor and privacy records. Do NOT use for generic table CRUD (servicenow-
+  table-api) or security incidents (servicenow-secops).
 license: MIT
 tags: [servicenow, irm, grc, risk, compliance, audit, tprm, privacy, archer, onetrust, mcp]
 metadata:
@@ -20,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow IRM / GRC (risk, compliance, audit, TPRM, privacy)
+
+Scope: ServiceNow Integrated Risk Management / GRC — the ServiceNow equivalent of RSA Archer (GRC) and OneTrust (privacy). Covers Risk Management, Policy and Compliance, Audit Management, Vendor / Third-Party Risk (TPRM), and Privacy Management. Use when the agent must list open risks, roll up compliance by control state, list open audit findings, work the vendor-risk assessment queue, or handle privacy data-subject / processing-activity records. IRM/GRC has no dedicated REST family, so it is driven table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request against scoped sn_risk_ / sn_compliance_ / sn_audit_ / sn_vdr_ tables that vary by instance and plugin version. Do NOT use for generic table CRUD (use servicenow-table-api), security incidents/vulnerabilities (servicenow-secops), or the technology portfolio (servicenow-trm); prefer those.
 
 Table-driven access to the ServiceNow **Integrated Risk Management (IRM/GRC)** suite
 — the ServiceNow equivalent of **RSA Archer** (GRC) and **OneTrust** (privacy). These
@@ -51,6 +47,21 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Confirm the scoped table exists with `servicenow_get_table` and `sysparm_limit` 1 on the candidate table, and verify the fields returned match the reference tables in `references/`.
+2. Query the working set with `servicenow_get_table` and a `sysparm_query`, and verify the rows returned belong to the requested domain.
+3. Roll up counts with `servicenow_get_stats` using `groupby`, and verify the totals equal the sum of the groups.
+4. Update a record with `servicenow_patch_table_record` only after reading it with `servicenow_get_table_record`, and verify the changed field on a re-read.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Table not found | Plugin not installed or table name differs by version | Inspect `sys_db_object` with `servicenow_get_table` for names starting `sn_risk_` or `sn_compliance_` and use the real name |
+| Stats call returns nothing | Query or `groupby` field invalid on this table | Run `servicenow_get_table` with `sysparm_limit` 1 to see real field names and retry with one of them |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

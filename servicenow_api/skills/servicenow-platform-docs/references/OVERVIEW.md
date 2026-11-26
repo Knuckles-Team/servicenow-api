@@ -11,10 +11,10 @@ security & ACLs, audit, update sets). The areas stack as layers:
 
 | Layer | Product | What it does | Reference |
 |-------|---------|--------------|-----------|
-| Application-building | **App Engine Studio / Application Studio** | Low-code (AES) and pro-code (Studio) building of scoped apps: tables, forms, experiences, roles | `reference/app-engine-studio.md` |
-| Automation | **Flow Designer / Workflow Studio** | No-code/low-code flows, subflows, actions, triggers, decision tables, spokes (IntegrationHub) | `reference/flow-designer.md` |
-| Risk & compliance | **Integrated Risk Management (IRM/GRC)** | Risk register, policy & compliance, audit, vendor/TPRM, privacy — entity/profile framework, controls, indicators | `reference/irm-grc.md` |
-| Security response | **Security Operations (SecOps)** | SOAR: Security Incident Response, Vulnerability Response, Configuration Compliance, Threat Intelligence | `reference/secops.md` |
+| Application-building | **App Engine Studio / Application Studio** | Low-code (AES) and pro-code (Studio) building of scoped apps: tables, forms, experiences, roles | `references/app-engine-studio.md` |
+| Automation | **Flow Designer / Workflow Studio** | No-code/low-code flows, subflows, actions, triggers, decision tables, spokes (IntegrationHub) | `references/flow-designer.md` |
+| Risk & compliance | **Integrated Risk Management (IRM/GRC)** | Risk register, policy & compliance, audit, vendor/TPRM, privacy — entity/profile framework, controls, indicators | `references/irm-grc.md` |
+| Security response | **Security Operations (SecOps)** | SOAR: Security Incident Response, Vulnerability Response, Configuration Compliance, Threat Intelligence | `references/secops.md` |
 
 ## How they connect
 

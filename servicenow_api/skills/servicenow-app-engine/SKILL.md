@@ -2,16 +2,11 @@
 name: servicenow-app-engine
 skill_type: skill
 description: >-
-  Build scoped ServiceNow applications as metadata-as-code — the scope/`x_`
-  prefix/now.config.json anatomy, how Fluent artifacts assemble into a whole app
-  (table + business rule + ACL + menu + catalog), and how that reconciles with
-  App Engine Studio / Application Studio. Use when the agent must design a scoped
-  app's structure, map an App Engine Studio artifact to its Fluent API and sample,
-  assemble a multi-artifact app, or package/publish a scoped app. Do NOT use for
-  the now-sdk build/deploy/ATF lifecycle mechanics (use servicenow-sdk-lifecycle),
-  for authoring Flow Designer flows/subflows (use servicenow-workflow-studio), for
-  the raw bundled Fluent samples (use servicenow-sdk-docs), or for ad-hoc record
-  CRUD against a live instance (use servicenow-table-api).
+  Design scoped ServiceNow apps as metadata-as-code: scope, x_ prefix,
+  now.config.json, and how Fluent artifacts map to App Engine Studio. Use to
+  structure an app, map a Studio artifact to its Fluent API, assemble a multi-
+  artifact app, or package and publish it. Do NOT use for the now-sdk CLI
+  lifecycle (servicenow-sdk-lifecycle).
 license: MIT
 tags: [servicenow, scoped-app, metadata-as-code, app-engine-studio, fluent, packaging, mcp]
 metadata:
@@ -19,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow App Engine (scoped apps as metadata-as-code)
+
+Scope: Build scoped ServiceNow applications as metadata-as-code — the scope/`x_` prefix/now.config.json anatomy, how Fluent artifacts assemble into a whole app (table + business rule + ACL + menu + catalog), and how that reconciles with App Engine Studio / Application Studio. Use when the agent must design a scoped app's structure, map an App Engine Studio artifact to its Fluent API and sample, assemble a multi-artifact app, or package/publish a scoped app. Do NOT use for the now-sdk build/deploy/ATF lifecycle mechanics (use servicenow-sdk-lifecycle), for authoring Flow Designer flows/subflows (use servicenow-workflow-studio), for the raw bundled Fluent samples (use servicenow-sdk-docs), or for ad-hoc record CRUD against a live instance (use servicenow-table-api).
 
 A scoped ServiceNow application is a namespaced bundle of metadata records (tables, rules,
 ACLs, menus, catalog items…). App Engine Studio (AES) / Application Studio build that
@@ -48,6 +45,22 @@ Everything in a scoped app is a **record in a `sys_*` table, namespaced to a sco
 Fluent constructs (`Table`, `BusinessRule`, `Acl`, `ApplicationMenu`, `ServiceCatalog`,
 `Record`, …) are typed emitters for those records. "Build the app as code" = author those
 constructs, then ship them via the SDK lifecycle.
+
+## Steps
+
+1. Read `references/scoped-app-anatomy.md`, and verify the scope name and `x_<prefix>_` namespace are decided before authoring.
+2. Map each artifact to its Fluent construct using `references/metadata-as-code-mapping.md`, and verify every artifact has a named construct and sample.
+3. Assemble the app by following `references/full-app-walkthrough.md`, and verify table, business rule, ACL, menu and catalog item are all present under `src/fluent/`.
+4. Package the app with `servicenow_update_set_create` or `servicenow_app_repo_publish`, and verify the returned tracker or update set id is non-empty.
+5. Install on the target with `servicenow_app_repo_install`, and verify the app appears in `servicenow_get_table` on `sys_app` with the expected scope.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Scope or prefix rejected | Name does not start with `x_` or collides with an existing scope | Rename in `now.config.json` per `references/scoped-app-anatomy.md` and check `sys_scope` with `servicenow_get_table` first |
+| Publish or install fails | Missing role or the app version already exists | Check the progress tracker, bump the version in `now.config.json`, or call `servicenow_app_repo_rollback` for the failed install |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Reference map — open just-in-time
 - **`references/scoped-app-anatomy.md`** — `sys_scope`, the `x_<prefix>_` namespace,
