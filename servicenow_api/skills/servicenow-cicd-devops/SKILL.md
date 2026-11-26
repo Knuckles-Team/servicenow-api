@@ -2,17 +2,11 @@
 name: servicenow-cicd-devops
 skill_type: skill
 description: >-
-  ServiceNow release-engineering surface — CI/CD app install/scan/rollback, DevOps
-  change-control and artifact registration, update-set create/preview/commit/back-out,
-  source-control apply/import, plugin activate/rollback, and ATF test-suite runs via
-  the servicenow-api MCP server. Use when the agent must deploy or roll back a scoped
-  app, publish/install from an app repo, run a code/instance scan, move changes with
-  update sets, pull remote source-control changes, activate a plugin, or execute an
-  Automated Test Framework suite. This is where the dev-tooling skill
-  servicenow-sdk-lifecycle defers for remote deploy/publish/test. Do NOT use for
-  generic record CRUD (servicenow-table-api), data ingest/attachments/batch
-  (servicenow-import-attachment-batch), or flow rendering and email
-  (servicenow-platform-utilities).
+  Run the ServiceNow release-engineering surface via the servicenow-api MCP
+  server: CI/CD app install and rollback, scans, DevOps change control, update
+  sets, source-control apply, plugins and ATF suites. Use to deploy, roll back
+  or test a scoped app. Do NOT use for generic table CRUD (servicenow-table-
+  api) or data import (servicenow-import-attachment-batch).
 license: MIT
 tags: [servicenow, cicd, devops, update-sets, atf, source-control, rest-api, mcp]
 metadata:
@@ -20,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow CI/CD & DevOps (release engineering)
+
+Scope: ServiceNow release-engineering surface — CI/CD app install/scan/rollback, DevOps change-control and artifact registration, update-set create/preview/commit/back-out, source-control apply/import, plugin activate/rollback, and ATF test-suite runs via the servicenow-api MCP server. Use when the agent must deploy or roll back a scoped app, publish/install from an app repo, run a code/instance scan, move changes with update sets, pull remote source-control changes, activate a plugin, or execute an Automated Test Framework suite. This is where the dev-tooling skill servicenow-sdk-lifecycle defers for remote deploy/publish/test. Do NOT use for generic record CRUD (servicenow-table-api), data ingest/attachments/batch (servicenow-import-attachment-batch), or flow rendering and email (servicenow-platform-utilities).
 
 The operational release surface: promote code between instances, scan it, gate it
 through DevOps change control, and prove it with ATF. Six condensed tools cover the
@@ -54,6 +50,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Look up the exact parameter keys in `references/actions-catalog.md`, and verify the action you need is listed.
+2. Create a change container with `servicenow_update_set_create` or select the app repo, and verify the returned id is non-empty.
+3. Preview with `servicenow_update_set_preview` before any commit, and verify the preview reports no problems.
+4. Deploy with `servicenow_app_repo_install` or `servicenow_app_repo_publish`, and verify via the `progress` action that the tracker reaches a successful state.
+5. Run `servicenow_run_test_suite` after the deploy, and verify the suite result shows no failed tests.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Install fails mid-way | Dependency, plugin or version conflict on the target | Call `servicenow_app_repo_rollback` with the app id, fix the cause from the progress message, and redeploy |
+| Preview shows problems | Collisions or missing dependencies in the update set | Resolve each reported problem and run `servicenow_update_set_preview` again before commit |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

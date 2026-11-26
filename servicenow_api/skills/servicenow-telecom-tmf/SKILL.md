@@ -2,17 +2,11 @@
 name: servicenow-telecom-tmf
 skill_type: skill
 description: >-
-  ServiceNow Telecom (TSM/TSOM) TM Forum Open APIs — drives service qualification
-  (TMF645), product inventory (TMF637), account (TMF666/629), and any other TM Forum
-  Open API (TMF622 product ordering, TMF641 service ordering, TMF642 alarm
-  management) exposed by Store-installed scoped telecom apps. Use when the agent must
-  run a service qualification, list product inventory, fetch an account, or call a
-  raw TMF endpoint. It uses the domain-typed tools servicenow_service_qualification /
-  servicenow_product_inventory / servicenow_account, and servicenow_api_request
-  api_request for other TMF endpoints whose scoped-app path depends on which TMF
-  plugins are installed (discover-first). Do NOT use for generic table CRUD (use
-  servicenow-table-api), CMDB CIs (servicenow-cmdb), or ITSM incidents
-  (servicenow-incident-management); prefer those.
+  Drive ServiceNow Telecom TM Forum Open APIs via the servicenow-api MCP
+  server: service qualification (TMF645), product inventory (TMF637), account
+  (TMF666/629) and other TMF endpoints. Use to run a qualification, list
+  inventory, fetch an account or call a raw TMF path. Do NOT use for table
+  CRUD (servicenow-table-api) or CMDB (servicenow-cmdb).
 license: MIT
 tags: [servicenow, telecom, tmforum, tmf, service-qualification, product-inventory, csm, mcp]
 metadata:
@@ -20,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Telecom / TM Forum Open APIs
+
+Scope: ServiceNow Telecom (TSM/TSOM) TM Forum Open APIs — drives service qualification (TMF645), product inventory (TMF637), account (TMF666/629), and any other TM Forum Open API (TMF622 product ordering, TMF641 service ordering, TMF642 alarm management) exposed by Store-installed scoped telecom apps. Use when the agent must run a service qualification, list product inventory, fetch an account, or call a raw TMF endpoint. It uses the domain-typed tools servicenow_service_qualification / servicenow_product_inventory / servicenow_account, and servicenow_api_request api_request for other TMF endpoints whose scoped-app path depends on which TMF plugins are installed (discover-first). Do NOT use for generic table CRUD (use servicenow-table-api), CMDB CIs (servicenow-cmdb), or ITSM incidents (servicenow-incident-management); prefer those.
 
 ServiceNow's telecom offering (**Telecommunications Service Management / Operations
 Management — TSM/TSOM**) surfaces the **TM Forum (TMF) Open APIs** as Store-installed
@@ -50,6 +46,21 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Discover the installed TMF scopes with `servicenow_api_request` on `sys_db_object` as shown under Discover first, and verify the plugin prefixes returned.
+2. Run `servicenow_service_qualification` with the qualification payload, and verify the response has a qualification id and state.
+3. List inventory with `servicenow_product_inventory`, and verify the returned products reference the expected account.
+4. Fetch the account with `servicenow_account`, and verify the account id matches the one in the inventory.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Endpoint returns 404 | TMF plugin not installed or the scoped path differs | Re-run the discovery request and use the path from `references/tmf-apis.md` that matches the installed scope |
+| Qualification rejected | Required TMF645 fields missing | Compare the payload to the resource shape in the Recipes section and resend |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

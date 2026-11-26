@@ -2,14 +2,11 @@
 name: servicenow-cmdb
 skill_type: skill
 description: >-
-  ITOM CMDB operations on the ServiceNow CMDB + CI Lifecycle Management APIs via
-  the servicenow-api MCP server — query configuration items by class, read a CI
-  with its attributes and relations, create/update/patch CI instances, manage CI
-  relationships, and drive the CI lifecycle (status, actions, leases, operators).
-  Use when the agent must inspect or maintain the CMDB graph or govern a CI's
-  lifecycle state. Do NOT use for incidents (servicenow-incident-management),
-  change requests (servicenow-change-management), or generic non-CMDB table CRUD
-  (servicenow-table-api); prefer those.
+  Operate the ServiceNow CMDB and CI Lifecycle APIs via the servicenow-api MCP
+  server: query CIs by class, read relations, create or patch instances,
+  manage relationships and CI lifecycle state. Use to inspect or maintain the
+  CMDB graph. Do NOT use for incidents (servicenow-incident-management) or
+  generic table CRUD (servicenow-table-api).
 license: MIT
 tags: [servicenow, cmdb, ci-lifecycle, itom, rest-api, mcp]
 metadata:
@@ -17,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow CMDB
+
+Scope: ITOM CMDB operations on the ServiceNow CMDB + CI Lifecycle Management APIs via the servicenow-api MCP server — query configuration items by class, read a CI with its attributes and relations, create/update/patch CI instances, manage CI relationships, and drive the CI lifecycle (status, actions, leases, operators). Use when the agent must inspect or maintain the CMDB graph or govern a CI's lifecycle state. Do NOT use for incidents (servicenow-incident-management), change requests (servicenow-change-management), or generic non-CMDB table CRUD (servicenow-table-api); prefer those.
 
 ITOM access to the ServiceNow **CMDB** (configuration items, classes, attributes,
 relationships) and **CI Lifecycle Management** (lifecycle status, actions, leases,
@@ -45,6 +44,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Query the most specific class with `servicenow_get_cmdb_instances` and `class_name`, and verify the result lists the expected CI.
+2. Read one CI with `servicenow_get_cmdb_instance` and its `sys_id`, and verify the attributes and relations returned.
+3. Apply a change with `servicenow_patch_cmdb_instance` and a `data` object, and verify by re-reading the CI that only those fields changed.
+4. Link CIs with `servicenow_create_cmdb_relation` using `parent`, `child` and `type`, and verify the relation appears on both CIs.
+5. Change lifecycle state with `servicenow_set_ci_lifecycle_status` after reading `references/ci-lifecycle.md`, and verify with `servicenow_get_ci_lifecycle_status`.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Empty instances list | Wrong or too specific `class_name` | Query the parent class such as `cmdb_ci_server` and narrow down from the result |
+| Lifecycle call rejected | Operator not registered or action not allowed for the state | Register the operator with `servicenow_register_ci_lifecycle_operator` and check allowed actions per `references/ci-lifecycle.md` |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

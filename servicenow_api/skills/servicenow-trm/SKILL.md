@@ -2,17 +2,11 @@
 name: servicenow-trm
 skill_type: skill
 description: >-
-  ServiceNow Technology Reference Model / Application Portfolio Management (APM) —
-  manage the technology and software portfolio, software-product lifecycle (Approved /
-  Emerging / Retirement / End-of-life), technical debt, and architecture-standard
-  compliance. Use when the agent must inventory the tech/software portfolio, roll up
-  records by lifecycle stage, deep-dive a technology by sys_id, or set a technology's
-  lifecycle/approval state. APM/TRM has no dedicated REST family, so it is driven
-  table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request
-  against scoped tables that vary by instance and plugin version. Do NOT use for
-  generic table CRUD (use servicenow-table-api), CMDB configuration items
-  (servicenow-cmdb), risk/GRC (servicenow-irm-grc), or security
-  (servicenow-secops); prefer those.
+  Manage the ServiceNow Technology Reference Model and Application Portfolio
+  Management (technology portfolio, lifecycle stages, technical debt) table-
+  first through the servicenow-api MCP server. Use to inventory technology,
+  roll up by lifecycle or set lifecycle state. Do NOT use for generic CRUD
+  (servicenow-table-api) or CMDB (servicenow-cmdb).
 license: MIT
 tags: [servicenow, trm, apm, technology-portfolio, software-lifecycle, technical-debt, mcp]
 metadata:
@@ -20,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow TRM / APM (technology portfolio)
+
+Scope: ServiceNow Technology Reference Model / Application Portfolio Management (APM) — manage the technology and software portfolio, software-product lifecycle (Approved / Emerging / Retirement / End-of-life), technical debt, and architecture-standard compliance. Use when the agent must inventory the tech/software portfolio, roll up records by lifecycle stage, deep-dive a technology by sys_id, or set a technology's lifecycle/approval state. APM/TRM has no dedicated REST family, so it is driven table-first via servicenow_get_table / servicenow_get_stats / servicenow_api_request against scoped tables that vary by instance and plugin version. Do NOT use for generic table CRUD (use servicenow-table-api), CMDB configuration items (servicenow-cmdb), risk/GRC (servicenow-irm-grc), or security (servicenow-secops); prefer those.
 
 Table-driven access to the ServiceNow **Technology Reference Model** and
 **Application Portfolio Management (APM)** modules. These modules ship as scoped
@@ -51,6 +47,21 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Confirm the table with `servicenow_get_table` and `sysparm_limit` 1, and verify fields match `references/trm-tables.md`.
+2. Inventory with `servicenow_get_table` and a `sysparm_query`, and verify the rows are technology or software records.
+3. Roll up by stage with `servicenow_get_stats` and `groupby` on the lifecycle field, and verify the group totals match the inventory count.
+4. Set a stage with `servicenow_patch_table_record` after reading `servicenow_get_table_record`, and verify the lifecycle value on a re-read.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Table not found | APM plugin absent or names differ | List `sys_db_object` with `servicenow_get_table` for the scoped prefix and use the real table |
+| Lifecycle value rejected | Choice value differs from the label | Read `sys_choice` with `servicenow_get_table` and send the stored value |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

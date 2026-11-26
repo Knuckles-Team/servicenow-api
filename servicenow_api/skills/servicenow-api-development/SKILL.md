@@ -60,6 +60,22 @@ Specs are already designed. Deliver one small, reviewable change at a time.
   final commit paragraph. Use `Spec: none (...)` for delivery wiring that is
   owned by the provider's `PIPE-CONNSPEC` rows.
 
+## Steps
+
+1. Create a worktree from `origin/main` with `git worktree add`, and verify `git status --short` is clean before editing.
+2. Find the owning requirement with `git grep -n "<term>" -- specs`, and verify the row ID exists so it can be cited in the commit trailer.
+3. Review the change with `git diff --stat`, and verify it touches only one connector concern in the typed client, mapping or MCP registration.
+4. Run the smallest affected test with `uv run --frozen pytest -q tests/test_api_coverage.py`, and verify it passes without any live tenant call.
+5. Run `uvx pre-commit run --all-files`, and verify every shared hook reports Passed before committing.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Pre-commit hook fails | A shared connector-standard, secrets or spec hook found an issue in the change | Read the hook output, fix the named file, and re-run `uvx pre-commit run --all-files` without bypassing hooks |
+| No owning spec row found | The term is not in `specs/` or is owned by another repository | Extend the existing owning spec or route the work to the owner named in `AGENTS.md`; do not add a new spec directory |
+| Test reaches for a live tenant | Fixture missing so the client attempted a real request | Use the existing fake responses in `tests/` and task-local configuration instead of real credentials |
+
 ## Setup and gates
 
 Use the locked project environment when it is already available:

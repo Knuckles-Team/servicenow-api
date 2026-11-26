@@ -36,6 +36,21 @@ Visit the [discussions](https://github.com/ServiceNow/sdk/discussions) section!
 ServiceNow SDK Samples
 </h1>
 This repository contains sample code illustrating the [ServiceNow SDK](https://docs.servicenow.com/csh?topicname=servicenow-sdk.html&version=latest) and Fluent language. You can read, play with or adapt from these samples to create your own application.
+## Steps
+
+1. Search this skill for the component keyword (for example `acl`, `rest`, `portal`) with `grep -ril <keyword> references/`, and verify at least one sample file is listed.
+2. Open the matching file under `references/` such as `references/acl-sample.md`, and verify it links to bundled source under `assets/samples/`.
+3. Read the bundled source with `cat assets/samples/<sample>/index.now.ts`, and verify the Fluent construct you need is used in it.
+4. Copy the pattern into your project and run `pnpm run build`, and verify the build exits with status 0.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| No sample matches the keyword | Component is named differently in the SDK | Search the SDK Example Index table in this file for the category, then try a synonym such as `uiaction` for UI Action |
+| Build fails after copying | Dependencies not installed or Node below v20 | Run `node --version` to confirm v20 or later and `pnpm install` before building |
+| Sample out of date | Bundled samples lag the SDK release | Regenerate this skill with `servicenow-sdk-docs-builder` and compare |
+
 ## Prerequisites
 - [node](https://nodejs.org/en/) v20+
 - [pnpm](https://pnpm.io/) v9+

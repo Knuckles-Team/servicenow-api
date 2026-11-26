@@ -2,15 +2,11 @@
 name: servicenow-platform-utilities
 skill_type: skill
 description: >-
-  ServiceNow cross-domain platform helpers — send notification email, render deployed
-  Flow Designer flows to Mermaid and read flow metadata, fetch data-classification and
-  application metadata, list activity subscriptions, and push MetricBase time-series
-  via the servicenow-api MCP server. Use when the agent needs a grab-bag platform
-  utility: email a user, visualize or introspect a live flow, look up an app or its data
-  classification, or write a metric point. Do NOT use for table CRUD
-  (servicenow-table-api), release/CI-CD or update sets (servicenow-cicd-devops), data
-  ingest/attachments/batch (servicenow-import-attachment-batch), or HR/PPM
-  (servicenow-hr-ppm).
+  Use ServiceNow cross-domain platform helpers via the servicenow-api MCP
+  server: send email, render deployed flows to Mermaid, read flow metadata,
+  fetch data classification and application metadata, list activity
+  subscriptions, push MetricBase points. Do NOT use for table CRUD
+  (servicenow-table-api) or update sets (servicenow-cicd-devops).
 license: MIT
 tags: [servicenow, email, flows, metricbase, platform, rest-api, mcp]
 metadata:
@@ -18,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow Platform Utilities (cross-domain helpers)
+
+Scope: ServiceNow cross-domain platform helpers — send notification email, render deployed Flow Designer flows to Mermaid and read flow metadata, fetch data-classification and application metadata, list activity subscriptions, and push MetricBase time-series via the servicenow-api MCP server. Use when the agent needs a grab-bag platform utility: email a user, visualize or introspect a live flow, look up an app or its data classification, or write a metric point. Do NOT use for table CRUD (servicenow-table-api), release/CI-CD or update sets (servicenow-cicd-devops), data ingest/attachments/batch (servicenow-import-attachment-batch), or HR/PPM (servicenow-hr-ppm).
 
 A grab-bag of platform-level helpers that don't belong to any one domain: email,
 flow introspection/visualization, classification & app metadata, activity
@@ -52,6 +50,22 @@ Connect via the `mcp-client` skill against the **`servicenow-api`** MCP server.
 | `SERVICENOW_CLIENT_ID` / `SERVICENOW_CLIENT_SECRET` | optional | OAuth2 |
 | `SERVICENOW_SSL_VERIFY` | optional | TLS verification toggle |
 
+
+## Steps
+
+1. Pick the helper from the Tools table, such as `servicenow_get_application`, and verify the parameters you hold match its Key parameters entry.
+2. Send mail with `servicenow_send_email` using `recipients`, `subject` and `body`, and verify the response reports the message queued.
+3. Render a flow with `servicenow_workflow_to_mermaid` and its `sys_id`, and verify the output starts with a Mermaid graph header.
+4. Read metadata with `servicenow_get_application` or `servicenow_get_data_classification`, and verify the returned name or classification matches the record.
+5. Write a point with `servicenow_metricbase_insert`, and verify the call returns without error and the `metric` name is as sent.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| Flow sys_id not found | Wrong id or the flow is not deployed | Look it up with `servicenow_get_table` on `sys_hub_flow` and pass that `sys_id` |
+| Email not delivered | Recipients invalid or outbound mail disabled on the instance | Check the addresses in `recipients` and read `sys_email` with `servicenow_get_table` for the failure reason |
+| Auth error (401/403) | `SERVICENOW_USERNAME`/`SERVICENOW_PASSWORD` or the OAuth pair missing or the role lacks table access | Set the variables listed under Prerequisites, then call `servicenow_get_table` with `sysparm_limit` 1 on the target table to confirm access |
 
 ## Tools & actions
 Each operation is its own typed tool named `servicenow_<operation>`; pass its parameters as named arguments (the tool schema lists them).

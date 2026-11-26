@@ -2,18 +2,11 @@
 name: servicenow-sdk-lifecycle
 skill_type: skill
 description: >-
-  The procedural spine for building ServiceNow applications as code with the
-  `now-sdk` (`@servicenow/sdk`) CLI — the ordered lifecycle from init → auth →
-  author Fluent → dependencies → build/transform → deploy/install →
-  source-control → ATF, plus a "CLI vs MCP tool" decision table. Use when the
-  agent must scaffold, authenticate, build, transform, deploy, install, version,
-  source-control, or ATF-test a scoped app locally, or orchestrate the same steps
-  against a remote instance via the servicenow-api MCP server. Do NOT use for
-  authoring Flow Designer flows/subflows/actions (use servicenow-workflow-studio),
-  for scoped-app metadata anatomy and App Engine Studio reconciliation (use
-  servicenow-app-engine), for the bundled Fluent code samples (use
-  servicenow-sdk-docs), or for plain table CRUD against a live instance (use
-  servicenow-table-api).
+  Procedural spine for building ServiceNow apps as code with the now-sdk CLI:
+  init, auth, author Fluent, dependencies, build, deploy, source control, ATF,
+  plus a CLI vs MCP decision table. Use to scaffold, build, deploy or test a
+  scoped app. Do NOT use for flow authoring (servicenow-workflow-studio) or
+  table CRUD (servicenow-table-api).
 license: MIT
 tags: [servicenow, now-sdk, fluent, cli, lifecycle, ci-cd, source-control, atf, deploy]
 metadata:
@@ -21,6 +14,8 @@ metadata:
   version: '0.1.0'
 ---
 # ServiceNow SDK Lifecycle (the procedural spine)
+
+Scope: The procedural spine for building ServiceNow applications as code with the `now-sdk` (`@servicenow/sdk`) CLI — the ordered lifecycle from init → auth → author Fluent → dependencies → build/transform → deploy/install → source-control → ATF, plus a "CLI vs MCP tool" decision table. Use when the agent must scaffold, authenticate, build, transform, deploy, install, version, source-control, or ATF-test a scoped app locally, or orchestrate the same steps against a remote instance via the servicenow-api MCP server. Do NOT use for authoring Flow Designer flows/subflows/actions (use servicenow-workflow-studio), for scoped-app metadata anatomy and App Engine Studio reconciliation (use servicenow-app-engine), for the bundled Fluent code samples (use servicenow-sdk-docs), or for plain table CRUD against a live instance (use servicenow-table-api).
 
 The end-to-end procedure for taking a ServiceNow scoped application from an empty
 folder to an installed, tested app — driven by the **`now-sdk`** command-line
@@ -49,6 +44,22 @@ Sibling skills own the *content* of each artifact; this skill owns the *ordering
   server. Env: `SERVICENOW_INSTANCE`, `SERVICENOW_USERNAME`, `SERVICENOW_PASSWORD`
   (+ optional OAuth `SERVICENOW_CLIENT_ID`/`SERVICENOW_CLIENT_SECRET`,
   `SERVICENOW_SSL_VERIFY`).
+## Steps
+
+1. Scaffold with `npx @servicenow/sdk init` per `references/project-init.md`, and verify `now.config.json` exists in the project.
+2. Authenticate with the auth command in `references/auth-and-profiles.md`, and verify the profile lists the target instance.
+3. Build with the build command from `references/build-transform.md`, and verify the build exits with status 0 and writes its output folder.
+4. Deploy with the install command in `references/deploy-and-install.md`, or via MCP `servicenow_app_repo_install`, and verify the app is present on the instance.
+5. Run `servicenow_run_test_suite` for the app, and verify the suite result has zero failures.
+
+## Failure recovery
+
+| Failure | Cause | Recovery |
+|---|---|---|
+| CLI auth fails | Profile missing or wrong credentials | Recreate the profile following `references/auth-and-profiles.md` and check `SERVICENOW_INSTANCE` |
+| Build error on Fluent files | Missing dependency types | Pull types per `references/dependencies.md` and rebuild |
+| Install fails on the instance | Version conflict or missing plugin | Use `servicenow_app_repo_rollback` for the failed install and fix the cause shown in the progress output |
+
 ## The lifecycle (ordered)
 1. **Init** the project — scaffold or convert from an installed app. → `references/project-init.md`
 2. **Auth** the CLI to the target instance and pick a profile. → `references/auth-and-profiles.md`
