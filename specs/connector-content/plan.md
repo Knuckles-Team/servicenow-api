@@ -44,6 +44,16 @@ No unknowns. Every row names its code and test; the caller chain of each row was
 
 ## Phase 1: Design
 
+### Machine roll-up design
+
+1. **Owner.** servicenow-api owns its CMDB server class. Medulla owns the machine class.
+2. **Cohesion.** The class parent and the parent-link test change together.
+3. **Dependency direction.** The connector imports `scion_sdk.machine`, which imports the engine client. Nothing points upward.
+4. **Interface depth.** none. The row adds no abstraction.
+5. **Special cases.** The connector declares CMDB records as a source and has no server ingest, so no link exists.
+6. **State.** none. The connector holds no lifecycle. The lifecycle machine belongs to medulla.
+7. **Environment.** none. The roll-up and the link need no configuration.
+
 ### Summary
 
 This plan states how `servicenow-api` delivers the rows of `CONN-SERVICENOW-API-CONNECTOR-CONTENT`. The live caller is the `servicenow-mcp` console script. The owner is the `servicenow_api` package. The rows reuse the `scion-sdk` helpers and add no second authority. The plan changes no runtime code.
@@ -203,4 +213,4 @@ None. The constitution check passed.
 
 ## Cross-repo seams
 
-None. The rows depend only on the published `scion-sdk` package, which the connector imports.
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.1` consumes the observer helper of `SCION-CENTRALIZED-CAPABILITIES-R057.1`. Contract: `contracts/machine-observer.md`.
