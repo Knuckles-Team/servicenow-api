@@ -21,3 +21,10 @@ Each proving test above includes the refusal or error case that its row names. A
 ## Quality and release proof
 
 Run `uv run pytest tests` and `pre-commit run --all-files` from the repository root. A planned test is added by the code change that lands the row.
+
+## Machine roll-up proofs
+
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012`: `tests/test_ontology_parent_link.py::test_ontology_joins_the_parent_graph` (planned; the owning change adds the test)
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.1`: `tests/test_machine_rollup.py::test_cmdb_server_rolls_up_to_machine` (planned; the owning change adds the test)
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.2`: `tests/test_machine_rollup.py::test_roll_up_is_wired_into_the_pack` (planned; the owning change adds the test)
+- `CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.3`: `tests/test_ontology_parent_link.py::test_ontology_joins_the_parent_graph` (planned; the owning change adds the test)

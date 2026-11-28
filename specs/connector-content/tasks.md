@@ -15,3 +15,7 @@ Each task line reads `- [ ] T001 [P] [US1] <ID>-R012.4 description`. Tasks run p
 - [x] T009 [US9] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R009 An HTML reply is an error, not data.
 - [x] T010 [US10] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R010 Prompts and access contracts name served tools.
 - [x] T011 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R011 Pack extends only the core ontology.
+- [ ] T012 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012 Machine roll-up (rollup).
+- [ ] T013 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.1 Class rolls up to the machine class.
+- [ ] T014 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.2 Wiring.
+- [ ] T015 [US1] CONN-SERVICENOW-API-CONNECTOR-CONTENT-R012.3 Hot-path proof: the pack roll-up reaches the core.
